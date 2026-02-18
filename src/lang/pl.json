@@ -1922,7 +1922,7 @@
   "WARNING_SCENE_TYPE_DISABLED_REMOVED_SCENES": "Rodzaj sceny \"{type}\" nie jest włączony - sceny {scenes} nie zostaną dołączone do gry",
   "WARNING_FN_DEPRECATED": "\"{name}\" jest oznaczone jako przestarzałe i zostanie usunięte w jednej z przyszłych wersji.",
   "WARNING_FN_DEPRECATED_REPLACEMENT": "Zamiast tego użyj \"{name}\" .",
-  
+
   "// 12": "Errors -------------------------------------------------------",
 
   "ERROR_PLEASE_ENTER_PROJECT_NAME": "Wprowadź nazwę projektu",
