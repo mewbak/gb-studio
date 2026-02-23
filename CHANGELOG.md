@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix issue where changing Music Tracker Keyboard Layout setting would not take effect until the project was reloaded
 - Fix Music Tracker keyboard shortcuts when using non-QWERTY layouts (QWERTZ, AZERTY, Dvorak, etc.)
 - Fix issue where off-screen actors would sometimes be visible on scene load
+- Fix issue where scenes with unicode character names could cause resources to be deleted when saving project
 
 ## [4.2.1] - 2026-02-13
 
