@@ -11,6 +11,7 @@
   "PROJECT": "Project",
   "CUSTOM_EVENT": "Script",
   "CONSTANT": "Constant",
+  "NOTE": "Note",
 
   "// 2": "Navigator ------------------------------------------------",
   "NAV_GAME_WORLD": "Game World",
@@ -47,6 +48,7 @@
   "TOOL_ADD_ACTOR_LABEL": "Add Actor",
   "TOOL_ADD_TRIGGER_LABEL": "Add Trigger",
   "TOOL_ADD_SCENE_LABEL": "Add Scene",
+  "TOOL_ADD_NOTE_LABEL": "Add Note",
   "TOOL_ERASER_LABEL": "Eraser",
   "TOOL_COLLISIONS_LABEL": "Collisions",
   "TOOL_COLORS_LABEL": "Colorize",
@@ -1891,6 +1893,7 @@
   "MENU_PROJECT_PLUGINS": "Project Plugins...",
   "MENU_PLAY_WINDOW": "Play Window",
   "MENU_MUTE_AUDIO": "Mute Audio",
+  "MENU_DELETE_NOTE": "Delete Note",
 
   "// 11": "Warnings -----------------------------------------------------",
 
