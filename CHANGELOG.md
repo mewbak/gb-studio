@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add setting to control how many frames projectile collision checks are spread over
+- Add "Is Touching Wall" as a read only engine field for platformer scenes (gives access to `plat_wall_col`)
+
 ### Changed
 
 - Deprecate legacy `scriptBuilder` plugin APIs. Usage now triggers a warning indicating the replacement function
@@ -15,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix issue where changing Music Tracker Keyboard Layout setting would not take effect until the project was reloaded
 - Fix Music Tracker keyboard shortcuts when using non-QWERTY layouts (QWERTZ, AZERTY, Dvorak, etc.)
+- Fix issue where off-screen actors would sometimes be visible on scene load
 
 ## [4.2.1] - 2026-02-13
 

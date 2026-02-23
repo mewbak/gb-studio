@@ -1302,6 +1302,13 @@
   "FIELD_MOVEMENT": "Movement",
   "FIELD_OPTIONS": "Options",
   "FIELD_REMOVE_UNUSED": "Remove Unused",
+  "FIELD_PROJECTILES_COLLISION_SPREAD": "Projectile Collisions Spread",
+  "FIELD_PROJECTILES_COLLISION_SPREAD_DESC": "Distribute projectile collision checks across multiple frames to improve performance when many projectiles are on screen.",
+  "FIELD_SPREAD_4": "Over 4 Frames",
+  "FIELD_SPREAD_2": "Over 2 Frames",
+  "FIELD_EVERY_FRAME_WITH_WARN": "Every Frame (Most Precise, Slowest)",
+  "FIELD_TOUCHING_WALL": "Is Touching Wall",
+  "FIELD_PLATFORM_TOUCHING_WALL_DESC": "Whether the player is currently pressing against a wall in the platformer scene.",
 
   "// 7": "Asset Viewer ---------------------------------------------",
   "ASSET_SEARCH": "Search...",
@@ -2076,6 +2083,7 @@
   "SETTINGS_COLOR": "Color Options",
   "SETTINGS_BUILD": "Build Options",
   "SETTINGS_SPRITE": "Sprite Options",
+  "SETTINGS_PROJECTILES": "Projectiles Options",
 
   "// 17 ": "Palettes ---------------------------------------------------",
 
