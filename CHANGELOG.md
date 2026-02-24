@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Deprecate legacy `scriptBuilder` plugin APIs. Usage now triggers a warning indicating the replacement function
+- Increased plugin compile timeout to 10 minutes (previously 1 minute)
 
 ### Fixed
 
