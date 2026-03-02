@@ -581,7 +581,6 @@ export const dummyFontResource: FontResource = {
   filename: "font.png",
   width: 16,
   height: 16,
-  mapping: {},
 };
 
 export const dummyNoteResource: NoteResource = {
