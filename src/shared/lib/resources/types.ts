@@ -525,6 +525,7 @@ export const SpriteResource = Type.Object({
   numTiles: Type.Number(),
   plugin: Type.Optional(Type.String()),
   checksum: Type.String(),
+  notes: Type.Optional(Type.String()),
   width: Type.Number(),
   height: Type.Number(),
   canvasOriginX: Type.Number(),
