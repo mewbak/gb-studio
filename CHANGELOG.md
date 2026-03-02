@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Improve warning messages when multiple engine plugins modify the same files.
+- Updated Polish localisation. [@ReptiIe](https://github.com/ReptiIe)
+- Updated Japanese localisation. [@tomo666](https://github.com/tomo666)
 
 ### Fixed
 
