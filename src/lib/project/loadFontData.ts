@@ -40,8 +40,11 @@ const loadFontData =
       let name: string = file.replace(/.png/i, "");
       try {
         const metadataFile = await readJson(metadataFilename);
-        if (typeof metadataFile === "object"){
-          if (metadataFile.mapping && typeof metadataFile.mapping === "object") {
+        if (typeof metadataFile === "object") {
+          if (
+            metadataFile.mapping &&
+            typeof metadataFile.mapping === "object"
+          ) {
             mapping = metadataFile.mapping;
           }
           if (metadataFile.table && typeof metadataFile.table === "object") {
@@ -51,26 +54,34 @@ const loadFontData =
             name = metadataFile.name;
           }
         }
-      } catch (e) {}      
-      
+      } catch (e) {}
+
       let table = (Array.from(Array(256)) as number[]).fill(-1);
-      
-      if (Object.keys(tableMapping).length){
+
+      if (Object.keys(tableMapping).length) {
         //get highest mapped char
-        const mappingKeys = Object.keys(tableMapping).map((mappingKey)=> {return mappingKey.charCodeAt(0);}).filter((charcode)=> {return charcode < 256;});
+        const mappingKeys = Object.keys(tableMapping)
+          .map((mappingKey) => {
+            return mappingKey.charCodeAt(0);
+          })
+          .filter((charcode) => {
+            return charcode < 256;
+          });
         const maxValue = Math.max(...mappingKeys) + 1;
         //adjust the table size to fit tableMapping
-        if (table.length < maxValue){
-          table = table.concat((Array.from(Array(maxValue - table.length)) as number[]).fill(-1));
-        }    
+        if (table.length < maxValue) {
+          table = table.concat(
+            (Array.from(Array(maxValue - table.length)) as number[]).fill(-1),
+          );
+        }
         //modify the table with the tableMapping
         Object.entries(tableMapping).forEach(([key, value]) => {
-            const tableIndex = key.charCodeAt(0); //get ascii value of mapped char
-            if (tableIndex < 256) {
-              table[tableIndex] = value; //assign mapped value to table
-            }
+          const tableIndex = key.charCodeAt(0); //get ascii value of mapped char
+          if (tableIndex < 256) {
+            table[tableIndex] = value; //assign mapped value to table
+          }
         });
-  }
+      }
 
       return {
         _resourceType: "font",

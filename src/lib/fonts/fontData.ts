@@ -53,18 +53,12 @@ export const readFileToFontData = async (
   let tableMapping: Record<string, number> = {};
   try {
     const metadataFile = await readJson(metadataFilename);
-    if (typeof metadataFile === "object"){
-      if (
-      metadataFile.mapping &&
-      typeof metadataFile.mapping === "object"
-      ) {
-      mapping = metadataFile.mapping;
+    if (typeof metadataFile === "object") {
+      if (metadataFile.mapping && typeof metadataFile.mapping === "object") {
+        mapping = metadataFile.mapping;
       }
-      if (
-      metadataFile.table &&
-      typeof metadataFile.table === "object"
-      ) {
-      tableMapping = metadataFile.table;
+      if (metadataFile.table && typeof metadataFile.table === "object") {
+        tableMapping = metadataFile.table;
       }
     }
   } catch (e) {}
@@ -117,21 +111,29 @@ export const readFileToFontData = async (
   let table = (
     tileHeight < 16 ? (Array.from(Array(FIRST_CHAR)) as number[]).fill(0) : []
   ).concat(charKeys.map((key) => uniqueTileKeys.indexOf(key)));
-  
-  if (Object.keys(tableMapping).length){
+
+  if (Object.keys(tableMapping).length) {
     //get highest mapped char
-    const mappingKeys = Object.keys(tableMapping).map((mappingKey)=> {return mappingKey.charCodeAt(0);}).filter((charcode)=> {return charcode < 256;});
+    const mappingKeys = Object.keys(tableMapping)
+      .map((mappingKey) => {
+        return mappingKey.charCodeAt(0);
+      })
+      .filter((charcode) => {
+        return charcode < 256;
+      });
     const maxValue = Math.max(...mappingKeys) + 1;
     //adjust the table size to fit tableMapping
-    if (table.length < maxValue){
-      table = table.concat((Array.from(Array(maxValue - table.length)) as number[]).fill(0));
-    }    
+    if (table.length < maxValue) {
+      table = table.concat(
+        (Array.from(Array(maxValue - table.length)) as number[]).fill(0),
+      );
+    }
     //modify the table with the tableMapping
     Object.entries(tableMapping).forEach(([key, value]) => {
-        const tableIndex = key.charCodeAt(0); //get ascii value of mapped char
-        if (tableIndex < 256) {
-          table[tableIndex] = value; //assign mapped value to table
-        }
+      const tableIndex = key.charCodeAt(0); //get ascii value of mapped char
+      if (tableIndex < 256) {
+        table[tableIndex] = value; //assign mapped value to table
+      }
     });
   }
   const widths = uniqueTiles.map((tile) => tile.width);
