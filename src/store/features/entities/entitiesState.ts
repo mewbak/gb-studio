@@ -4069,6 +4069,34 @@ const removePalettes: CaseReducer<
   palettesAdapter.removeMany(state.palettes, action.payload.paletteIds);
 };
 
+const reparentPalettesFolder: CaseReducer<
+  EntitiesState,
+  PayloadAction<{
+    fromPath: string;
+    toPath: string;
+  }>
+> = (state, action) => {
+  applyReparentFolderToCollection(
+    state.palettes.entities,
+    action.payload.fromPath,
+    action.payload.toPath,
+  );
+};
+
+const reparentPalette: CaseReducer<
+  EntitiesState,
+  PayloadAction<{
+    paletteId: string;
+    toPath: string;
+  }>
+> = (state, action) => {
+  applyReparentEntityToCollection(
+    state.palettes.entities,
+    action.payload.paletteId,
+    action.payload.toPath,
+  );
+};
+
 /**************************************************************************
  * Custom Events
  */
@@ -5245,6 +5273,8 @@ const entitiesSlice = createSlice({
     },
     removePalette,
     removePalettes,
+    reparentPalettesFolder,
+    reparentPalette,
 
     /**************************************************************************
      * Custom Events
