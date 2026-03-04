@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fix issue where scenes with deleted sprite overrides would use a random sprite instead of the scene type's default sprite
+- Fix issue where renaming an asset to a name ending with a `/` would cause the file to be missing when reloading project
 
 ## [4.2.2] - 2026-02-24
 
