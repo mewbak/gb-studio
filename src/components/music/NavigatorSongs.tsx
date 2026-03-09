@@ -9,7 +9,7 @@ import {
   DutyInstrument,
   NoiseInstrument,
   WaveInstrument,
-} from "store/features/trackerDocument/trackerDocumentTypes";
+} from "shared/lib/uge/types";
 import { Button } from "ui/buttons/Button";
 import { ArrowLeftRightIcon, PlusIcon, SearchIcon } from "ui/icons/Icons";
 import { SplitPaneHeader } from "ui/splitpane/SplitPaneHeader";

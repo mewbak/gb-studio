@@ -15,7 +15,7 @@ import type {
 } from "store/features/buildGame/buildGameActions";
 import type { SettingsState } from "store/features/settings/settingsState";
 import type { BackgroundInfo } from "lib/helpers/validation";
-import type { Song } from "shared/lib/uge/song/Song";
+import type { Song } from "shared/lib/uge/types";
 import type { PrecompiledSpriteSheetData } from "lib/compiler/compileSprites";
 import type { NavigationSection } from "store/features/navigation/navigationState";
 import type { ScriptEventDefs } from "shared/lib/scripts/scriptDefHelpers";

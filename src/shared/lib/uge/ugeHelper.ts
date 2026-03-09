@@ -1,13 +1,21 @@
 /* eslint-disable camelcase */
 import type {
+  Song,
+  PatternCell,
+  SubPatternCell,
   DutyInstrument,
   NoiseInstrument,
   WaveInstrument,
-} from "store/features/trackerDocument/trackerDocumentTypes";
-import { PatternCell } from "./song/PatternCell";
-import { Song } from "./song/Song";
-import { SubPatternCell } from "./song/SubPatternCell";
+} from "shared/lib/uge/types";
 import { noteGBDKDefines } from "shared/lib/music/constants";
+import {
+  addDutyInstrument,
+  addNoiseInstrument,
+  addWaveInstrument,
+  createPatternCell,
+  createSong,
+  createSubPatternCell,
+} from "./song";
 
 interface InstrumentMap {
   [index: number]: number;
@@ -56,7 +64,7 @@ export const loadUGESong = (data: ArrayBuffer): Song | null => {
     return text;
   };
 
-  const song = new Song();
+  const song = createSong();
 
   // TODO: Sanity checks on data.
   // TODO: Use `DataView` object instead of loads of Uint32Arrays
@@ -279,11 +287,11 @@ export const loadUGESong = (data: ArrayBuffer): Song | null => {
         instr.subpattern = subpattern;
       } else {
         instr.subpattern_enabled = false;
-        instr.subpattern = [...Array(64)].map(() => new SubPatternCell());
+        instr.subpattern = [...Array(64)].map(() => createSubPatternCell());
       }
 
       duty_instrument_mapping[(idx % 15) + 1] = song.duty_instruments.length;
-      song.addDutyInstrument(instr);
+      addDutyInstrument(song, instr);
     } else if (type === 1) {
       const instr = {} as WaveInstrument;
 
@@ -302,11 +310,11 @@ export const loadUGESong = (data: ArrayBuffer): Song | null => {
         instr.subpattern = subpattern;
       } else {
         instr.subpattern_enabled = false;
-        instr.subpattern = [...Array(64)].map(() => new SubPatternCell());
+        instr.subpattern = [...Array(64)].map(() => createSubPatternCell());
       }
 
       wave_instrument_mapping[(idx % 15) + 1] = song.wave_instruments.length;
-      song.addWaveInstrument(instr);
+      addWaveInstrument(song, instr);
     } else if (type === 2) {
       const instr = {} as NoiseInstrument;
 
@@ -340,7 +348,7 @@ export const loadUGESong = (data: ArrayBuffer): Song | null => {
           // if noise macro is empty create an empty subpattern and disable
           // subpattern for this instrument
           instr.subpattern_enabled = false;
-          instr.subpattern = [...Array(64)].map(() => new SubPatternCell());
+          instr.subpattern = [...Array(64)].map(() => createSubPatternCell());
         } else {
           // if noise macro is not empty migrate to the subpattern
           instr.subpattern_enabled = true;
@@ -352,7 +360,7 @@ export const loadUGESong = (data: ArrayBuffer): Song | null => {
       }
 
       noise_instrument_mapping[(idx % 15) + 1] = song.noise_instruments.length;
-      song.addNoiseInstrument(instr);
+      addNoiseInstrument(song, instr);
     } else {
       throw Error(`Invalid instrument type ${type} [${idx}, "${name}"]`);
     }
@@ -366,7 +374,7 @@ export const loadUGESong = (data: ArrayBuffer): Song | null => {
       for (let track = 0; track < 4; track++) {
         const cellData: number[] = patterns[orders[track][n]][m];
         const [note, instrument, effectcode, effectparam] = cellData;
-        const cell = new PatternCell();
+        const cell = createPatternCell();
         if (note !== 90) cell.note = note;
         if (instrument !== 0) {
           let mapping: InstrumentMap = {};
@@ -831,7 +839,7 @@ const subpatternFromNoiseMacro = function (
   noise_macro: number[],
   ticks_per_row: number,
 ) {
-  const subpattern = [...Array(64)].map(() => new SubPatternCell());
+  const subpattern = [...Array(64)].map(() => createSubPatternCell());
   for (let n = 0; n < 6; n++) {
     subpattern[n + 1].note = noise_macro[n] + 36;
   }

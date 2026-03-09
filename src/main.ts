@@ -57,7 +57,7 @@ import {
 import { getBackgroundInfo } from "lib/helpers/validation";
 import { writeFileWithBackupAsync } from "lib/helpers/fs/writeFileWithBackup";
 import { guardAssetWithinProject } from "lib/helpers/assets";
-import type { Song } from "shared/lib/uge/song/Song";
+import type { Song } from "shared/lib/uge/types";
 import { loadUGESong, saveUGESong } from "shared/lib/uge/ugeHelper";
 import confirmUnsavedChangesTrackerDialog from "lib/electron/dialog/confirmUnsavedChangesTrackerDialog";
 import type {
