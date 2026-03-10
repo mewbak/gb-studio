@@ -54,6 +54,11 @@ export type MusicDataPacket =
       muted: boolean;
     }
   | {
+      action: "set-solo";
+      channel: number;
+      enabled: boolean;
+    }
+  | {
       action: "update";
       update: [number, number];
     }

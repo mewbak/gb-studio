@@ -10,20 +10,20 @@ import React, {
 import styled, { css } from "styled-components";
 import { CheckboxField } from "ui/form/CheckboxField";
 import { FormRow } from "ui/form/layout/FormLayout";
-import { renderEffect, renderEffectParam } from "./helpers";
+import { renderEffect, renderEffectParam } from "components/music/helpers";
 import {
   NO_CHANGE_ON_PASTE,
   parseClipboardToSubPattern,
   parseSubPatternFieldsToClipboard,
-} from "./musicClipboardHelpers";
+} from "components/music/musicClipboardHelpers";
 import { KeyWhen, getKeys } from "renderer/lib/keybindings/keyBindings";
 import trackerActions from "store/features/tracker/trackerActions";
-import { SelectionRect } from "./SongPianoRoll";
+import { SelectionRect } from "components/music/piano/PianoRollCanvas";
 import scrollIntoView from "scroll-into-view-if-needed";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
 import { cloneDeep, mergeWith } from "lodash";
 import clipboardActions from "store/features/clipboard/clipboardActions";
-import { Position } from "./SongTracker";
+import { Position } from "components/music/tracker/SongTracker";
 import API from "renderer/lib/api";
 import { useAppDispatch, useAppSelector } from "store/hooks";
 import { createSubPatternCell } from "shared/lib/uge/song";

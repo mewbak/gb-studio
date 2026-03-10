@@ -358,10 +358,6 @@ const APISetup = {
       ipcRenderer.invoke("sprite:compile", spriteData, defaultSpriteMode),
   },
   clipboard: {
-    addPasteInPlaceListener: (listener: () => void) =>
-      ipcRenderer.on("paste-in-place", listener),
-    removePasteInPlaceListener: (listener: () => void) =>
-      ipcRenderer.removeListener("paste-in-place", listener),
     readText: (): Promise<string> => ipcRenderer.invoke("clipboard:read-text"),
     readBuffer: async (format: string): Promise<Buffer> =>
       Buffer.from(await ipcRenderer.invoke("clipboard:read-buffer", format)),

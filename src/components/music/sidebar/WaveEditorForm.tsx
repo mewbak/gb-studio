@@ -5,12 +5,15 @@ import l10n from "shared/lib/lang/l10n";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
 import { FormRow, FormField } from "ui/form/layout/FormLayout";
 import { ThemeContext } from "styled-components";
-import { WaveEditorInput } from "components/music/WaveEditorInput";
+import { WaveEditorInput } from "components/music/sidebar/WaveEditorInput";
+import clamp from "shared/lib/helpers/clamp";
 
 interface WaveEditorFormProps {
   waveId: number;
   onChange: (newValue: { value: number; label: string }) => void;
 }
+
+const PADDING = 10;
 
 export const WaveEditorForm = ({ waveId, onChange }: WaveEditorFormProps) => {
   const dispatch = useAppDispatch();
@@ -43,8 +46,12 @@ export const WaveEditorForm = ({ waveId, onChange }: WaveEditorFormProps) => {
       return;
     }
 
-    const drawWidth = canvas.width - 10;
-    const drawHeight = canvas.height - 10;
+    const rect = canvas.getBoundingClientRect();
+
+    canvas.width = rect.width;
+
+    const drawWidth = canvas.width - PADDING * 2;
+    const drawHeight = canvas.height - PADDING * 2;
     const pointLength = drawWidth / (song.waves[waveId].length - 1);
     const pointHeight = drawHeight / 15;
 
@@ -58,24 +65,28 @@ export const WaveEditorForm = ({ waveId, onChange }: WaveEditorFormProps) => {
     canvas.height = canvas.height;
 
     const drawGrid = (waves: Uint8Array) => {
-      if (ctx) {
-        ctx.fillStyle = "#000";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      if (!ctx) return;
 
-        // Draw grid
-        ctx.beginPath();
-        ctx.strokeStyle = "#333";
-        ctx.lineWidth = 1;
-        for (let i = 0; i < waves.length; i++) {
-          ctx.moveTo(5 + i * pointLength, 0);
-          ctx.lineTo(5 + i * pointLength, canvas.height);
-        }
-        for (let i = 0; i <= 15; i++) {
-          ctx.moveTo(0, 5 + i * pointHeight);
-          ctx.lineTo(canvas.width, 5 + i * pointHeight);
-        }
-        ctx.stroke();
+      ctx.fillStyle = "#000";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.beginPath();
+      ctx.strokeStyle = "#333";
+      ctx.lineWidth = 1;
+
+      for (let i = -1; i < waves.length + 1; i++) {
+        const x = PADDING + i * pointLength + 0.5;
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
       }
+
+      for (let i = -1; i <= 16; i++) {
+        const y = PADDING + i * pointHeight + 0.5;
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+      }
+
+      ctx.stroke();
     };
 
     const drawWave = (waves: Uint8Array, color?: string) => {
@@ -85,9 +96,24 @@ export const WaveEditorForm = ({ waveId, onChange }: WaveEditorFormProps) => {
         ctx.strokeStyle = color ? color : defaultColor;
         ctx.lineWidth = 2;
         waves.forEach((y: number, x: number) => {
-          ctx.lineTo(5 + x * pointLength, 5 + drawHeight - y * pointHeight);
+          ctx.lineTo(
+            PADDING + x * pointLength,
+            PADDING + drawHeight - y * pointHeight,
+          );
         });
 
+        ctx.shadowColor = defaultColor;
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = "black";
+        for (let i = 0; i < 10; i++) {
+          ctx.stroke();
+          ctx.shadowBlur = i * 6;
+        }
+
+        ctx.lineWidth = 2;
+        ctx.lineCap = "round";
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = defaultColor;
         ctx.stroke();
       }
     };
@@ -122,19 +148,20 @@ export const WaveEditorForm = ({ waveId, onChange }: WaveEditorFormProps) => {
         };
 
         const gridP = {
-          i: Math.floor(pos.x / pointLength),
-          j: Math.floor(pos.y / pointHeight),
+          i: clamp(
+            Math.round((pos.x - PADDING) / pointLength),
+            0,
+            song.waves[waveId].length - 1,
+          ),
+          j: clamp(Math.round((pos.y - PADDING) / pointHeight), 0, 15),
         };
 
         if (gridP.j < 16) {
           drawGrid(song.waves[waveId]);
-
-          drawWave(song.waves[waveId], "#FF000066");
-
           if (!mousedown) {
             newWaves = new Uint8Array(song.waves[waveId]);
           }
-          newWaves[gridP.i] = 15 - gridP.j;
+          newWaves[gridP.i] = clamp(15 - gridP.j, 0, 15);
           drawWave(newWaves);
         }
       }

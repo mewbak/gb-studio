@@ -1,14 +1,22 @@
 import React from "react";
-import styled, { css } from "styled-components";
 import { PatternCell } from "shared/lib/uge/types";
 import {
   renderNote,
   renderInstrument,
   renderEffect,
   renderEffectParam,
-} from "./helpers";
+} from "components/music/helpers";
+import {
+  StyledTrackerEffectCodeField,
+  StyledTrackerEffectParamField,
+  StyledTrackerInstrumentField,
+  StyledTrackerNoteField,
+  StyledTrackerCell,
+  StyledTrackerRowIndexField,
+  StyledTrackerRow,
+} from "./style";
 
-interface SongRowProps {
+interface TrackerRowProps {
   id: string;
   n: number;
   row: PatternCell[];
@@ -17,109 +25,14 @@ interface SongRowProps {
   isActive: boolean;
   isPlaying: boolean;
   selectedTrackerFields: number[];
+  channelStatus: boolean[];
 }
-
-interface WrapperProps {
-  $n: number;
-  $isActive: boolean;
-  $isPlaying: boolean;
-  $size?: "normal" | "small";
-}
-
-const Wrapper = styled.span<WrapperProps>`
-  display: inline-block;
-  font-family: monospace;
-  font-size: 18px;
-  font-weight: bold;
-  color: ${(props) => props.theme.colors.tracker.text};
-  border-width: 0 1px 0 0;
-  border-color: ${(props) => props.theme.colors.tracker.border};
-  border-style: solid;
-  margin: 0;
-  padding: 4px 8px;
-  height: 20px;
-  ${(props) =>
-    props.$size === "small"
-      ? css`
-          width: 30px;
-        `
-      : css`
-          width: 116px;
-        `}
-  background-color: ${(props) => props.theme.colors.tracker.background};
-  ${(props) =>
-    props.$n % 8 === 0
-      ? css`
-          background-color: ${props.theme.colors.tracker.activeBackground};
-        `
-      : ""}
-  ${(props) =>
-    props.$isActive
-      ? css`
-          background-color: ${props.theme.colors.tracker.activeBackground};
-        `
-      : ""}
-  ${(props) =>
-    props.$isPlaying
-      ? css`
-          background-color: ${props.theme.colors.highlight};
-        `
-      : ""}
-`;
-
-const Field = styled.span<{ $active?: boolean; $selected?: boolean }>`
-  &:hover {
-    box-shadow: 0px 0px 0px 2px rgba(255, 0, 0, 0.2) inset;
-  }
-  margin: 0;
-  padding: 0 4px;
-  ${(props) =>
-    props.$selected
-      ? css`
-          background-color: rgba(255, 0, 0, 0.2);
-        `
-      : ""}
-  ${(props) =>
-    props.$active
-      ? css`
-          background-color: white;
-        `
-      : ""}
-  ${(props) =>
-    props.$active && props.$selected
-      ? css`
-          box-shadow: 0px 0px 0px 2px rgba(255, 0, 0, 0.2) inset;
-        `
-      : ""}
-`;
-
-const HeaderField = styled.span`
-  margin: 0;
-  padding: 0 4px;
-  pointer-events: none;
-`;
-
-const NoteField = styled(Field)`
-  color: ${(props) => props.theme.colors.tracker.note};
-`;
-
-const InstrumentField = styled(Field)`
-  color: ${(props) => props.theme.colors.tracker.instrument};
-`;
-
-const EffectCodeField = styled(Field)`
-  color: ${(props) => props.theme.colors.tracker.effectCode};
-`;
-
-const EffectParamField = styled(Field)`
-  color: ${(props) => props.theme.colors.tracker.effectParam};
-`;
 
 const renderCounter = (n: number): string => {
   return n?.toString().padStart(2, "0") || "__";
 };
 
-const SongRowFwd = React.forwardRef<HTMLSpanElement, SongRowProps>(
+const TrackerRowFwd = React.forwardRef<HTMLSpanElement, TrackerRowProps>(
   (
     {
       n,
@@ -129,29 +42,34 @@ const SongRowFwd = React.forwardRef<HTMLSpanElement, SongRowProps>(
       isPlaying,
       isActive,
       selectedTrackerFields,
-    }: SongRowProps,
+      channelStatus,
+    }: TrackerRowProps,
     ref,
   ) => {
     return (
-      <div>
-        <Wrapper
+      <StyledTrackerRow>
+        <StyledTrackerCell
           $isPlaying={isPlaying}
           $isActive={isActive}
+          $isMuted={false}
           $n={n}
           $size="small"
           data-row={n}
         >
-          <HeaderField id={`cell_${n}`}>{renderCounter(n)}</HeaderField>
-        </Wrapper>
+          <StyledTrackerRowIndexField id={`cell_${n}`}>
+            {renderCounter(n)}
+          </StyledTrackerRowIndexField>
+        </StyledTrackerCell>
         {row.map((cell, channelId) => {
           const ret = (
-            <Wrapper
+            <StyledTrackerCell
               $isPlaying={isPlaying}
               $isActive={isActive}
+              $isMuted={channelStatus[channelId]}
               $n={n}
               key={`_${channelId}`}
             >
-              <NoteField
+              <StyledTrackerNoteField
                 id={`cell_${n}_${channelId}_note`}
                 $active={activeField === fieldCount}
                 ref={activeField === fieldCount ? ref : null}
@@ -159,8 +77,8 @@ const SongRowFwd = React.forwardRef<HTMLSpanElement, SongRowProps>(
                 $selected={selectedTrackerFields.indexOf(fieldCount) > -1}
               >
                 {renderNote(cell.note)}
-              </NoteField>
-              <InstrumentField
+              </StyledTrackerNoteField>
+              <StyledTrackerInstrumentField
                 id={`cell_${n}_${channelId}_instrument`}
                 $active={activeField === fieldCount + 1}
                 ref={activeField === fieldCount + 1 ? ref : null}
@@ -168,8 +86,8 @@ const SongRowFwd = React.forwardRef<HTMLSpanElement, SongRowProps>(
                 $selected={selectedTrackerFields.indexOf(fieldCount + 1) > -1}
               >
                 {renderInstrument(cell.instrument)}
-              </InstrumentField>
-              <EffectCodeField
+              </StyledTrackerInstrumentField>
+              <StyledTrackerEffectCodeField
                 id={`cell_${n}_${channelId}_effectcode`}
                 $active={activeField === fieldCount + 2}
                 ref={activeField === fieldCount + 2 ? ref : null}
@@ -180,8 +98,8 @@ const SongRowFwd = React.forwardRef<HTMLSpanElement, SongRowProps>(
                 $selected={selectedTrackerFields.indexOf(fieldCount + 2) > -1}
               >
                 {renderEffect(cell.effectcode)}
-              </EffectCodeField>
-              <EffectParamField
+              </StyledTrackerEffectCodeField>
+              <StyledTrackerEffectParamField
                 id={`cell_${n}_${channelId}_effectparam`}
                 $active={activeField === fieldCount + 3}
                 ref={activeField === fieldCount + 3 ? ref : null}
@@ -192,13 +110,13 @@ const SongRowFwd = React.forwardRef<HTMLSpanElement, SongRowProps>(
                 $selected={selectedTrackerFields.indexOf(fieldCount + 3) > -1}
               >
                 {renderEffectParam(cell.effectparam)}
-              </EffectParamField>
-            </Wrapper>
+              </StyledTrackerEffectParamField>
+            </StyledTrackerCell>
           );
           fieldCount += 4;
           return ret;
         })}
-      </div>
+      </StyledTrackerRow>
     );
   },
 );
@@ -211,7 +129,10 @@ const comparePatternCell = (a: PatternCell, b: PatternCell) => {
     a.effectparam === b.effectparam
   );
 };
-const arePropsEqual = (prevProps: SongRowProps, nextProps: SongRowProps) => {
+const arePropsEqual = (
+  prevProps: TrackerRowProps,
+  nextProps: TrackerRowProps,
+) => {
   for (let i = 0; i < prevProps.row.length; i++) {
     if (!comparePatternCell(prevProps.row[i], nextProps.row[i])) {
       return false;
@@ -226,8 +147,9 @@ const arePropsEqual = (prevProps: SongRowProps, nextProps: SongRowProps) => {
     prevProps.isPlaying === nextProps.isPlaying &&
     prevProps.selectedTrackerFields.length ===
       nextProps.selectedTrackerFields.length &&
+    prevProps.channelStatus === nextProps.channelStatus &&
     prevProps.selectedTrackerFields[0] === nextProps.selectedTrackerFields[0]
   );
 };
 
-export const SongRow = React.memo(SongRowFwd, arePropsEqual);
+export const TrackerRow = React.memo(TrackerRowFwd, arePropsEqual);

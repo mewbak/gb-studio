@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
 import { DutyInstrument } from "shared/lib/uge/types";
 import { FormDivider, FormField, FormRow } from "ui/form/layout/FormLayout";
@@ -12,6 +12,10 @@ import API from "renderer/lib/api";
 import l10n from "shared/lib/lang/l10n";
 import { useAppDispatch } from "store/hooks";
 import { SingleValue } from "react-select";
+import { ButtonGroup } from "ui/buttons/ButtonGroup";
+import { testNotes } from "./helpers";
+import throttle from "lodash/throttle";
+import { OCTAVE_SIZE } from "consts";
 
 const dutyOptions = [
   {
@@ -77,6 +81,46 @@ export const InstrumentDutyEditor = ({
 }: InstrumentDutyEditorProps) => {
   const dispatch = useAppDispatch();
 
+  const throttledTestInstrument = useRef(
+    throttle(
+      (instrument: DutyInstrument) => {
+        API.music.sendToMusicWindow({
+          action: "preview",
+          note: OCTAVE_SIZE * 2, // C5
+          type: "duty",
+          instrument,
+          square2: false,
+        });
+      },
+      250,
+      { leading: true, trailing: true },
+    ),
+  ).current;
+
+  useEffect(() => {
+    return () => {
+      throttledTestInstrument.cancel();
+    };
+  }, [throttledTestInstrument]);
+
+  const lastAutoPreview = useRef("");
+  const hasMounted = useRef(false);
+
+  useEffect(() => {
+    const instrumentKey = JSON.stringify(instrument);
+
+    if (
+      instrument &&
+      hasMounted.current &&
+      instrumentKey !== lastAutoPreview.current
+    ) {
+      throttledTestInstrument(instrument);
+    }
+
+    lastAutoPreview.current = instrumentKey;
+    hasMounted.current = true;
+  }, [instrument, throttledTestInstrument]);
+
   if (!instrument) return <></>;
 
   const selectedDuty = dutyOptions.find(
@@ -116,10 +160,10 @@ export const InstrumentDutyEditor = ({
       }
     };
 
-  const onTestInstrument = () => {
+  const onTestInstrument = (note: number) => () => {
     API.music.sendToMusicWindow({
       action: "preview",
-      note: 24, // C_5
+      note,
       type: "duty",
       instrument: instrument,
       square2: false,
@@ -132,18 +176,14 @@ export const InstrumentDutyEditor = ({
         value={instrument.length}
         onChange={onChangeField("length")}
       />
-
       <FormDivider />
-
       <InstrumentVolumeEditor
         initialVolume={instrument.initial_volume}
         volumeSweepChange={instrument.volume_sweep_change}
         length={instrument.length}
         onChange={onChangeField}
       />
-
       <FormDivider />
-
       <FormRow>
         <FormField name="frequency_sweep_time" label={l10n("FIELD_SWEEP_TIME")}>
           <Select
@@ -154,22 +194,21 @@ export const InstrumentDutyEditor = ({
           />
         </FormField>
       </FormRow>
-
-      <FormRow>
-        <SliderField
-          name="frequency_sweep_shift"
-          label={l10n("FIELD_SWEEP_SHIFT")}
-          value={instrument.frequency_sweep_shift || 0}
-          min={-7}
-          max={7}
-          onChange={(value) => {
-            onChangeField("frequency_sweep_shift")(value || 0);
-          }}
-        />
-      </FormRow>
-
+      {Number(instrument.frequency_sweep_time) !== 0 && (
+        <FormRow>
+          <SliderField
+            name="frequency_sweep_shift"
+            label={l10n("FIELD_SWEEP_SHIFT")}
+            value={instrument.frequency_sweep_shift || 0}
+            min={-7}
+            max={7}
+            onChange={(value) => {
+              onChangeField("frequency_sweep_shift")(value || 0);
+            }}
+          />
+        </FormRow>
+      )}
       <FormDivider />
-
       <FormRow>
         <FormField name="duty_cycle" label={l10n("FIELD_DUTY")}>
           <Select
@@ -180,13 +219,24 @@ export const InstrumentDutyEditor = ({
           />
         </FormField>
       </FormRow>
-
       <FormDivider />
-
       <FormRow>
-        <Button onClick={onTestInstrument}>
-          {l10n("FIELD_TEST_INSTRUMENT")}
-        </Button>
+        <FormField
+          name="test_instrument_C5"
+          label={l10n("FIELD_TEST_INSTRUMENT")}
+        >
+          <ButtonGroup>
+            {testNotes.map(({ label, value }) => (
+              <Button
+                key={`test_instrument_${label}`}
+                id={`test_instrument_${label}`}
+                onClick={onTestInstrument(value)}
+              >
+                {label}
+              </Button>
+            ))}
+          </ButtonGroup>
+        </FormField>
       </FormRow>
       {instrument.subpattern_enabled && (
         <FormRow>

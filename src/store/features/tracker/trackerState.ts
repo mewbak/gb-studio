@@ -22,6 +22,7 @@ interface TrackerState {
   visibleChannels: number[];
   hoverNote: number | null;
   hoverColumn: number | null;
+  hoverSequence: number | null;
   startPlaybackPosition: [number, number];
   defaultStartPlaybackPosition: [number, number];
   selectedPatternCells: number[];
@@ -46,6 +47,7 @@ export const initialState: TrackerState = {
   visibleChannels: [0, 1, 2, 3],
   hoverNote: null,
   hoverColumn: null,
+  hoverSequence: null,
   startPlaybackPosition: [0, 0],
   defaultStartPlaybackPosition: [0, 0],
   selectedPatternCells: [],
@@ -75,11 +77,17 @@ const trackerSlice = createSlice({
     setView: (state, action: PayloadAction<TrackerViewType>) => {
       state.view = action.payload;
     },
-    setHoverNote: (state, action: PayloadAction<number | null>) => {
-      state.hoverNote = action.payload;
-    },
-    setHoverColumn: (state, action: PayloadAction<number | null>) => {
-      state.hoverColumn = action.payload;
+    setHover: (
+      state,
+      action: PayloadAction<{
+        note: number | null;
+        column: number | null;
+        sequenceId: number | null;
+      }>,
+    ) => {
+      state.hoverNote = action.payload.note;
+      state.hoverColumn = action.payload.column;
+      state.hoverSequence = action.payload.sequenceId;
     },
     setTool: (state, _action: PayloadAction<PianoRollToolType>) => {
       state.tool = _action.payload;

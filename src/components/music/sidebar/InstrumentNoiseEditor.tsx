@@ -1,18 +1,21 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { castEventToBool } from "renderer/lib/helpers/castEventValue";
 import l10n from "shared/lib/lang/l10n";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
 import { SubPatternCell, NoiseInstrument } from "shared/lib/uge/types";
 import { CheckboxField } from "ui/form/CheckboxField";
-import { FormDivider, FormRow } from "ui/form/layout/FormLayout";
+import { FormDivider, FormField, FormRow } from "ui/form/layout/FormLayout";
 import { InstrumentLengthForm } from "./InstrumentLengthForm";
 import { InstrumentVolumeEditor } from "./InstrumentVolumeEditor";
 import { NoiseMacroEditorForm } from "./NoiseMacroEditorForm";
 import { Button } from "ui/buttons/Button";
-import { cloneDeep } from "lodash";
+import { cloneDeep, throttle } from "lodash";
 import { Alert, AlertItem } from "ui/alerts/Alert";
 import API from "renderer/lib/api";
 import { useAppDispatch } from "store/hooks";
+import { ButtonGroup } from "ui/buttons/ButtonGroup";
+import { testNotes } from "./helpers";
+import { OCTAVE_SIZE } from "consts";
 
 interface InstrumentNoiseEditorProps {
   id: string;
@@ -23,6 +26,46 @@ export const InstrumentNoiseEditor = ({
   instrument,
 }: InstrumentNoiseEditorProps) => {
   const dispatch = useAppDispatch();
+
+  const throttledTestInstrument = useRef(
+    throttle(
+      (instrument: NoiseInstrument) => {
+        API.music.sendToMusicWindow({
+          action: "preview",
+          note: OCTAVE_SIZE * 4, // C_7
+          type: "noise",
+          instrument: instrument,
+          square2: false,
+        });
+      },
+      250,
+      { leading: true, trailing: true },
+    ),
+  ).current;
+
+  useEffect(() => {
+    return () => {
+      throttledTestInstrument.cancel();
+    };
+  }, [throttledTestInstrument]);
+
+  const lastAutoPreview = useRef("");
+  const hasMounted = useRef(false);
+
+  useEffect(() => {
+    const instrumentKey = JSON.stringify(instrument);
+
+    if (
+      instrument &&
+      hasMounted.current &&
+      instrumentKey !== lastAutoPreview.current
+    ) {
+      throttledTestInstrument(instrument);
+    }
+
+    lastAutoPreview.current = instrumentKey;
+    hasMounted.current = true;
+  }, [instrument, throttledTestInstrument]);
 
   if (!instrument) return <></>;
 
@@ -54,10 +97,10 @@ export const InstrumentNoiseEditor = ({
     );
   };
 
-  const onTestInstrument = () => {
+  const onTestInstrument = (note: number) => () => {
     API.music.sendToMusicWindow({
       action: "preview",
-      note: 24, // C_5
+      note,
       type: "noise",
       instrument: instrument,
       square2: false,
@@ -118,9 +161,22 @@ export const InstrumentNoiseEditor = ({
       <FormDivider />
 
       <FormRow>
-        <Button onClick={onTestInstrument}>
-          {l10n("FIELD_TEST_INSTRUMENT")}
-        </Button>
+        <FormField
+          name="test_instrument_C5"
+          label={l10n("FIELD_TEST_INSTRUMENT")}
+        >
+          <ButtonGroup>
+            {testNotes.map(({ label, value }) => (
+              <Button
+                key={`test_instrument_${label}`}
+                id={`test_instrument_${label}`}
+                onClick={onTestInstrument(value)}
+              >
+                {label}
+              </Button>
+            ))}
+          </ButtonGroup>
+        </FormField>
       </FormRow>
       {instrument.subpattern_enabled && (
         <FormRow>

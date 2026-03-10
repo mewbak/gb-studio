@@ -95,6 +95,12 @@ API.events.music.data.subscribe((_event, d) => {
         channels,
       });
       break;
+    case "set-solo":
+      API.music.sendToProjectWindow({
+        action: "muted",
+        channels: player.setSolo(d.channel, d.enabled),
+      });
+      break;
     case "preview":
       let waves = d.waveForms || [];
       const song = player.getCurrentSong();

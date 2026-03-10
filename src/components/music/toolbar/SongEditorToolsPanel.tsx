@@ -1,4 +1,10 @@
-import React, { useCallback, useContext, useEffect, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import styled, { ThemeContext } from "styled-components";
 import {
   PlayIcon,
@@ -20,19 +26,19 @@ import { saveSongFile } from "store/features/trackerDocument/trackerDocumentStat
 import { InstrumentSelect } from "./InstrumentSelect";
 import { Select } from "ui/form/Select";
 import { PianoRollToolType } from "store/features/tracker/trackerState";
-import l10n from "shared/lib/lang/l10n";
 import { InstrumentType } from "store/features/editor/editorState";
 import API from "renderer/lib/api";
 import { useAppDispatch, useAppSelector } from "store/hooks";
 import { SingleValue } from "react-select";
 import { MusicAsset } from "shared/lib/resources/types";
-
-const octaveOffsetOptions: OctaveOffsetOptions[] = [0, 1, 2, 3].map((i) => ({
-  value: i,
-  label: `Octave ${i + 3}`,
-}));
+import l10n from "shared/lib/lang/l10n";
 
 interface OctaveOffsetOptions {
+  value: number;
+  label: string;
+}
+
+interface StepOption {
   value: number;
   label: string;
 }
@@ -53,6 +59,11 @@ const FloatingPanelTools = styled(FloatingPanel)`
   top: 10px;
   left: 64px;
   z-index: 10;
+
+  .OctaveSelect,
+  .StepSelect {
+    width: 50px;
+  }
 `;
 
 const getPlayButtonLabel = (play: boolean, playbackFromStart: boolean) => {
@@ -91,6 +102,24 @@ const SongEditorToolsPanel = ({ selectedSong }: SongEditorToolsPanelProps) => {
   );
 
   const [playbackFromStart, setPlaybackFromStart] = useState(false);
+
+  const octaveOffsetOptions: OctaveOffsetOptions[] = useMemo(
+    () =>
+      [0, 1, 2, 3].map((i) => ({
+        value: i,
+        label: `${l10n("FIELD_OCTAVE")} ${i + 3}`,
+      })),
+    [],
+  );
+
+  const stepOptions: StepOption[] = useMemo(
+    () =>
+      Array.from({ length: 64 }).map((_, i) => ({
+        value: i,
+        label: `${l10n("FIELD_STEP")} ${i}`,
+      })),
+    [],
+  );
 
   const togglePlay = useCallback(() => {
     if (!playerReady) return;
@@ -162,10 +191,18 @@ const SongEditorToolsPanel = ({ selectedSong }: SongEditorToolsPanelProps) => {
   );
 
   const octaveOffset = useAppSelector((state) => state.tracker.octaveOffset);
+  const editStep = useAppSelector((state) => state.tracker.editStep);
 
   const setOctaveOffset = useCallback(
     (offset: number) => {
       dispatch(trackerActions.setOctaveOffset(offset));
+    },
+    [dispatch],
+  );
+
+  const setEditStep = useCallback(
+    (value: number) => {
+      dispatch(trackerActions.setEditStep(value));
     },
     [dispatch],
   );
@@ -329,7 +366,7 @@ const SongEditorToolsPanel = ({ selectedSong }: SongEditorToolsPanelProps) => {
         >
           <StopIcon />
         </Button>
-        {view === "roll" ? (
+        {view === "roll" && (
           <>
             <FloatingPanelDivider />
             <Button
@@ -356,8 +393,6 @@ const SongEditorToolsPanel = ({ selectedSong }: SongEditorToolsPanelProps) => {
               <SelectionIcon />
             </Button>
           </>
-        ) : (
-          ""
         )}
         <FloatingPanelDivider />
         <InstrumentSelect
@@ -368,10 +403,11 @@ const SongEditorToolsPanel = ({ selectedSong }: SongEditorToolsPanelProps) => {
           }}
           instrumentType={instrumentType}
         />
-        {view === "tracker" ? (
+        {view === "tracker" && (
           <>
             <FloatingPanelDivider />
             <Select
+              className="OctaveSelect"
               value={octaveOffsetOptions.find((i) => i.value === octaveOffset)}
               options={octaveOffsetOptions}
               onChange={(newValue: SingleValue<OctaveOffsetOptions>) => {
@@ -380,9 +416,18 @@ const SongEditorToolsPanel = ({ selectedSong }: SongEditorToolsPanelProps) => {
                 }
               }}
             />
+            <FloatingPanelDivider />
+            <Select
+              className="StepSelect"
+              value={stepOptions.find((i) => i.value === editStep)}
+              options={stepOptions}
+              onChange={(newValue: SingleValue<StepOption>) => {
+                if (newValue) {
+                  setEditStep(newValue.value);
+                }
+              }}
+            />
           </>
-        ) : (
-          ""
         )}
       </FloatingPanelTools>
     </>

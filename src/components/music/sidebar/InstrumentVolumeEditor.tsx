@@ -18,6 +18,17 @@ interface InstrumentVolumeEditorProps {
   ) => (editValue: EditableInstrument[T]) => void;
 }
 
+const PADDING = 10;
+
+// For UI preview flip positive values so the control feels symmetric
+// The value is flipped back before being stored after changes.
+const flipSweepChange = (value: number) => {
+  if (value <= 0) {
+    return value;
+  }
+  return 8 - value;
+};
+
 export const InstrumentVolumeEditor = ({
   initialVolume,
   volumeSweepChange,
@@ -36,12 +47,16 @@ export const InstrumentVolumeEditor = ({
       return;
     }
 
-    const drawWidth = canvas.width - 10;
-    const drawHeight = canvas.height - 10;
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width;
+
+    const drawWidth = canvas.width - PADDING * 2;
+    const drawHeight = canvas.height - PADDING * 2;
     const ctx = canvas.getContext("2d");
 
     const normalisedVolume = initialVolume / 15;
     const secLength = length === null ? 1 : length / 256;
+    const centerLineY = canvas.height - PADDING - (7 / 15) * drawHeight;
 
     const defaultColor = themeContext.colors.highlight;
 
@@ -51,11 +66,28 @@ export const InstrumentVolumeEditor = ({
     canvas.height = canvas.height;
 
     if (ctx) {
-      ctx.strokeStyle = defaultColor;
-      ctx.lineWidth = 2;
+      ctx.fillStyle = "#000";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Draw center line
+      ctx.beginPath();
+      ctx.strokeStyle = "#333";
+      ctx.lineWidth = 1;
+      ctx.moveTo(0, centerLineY);
+      ctx.lineTo(canvas.width, centerLineY);
+      ctx.stroke();
+
+      ctx.lineWidth = 1;
+      ctx.lineCap = "round";
+
+      ctx.shadowColor = defaultColor;
+      ctx.shadowBlur = 5; // glow strength
 
       ctx.beginPath();
-      ctx.moveTo(5, canvas.height - 5 - normalisedVolume * drawHeight);
+      ctx.moveTo(
+        PADDING,
+        canvas.height - PADDING - normalisedVolume * drawHeight,
+      );
 
       let localVolumeSweepChange;
       if (volumeSweepChange < 0) {
@@ -64,47 +96,60 @@ export const InstrumentVolumeEditor = ({
         const envLength = ((localVolumeSweepChange / 64) * initialVolume) / 2;
 
         ctx.lineTo(
-          5 + Math.min(envLength, secLength) * drawWidth,
+          PADDING + Math.min(envLength, secLength) * drawWidth,
           drawHeight +
-            5 -
+            PADDING -
             (1 - Math.min(secLength / envLength, 1)) *
               normalisedVolume *
               drawHeight,
         );
-        ctx.lineTo(5 + secLength * drawWidth, canvas.height - 5);
+        ctx.lineTo(PADDING + secLength * drawWidth, canvas.height - PADDING);
       } else if (volumeSweepChange > 0) {
         //fade up
         localVolumeSweepChange = 8 - volumeSweepChange;
         const envLength = ((volumeSweepChange / 64) * (15 - initialVolume)) / 2;
 
         ctx.lineTo(
-          5 + Math.min(envLength, secLength) * drawWidth,
+          PADDING + Math.min(envLength, secLength) * drawWidth,
           (1 - Math.min(secLength / envLength, 1)) *
             normalisedVolume *
             drawHeight +
-            5,
+            PADDING,
         );
         ctx.lineTo(
-          5 + secLength * drawWidth,
+          PADDING + secLength * drawWidth,
           (1 - Math.min(secLength / envLength, 1)) *
             normalisedVolume *
             drawHeight +
-            5,
+            PADDING,
         );
       } else {
         //no fade
         ctx.lineTo(
-          5 + secLength * drawWidth,
-          canvas.height - 5 - normalisedVolume * drawHeight,
+          PADDING + secLength * drawWidth,
+          canvas.height - PADDING - normalisedVolume * drawHeight,
         );
       }
 
       if (secLength !== 1) {
-        ctx.lineTo(5 + secLength * drawWidth, canvas.height - 5);
+        ctx.lineTo(PADDING + secLength * drawWidth, canvas.height - PADDING);
         if (secLength < 1) {
-          ctx.lineTo(5 + drawWidth, canvas.height - 5);
+          ctx.lineTo(PADDING + drawWidth, canvas.height - PADDING);
         }
       }
+
+      ctx.shadowColor = defaultColor;
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = "black";
+      for (let i = 0; i < 10; i++) {
+        ctx.stroke();
+        ctx.shadowBlur = i * 6;
+      }
+
+      ctx.lineWidth = 2;
+      ctx.lineCap = "round";
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = defaultColor;
       ctx.stroke();
     }
   }, [initialVolume, length, themeContext, volumeSweepChange]);
@@ -123,20 +168,18 @@ export const InstrumentVolumeEditor = ({
           }}
         />
       </FormRow>
-
       <FormRow>
         <SliderField
           name="volume_sweep_change"
           label={l10n("FIELD_VOLUME_SWEEP_CHANGE")}
-          value={volumeSweepChange || 0}
+          value={flipSweepChange(volumeSweepChange || 0)}
           min={-7}
           max={7}
           onChange={(value) => {
-            onChange("volume_sweep_change")(value || 0);
+            onChange("volume_sweep_change")(flipSweepChange(value || 0));
           }}
         />
       </FormRow>
-
       <FormRow>
         <canvas
           ref={canvasRef}

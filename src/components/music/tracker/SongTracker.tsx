@@ -5,20 +5,22 @@ import React, {
   useCallback,
   useMemo,
 } from "react";
-import styled from "styled-components";
 import { Song, PatternCell } from "shared/lib/uge/types";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
-import { SplitPaneHorizontalDivider } from "ui/splitpane/SplitPaneDivider";
-import { SequenceEditor } from "./SequenceEditor";
-import { SongRow } from "./SongRow";
+import { SequenceEditor } from "components/music/SequenceEditor";
+import { TrackerRow } from "./SongRow";
 import scrollIntoView from "scroll-into-view-if-needed";
-import { SongGridHeaderCell } from "./SongGridHeaderCell";
-import { getInstrumentTypeByChannel, getInstrumentListByType } from "./helpers";
+import { TrackerHeaderCell } from "./TrackerHeaderCell";
+import {
+  getInstrumentTypeByChannel,
+  getInstrumentListByType,
+  patternHue,
+} from "components/music/helpers";
 import {
   NO_CHANGE_ON_PASTE,
   parseClipboardToPattern,
   parsePatternFieldsToClipboard,
-} from "./musicClipboardHelpers";
+} from "components/music/musicClipboardHelpers";
 import { getKeys, KeyWhen } from "renderer/lib/keybindings/keyBindings";
 import trackerActions from "store/features/tracker/trackerActions";
 import clipboardActions from "store/features/clipboard/clipboardActions";
@@ -27,6 +29,15 @@ import API from "renderer/lib/api";
 import { MusicDataPacket } from "shared/lib/music/types";
 import { useAppDispatch, useAppSelector } from "store/hooks";
 import { createPatternCell } from "shared/lib/uge/song";
+import l10n from "shared/lib/lang/l10n";
+import {
+  StyledTrackerContentWrapper,
+  StyledTrackerHeader,
+  StyledTrackerHeaderSpacer,
+  StyledTrackerOrderSidebar,
+  StyledTrackerPattern,
+  StyledTrackerWrapper,
+} from "./style";
 
 function getSelectedTrackerFields(
   selectionRect: SelectionRect | undefined,
@@ -77,26 +88,6 @@ export interface Position {
 const CHANNEL_FIELDS = 4;
 const ROW_SIZE = CHANNEL_FIELDS * 4;
 const NUM_FIELDS = ROW_SIZE * 64;
-
-const SongGrid = styled.div`
-  white-space: nowrap;
-  border-width: 0 0 0 1px;
-  border-color: ${(props) => props.theme.colors.sidebar.border};
-  border-style: solid;
-`;
-
-const SongGridHeader = styled.div`
-  display: flex;
-  position: absolute;
-  top: 0;
-  left: 94px;
-  z-index: 1;
-  white-space: nowrap;
-  background: ${(props) => props.theme.colors.tracker.background};
-  border-width: 0 0 1px 1px;
-  border-color: ${(props) => props.theme.colors.tracker.border};
-  border-style: solid;
-`;
 
 export const SongTracker = ({
   song,
@@ -829,48 +820,73 @@ export const SongTracker = ({
     }
   }, [onCopy, onCut, onPaste, subpatternEditorFocus]);
 
+  const soloChannel = useMemo(() => {
+    const firstUnmuted = channelStatus.findIndex((x) => !x);
+    const lastUnmuted = channelStatus.findLastIndex((x) => !x);
+    if (firstUnmuted !== -1 && firstUnmuted === lastUnmuted) {
+      return firstUnmuted;
+    }
+    return -1;
+  }, [channelStatus]);
+
   return (
-    <div
-      style={{
-        display: "flex",
-        width: "100%",
-      }}
-    >
-      <div style={{ position: "relative", minWidth: "93px" }}>
-        <SequenceEditor
-          direction="vertical"
-          sequence={song?.sequence}
-          patterns={song?.patterns.length}
-          playingSequence={playbackState[0]}
-          height={height}
-        />
-      </div>
-      <SplitPaneHorizontalDivider />
-      <SongGridHeader>
-        <SongGridHeaderCell size="small"></SongGridHeaderCell>
-        <SongGridHeaderCell channel={0} muted={channelStatus[0]}>
-          Duty 1
-        </SongGridHeaderCell>
-        <SongGridHeaderCell channel={1} muted={channelStatus[1]}>
-          Duty 2
-        </SongGridHeaderCell>
-        <SongGridHeaderCell channel={2} muted={channelStatus[2]}>
-          Wave
-        </SongGridHeaderCell>
-        <SongGridHeaderCell channel={3} muted={channelStatus[3]}>
-          Noise
-        </SongGridHeaderCell>
-      </SongGridHeader>
-      <div
+    <StyledTrackerWrapper style={{ height }}>
+      <StyledTrackerHeader
         style={{
-          position: "relative",
-          overflow: "hidden auto",
-          flexGrow: 1,
-          height: height - 29,
-          marginTop: "29px",
+          background: `linear-gradient(0deg, hsl(${patternHue(patternId)}deg 100% 70%) 0%, hsl(${patternHue(patternId)}deg 100% 80%) 100%)`,
         }}
       >
-        <SongGrid tabIndex={0} onFocus={onFocus} onBlur={onBlur}>
+        <TrackerHeaderCell type="order">
+          {l10n("FIELD_ORDER")}
+        </TrackerHeaderCell>
+        <TrackerHeaderCell type="patternIndex">
+          {String(patternId).padStart(2, "0")}
+        </TrackerHeaderCell>
+        <TrackerHeaderCell
+          type="channel"
+          channel={0}
+          muted={channelStatus[0] && soloChannel === -1}
+          solo={soloChannel === 0}
+        >
+          Duty 1
+        </TrackerHeaderCell>
+        <TrackerHeaderCell
+          type="channel"
+          channel={1}
+          muted={channelStatus[1] && soloChannel === -1}
+          solo={soloChannel === 1}
+        >
+          Duty 2
+        </TrackerHeaderCell>
+        <TrackerHeaderCell
+          type="channel"
+          channel={2}
+          muted={channelStatus[2] && soloChannel === -1}
+          solo={soloChannel === 2}
+        >
+          Wave
+        </TrackerHeaderCell>
+        <TrackerHeaderCell
+          type="channel"
+          channel={3}
+          muted={channelStatus[3] && soloChannel === -1}
+          solo={soloChannel === 3}
+        >
+          Noise
+        </TrackerHeaderCell>
+        <StyledTrackerHeaderSpacer />
+      </StyledTrackerHeader>
+      <StyledTrackerContentWrapper style={{ height: height - 30 }}>
+        <StyledTrackerOrderSidebar>
+          <SequenceEditor
+            direction="vertical"
+            sequence={song?.sequence}
+            patterns={song?.patterns.length}
+            playingSequence={playbackState[0]}
+            height={height - 30}
+          />
+        </StyledTrackerOrderSidebar>
+        <StyledTrackerPattern tabIndex={0} onFocus={onFocus} onBlur={onBlur}>
           {pattern?.map((row: PatternCell[], i: number) => {
             const isActiveRow =
               activeField !== undefined &&
@@ -880,7 +896,7 @@ export const SongTracker = ({
             const isSelected = selectedTrackerRows?.indexOf(i) !== -1;
             return (
               <span ref={isPlaying ? playingRowRef : null} key={`__${i}`}>
-                <SongRow
+                <TrackerRow
                   id={`__${i}`}
                   n={i}
                   row={row}
@@ -889,6 +905,7 @@ export const SongTracker = ({
                   isActive={isActiveRow}
                   isPlaying={isPlaying}
                   ref={activeFieldRef}
+                  channelStatus={channelStatus}
                   selectedTrackerFields={
                     !isPlaying && isSelected ? selectedTrackerFields || [] : []
                   }
@@ -896,8 +913,8 @@ export const SongTracker = ({
               </span>
             );
           })}
-        </SongGrid>
-      </div>
-    </div>
+        </StyledTrackerPattern>
+      </StyledTrackerContentWrapper>
+    </StyledTrackerWrapper>
   );
 };

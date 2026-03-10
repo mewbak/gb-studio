@@ -15,7 +15,7 @@ import { Input } from "ui/form/Input";
 import clamp from "shared/lib/helpers/clamp";
 import { VibratoWaveformPreview } from "./VibratoWaveformPreview";
 import styled from "styled-components";
-import { renderNote } from "./helpers";
+import { renderNote } from "components/music/helpers";
 import { useAppDispatch, useAppSelector } from "store/hooks";
 import { SingleValue } from "react-select";
 

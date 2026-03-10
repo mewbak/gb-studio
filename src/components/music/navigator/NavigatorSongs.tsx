@@ -121,6 +121,13 @@ export const NavigatorSongs = ({
   const selectedSongId = defaultFirst
     ? songsLookup[navigationId]?.id || allSongs[0]?.id
     : navigationId;
+  const selectedInstrument = useAppSelector(
+    (state) => state.editor.selectedInstrument,
+  );
+  const selectedChannel = useAppSelector(
+    (state) => state.tracker.selectedChannel,
+  );
+  const view = useAppSelector((state) => state.tracker.view);
 
   const {
     values: openFolders,
@@ -171,9 +178,20 @@ export const NavigatorSongs = ({
 
   const isOpen = useCallback(
     (id: InstrumentType) => {
+      if (view === "roll") {
+        if (id === "duty" && (selectedChannel === 0 || selectedChannel === 1)) {
+          return true;
+        }
+        if (id === "wave" && selectedChannel === 2) {
+          return true;
+        }
+        if (id === "noise" && selectedChannel === 3) {
+          return true;
+        }
+      }
       return openInstrumentGroupIds.includes(id);
     },
-    [openInstrumentGroupIds],
+    [openInstrumentGroupIds, selectedChannel, view],
   );
 
   const [instrumentItems, setInstrumentItems] = useState<
@@ -259,12 +277,6 @@ export const NavigatorSongs = ({
     [syncInstruments],
   );
 
-  const selectedInstrument = useAppSelector(
-    (state) => state.editor.selectedInstrument,
-  );
-  const selectedChannel = useAppSelector(
-    (state) => state.tracker.selectedChannel,
-  );
   const setSelectedInstrument = useCallback(
     (id: string, item: InstrumentNavigatorItem) => {
       dispatch(
@@ -562,6 +574,7 @@ export const NavigatorSongs = ({
                   size="small"
                   title={l10n("TOOL_SYNC_INSTRUMENT_NAVIGATOR")}
                   onClick={handleSyncInstruments}
+                  style={{ minWidth: 26 }}
                 >
                   <ArrowLeftRightIcon />
                 </Button>

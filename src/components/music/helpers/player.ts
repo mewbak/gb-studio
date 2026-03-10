@@ -111,7 +111,29 @@ const initPlayer = (onInit: (file: Uint8Array) => void, sfx?: string) => {
 };
 
 const setChannel = (channel: number, muted: boolean) => {
-  channels[channel] = emulator.setChannel(channel, muted);
+  const unmutedChannels = channels.filter((i) => !i);
+  if (unmutedChannels.length <= 1) {
+    // Unmute all channels except selected one
+    for (let i = 0; i < channels.length; i++) {
+      channels[i] = emulator.setChannel(i, i === channel);
+    }
+  } else {
+    // Mute selected
+    channels[channel] = emulator.setChannel(channel, muted);
+  }
+  return channels;
+};
+
+const setSolo = (channel: number, enabled: boolean) => {
+  if (enabled) {
+    for (let i = 0; i < channels.length; i++) {
+      channels[i] = emulator.setChannel(i, i !== channel);
+    }
+  } else {
+    for (let i = 0; i < channels.length; i++) {
+      channels[i] = emulator.setChannel(i, false);
+    }
+  }
   return channels;
 };
 
@@ -503,6 +525,7 @@ const player = {
   playSound,
   stop,
   setChannel,
+  setSolo,
   setStartPosition,
   getCurrentSong,
   setOnIntervalCallback: (cb: (position: PlaybackPosition) => void) => {

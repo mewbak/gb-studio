@@ -222,6 +222,7 @@ export const WaveEditorInput = ({
         wave.map((w, i) => {
           return (
             <InputCell
+              key={`${w}:${i}`}
               $active={hasFocus && i === editPosition}
               onClick={() => {
                 setEditPosition(i);

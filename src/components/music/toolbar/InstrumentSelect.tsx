@@ -10,6 +10,8 @@ import {
   SelectCommonProps,
 } from "ui/form/Select";
 import { SingleValue } from "react-select";
+import API from "renderer/lib/api";
+import { OCTAVE_SIZE } from "consts";
 
 const defaultInstrumentOptions = Array(15)
   .fill("")
@@ -19,17 +21,19 @@ const defaultInstrumentOptions = Array(15)
   })) as Option[];
 
 interface LabelColorProps {
-  $color: string;
+  $instrument?: number;
 }
 
-const LabelColor = styled.div.attrs<LabelColorProps>((props) => ({
-  className: `label--instrument-${props.$color}`,
-}))`
+const LabelColor = styled.div<LabelColorProps>`
   width: 10px;
   height: 10px;
   border-radius: 10px;
   flex-shrink: 0;
   margin-left: 5px;
+  background: ${(props) =>
+    props.$instrument !== undefined
+      ? `var(--instrument-${props.$instrument}-color)`
+      : "black"};
 `;
 
 interface InstrumentSelectProps extends SelectCommonProps {
@@ -99,6 +103,41 @@ export const InstrumentSelect: FC<InstrumentSelectProps> = ({
   const onSelectChange = (newValue: SingleValue<Option>) => {
     if (newValue) {
       onChange?.(newValue.value);
+      if (instrumentType === "duty") {
+        const instrument = song?.duty_instruments[Number(newValue.value)];
+        if (instrument) {
+          API.music.sendToMusicWindow({
+            action: "preview",
+            note: OCTAVE_SIZE * 2, // C5
+            type: "duty",
+            instrument,
+            square2: false,
+          });
+        }
+      } else if (instrumentType === "wave") {
+        const instrument = song?.wave_instruments[Number(newValue.value)];
+        if (instrument) {
+          API.music.sendToMusicWindow({
+            action: "preview",
+            note: OCTAVE_SIZE * 2, // C5
+            type: "wave",
+            instrument: instrument,
+            square2: false,
+            waveForms: song?.waves,
+          });
+        }
+      } else if (instrumentType === "noise") {
+        const instrument = song?.noise_instruments[Number(newValue.value)];
+        if (instrument) {
+          API.music.sendToMusicWindow({
+            action: "preview",
+            note: OCTAVE_SIZE * 4, // C_7
+            type: "noise",
+            instrument,
+            square2: false,
+          });
+        }
+      }
     }
   };
 
@@ -110,7 +149,7 @@ export const InstrumentSelect: FC<InstrumentSelectProps> = ({
       formatOptionLabel={(option: Option) => {
         return (
           <OptionLabelWithPreview
-            preview={<LabelColor $color={option.value} />}
+            preview={<LabelColor $instrument={Number(option.value)} />}
           >
             {option.label}
           </OptionLabelWithPreview>
@@ -118,7 +157,9 @@ export const InstrumentSelect: FC<InstrumentSelectProps> = ({
       }}
       components={{
         SingleValue: () => (
-          <SingleValueWithPreview preview={<LabelColor $color={value || ""} />}>
+          <SingleValueWithPreview
+            preview={<LabelColor $instrument={Number(value)} />}
+          >
             {currentValue?.label}
           </SingleValueWithPreview>
         ),
