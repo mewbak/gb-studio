@@ -52,7 +52,6 @@ import {
   EMULATOR_MUTED_SETTING_KEY,
   LOCALE_SETTING_KEY,
   musicTemplatesRoot,
-  projectTemplatesRoot,
   THEME_SETTING_KEY,
 } from "consts";
 import { getBackgroundInfo } from "lib/helpers/validation";
