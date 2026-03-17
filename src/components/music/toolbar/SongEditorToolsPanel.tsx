@@ -3,6 +3,7 @@ import React, {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import styled, { ThemeContext } from "styled-components";
@@ -10,6 +11,7 @@ import {
   PlayIcon,
   PauseIcon,
   SaveIcon,
+  ExportIcon,
   PencilIcon,
   EraserIcon,
   TrackerIcon,
@@ -22,15 +24,18 @@ import {
 import { FloatingPanel, FloatingPanelDivider } from "ui/panels/FloatingPanel";
 import trackerActions from "store/features/tracker/trackerActions";
 import { Button } from "ui/buttons/Button";
+import { MenuOverlay } from "ui/menu/Menu";
 import { saveSongFile } from "store/features/trackerDocument/trackerDocumentState";
 import { InstrumentSelect } from "./InstrumentSelect";
 import { Select } from "ui/form/Select";
+import { RelativePortal } from "ui/layout/RelativePortal";
 import { PianoRollToolType } from "store/features/tracker/trackerState";
 import { InstrumentType } from "store/features/editor/editorState";
 import API from "renderer/lib/api";
 import { useAppDispatch, useAppSelector } from "store/hooks";
 import { SingleValue } from "react-select";
 import { MusicAsset } from "shared/lib/resources/types";
+import SongExportForm from "./SongExportForm";
 import l10n from "shared/lib/lang/l10n";
 
 interface OctaveOffsetOptions {
@@ -66,6 +71,11 @@ const FloatingPanelTools = styled(FloatingPanel)`
   }
 `;
 
+const ExportButtonWrapper = styled.div`
+  position: relative;
+  flex-shrink: 0;
+`;
+
 const getPlayButtonLabel = (play: boolean, playbackFromStart: boolean) => {
   if (play) {
     return l10n("FIELD_PAUSE");
@@ -90,6 +100,7 @@ const SongEditorToolsPanel = ({ selectedSong }: SongEditorToolsPanelProps) => {
   const modified = useAppSelector(
     (state) => state.trackerDocument.present.modified,
   );
+  const song = useAppSelector((state) => state.trackerDocument.present.song);
 
   const view = useAppSelector((state) => state.tracker.view);
 
@@ -102,6 +113,8 @@ const SongEditorToolsPanel = ({ selectedSong }: SongEditorToolsPanelProps) => {
   );
 
   const [playbackFromStart, setPlaybackFromStart] = useState(false);
+  const exporting = useAppSelector((state) => state.tracker.exporting);
+  const [showExportPanel, setShowExportPanel] = useState(false);
 
   const octaveOffsetOptions: OctaveOffsetOptions[] = useMemo(
     () =>
@@ -171,6 +184,14 @@ const SongEditorToolsPanel = ({ selectedSong }: SongEditorToolsPanelProps) => {
       dispatch(saveSongFile());
     }
   }, [dispatch, modified, selectedSong]);
+
+  const onOpenExportPanel = useCallback(() => {
+    setShowExportPanel((isOpen) => !isOpen);
+  }, []);
+
+  const onCloseExportPanel = useCallback(() => {
+    setShowExportPanel(false);
+  }, []);
 
   const defaultInstruments = useAppSelector(
     (state) => state.tracker.defaultInstruments,
@@ -287,7 +308,6 @@ const SongEditorToolsPanel = ({ selectedSong }: SongEditorToolsPanelProps) => {
     };
   });
 
-  const song = useAppSelector((state) => state.trackerDocument.present.song);
   const selectedChannel = useAppSelector(
     (state) => state.tracker.selectedChannel,
   );
@@ -312,6 +332,17 @@ const SongEditorToolsPanel = ({ selectedSong }: SongEditorToolsPanelProps) => {
       setInstrumentType(undefined);
     }
   }, [view, setInstrumentType, song, selectedChannel]);
+
+  const prevExporting = useRef(exporting);
+  useEffect(() => {
+    if (!song || !playerReady) {
+      setShowExportPanel(false);
+    }
+    if (!exporting && prevExporting.current) {
+      setShowExportPanel(false);
+    }
+    prevExporting.current = exporting;
+  }, [song, playerReady, exporting]);
 
   const themeContext = useContext(ThemeContext);
 
@@ -343,10 +374,29 @@ const SongEditorToolsPanel = ({ selectedSong }: SongEditorToolsPanelProps) => {
         >
           <SaveIcon />
         </Button>
+        <ExportButtonWrapper>
+          <Button
+            variant="transparent"
+            disabled={!song || !playerReady || exporting}
+            title={l10n("TOOLBAR_EXPORT_AS")}
+            onClick={onOpenExportPanel}
+            active={showExportPanel}
+          >
+            <ExportIcon />
+          </Button>
+          {showExportPanel && selectedSong && (
+            <>
+              <MenuOverlay onClick={onCloseExportPanel} />
+              <RelativePortal pin="top-left" offsetY={10} zIndex={10001}>
+                <SongExportForm name={selectedSong.filename} />
+              </RelativePortal>
+            </>
+          )}
+        </ExportButtonWrapper>
         <FloatingPanelDivider />
         <Button
           variant="transparent"
-          disabled={!playerReady}
+          disabled={!playerReady || exporting}
           onClick={togglePlay}
           title={getPlayButtonLabel(play, playbackFromStart)}
         >
@@ -360,7 +410,7 @@ const SongEditorToolsPanel = ({ selectedSong }: SongEditorToolsPanelProps) => {
         </Button>
         <Button
           variant="transparent"
-          disabled={!playerReady}
+          disabled={!playerReady || exporting}
           onClick={stopPlayback}
           title={l10n("FIELD_STOP")}
         >

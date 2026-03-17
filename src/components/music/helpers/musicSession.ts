@@ -120,6 +120,27 @@ export const createMusicSession = (): MusicSession => {
         });
         break;
       }
+      case "export-song": {
+        void player
+          .exportSong(data.song, data.format, data.loopCount)
+          .then((fileData) => {
+            emit({
+              action: "exported-song",
+              requestId: data.requestId,
+              format: data.format,
+              data: fileData,
+            });
+            player.reset();
+          })
+          .catch((error) => {
+            emit({
+              action: "export-failed",
+              requestId: data.requestId,
+              message: error instanceof Error ? error.message : String(error),
+            });
+          });
+        break;
+      }
       default: {
         const unsupportedAction: never = data;
         console.log(`Unsupported music action`, unsupportedAction);

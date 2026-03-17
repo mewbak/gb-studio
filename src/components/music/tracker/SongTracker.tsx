@@ -421,23 +421,26 @@ export const SongTracker = ({
         const channel = Math.floor(activeField / 4) % 4;
         const defaultInstrument = defaultInstruments[channel];
 
-        if (song && value !== null) {
-          const instrumentType = getInstrumentTypeByChannel(channel) || "duty";
-          const instrumentList = getInstrumentListByType(song, instrumentType);
-          API.music.sendToMusicWindow({
-            action: "preview",
-            note: value + octaveOffset * 12,
-            type: instrumentType,
-            instrument: instrumentList[defaultInstrument],
-            square2: channel === 1,
-          });
-        }
-
         editPatternCell("note")(
           value === null ? null : value + octaveOffset * 12,
         );
         if (value !== null) {
           editPatternCell("instrument")(defaultInstrument);
+          if (song) {
+            const instrumentType =
+              getInstrumentTypeByChannel(channel) || "duty";
+            const instrumentList = getInstrumentListByType(
+              song,
+              instrumentType,
+            );
+            API.music.sendToMusicWindow({
+              action: "preview",
+              note: value + octaveOffset * 12,
+              type: instrumentType,
+              instrument: instrumentList[defaultInstrument],
+              square2: channel === 1,
+            });
+          }
           setActiveField(activeField + ROW_SIZE * editStep);
         }
       };

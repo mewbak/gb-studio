@@ -74,6 +74,8 @@ module.exports = async () => {
       {
         name: "@electron-forge/plugin-webpack",
         config: {
+          devContentSecurityPolicy:
+            "default-src 'self' 'unsafe-inline' data:; script-src 'self' 'unsafe-eval' 'unsafe-inline' data:; worker-src 'self' blob:;",
           devServer: { liveReload: false },
           mainConfig: "./src/apps/gb-studio/webpack.main.config.js",
           renderer: {

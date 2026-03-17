@@ -5,6 +5,8 @@ import type {
   WaveInstrument,
 } from "shared/lib/uge/types";
 
+export type MusicExportFormat = "wav" | "mp3" | "flac";
+
 export type MusicDataPacket =
   | {
       action: "load-song";
@@ -39,6 +41,13 @@ export type MusicDataPacket =
       waveForms?: Uint8Array[];
     }
   | {
+      action: "export-song";
+      requestId: string;
+      song: Song;
+      format: MusicExportFormat;
+      loopCount: number;
+    }
+  | {
       action: "set-mute";
       channel: number;
       muted: boolean;
@@ -67,4 +76,15 @@ export type MusicDataReceivePacket =
   | {
       action: "muted";
       channels: boolean[];
+    }
+  | {
+      action: "exported-song";
+      requestId: string;
+      format: MusicExportFormat;
+      data: Uint8Array;
+    }
+  | {
+      action: "export-failed";
+      requestId: string;
+      message: string;
     };

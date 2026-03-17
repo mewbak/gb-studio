@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add support for dragging and dropping to reorder patterns in Music Editor
 - Add ability to test multiple octaves for instruments in sidebar
 - Add step selection to tracker toolbar in Music Editor
+- Add ability to export songs from the Music Editor as MP3, FLAC, or WAV
 - Ukrainian localisation. [@AmakerGame](https://github.com/AmakerGame)
 
 ### Changed
