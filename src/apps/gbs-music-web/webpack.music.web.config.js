@@ -85,6 +85,15 @@ const rules = baseRules.map((rule) => {
   };
 });
 
+rules.push({
+  test: /\.(obj)$/i,
+  exclude: /(node_modules|.webpack)/,
+  loader: "file-loader",
+  options: {
+    publicPath: "..",
+  },
+});
+
 module.exports = {
   mode: isProduction ? "production" : "development",
   target: "web",

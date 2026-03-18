@@ -312,7 +312,7 @@ export const webMusicEnvironment: MusicEnvironment<MusicBinaryDocument> = {
             entry.name.toLowerCase().endsWith(extension),
           )
         ) {
-          const filename = `${directoryHandle.name}/${entry.name}`;
+          const filename = `${entry.name}`;
           const reference = createReference(entry.name, filename);
           documents.push(reference);
           fileHandles.set(reference.filename, entry);

@@ -33,6 +33,7 @@ import StandaloneMusicPage from "gbs-music-web/components/StandaloneMusicPage";
 import { useAppSelector } from "store/hooks";
 import { musicSelectors } from "store/features/entities/entitiesState";
 import { initKeyBindings } from "renderer/lib/keybindings/keyBindings";
+import { GB3D } from "./components/Splash3D";
 
 const root = createRoot(document.getElementById("App") as HTMLElement);
 const store = createMusicEditorStore();
@@ -355,20 +356,52 @@ const MusicWebApp = () => {
               topInset={MUSIC_WEB_TOOLBAR_HEIGHT}
             />
           ) : (
-            <div>
-              {onCreateSong ? (
-                <Button onClick={onCreateSong}>New Song</Button>
-              ) : null}
-              {onImportSong ? (
-                <Button variant="normal" onClick={onImportSong}>
-                  Open File
-                </Button>
-              ) : null}
-              {onOpenDirectoryWorkspace ? (
-                <Button variant="normal" onClick={onOpenDirectoryWorkspace}>
-                  Open Folder
-                </Button>
-              ) : null}
+            <div
+              style={{
+                background:
+                  "radial-gradient(circle at 50% 40%,#e9a1ab 0%, #d1456d 26%, #982c51 50%, #1f1828 100%)",
+                height: "100vh",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                <div style={{ width: 500, height: 500, marginTop: -200 }}>
+                  <GB3D colorMode="light" />
+                </div>
+                <div
+                  style={{ display: "flex", gap: 10, justifyContent: "center" }}
+                >
+                  {onCreateSong ? (
+                    <Button
+                      size="large"
+                      variant="primary"
+                      onClick={onCreateSong}
+                    >
+                      {l10n("TOOL_ADD_SONG_LABEL")}
+                    </Button>
+                  ) : null}
+                  {onImportSong ? (
+                    <Button
+                      size="large"
+                      variant="primary"
+                      onClick={onImportSong}
+                    >
+                      {l10n("FIELD_OPEN_FILE")}
+                    </Button>
+                  ) : null}
+                  {onOpenDirectoryWorkspace ? (
+                    <Button
+                      size="large"
+                      variant="primary"
+                      onClick={onOpenDirectoryWorkspace}
+                    >
+                      {l10n("FIELD_OPEN_FOLDER")}
+                    </Button>
+                  ) : null}
+                </div>
+              </div>
             </div>
           )}
         </AppContent>

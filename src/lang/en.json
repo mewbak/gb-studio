@@ -1322,6 +1322,7 @@
   "FIELD_FILE_FORMAT": "File Format",
   "FIELD_LOOPS": "Loops",
   "FIELD_OPEN_FILE": "Open File",
+  "FIELD_OPEN_FOLDER": "Open Folder",
 
   "// 7": "Asset Viewer ---------------------------------------------",
   "ASSET_SEARCH": "Search...",

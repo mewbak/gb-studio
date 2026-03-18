@@ -10,8 +10,6 @@ import {
   FolderIcon,
   FullscreenCloseIcon,
   FullscreenIcon,
-  InstantiateIcon,
-  NoteIcon,
 } from "ui/icons/Icons";
 import { FlexGrow } from "ui/spacing/Spacing";
 import l10n from "shared/lib/lang/l10n";
@@ -119,19 +117,11 @@ export const MusicWebToolbar = ({
 
   const fileMenu = useMemo(() => {
     return [
-      <MenuItem onClick={onCreateSong}>
-        <MenuItemIcon>
-          <InstantiateIcon />
-        </MenuItemIcon>
-        New Song
-      </MenuItem>,
+      <MenuItem onClick={onCreateSong}>{l10n("TOOL_ADD_SONG_LABEL")}</MenuItem>,
       ...(onImportSong
         ? [
             <MenuItem onClick={onImportSong}>
-              <MenuItemIcon>
-                <NoteIcon />
-              </MenuItemIcon>
-              Import .uge File...
+              {l10n("FIELD_OPEN_FILE")}
             </MenuItem>,
           ]
         : []),
@@ -142,7 +132,7 @@ export const MusicWebToolbar = ({
               <MenuItemIcon>
                 <FolderIcon />
               </MenuItemIcon>
-              Open Folder
+              {l10n("FIELD_OPEN_FOLDER")}
             </MenuItem>,
           ]
         : []),
