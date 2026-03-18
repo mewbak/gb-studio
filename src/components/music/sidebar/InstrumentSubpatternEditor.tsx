@@ -764,41 +764,47 @@ export const InstrumentSubpatternEditor = ({
     [dispatch],
   );
 
-  const onCopy = useCallback((e?: ClipboardEvent) => {
-    if (activeField === undefined) {
-      return;
-    }
-    if (subpattern && selectedTrackerFields) {
-      const parsedSelectedPattern = parseSubPatternFieldsToClipboard(
-        subpattern,
-        selectedTrackerFields,
-      );
-      e?.preventDefault();
-      e?.clipboardData?.setData("text/plain", parsedSelectedPattern);
-      void API.clipboard.writeText(parsedSelectedPattern);
-    }
-  }, [activeField, selectedTrackerFields, subpattern]);
+  const onCopy = useCallback(
+    (e?: ClipboardEvent) => {
+      if (activeField === undefined) {
+        return;
+      }
+      if (subpattern && selectedTrackerFields) {
+        const parsedSelectedPattern = parseSubPatternFieldsToClipboard(
+          subpattern,
+          selectedTrackerFields,
+        );
+        e?.preventDefault();
+        e?.clipboardData?.setData("text/plain", parsedSelectedPattern);
+        void API.clipboard.writeText(parsedSelectedPattern);
+      }
+    },
+    [activeField, selectedTrackerFields, subpattern],
+  );
 
-  const onCut = useCallback((e?: ClipboardEvent) => {
-    if (activeField === undefined) {
-      return;
-    }
-    if (subpattern && selectedTrackerFields) {
-      const parsedSelectedPattern = parseSubPatternFieldsToClipboard(
-        subpattern,
-        selectedTrackerFields,
-      );
-      e?.preventDefault();
-      e?.clipboardData?.setData("text/plain", parsedSelectedPattern);
-      void API.clipboard.writeText(parsedSelectedPattern);
-      deleteSelectedTrackerFields();
-    }
-  }, [
-    activeField,
-    deleteSelectedTrackerFields,
-    selectedTrackerFields,
-    subpattern,
-  ]);
+  const onCut = useCallback(
+    (e?: ClipboardEvent) => {
+      if (activeField === undefined) {
+        return;
+      }
+      if (subpattern && selectedTrackerFields) {
+        const parsedSelectedPattern = parseSubPatternFieldsToClipboard(
+          subpattern,
+          selectedTrackerFields,
+        );
+        e?.preventDefault();
+        e?.clipboardData?.setData("text/plain", parsedSelectedPattern);
+        void API.clipboard.writeText(parsedSelectedPattern);
+        deleteSelectedTrackerFields();
+      }
+    },
+    [
+      activeField,
+      deleteSelectedTrackerFields,
+      selectedTrackerFields,
+      subpattern,
+    ],
+  );
 
   const onPaste = useCallback(async () => {
     if (subpattern) {

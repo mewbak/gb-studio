@@ -164,7 +164,9 @@ export const WaveEditorInput = ({
 
   const onCopy = useCallback(
     (e?: ClipboardEvent) => {
-      const waveString = wave.map((value) => value.toString(16).toUpperCase()).join("");
+      const waveString = wave
+        .map((value) => value.toString(16).toUpperCase())
+        .join("");
       e?.preventDefault();
       e?.clipboardData?.setData("text/plain", waveString);
       void API.clipboard.writeText(waveString);

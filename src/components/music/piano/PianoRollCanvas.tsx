@@ -1120,58 +1120,56 @@ export const PianoRollCanvas = ({
       e.clipboardData?.setData("text/plain", parsedSelectedPattern);
       void API.clipboard.writeText(parsedSelectedPattern);
     },
+    [selectedChannel, selectedPatternCells, song.patterns, song.sequence],
+  );
+
+  const onCut = useCallback(
+    (e?: ClipboardEvent) => {
+      if (selectedPatternCells.length === 0) return;
+      const flatPattern = song.sequence.flatMap((pid) => song.patterns[pid]);
+      const originAbsCol = Math.min(...selectedPatternCells);
+      const parsedSelectedPattern = parsePatternToClipboard(
+        flatPattern,
+        selectedChannel,
+        selectedPatternCells,
+        originAbsCol,
+      );
+      e?.preventDefault();
+      e?.clipboardData?.setData("text/plain", parsedSelectedPattern);
+      void API.clipboard.writeText(parsedSelectedPattern);
+      const { clonedPatterns, changedPatternIds } =
+        mutatePatternsAndCollectChanges(song.patterns, (patterns, changed) => {
+          for (const absCol of selectedPatternCells) {
+            const resolved = resolveAbsCol(song.sequence, absCol);
+            if (!resolved) continue;
+            patterns[resolved.patternId][resolved.column][selectedChannel] =
+              createPatternCell();
+            changed.add(resolved.patternId);
+          }
+        });
+
+      commitChangedPatterns(
+        changedPatternIds,
+        clonedPatterns,
+        (patternId, pattern) => {
+          dispatch(
+            trackerDocumentActions.editPattern({
+              patternId,
+              pattern,
+            }),
+          );
+        },
+      );
+      dispatch(trackerActions.setSelectedPatternCells([]));
+    },
     [
+      dispatch,
       selectedChannel,
       selectedPatternCells,
       song.patterns,
       song.sequence,
     ],
   );
-
-  const onCut = useCallback((e?: ClipboardEvent) => {
-    if (selectedPatternCells.length === 0) return;
-    const flatPattern = song.sequence.flatMap((pid) => song.patterns[pid]);
-    const originAbsCol = Math.min(...selectedPatternCells);
-    const parsedSelectedPattern = parsePatternToClipboard(
-      flatPattern,
-      selectedChannel,
-      selectedPatternCells,
-      originAbsCol,
-    );
-    e?.preventDefault();
-    e?.clipboardData?.setData("text/plain", parsedSelectedPattern);
-    void API.clipboard.writeText(parsedSelectedPattern);
-    const { clonedPatterns, changedPatternIds } =
-      mutatePatternsAndCollectChanges(song.patterns, (patterns, changed) => {
-        for (const absCol of selectedPatternCells) {
-          const resolved = resolveAbsCol(song.sequence, absCol);
-          if (!resolved) continue;
-          patterns[resolved.patternId][resolved.column][selectedChannel] =
-            createPatternCell();
-          changed.add(resolved.patternId);
-        }
-      });
-
-    commitChangedPatterns(
-      changedPatternIds,
-      clonedPatterns,
-      (patternId, pattern) => {
-        dispatch(
-          trackerDocumentActions.editPattern({
-            patternId,
-            pattern,
-          }),
-        );
-      },
-    );
-    dispatch(trackerActions.setSelectedPatternCells([]));
-  }, [
-    dispatch,
-    selectedChannel,
-    selectedPatternCells,
-    song.patterns,
-    song.sequence,
-  ]);
 
   const onPaste = useCallback(async () => {
     const newPastedPattern = parseClipboardToPattern(
