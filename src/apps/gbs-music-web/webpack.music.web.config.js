@@ -4,12 +4,20 @@ const Path = require("path");
 const zlib = require("zlib");
 const { promisify } = require("util");
 const CopyPlugin = require("copy-webpack-plugin");
+const { GitRevisionPlugin } = require("git-revision-webpack-plugin");
 const baseRules = require("../shared/webpack.rules");
 const { repoPath, srcPath } = require("../shared/webpack.paths");
+const pkg = require("../../../package.json");
 
 const gzip = promisify(zlib.gzip);
 const brotliCompress = promisify(zlib.brotliCompress);
 const isProduction = process.env.NODE_ENV !== "development";
+
+const gitRevisionPlugin = new GitRevisionPlugin({
+  commithashCommand: "rev-list --max-count=1 --no-merges --abbrev-commit HEAD",
+});
+
+const docsUrl = "https://www.gbstudio.dev/docs/";
 
 class PrecompressAssetsPlugin {
   apply(compiler) {
@@ -148,6 +156,14 @@ module.exports = {
         { from: "appData/music/template.uge", to: "template.uge" },
       ],
     }),
+    new webpack.DefinePlugin({
+      GIT_VERSION: JSON.stringify(gitRevisionPlugin.version()),
+      COMMITHASH: JSON.stringify(gitRevisionPlugin.commithash()),
+      VERSION: JSON.stringify(pkg.version),
+      RELEASE_VERSION: JSON.stringify(pkg.version.replace(/-rc.*/, "")),
+      DOCS_URL: JSON.stringify(docsUrl),
+    }),
+
     ...(isProduction ? [new PrecompressAssetsPlugin()] : []),
   ],
   optimization: {

@@ -129,9 +129,6 @@ export const MusicWebToolbar = ({
         ? [
             <MenuDivider />,
             <MenuItem onClick={onOpenDirectoryWorkspace}>
-              <MenuItemIcon>
-                <FolderIcon />
-              </MenuItemIcon>
               {l10n("FIELD_OPEN_FOLDER")}
             </MenuItem>,
           ]
@@ -209,7 +206,7 @@ export const MusicWebToolbar = ({
             <AboutHeader>
               <AboutLogo src={appIconUrl} alt="GB Studio" />
               <div>
-                <AboutTitle>GB Studio Music</AboutTitle>
+                <AboutTitle>GBS Music</AboutTitle>
                 <div>
                   {VERSION} ({COMMITHASH})
                 </div>
