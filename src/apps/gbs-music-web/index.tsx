@@ -34,6 +34,7 @@ import { useAppSelector } from "store/hooks";
 import { musicSelectors } from "store/features/entities/entitiesState";
 import { initKeyBindings } from "renderer/lib/keybindings/keyBindings";
 import { GB3D } from "./components/Splash3D";
+import { Select } from "ui/form/Select";
 
 const root = createRoot(document.getElementById("App") as HTMLElement);
 const store = createMusicEditorStore();
@@ -366,15 +367,27 @@ const MusicWebApp = () => {
                 justifyContent: "center",
               }}
             >
-              <div style={{ display: "flex", flexDirection: "column" }}>
+              <div
+                style={{ display: "flex", flexDirection: "column", gap: 20 }}
+              >
                 <div style={{ width: 500, height: 500, marginTop: -200 }}>
                   <GB3D colorMode="light" />
+                </div>
+                <div>
+                  <Select
+                    value={{ value: "workspace", label: "Workspace" }}
+                    options={[
+                      { value: "workspace", label: "Workspace" },
+                      { value: "single", label: "Single File" },
+                    ]}
+                  />
                 </div>
                 <div
                   style={{ display: "flex", gap: 10, justifyContent: "center" }}
                 >
                   {onCreateSong ? (
                     <Button
+                      style={{ flexGrow: 1 }}
                       size="large"
                       variant="primary"
                       onClick={onCreateSong}
@@ -384,6 +397,7 @@ const MusicWebApp = () => {
                   ) : null}
                   {onImportSong ? (
                     <Button
+                      style={{ flexGrow: 1 }}
                       size="large"
                       variant="primary"
                       onClick={onImportSong}
@@ -393,6 +407,7 @@ const MusicWebApp = () => {
                   ) : null}
                   {onOpenDirectoryWorkspace ? (
                     <Button
+                      style={{ flexGrow: 1 }}
                       size="large"
                       variant="primary"
                       onClick={onOpenDirectoryWorkspace}
