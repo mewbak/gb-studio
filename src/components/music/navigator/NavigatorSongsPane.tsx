@@ -1,0 +1,255 @@
+import React, { useCallback, useMemo, useState } from "react";
+import { musicSelectors } from "store/features/entities/entitiesState";
+import { FlatList } from "ui/lists/FlatList";
+import editorActions from "store/features/editor/editorActions";
+import { EntityListItem, EntityListSearch } from "ui/lists/EntityListItem";
+import l10n from "shared/lib/lang/l10n";
+import { Button } from "ui/buttons/Button";
+import { PlusIcon, SearchIcon } from "ui/icons/Icons";
+import { SplitPaneHeader } from "ui/splitpane/SplitPaneHeader";
+import { requestAddNewSongFile } from "store/features/trackerDocument/trackerDocumentState";
+import { useAppDispatch, useAppSelector } from "store/hooks";
+import { assetPath } from "shared/lib/helpers/assets";
+import { stripInvalidPathCharacters } from "shared/lib/helpers/stripInvalidFilenameCharacters";
+import { MenuDivider, MenuItem } from "ui/menu/Menu";
+import projectActions from "store/features/project/projectActions";
+import { ListItem } from "ui/lists/ListItem";
+import useToggleableList from "ui/hooks/use-toggleable-list";
+import {
+  FileSystemNavigatorItem,
+  buildAssetNavigatorItems,
+} from "shared/lib/assets/buildAssetNavigatorItems";
+import { FixedSpacer } from "ui/spacing/Spacing";
+import { MusicAsset } from "shared/lib/resources/types";
+import { SplitPaneChildProps } from "ui/splitpane/SplitPaneVerticalContainer";
+import navigationActions from "store/features/navigation/navigationActions";
+import { SplitPane } from "ui/splitpane/SplitPane";
+
+const COLLAPSED_SIZE = 30;
+
+interface NavigatorSongsPaneProps extends SplitPaneChildProps {
+  modified: boolean;
+  selectedSongId: string;
+}
+
+interface NavigatorItem {
+  id: string;
+  name: string;
+}
+
+export const NavigatorSongsPane = ({
+  height,
+  onToggle,
+  ensureMinHeight,
+  modified,
+  selectedSongId,
+}: NavigatorSongsPaneProps) => {
+  const dispatch = useAppDispatch();
+
+  const [addSongMode, setAddSongMode] = useState(false);
+  const allSongs = useAppSelector((state) => musicSelectors.selectAll(state));
+
+  const {
+    values: openFolders,
+    isSet: isFolderOpen,
+    toggle: toggleFolderOpen,
+    set: openFolder,
+    unset: closeFolder,
+  } = useToggleableList<string>([]);
+
+  const [songsSearchTerm, setSongsSearchTerm] = useState("");
+  const [songsSearchEnabled, setSongsSearchEnabled] = useState(false);
+  const [renameId, setRenameId] = useState("");
+
+  const nestedSongItems = useMemo(
+    () => buildAssetNavigatorItems(allSongs, openFolders, songsSearchTerm),
+    [allSongs, openFolders, songsSearchTerm],
+  );
+
+  const setSelectedSongId = useCallback(
+    (id: string) => {
+      dispatch(navigationActions.setNavigationId(id));
+      dispatch(editorActions.setSelectedSongId(id));
+    },
+    [dispatch],
+  );
+
+  const addSong = useCallback(
+    (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+      e.stopPropagation();
+      ensureMinHeight?.(200);
+      setAddSongMode(true);
+    },
+    [ensureMinHeight],
+  );
+
+  const onRenameSongComplete = useCallback(
+    (name: string) => {
+      if (renameId) {
+        dispatch(
+          projectActions.renameMusicAsset({
+            musicId: renameId,
+            newFilename: stripInvalidPathCharacters(name),
+          }),
+        );
+      }
+      setRenameId("");
+    },
+    [dispatch, renameId],
+  );
+
+  const onRenameCancel = useCallback(() => {
+    setRenameId("");
+  }, []);
+
+  const renderContextMenu = useCallback(
+    (item: NavigatorItem) => {
+      return [
+        <MenuItem key="rename" onClick={() => setRenameId(item.id)}>
+          {l10n("FIELD_RENAME")}
+        </MenuItem>,
+        <MenuDivider key="div-delete" />,
+        <MenuItem
+          key="delete"
+          onClick={() =>
+            dispatch(projectActions.removeMusicAsset({ musicId: item.id }))
+          }
+        >
+          {l10n("MENU_DELETE_SONG")}
+        </MenuItem>,
+      ];
+    },
+    [dispatch],
+  );
+
+  const renderLabel = useCallback(
+    (item: FileSystemNavigatorItem<MusicAsset>) => {
+      if (item.type === "folder") {
+        return (
+          <div onClick={() => toggleFolderOpen(item.id)}>{item.filename}</div>
+        );
+      }
+
+      return `${item.filename}${
+        modified && item.id === selectedSongId ? "*" : ""
+      }`;
+    },
+    [modified, selectedSongId, toggleFolderOpen],
+  );
+
+  const showSongsSearch = songsSearchEnabled && (height ?? 0) > 60;
+
+  const toggleSongsSearchEnabled = useCallback(() => {
+    if (songsSearchEnabled) {
+      setSongsSearchTerm("");
+    } else {
+      ensureMinHeight?.(200);
+    }
+    setSongsSearchEnabled((value) => !value);
+  }, [ensureMinHeight, songsSearchEnabled]);
+
+  return (
+    <SplitPane style={{ height }}>
+      <SplitPaneHeader
+        onToggle={onToggle}
+        collapsed={Math.floor(height ?? 0) <= COLLAPSED_SIZE}
+        buttons={
+          <>
+            <Button
+              variant="transparent"
+              size="small"
+              title={l10n("TOOL_ADD_SONG_LABEL")}
+              onClick={addSong}
+            >
+              <PlusIcon />
+            </Button>
+            <FixedSpacer width={5} />
+            <Button
+              variant={songsSearchEnabled ? "primary" : "transparent"}
+              size="small"
+              title={l10n("TOOLBAR_SEARCH")}
+              onClick={toggleSongsSearchEnabled}
+            >
+              <SearchIcon />
+            </Button>
+          </>
+        }
+      >
+        {l10n("FIELD_SONGS")}
+      </SplitPaneHeader>
+
+      {showSongsSearch && (
+        <EntityListSearch
+          type="search"
+          value={songsSearchTerm}
+          onChange={(e) => setSongsSearchTerm(e.currentTarget.value)}
+          placeholder={l10n("TOOLBAR_SEARCH")}
+          autoFocus
+        />
+      )}
+
+      {addSongMode && (
+        <ListItem>
+          <EntityListItem
+            type="song"
+            item={{ id: "", name: "song_template" }}
+            rename
+            onRename={(filename) => {
+              if (filename) {
+                const path = assetPath("music", {
+                  filename: `${stripInvalidPathCharacters(filename)}.uge`,
+                });
+                dispatch(requestAddNewSongFile(path));
+              }
+              setAddSongMode(false);
+            }}
+            onRenameCancel={() => {
+              setAddSongMode(false);
+            }}
+          />
+        </ListItem>
+      )}
+
+      <FlatList
+        selectedId={selectedSongId}
+        items={nestedSongItems}
+        setSelectedId={setSelectedSongId}
+        height={(height ?? 0) - (showSongsSearch ? 60 : 30)}
+        onKeyDown={(e: KeyboardEvent, item) => {
+          if (e.key === "Enter" && item?.type === "file") {
+            setRenameId(item.id);
+            return;
+          }
+
+          if (item?.type === "folder") {
+            if (e.key === "ArrowRight") {
+              openFolder(item.id);
+            } else if (e.key === "ArrowLeft") {
+              closeFolder(item.id);
+            }
+          }
+        }}
+      >
+        {({ item }) => (
+          <EntityListItem
+            type={item.type === "folder" ? "folder" : "song"}
+            item={item}
+            rename={item.type === "file" && renameId === item.id}
+            onRename={onRenameSongComplete}
+            onRenameCancel={onRenameCancel}
+            renderContextMenu={
+              item.type === "file" && !item.asset?.plugin
+                ? renderContextMenu
+                : undefined
+            }
+            collapsable={item.type === "folder"}
+            collapsed={!isFolderOpen(item.id)}
+            onToggleCollapse={() => toggleFolderOpen(item.id)}
+            nestLevel={item.nestLevel}
+            renderLabel={renderLabel}
+          />
+        )}
+      </FlatList>
+    </SplitPane>
+  );
+};

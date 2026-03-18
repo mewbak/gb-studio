@@ -15,7 +15,6 @@ import {
   SplitPaneVerticalDivider,
 } from "ui/splitpane/SplitPaneDivider";
 import editorActions from "store/features/editor/editorActions";
-import { NavigatorSongs } from "components/music/navigator/NavigatorSongs";
 import { SongTracker } from "components/music/tracker/SongTracker";
 import { musicSelectors } from "store/features/entities/entitiesState";
 import { SongEditor } from "components/music/SongEditor";
@@ -31,6 +30,11 @@ import trackerActions from "store/features/tracker/trackerActions";
 import { assetPath } from "shared/lib/helpers/assets";
 import { useAppDispatch, useAppSelector } from "store/hooks";
 import { sortByFilename } from "shared/lib/entities/entitiesHelpers";
+import { NavigatorInstrumentsPane } from "components/music/navigator/NavigatorInstrumentsPane";
+import { NavigatorSongsPane } from "components/music/navigator/NavigatorSongsPane";
+import SplitPaneVerticalContainer, {
+  SplitPaneLayout,
+} from "ui/splitpane/SplitPaneVerticalContainer";
 
 const Wrapper = styled.div`
   display: flex;
@@ -68,6 +72,11 @@ const ErrorDescription = styled.div`
   padding-top: 5px;
 `;
 
+const defaultPaneLayout: SplitPaneLayout[] = [
+  { type: "fill", initialMinSize: 200 },
+  { type: "fixed", size: 485 },
+];
+
 const MIN_WIDTH_FOR_RIGHT_PANEL = 670;
 const MIN_WIDTH_FOR_FULL_SIZE_RIGHT_PANEL = 790;
 
@@ -90,6 +99,7 @@ const MusicPage = () => {
   const allUgeSongs = useMemo(() => allSongs.sort(sortByFilename), [allSongs]);
 
   const selectedSongId = useAppSelector((state) => state.editor.selectedSongId);
+  const selectedId = useAppSelector((state) => state.navigation.id);
 
   const song = useAppSelector((state) =>
     musicSelectors.selectById(state, selectedSongId),
@@ -301,14 +311,16 @@ const MusicPage = () => {
             height: "100%",
           }}
         >
-          <NavigatorSongs
+          <SplitPaneVerticalContainer
             height={windowHeight - 38}
-            defaultFirst
-            dutyInstruments={songDocument?.duty_instruments}
-            waveInstruments={songDocument?.wave_instruments}
-            noiseInstruments={songDocument?.noise_instruments}
-            modified={modified}
-          />
+            defaultLayout={defaultPaneLayout}
+          >
+            <NavigatorSongsPane
+              modified={modified}
+              selectedSongId={selectedId || viewSongId}
+            />
+            {selectedSongType === "uge" ? <NavigatorInstrumentsPane /> : null}
+          </SplitPaneVerticalContainer>
         </div>
       </div>
       <SplitPaneHorizontalDivider onMouseDown={startLeftPaneResize} />

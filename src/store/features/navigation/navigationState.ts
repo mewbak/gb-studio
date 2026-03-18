@@ -1,5 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import entitiesActions from "store/features/entities/entitiesActions";
+import { addNewSongFile } from "store/features/trackerDocument/trackerDocumentState";
+import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
 
 export type NavigationSection =
   | "world"
@@ -41,7 +43,18 @@ const navigationSlice = createSlice({
       // Select newly duplicated palette in sidebar
       .addCase(entitiesActions.duplicatePalette, (state, action) => {
         state.id = action.payload.newPaletteId;
-      }),
+      })
+      // When adding a new song file jump to it in navigator
+      .addCase(addNewSongFile.fulfilled, (state, action) => {
+        state.id = action.payload.data.id;
+      })
+      // When adding a importing song file jump to it in navigator
+      .addCase(
+        trackerDocumentActions.convertModToUgeSong.fulfilled,
+        (state, action) => {
+          state.id = action.payload.data.id;
+        },
+      ),
 });
 
 export const { actions } = navigationSlice;

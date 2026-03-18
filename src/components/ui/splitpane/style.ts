@@ -185,3 +185,11 @@ export const StyledSplitPaneVerticalDivider = styled.div`
 `;
 
 // #endregion SplitPaneDivider
+
+// #region SplitPane
+
+export const StyledSplitPane = styled.div`
+  overflow: hidden;
+`;
+
+// #endregion SplitPane
