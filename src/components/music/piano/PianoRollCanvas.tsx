@@ -235,11 +235,6 @@ export const PianoRollCanvas = ({
   );
 
   const onSelectAll = useCallback(() => {
-    const selection = window.getSelection();
-    if (!selection || selection.focusNode) {
-      return;
-    }
-
     window.getSelection()?.empty();
 
     const allPatternCells = song.sequence
@@ -264,12 +259,44 @@ export const PianoRollCanvas = ({
   }, [dispatch, selectedChannel, song.patterns, song.sequence]);
 
   useEffect(() => {
-    if (!subpatternEditorFocus) {
-      document.addEventListener("selectionchange", onSelectAll);
-      return () => {
-        document.removeEventListener("selectionchange", onSelectAll);
-      };
+    if (subpatternEditorFocus) {
+      return;
     }
+    const onKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.code === "KeyA") {
+        const target = e.target as HTMLElement | null;
+        const isEditable =
+          target instanceof HTMLInputElement ||
+          target instanceof HTMLTextAreaElement ||
+          target?.isContentEditable === true;
+
+        if (isEditable) {
+          return;
+        }
+
+        e.preventDefault();
+        onSelectAll();
+      }
+    };
+
+    const onSelectionChange = () => {
+      const selection = window.getSelection();
+      if (!selection || selection.focusNode || selection.anchorOffset !== 0) {
+        return;
+      }
+      onSelectAll();
+    };
+
+    if (API.env === "web") {
+      document.addEventListener("keydown", onKeyDown);
+    } else {
+      document.addEventListener("selectionchange", onSelectionChange);
+    }
+
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.removeEventListener("selectionchange", onSelectionChange);
+    };
   }, [onSelectAll, subpatternEditorFocus]);
 
   const handleKeyDownActions = useCallback(

@@ -1321,6 +1321,7 @@
   "FIELD_EXPORTING": "Exporting...",
   "FIELD_FILE_FORMAT": "File Format",
   "FIELD_LOOPS": "Loops",
+  "FIELD_OPEN_FILE": "Open File",
 
   "// 7": "Asset Viewer ---------------------------------------------",
   "ASSET_SEARCH": "Search...",

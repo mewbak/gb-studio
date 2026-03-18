@@ -25,6 +25,15 @@ const APIMock = {
     sendToMusicWindow: () => {},
     sendToProjectWindow: () => {},
   },
+  tracker: {
+    addNewUGEFile: () => Promise.resolve({}),
+    loadUGEFile: () => Promise.resolve(null),
+    saveUGEFile: () => Promise.resolve(),
+    convertModToUge: () => Promise.resolve({}),
+  },
+  dialog: {
+    confirmUnsavedChangesTrackerDialog: () => Promise.resolve(2),
+  },
   clipboard: {
     readText: () => {},
     readBuffer: () => {},

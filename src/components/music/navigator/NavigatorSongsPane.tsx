@@ -24,12 +24,16 @@ import { MusicAsset } from "shared/lib/resources/types";
 import { SplitPaneChildProps } from "ui/splitpane/SplitPaneVerticalContainer";
 import navigationActions from "store/features/navigation/navigationActions";
 import { SplitPane } from "ui/splitpane/SplitPane";
+import { DropdownButton } from "ui/buttons/DropdownButton";
 
 const COLLAPSED_SIZE = 30;
 
 interface NavigatorSongsPaneProps extends SplitPaneChildProps {
   modified: boolean;
   selectedSongId: string;
+  onCreateSong?: () => void;
+  onImportSong?: () => void;
+  onSelectSong?: (id: string) => void;
 }
 
 interface NavigatorItem {
@@ -43,6 +47,9 @@ export const NavigatorSongsPane = ({
   ensureMinHeight,
   modified,
   selectedSongId,
+  onSelectSong,
+  onCreateSong,
+  onImportSong,
 }: NavigatorSongsPaneProps) => {
   const dispatch = useAppDispatch();
 
@@ -68,10 +75,14 @@ export const NavigatorSongsPane = ({
 
   const setSelectedSongId = useCallback(
     (id: string) => {
+      if (onSelectSong) {
+        onSelectSong(id);
+        return;
+      }
       dispatch(navigationActions.setNavigationId(id));
       dispatch(editorActions.setSelectedSongId(id));
     },
-    [dispatch],
+    [dispatch, onSelectSong],
   );
 
   const addSong = useCallback(
@@ -155,14 +166,36 @@ export const NavigatorSongsPane = ({
         collapsed={Math.floor(height ?? 0) <= COLLAPSED_SIZE}
         buttons={
           <>
-            <Button
-              variant="transparent"
-              size="small"
-              title={l10n("TOOL_ADD_SONG_LABEL")}
-              onClick={addSong}
-            >
-              <PlusIcon />
-            </Button>
+            {onCreateSong || onImportSong ? (
+              <DropdownButton
+                label={<PlusIcon />}
+                showArrow={false}
+                variant="transparent"
+                size="small"
+                menuDirection="right"
+                title={l10n("TOOL_ADD_SONG_LABEL")}
+              >
+                {onCreateSong && (
+                  <MenuItem onClick={onCreateSong}>
+                    {l10n("TOOL_ADD_SONG_LABEL")}
+                  </MenuItem>
+                )}
+                {onImportSong && (
+                  <MenuItem onClick={onImportSong}>
+                    {l10n("FIELD_OPEN_FILE")}
+                  </MenuItem>
+                )}
+              </DropdownButton>
+            ) : (
+              <Button
+                variant="transparent"
+                size="small"
+                title={l10n("TOOL_ADD_SONG_LABEL")}
+                onClick={addSong}
+              >
+                <PlusIcon />
+              </Button>
+            )}
             <FixedSpacer width={5} />
             <Button
               variant={songsSearchEnabled ? "primary" : "transparent"}

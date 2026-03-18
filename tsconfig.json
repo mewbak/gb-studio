@@ -27,6 +27,7 @@
       "lang/*": [ "./lang/*" ],
       "wasm/*": ["../appData/wasm/*" ],
       "contributors.json": ["../contributors.json"],
+      "gbs-music-web/*": ["./apps/gbs-music-web/*"],
       "contributors-external.json": ["../contributors-external.json"],
       "patrons.json": ["../patrons.json"],
       "#my-quickjs-variant": [

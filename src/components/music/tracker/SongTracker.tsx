@@ -660,35 +660,39 @@ export const SongTracker = ({
     [transposeSelectedTrackerFields],
   );
 
-  const onSelectAll = useCallback(
-    (e: Event) => {
-      e.stopPropagation();
-      e.preventDefault();
+  const selectionRectRef = useRef(selectionRect);
 
-      const selection = window.getSelection();
-      if (!selection || selection.focusNode) {
-        return;
-      }
-      window.getSelection()?.empty();
+  useEffect(() => {
+    selectionRectRef.current = selectionRect;
+  }, [selectionRect]);
 
-      if (!selectionRect) {
-        // Select single channel
-        const offset = CHANNEL_FIELDS * channelId;
-        setSelectionOrigin({ x: offset, y: 0 });
-        setSelectionRect({
-          x: offset,
-          y: 0,
-          width: 3,
-          height: 63,
-        });
-      } else {
-        // Select all channels
-        setSelectionOrigin({ x: 0, y: 0 });
-        setSelectionRect({ x: 0, y: 0, width: 15, height: 63 });
-      }
-    },
-    [channelId, selectionRect],
-  );
+  const onSelectAll = useCallback(() => {
+    const selection = window.getSelection();
+    if (!selection || selection.focusNode) {
+      return;
+    }
+
+    const noSelection =
+      !selectionRectRef.current ||
+      selectionRectRef.current.width === 0 ||
+      selectionRectRef.current.height === 0;
+
+    if (noSelection) {
+      // Select single channel
+      const offset = CHANNEL_FIELDS * channelId;
+      setSelectionOrigin({ x: offset, y: 0 });
+      setSelectionRect({
+        x: offset,
+        y: 0,
+        width: 3,
+        height: 63,
+      });
+    } else {
+      // Select all channels
+      setSelectionOrigin({ x: 0, y: 0 });
+      setSelectionRect({ x: 0, y: 0, width: 15, height: 63 });
+    }
+  }, [channelId]);
 
   useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);
@@ -716,12 +720,53 @@ export const SongTracker = ({
   ]);
 
   useEffect(() => {
-    if (!subpatternEditorFocus) {
-      document.addEventListener("selectionchange", onSelectAll);
-      return () => {
-        document.removeEventListener("selectionchange", onSelectAll);
-      };
+    if (subpatternEditorFocus) {
+      return;
     }
+    const onKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.code === "KeyA") {
+        const target = e.target as HTMLElement | null;
+        const isEditable =
+          target instanceof HTMLInputElement ||
+          target instanceof HTMLTextAreaElement ||
+          target?.isContentEditable === true;
+
+        if (isEditable) {
+          return;
+        }
+
+        e.preventDefault();
+        onSelectAll();
+      }
+    };
+
+    let lastSelectionChange = 0;
+
+    const onSelectionChange = (e: Event) => {
+      if (Date.now() < lastSelectionChange + 100) {
+        return;
+      }
+      lastSelectionChange = Date.now();
+      const selection = window.getSelection();
+      if (!selection || selection.focusNode) {
+        return;
+      }
+      window.getSelection()?.empty();
+
+      e.preventDefault();
+      onSelectAll();
+    };
+
+    if (API.env === "web") {
+      document.addEventListener("keydown", onKeyDown);
+    } else {
+      document.addEventListener("selectionchange", onSelectionChange);
+    }
+
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.removeEventListener("selectionchange", onSelectionChange);
+    };
   }, [onSelectAll, subpatternEditorFocus]);
 
   const onFocus = useCallback(
@@ -804,7 +849,6 @@ export const SongTracker = ({
             }
           }
         }
-        console.log(newPattern);
         dispatch(
           trackerDocumentActions.editPattern({
             patternId: patternId,

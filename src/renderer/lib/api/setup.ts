@@ -117,6 +117,7 @@ const createWatchSubscribeAPI = <T>(channel: string) => {
 
 const APISetup = {
   platform: process.platform,
+  env: "electron",
   test: () => console.log("Hello World"),
   app: {
     openExternal: (path: string) => ipcRenderer.invoke("open-external", path),
