@@ -32,11 +32,14 @@ import { musicWorkspaceToAssets } from "gbs-music-web/store/features/musicAssets
 import StandaloneMusicPage from "gbs-music-web/components/StandaloneMusicPage";
 import { useAppSelector } from "store/hooks";
 import { musicSelectors } from "store/features/entities/entitiesState";
+import { initKeyBindings } from "renderer/lib/keybindings/keyBindings";
 
 const root = createRoot(document.getElementById("App") as HTMLElement);
 const store = createMusicEditorStore();
 const webApiController = installWebRendererApi();
 void store.dispatch(trackerActions.initViewFromSaved());
+
+initKeyBindings();
 
 const AppShell = styled.div`
   display: flex;
@@ -278,6 +281,35 @@ const MusicWebApp = () => {
     setLocaleId(nextLocaleId);
   }, []);
 
+  const allSongs = useAppSelector(musicSelectors.selectAll);
+
+  const onCreateSong = useCallback(() => {
+    void runWithUnsavedCheck(async () => {
+      await createSong();
+    });
+  }, [createSong, runWithUnsavedCheck]);
+
+  const onImportSong = useCallback(() => {
+    if (singleDocumentMode) {
+      void runWithUnsavedCheck(async () => {
+        await openMusicWorkspace("file");
+      });
+    } else {
+      void runWithUnsavedCheck(async () => {
+        await importSong();
+      });
+    }
+  }, [importSong, openMusicWorkspace, runWithUnsavedCheck, singleDocumentMode]);
+
+  const onOpenDirectoryWorkspace = useCallback(() => {
+    if (singleDocumentMode) {
+      return;
+    }
+    void runWithUnsavedCheck(async () => {
+      await openMusicWorkspace("directory");
+    });
+  }, [openMusicWorkspace, runWithUnsavedCheck, singleDocumentMode]);
+
   return (
     <ThemeProvider theme={theme}>
       <GlobalStyle />
@@ -303,11 +335,6 @@ const MusicWebApp = () => {
                     await importSong();
                   })
           }
-          onOpenFileWorkspace={() =>
-            void runWithUnsavedCheck(async () => {
-              await openMusicWorkspace("file");
-            })
-          }
           onOpenDirectoryWorkspace={
             singleDocumentMode
               ? undefined
@@ -318,40 +345,32 @@ const MusicWebApp = () => {
           }
         />
         <AppContent>
-          <StandaloneMusicPage
-            key={localeId}
-            onCreateSong={() =>
-              void runWithUnsavedCheck(async () => {
-                await createSong();
-              })
-            }
-            onImportSong={
-              singleDocumentMode
-                ? () =>
-                    void runWithUnsavedCheck(async () => {
-                      await openMusicWorkspace("file");
-                    })
-                : () =>
-                    void runWithUnsavedCheck(async () => {
-                      await importSong();
-                    })
-            }
-            onOpenFileWorkspace={() =>
-              void runWithUnsavedCheck(async () => {
-                await openMusicWorkspace("file");
-              })
-            }
-            onOpenDirectoryWorkspace={
-              singleDocumentMode
-                ? undefined
-                : () =>
-                    void runWithUnsavedCheck(async () => {
-                      await openMusicWorkspace("directory");
-                    })
-            }
-            onSelectSong={onSelectSong}
-            topInset={MUSIC_WEB_TOOLBAR_HEIGHT}
-          />
+          {allSongs.length > 0 ? (
+            <StandaloneMusicPage
+              key={localeId}
+              onCreateSong={onCreateSong}
+              onImportSong={onImportSong}
+              onOpenDirectoryWorkspace={onOpenDirectoryWorkspace}
+              onSelectSong={onSelectSong}
+              topInset={MUSIC_WEB_TOOLBAR_HEIGHT}
+            />
+          ) : (
+            <div>
+              {onCreateSong ? (
+                <Button onClick={onCreateSong}>New Song</Button>
+              ) : null}
+              {onImportSong ? (
+                <Button variant="normal" onClick={onImportSong}>
+                  Open File
+                </Button>
+              ) : null}
+              {onOpenDirectoryWorkspace ? (
+                <Button variant="normal" onClick={onOpenDirectoryWorkspace}>
+                  Open Folder
+                </Button>
+              ) : null}
+            </div>
+          )}
         </AppContent>
         {pendingAction ? (
           <>

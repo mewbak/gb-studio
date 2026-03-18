@@ -1,16 +1,15 @@
 import React, { useMemo, useState } from "react";
 import styled from "styled-components";
-import { Toolbar, ToolbarTitle } from "ui/toolbar/Toolbar";
+import { Toolbar } from "ui/toolbar/Toolbar";
 import { Button } from "ui/buttons/Button";
 import { DropdownButton } from "ui/buttons/DropdownButton";
 import { MenuDivider, MenuItem, MenuItemIcon, MenuOverlay } from "ui/menu/Menu";
 import {
   BlankIcon,
   CheckIcon,
-  DotsIcon,
   FolderIcon,
-  HelpIcon,
-  InfoIcon,
+  FullscreenCloseIcon,
+  FullscreenIcon,
   InstantiateIcon,
   NoteIcon,
 } from "ui/icons/Icons";
@@ -21,15 +20,17 @@ import {
   webLocaleOptions,
   webThemeOptions,
 } from "gbs-music-web/lib/preferences";
+import { useWebFullscreen } from "ui/hooks/use-web-fullscreen";
 
 declare const VERSION: string;
 declare const COMMITHASH: string;
 
 const Logo = styled.img`
-  width: 20px;
-  height: 20px;
-  image-rendering: pixelated;
+  width: 16px;
+  height: 16px;
   flex-shrink: 0;
+  margin-left: -5px;
+  margin-right: 5px;
 `;
 
 const Brand = styled.div`
@@ -99,7 +100,6 @@ interface MusicWebToolbarProps {
   onThemeChange: (themeId: string) => void;
   onLocaleChange: (localeId: string) => void;
   onCreateSong: () => void;
-  onOpenFileWorkspace: () => void;
   onOpenDirectoryWorkspace?: () => void;
   onImportSong?: () => void;
 }
@@ -112,11 +112,42 @@ export const MusicWebToolbar = ({
   onThemeChange,
   onLocaleChange,
   onCreateSong,
-  onOpenFileWorkspace,
   onOpenDirectoryWorkspace,
   onImportSong,
 }: MusicWebToolbarProps) => {
   const [showAbout, setShowAbout] = useState(false);
+
+  const fileMenu = useMemo(() => {
+    return [
+      <MenuItem onClick={onCreateSong}>
+        <MenuItemIcon>
+          <InstantiateIcon />
+        </MenuItemIcon>
+        New Song
+      </MenuItem>,
+      ...(onImportSong
+        ? [
+            <MenuItem onClick={onImportSong}>
+              <MenuItemIcon>
+                <NoteIcon />
+              </MenuItemIcon>
+              Import .uge File...
+            </MenuItem>,
+          ]
+        : []),
+      ...(onOpenDirectoryWorkspace
+        ? [
+            <MenuDivider />,
+            <MenuItem onClick={onOpenDirectoryWorkspace}>
+              <MenuItemIcon>
+                <FolderIcon />
+              </MenuItemIcon>
+              Open Folder
+            </MenuItem>,
+          ]
+        : []),
+    ];
+  }, [onCreateSong, onImportSong, onOpenDirectoryWorkspace]);
 
   const themeMenu = useMemo(
     () =>
@@ -144,77 +175,38 @@ export const MusicWebToolbar = ({
     [localeId, onLocaleChange],
   );
 
+  const { isFullscreen, toggleFullscreen } = useWebFullscreen();
+
   return (
     <>
       <Toolbar>
         <Brand>
-          <Logo src={appIconUrl} alt="GB Studio" />
-          <BrandText>GB Studio Music</BrandText>
+          <DropdownButton
+            label={
+              <>
+                <Logo src={appIconUrl} alt="GB Studio" />
+                <BrandText>GBS Music</BrandText>
+              </>
+            }
+            // variant="transparent"
+            // showArrow={false}
+            menuDirection="left"
+            title={l10n("MENU_SETTINGS")}
+          >
+            <MenuItem subMenu={fileMenu}>{l10n("MENU_FILE")}</MenuItem>
+            <MenuItem subMenu={themeMenu}>{l10n("MENU_THEME")}</MenuItem>
+            <MenuItem subMenu={localeMenu}>{l10n("MENU_LANGUAGE")}</MenuItem>
+            <MenuDivider />
+            <MenuItem onClick={() => setShowAbout(true)}>
+              {l10n("MENU_ABOUT")}
+            </MenuItem>
+          </DropdownButton>
         </Brand>
-        <DropdownButton
-          label={<FolderIcon />}
-          showArrow={false}
-          title="Workspace"
-        >
-          <MenuItem onClick={onCreateSong}>
-            <MenuItemIcon>
-              <InstantiateIcon />
-            </MenuItemIcon>
-            New Song
-          </MenuItem>
-          <MenuItem onClick={onOpenFileWorkspace}>
-            <MenuItemIcon>
-              <FolderIcon />
-            </MenuItemIcon>
-            Open File
-          </MenuItem>
-          {onOpenDirectoryWorkspace ? (
-            <MenuItem onClick={onOpenDirectoryWorkspace}>
-              <MenuItemIcon>
-                <FolderIcon />
-              </MenuItemIcon>
-              Open Folder
-            </MenuItem>
-          ) : null}
-          {onImportSong ? <MenuDivider /> : null}
-          {onImportSong ? (
-            <MenuItem onClick={onImportSong}>
-              <MenuItemIcon>
-                <NoteIcon />
-              </MenuItemIcon>
-              Import .uge File...
-            </MenuItem>
-          ) : null}
-        </DropdownButton>
+
         <FlexGrow />
-        <ToolbarTitle>GB Studio Music</ToolbarTitle>
-        <FlexGrow />
-        <DropdownButton
-          label={<DotsIcon />}
-          showArrow={false}
-          menuDirection="right"
-          title={l10n("MENU_SETTINGS")}
-        >
-          <MenuItem subMenu={themeMenu}>
-            <MenuItemIcon>
-              <InfoIcon />
-            </MenuItemIcon>
-            {l10n("MENU_THEME")}
-          </MenuItem>
-          <MenuItem subMenu={localeMenu}>
-            <MenuItemIcon>
-              <InfoIcon />
-            </MenuItemIcon>
-            {l10n("MENU_LANGUAGE")}
-          </MenuItem>
-          <MenuDivider />
-          <MenuItem onClick={() => setShowAbout(true)}>
-            <MenuItemIcon>
-              <HelpIcon />
-            </MenuItemIcon>
-            {l10n("MENU_ABOUT")}
-          </MenuItem>
-        </DropdownButton>
+        <Button onClick={toggleFullscreen}>
+          {isFullscreen ? <FullscreenCloseIcon /> : <FullscreenIcon />}
+        </Button>
       </Toolbar>
       {showAbout && (
         <>

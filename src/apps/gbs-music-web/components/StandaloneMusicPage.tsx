@@ -149,7 +149,6 @@ const MobileSheetContent = styled.div`
 
 interface StandaloneMusicPageProps {
   onCreateSong?: () => void;
-  onOpenFileWorkspace?: () => void;
   onOpenDirectoryWorkspace?: () => void;
   onImportSong?: () => void;
   onSelectSong?: (id: string) => void;
@@ -158,7 +157,6 @@ interface StandaloneMusicPageProps {
 
 export const StandaloneMusicPage = ({
   onCreateSong,
-  onOpenFileWorkspace,
   onOpenDirectoryWorkspace,
   onImportSong,
   onSelectSong,
@@ -177,7 +175,7 @@ export const StandaloneMusicPage = ({
   const windowWidth = windowSize.width || 0;
   const windowHeight = windowSize.height || 0;
   const availableHeight = Math.max(0, windowHeight - topInset);
-  const paneHeight = Math.max(0, availableHeight - 38);
+  const paneHeight = Math.max(0, availableHeight);
   const minCenterPaneWidth = 0;
   const isCompactLayout =
     windowWidth > 0 && windowWidth <= COMPACT_LAYOUT_BREAKPOINT;
@@ -382,7 +380,7 @@ export const StandaloneMusicPage = ({
           <SongTracker
             sequenceId={sequenceId}
             song={songDocument}
-            height={Math.max(0, availableHeight - 100)}
+            height={Math.max(0, paneHeight - 61)}
             channelStatus={channelStatus}
           />
         </div>
@@ -392,11 +390,11 @@ export const StandaloneMusicPage = ({
         <SongPianoRoll
           sequenceId={sequenceId}
           song={songDocument}
-          height={Math.max(0, availableHeight - 100)}
+          height={Math.max(0, paneHeight - 61)}
         />
       );
     }
-  }, [availableHeight, channelStatus, sequenceId, songDocument, view]);
+  }, [paneHeight, channelStatus, sequenceId, songDocument, view]);
 
   const documentWidth = windowWidth - leftPaneWidth - rightPaneWidth;
   const rightToolsVisible =
@@ -426,7 +424,7 @@ export const StandaloneMusicPage = ({
               }}
             >
               <SplitPaneVerticalContainer
-                height={windowHeight - 38}
+                height={windowHeight - topInset}
                 defaultLayout={defaultPaneLayout}
               >
                 <NavigatorSongsPane
@@ -547,8 +545,8 @@ export const StandaloneMusicPage = ({
                     {onCreateSong ? (
                       <Button onClick={onCreateSong}>New Song</Button>
                     ) : null}
-                    {onOpenFileWorkspace ? (
-                      <Button variant="normal" onClick={onOpenFileWorkspace}>
+                    {onImportSong ? (
+                      <Button variant="normal" onClick={onImportSong}>
                         Open File
                       </Button>
                     ) : null}
@@ -558,11 +556,6 @@ export const StandaloneMusicPage = ({
                         onClick={onOpenDirectoryWorkspace}
                       >
                         Open Folder
-                      </Button>
-                    ) : null}
-                    {onImportSong ? (
-                      <Button variant="normal" onClick={onImportSong}>
-                        Import .uge File
                       </Button>
                     ) : null}
                   </EmptyStateActions>
@@ -594,7 +587,7 @@ export const StandaloneMusicPage = ({
             <MobileSheetContent>
               {activeMobilePanel === "songs" ? (
                 <SplitPaneVerticalContainer
-                  height={windowHeight - 38}
+                  height={windowHeight - topInset}
                   defaultLayout={defaultPaneLayout}
                 >
                   <NavigatorSongsPane

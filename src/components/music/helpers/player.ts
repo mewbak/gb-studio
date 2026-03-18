@@ -119,20 +119,20 @@ const initPlayer = (onInit: (file: Uint8Array) => void, sfx?: string) => {
       onInit(file);
     }
 
-    const doResumePlayerAddr = getRamAddress("do_resume_player");
+    // const doResumePlayerAddr = getRamAddress("do_resume_player");
 
     const updateTracker = () => {
       if (isExporting) {
         return;
       }
       emulator.step("run");
-      console.log(
-        "RUN",
-        `Is Player Paused: ${isPlayerPaused()}`,
-        `Do resume Player: ${emulator.readMem(doResumePlayerAddr)}`,
-        `OxFF0F: ${emulator.readMem(0xff0f)}`,
-        `Order Count: ${emulator.readMem(getRamAddress("order_cnt"))}`,
-      );
+      // console.log(
+      //   "RUN",
+      //   `Is Player Paused: ${isPlayerPaused()}`,
+      //   `Do resume Player: ${emulator.readMem(doResumePlayerAddr)}`,
+      //   `OxFF0F: ${emulator.readMem(0xff0f)}`,
+      //   `Order Count: ${emulator.readMem(getRamAddress("order_cnt"))}`,
+      // );
     };
     setInterval(updateTracker, 1000 / 64);
   };
@@ -242,7 +242,6 @@ const play = (song: Song, position?: PlaybackPosition) => {
       currentSequence = emulator.readMem(currentOrderAddr) / 2;
       currentRow = emulator.readMem(rowAddr);
       if (oldRow !== currentRow) {
-        console.log(`Sequence: ${currentSequence}, Row: ${currentRow}`);
         onIntervalCallback([currentSequence, currentRow]);
       }
     };

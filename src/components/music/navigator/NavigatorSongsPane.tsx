@@ -172,7 +172,7 @@ export const NavigatorSongsPane = ({
                 showArrow={false}
                 variant="transparent"
                 size="small"
-                menuDirection="right"
+                menuDirection="left"
                 title={l10n("TOOL_ADD_SONG_LABEL")}
               >
                 {onCreateSong && (
