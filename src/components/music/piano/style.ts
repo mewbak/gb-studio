@@ -476,6 +476,10 @@ export const StyledPianoRollPlayhead = styled.div<StyledPianoRollPlayheadProps>`
   }
 `;
 
+export const StyledPianoRollPatternsWrapper = styled.div`
+  display: flex;
+`;
+
 interface StyledPianoRollPatternBlockProps {
   $hovered: boolean;
   $isPlaying: boolean;
@@ -486,25 +490,29 @@ export const StyledPianoRollPatternBlock = styled.div<StyledPianoRollPatternBloc
   height: ${PIANO_ROLL_CELL_SIZE * TOTAL_NOTES}px;
   overflow: hidden;
   transition: all 0.2s ease-in-out;
+  transition-delay: 0.1s;
   &:last-child {
     border-right: 1px solid ${(props) => props.theme.colors.sidebar.border};
     box-sizing: border-box;
   }
 
-  opacity: 0.5;
-  ${(props) =>
-    props.$hovered &&
-    !props.$isPlaying &&
-    css`
-      opacity: 1;
-      box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
-    `}
+  ${StyledPianoRollScrollCanvas}:hover & {
+    opacity: 0.5;
 
-  ${(props) =>
-    props.$isPlaying &&
-    css`
-      opacity: 1;
-    `}
+    ${(props) =>
+      props.$hovered &&
+      !props.$isPlaying &&
+      css`
+        opacity: 1;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+      `}
+
+    ${(props) =>
+      props.$isPlaying &&
+      css`
+        opacity: 1;
+      `}
+  }
 `;
 
 interface StyledPatternChannelNotesProps {
@@ -591,6 +599,10 @@ export const StyledPianoRollCrosshair = styled.div`
   pointer-events: none;
   width: ${TRACKER_PATTERN_LENGTH * PIANO_ROLL_CELL_SIZE}px;
   height: ${TOTAL_NOTES * PIANO_ROLL_CELL_SIZE}px;
+  opacity: 0;
+  ${StyledPianoRollScrollCanvas}:hover & {
+    opacity: 1;
+  }
 `;
 
 export const StyledPianoRollCrosshairHorizontal = styled.div`
@@ -609,8 +621,4 @@ export const StyledPianoRollCrosshairVertical = styled.div`
   opacity: 0.3;
   width: ${PIANO_ROLL_CELL_SIZE}px;
   height: 100%;
-`;
-
-export const StyledPianoRollPatternsWrapper = styled.div`
-  display: flex;
 `;
