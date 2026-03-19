@@ -26,6 +26,7 @@ import { Position } from "components/music/tracker/SongTracker";
 import API from "renderer/lib/api";
 import { useAppDispatch, useAppSelector } from "store/hooks";
 import { createSubPatternCell } from "shared/lib/uge/song";
+import { TabSettings } from "ui/tabs/Tabs";
 
 const CHANNEL_FIELDS = 4;
 const ROW_SIZE = CHANNEL_FIELDS * 1;
@@ -899,16 +900,6 @@ export const InstrumentSubpatternEditor = ({
 
   return (
     <>
-      <FormRow>
-        <CheckboxField
-          label={l10n("FIELD_SUBPATTERN_ENBALED")}
-          name="length"
-          checked={enabled}
-          onChange={(e) => {
-            onChangeField(e.target.checked);
-          }}
-        />
-      </FormRow>
       <SubpatternGrid tabIndex={0} onFocus={onFocus} onBlur={onBlur}>
         {renderSubpattern.map((s, i) => {
           const fieldCount = i * ROW_SIZE;

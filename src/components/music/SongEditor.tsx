@@ -1,7 +1,13 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { DropdownButton } from "ui/buttons/DropdownButton";
 import { EditableText } from "ui/form/EditableText";
-import { FormContainer, FormHeader, FormRow } from "ui/form/layout/FormLayout";
+import {
+  FormContainer,
+  FormDivider,
+  FormHeader,
+  FormRow,
+  FormSectionTitle,
+} from "ui/form/layout/FormLayout";
 import { Sidebar, SidebarColumn, SidebarColumns } from "ui/sidebars/Sidebar";
 import { Label } from "ui/form/Label";
 import { Input } from "ui/form/Input";
@@ -20,7 +26,7 @@ import trackerDocumentActions from "store/features/trackerDocument/trackerDocume
 import { MenuItem } from "ui/menu/Menu";
 import { PatternCellEditor } from "./sidebar/PatternCellEditor";
 import trackerActions from "store/features/tracker/trackerActions";
-import { StickyTabs, TabBar } from "ui/tabs/Tabs";
+import { StickyTabs, TabBar, TabSettings } from "ui/tabs/Tabs";
 import { InstrumentSubpatternEditor } from "./sidebar/InstrumentSubpatternEditor";
 import styled from "styled-components";
 import { NumberInput } from "ui/form/NumberInput";
@@ -28,6 +34,8 @@ import { useAppDispatch, useAppSelector } from "store/hooks";
 import { SidebarHeader } from "ui/form/SidebarHeader";
 import { getBaseName } from "shared/lib/helpers/virtualFilesystem";
 import { InputGroup, InputGroupAppend } from "ui/form/InputGroup";
+import { DutyIcon } from "ui/icons/Icons";
+import { CheckboxField } from "ui/form/CheckboxField";
 
 type Instrument = DutyInstrument | NoiseInstrument | WaveInstrument;
 
@@ -145,6 +153,34 @@ export const SongEditor = () => {
       );
     };
 
+  const onChangeInstrumentSubpatternEnabled =
+    (type: string) => (editValue: boolean) => {
+      if (!instrumentData) return;
+
+      const payload = {
+        instrumentId: instrumentData.index,
+        changes: {
+          // eslint-disable-next-line camelcase
+          subpattern_enabled: editValue,
+        },
+      };
+
+      switch (type) {
+        case "duty": {
+          dispatch(trackerDocumentActions.editDutyInstrument(payload));
+          break;
+        }
+        case "wave": {
+          dispatch(trackerDocumentActions.editWaveInstrument(payload));
+          break;
+        }
+        case "noise": {
+          dispatch(trackerDocumentActions.editNoiseInstrument(payload));
+          break;
+        }
+      }
+    };
+
   let instrumentData: Instrument | null = null;
   if (song) {
     const selectedInstrumentId = parseInt(selectedInstrument.id);
@@ -184,7 +220,7 @@ export const SongEditor = () => {
   const instrumentEditorTabs = useMemo(
     () =>
       ({
-        main: l10n("SIDEBAR_INSTRUMENT"),
+        main: l10n("MENU_SETTINGS"),
         subpattern: l10n("SIDEBAR_SUBPATTERN"),
       }) as InstrumentEditorTabs,
     [],
@@ -285,8 +321,32 @@ export const SongEditor = () => {
             />
           </div>
         ) : instrumentData ? (
-          <>
-            <FormHeader>
+          <div style={{ marginTop: -1 }}>
+            <div style={{ borderBottom: "1px solid #ccc" }}>
+              <FormSectionTitle>
+                {l10n("SIDEBAR_INSTRUMENT")}
+                <div style={{ flexGrow: 1 }}></div>
+                <DutyIcon />
+              </FormSectionTitle>
+              <FormRow>
+                <Label htmlFor="name">{l10n("FIELD_NAME")}</Label>
+              </FormRow>
+              <FormRow>
+                <Input
+                  name="name"
+                  placeholder={instrumentName(
+                    instrumentData,
+                    selectedInstrument.type,
+                  )}
+                  value={instrumentData.name || ""}
+                  onChange={onChangeInstrumentName(selectedInstrument.type)}
+                />
+              </FormRow>
+            </div>
+
+            {/* <FormHeader>
+
+              
               <EditableText
                 name="instrumentName"
                 placeholder={instrumentName(
@@ -297,26 +357,32 @@ export const SongEditor = () => {
                 onChange={onChangeInstrumentName(selectedInstrument.type)}
               />
 
-              {/* <DropdownButton
-                  size="small"
-                  variant="transparent"
-                  menuDirection="right"
-                >
-                  <MenuItem onClick={onCopyVar}>
-                  {l10n("MENU_VARIABLE_COPY_EMBED")}
-                </MenuItem>
-                <MenuItem onClick={onCopyChar}>
-                  {l10n("MENU_VARIABLE_COPY_EMBED_CHAR")}
-                </MenuItem>
-                </DropdownButton> */}
+    
             </FormHeader>
+
+             */}
 
             <StickyTabs>
               <TabBar
                 value={instrumentEditorTab}
                 values={instrumentEditorTabs}
                 onChange={onInstrumentEditorChange}
+                overflowActiveTab={instrumentEditorTab === "subpattern"}
               />
+              {instrumentEditorTab === "subpattern" && (
+                <TabSettings>
+                  <CheckboxField
+                    name="subpatternEnabled"
+                    label={l10n("FIELD_SUBPATTERN_ENBALED")}
+                    checked={instrumentData.subpattern_enabled}
+                    onChange={(e) => {
+                      onChangeInstrumentSubpatternEnabled(
+                        selectedInstrument.type,
+                      )(e.target.checked);
+                    }}
+                  />
+                </TabSettings>
+              )}
             </StickyTabs>
             <InstrumentEditorWrapper>
               {instrumentEditorTab === "main" ? (
@@ -336,7 +402,7 @@ export const SongEditor = () => {
                 />
               )}
             </InstrumentEditorWrapper>
-          </>
+          </div>
         ) : (
           ""
         )}
