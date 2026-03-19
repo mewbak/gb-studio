@@ -177,12 +177,11 @@ export const MusicWebToolbar = ({
                 <BrandText>GBS Music</BrandText>
               </>
             }
-            // variant="transparent"
-            // showArrow={false}
             menuDirection="left"
             title={l10n("MENU_SETTINGS")}
           >
             <MenuItem subMenu={fileMenu}>{l10n("MENU_FILE")}</MenuItem>
+            <MenuDivider />
             <MenuItem subMenu={themeMenu}>{l10n("MENU_THEME")}</MenuItem>
             <MenuItem subMenu={localeMenu}>{l10n("MENU_LANGUAGE")}</MenuItem>
             <MenuDivider />
