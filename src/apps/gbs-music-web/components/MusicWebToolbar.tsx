@@ -10,8 +10,9 @@ import {
   FolderIcon,
   FullscreenCloseIcon,
   FullscreenIcon,
+  PlayIcon,
 } from "ui/icons/Icons";
-import { FlexGrow } from "ui/spacing/Spacing";
+import { FixedSpacer, FlexGrow } from "ui/spacing/Spacing";
 import l10n from "shared/lib/lang/l10n";
 import appIconUrl from "ui/icons/app_icon_256.png";
 import {
@@ -19,6 +20,7 @@ import {
   webThemeOptions,
 } from "gbs-music-web/lib/preferences";
 import { useWebFullscreen } from "ui/hooks/use-web-fullscreen";
+import { SongContextBar } from "components/music/toolbar/SongContextBar";
 
 declare const VERSION: string;
 declare const COMMITHASH: string;
@@ -189,8 +191,10 @@ export const MusicWebToolbar = ({
             </MenuItem>
           </DropdownButton>
         </Brand>
-
         <FlexGrow />
+        <SongContextBar />
+        <FlexGrow />
+        <FixedSpacer width={75} />
         <Button onClick={toggleFullscreen}>
           {isFullscreen ? <FullscreenCloseIcon /> : <FullscreenIcon />}
         </Button>

@@ -62,7 +62,7 @@ const FloatingPanelSwitchView = styled(FloatingPanel)`
 const FloatingPanelTools = styled(FloatingPanel)`
   position: absolute;
   top: 10px;
-  left: 64px;
+  left: 10px;
   z-index: 10;
 
   .OctaveSelect,
@@ -351,7 +351,7 @@ const SongEditorToolsPanel = ({ selectedSong }: SongEditorToolsPanelProps) => {
 
   return (
     <>
-      <FloatingPanelSwitchView>
+      {/* <FloatingPanelSwitchView>
         <Button
           variant="transparent"
           onClick={toggleView}
@@ -363,7 +363,7 @@ const SongEditorToolsPanel = ({ selectedSong }: SongEditorToolsPanelProps) => {
         >
           {view === "roll" ? <TrackerIcon /> : themePianoIcon}
         </Button>
-      </FloatingPanelSwitchView>
+      </FloatingPanelSwitchView> */}
 
       <FloatingPanelTools>
         <Button
@@ -393,8 +393,8 @@ const SongEditorToolsPanel = ({ selectedSong }: SongEditorToolsPanelProps) => {
             </>
           )}
         </ExportButtonWrapper>
-        <FloatingPanelDivider />
-        <Button
+        {/* <FloatingPanelDivider /> */}
+        {/* <Button
           variant="transparent"
           disabled={!playerReady || exporting}
           onClick={togglePlay}
@@ -415,7 +415,7 @@ const SongEditorToolsPanel = ({ selectedSong }: SongEditorToolsPanelProps) => {
           title={l10n("FIELD_STOP")}
         >
           <StopIcon />
-        </Button>
+        </Button> */}
         {view === "roll" && (
           <>
             <FloatingPanelDivider />
