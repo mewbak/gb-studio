@@ -1,6 +1,12 @@
 import { Song } from "shared/lib/uge/types";
 import { InstrumentType } from "store/features/editor/editorState";
 
+const BPM_FACTOR = (59.727500569606 * 60) / 4;
+
+export function getBPM(ticksPerRow: number): number {
+  return BPM_FACTOR / ticksPerRow;
+}
+
 export const patternHue = (index: number) => ((index + 1) * 137.5) % 360;
 
 export const getInstrumentTypeByChannel = (

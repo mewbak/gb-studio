@@ -36,6 +36,7 @@ import { getBaseName } from "shared/lib/helpers/virtualFilesystem";
 import { InputGroup, InputGroupAppend } from "ui/form/InputGroup";
 import { DutyIcon } from "ui/icons/Icons";
 import { CheckboxField } from "ui/form/CheckboxField";
+import { getBPM } from "./helpers";
 
 type Instrument = DutyInstrument | NoiseInstrument | WaveInstrument;
 
@@ -301,7 +302,7 @@ export const SongEditor = () => {
                         fontSize: 11,
                       }}
                     >
-                      ~120 BPM
+                      ~{Math.round(getBPM(song.ticks_per_row))} BPM
                     </div>
                   </InputGroupAppend>
                 </InputGroup>
