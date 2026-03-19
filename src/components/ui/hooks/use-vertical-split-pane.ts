@@ -1,4 +1,11 @@
-import { useCallback, useLayoutEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import useSplitPane from "ui/hooks/use-split-pane";
 
 export type SplitPaneLayout =
@@ -326,6 +333,50 @@ export const fitSizesToTotal = (
   return result;
 };
 
+const resizeVerticalPaneGroups = (
+  startSizes: number[],
+  minSizes: number[],
+  dividerIndex: number,
+  delta: number,
+) => {
+  const nextSizes = [...startSizes];
+  const count = nextSizes.length;
+
+  if (dividerIndex < 0 || dividerIndex >= count - 1 || delta === 0) {
+    return nextSizes;
+  }
+
+  if (delta > 0) {
+    // Grow pane above divider. Take from panes below, furthest-first.
+    let remaining = delta;
+
+    for (let i = count - 1; i > dividerIndex && remaining > 0; i--) {
+      const minSize = minSizes[i] ?? 0;
+      const available = Math.max(0, nextSizes[i] - minSize);
+      const taken = Math.min(available, remaining);
+      nextSizes[i] -= taken;
+      remaining -= taken;
+    }
+
+    nextSizes[dividerIndex] += delta - remaining;
+    return nextSizes;
+  }
+
+  // Grow pane below divider. Take from panes above, furthest-first.
+  let remaining = -delta;
+
+  for (let i = 0; i <= dividerIndex && remaining > 0; i++) {
+    const minSize = minSizes[i] ?? 0;
+    const available = Math.max(0, nextSizes[i] - minSize);
+    const taken = Math.min(available, remaining);
+    nextSizes[i] -= taken;
+    remaining -= taken;
+  }
+
+  nextSizes[dividerIndex + 1] += -delta - remaining;
+  return nextSizes;
+};
+
 export const useVerticalSplitPane = ({
   height,
   panelCount,
@@ -443,7 +494,7 @@ export const useVerticalSplitPane = ({
     [panelCount, height, minSizes, minPaneSize, collapsedSize, defaultLayout],
   );
 
-  const [onDragStart, togglePane] = useSplitPane({
+  const [, togglePane] = useSplitPane({
     sizes: resolvedSizes,
     setSizes,
     minSizes,
@@ -451,6 +502,58 @@ export const useVerticalSplitPane = ({
     collapsedSize,
     direction: "vertical",
   });
+
+  const dragStartY = useRef(0);
+  const dragIndex = useRef(-1);
+  const dragStartSizes = useRef<number[]>([]);
+  const isDragging = useRef(false);
+
+  const stopDragging = useCallback(() => {
+    isDragging.current = false;
+    dragIndex.current = -1;
+  }, []);
+
+  const onDragMove = useCallback(
+    (event: MouseEvent) => {
+      if (!isDragging.current || dragIndex.current < 0) {
+        return;
+      }
+
+      const delta = event.pageY - dragStartY.current;
+
+      const nextSizes = resizeVerticalPaneGroups(
+        dragStartSizes.current,
+        minSizes,
+        dragIndex.current,
+        delta,
+      );
+
+      setSizesState(
+        fitSizesToTotal(nextSizes, height, minSizes, collapsedSize),
+      );
+    },
+    [height, minSizes, collapsedSize],
+  );
+
+  useEffect(() => {
+    window.addEventListener("mousemove", onDragMove);
+    window.addEventListener("mouseup", stopDragging);
+
+    return () => {
+      window.removeEventListener("mousemove", onDragMove);
+      window.removeEventListener("mouseup", stopDragging);
+    };
+  }, [onDragMove, stopDragging]);
+
+  const onDragStart = useCallback(
+    (index: number) => (ev: React.MouseEvent<HTMLElement, MouseEvent>) => {
+      dragStartY.current = ev.pageY;
+      dragIndex.current = index;
+      dragStartSizes.current = [...resolvedSizes];
+      isDragging.current = true;
+    },
+    [resolvedSizes],
+  );
 
   return {
     sizes: resolvedSizes,
