@@ -20,7 +20,7 @@ import { FixedSpacer } from "ui/spacing/Spacing";
 const StyledSongContextBar = styled.div`
   display: flex;
   align-items: center;
-  width: 300px;
+  justify-content: center;
 `;
 
 const StyledSongContextBarTimer = styled.div<{ disabled: boolean }>`
@@ -32,7 +32,7 @@ const StyledSongContextBarTimer = styled.div<{ disabled: boolean }>`
   background: #212228;
   color: #828891;
   height: 30px;
-  padding: 0 20px;
+  padding: 0 10px;
   border: 1px solid ${(props) => props.theme.colors.toolbar.border};
   border-radius: 8px;
   overflow: hidden;
@@ -89,6 +89,8 @@ export const SongContextBar = () => {
   const view = useAppSelector((state) => state.tracker.view);
   const exporting = useAppSelector((state) => state.tracker.exporting);
   const playerReady = useAppSelector((state) => state.tracker.playerReady);
+
+  const song = useAppSelector((state) => state.trackerDocument.present.song);
 
   const defaultStartPlaybackPosition = useAppSelector(
     (state) => state.tracker.defaultStartPlaybackPosition,
@@ -200,6 +202,10 @@ export const SongContextBar = () => {
     };
   }, [setPlaybackState]);
 
+  const orderIndex = playbackState[0] + 1;
+  const patternIndex = song?.sequence[playbackState[0]] ?? 0;
+  const rowIndex = playbackState[1];
+
   return (
     <StyledSongContextBar>
       <ButtonGroup>
@@ -230,13 +236,19 @@ export const SongContextBar = () => {
           <StyledSongContextBarTimerPartLabel>
             ORD
           </StyledSongContextBarTimerPartLabel>
-          {String(playbackState[0] + 1).padStart(2, "0")}
+          {String(orderIndex).padStart(2, "0")}
+        </StyledSongContextBarTimerPart>
+        <StyledSongContextBarTimerPart>
+          <StyledSongContextBarTimerPartLabel>
+            PAT
+          </StyledSongContextBarTimerPartLabel>
+          {String(patternIndex).padStart(2, "0")}
         </StyledSongContextBarTimerPart>
         <StyledSongContextBarTimerPart>
           <StyledSongContextBarTimerPartLabel>
             ROW
           </StyledSongContextBarTimerPartLabel>
-          {String(playbackState[1]).padStart(2, "0")}
+          {String(rowIndex).padStart(2, "0")}
         </StyledSongContextBarTimerPart>
       </StyledSongContextBarTimer>
       <FixedSpacer width={10} />

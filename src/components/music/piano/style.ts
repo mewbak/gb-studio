@@ -238,7 +238,7 @@ export const StyledPianoRollSequenceHeaderOrder = styled.div`
 export const StyledPianoRollSequenceHeaderText = styled.div`
   position: sticky;
   left: 30px;
-  padding: 0 5px;
+  padding: 0 10px;
 `;
 
 export const StyledPianoRollSequenceHeaderPattern = styled.div<{
@@ -256,7 +256,7 @@ export const StyledPianoRollSequenceHeaderPattern = styled.div<{
   color: #000;
 
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
 
   font-size: 11px;
