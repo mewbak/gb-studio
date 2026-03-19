@@ -17,6 +17,12 @@ export const StyledTrackerContentWrapper = styled.div`
 export const StyledTrackerContentTable = styled.table`
   display: table;
   border-collapse: collapse;
+
+  & tr td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+  }
 `;
 
 export const StyledTrackerTableHeader = styled.thead`
@@ -27,7 +33,7 @@ export const StyledTrackerTableHeader = styled.thead`
   flex-shrink: 0;
   position: sticky;
   top: 0;
-  z-index: 1;
+  z-index: 2;
 `;
 
 export const StyledTrackerTableBody = styled.tbody``;
@@ -196,16 +202,8 @@ export const StyledTrackerCell = styled.td<StyledTrackerCellProps>`
   height: 25px;
   justify-content: center;
   align-items: center;
+  text-align: center;
 
-  ${(props) =>
-    props.$size === "small"
-      ? css`
-          width: 46px;
-          text-align: center;
-        `
-      : css`
-          width: 132px;
-        `}
   background-color: ${(props) => props.theme.colors.tracker.background};
   ${(props) =>
     props.$n % 8 === 0

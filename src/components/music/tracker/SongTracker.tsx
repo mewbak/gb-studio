@@ -901,7 +901,7 @@ export const SongTracker = ({
             }}
           >
             <StyledTrackerTableHeaderRow>
-              <TrackerHeaderCell type="patternIndex">
+              <TrackerHeaderCell type="patternIndex" patternId={patternId}>
                 {String(patternId).padStart(2, "0")}
               </TrackerHeaderCell>
               <TrackerHeaderCell
@@ -909,6 +909,7 @@ export const SongTracker = ({
                 channel={0}
                 muted={channelStatus[0] && soloChannel === -1}
                 solo={soloChannel === 0}
+                patternId={patternId}
               >
                 Duty 1
               </TrackerHeaderCell>
@@ -917,6 +918,7 @@ export const SongTracker = ({
                 channel={1}
                 muted={channelStatus[1] && soloChannel === -1}
                 solo={soloChannel === 1}
+                patternId={patternId}
               >
                 Duty 2
               </TrackerHeaderCell>
@@ -925,6 +927,7 @@ export const SongTracker = ({
                 channel={2}
                 muted={channelStatus[2] && soloChannel === -1}
                 solo={soloChannel === 2}
+                patternId={patternId}
               >
                 Wave
               </TrackerHeaderCell>
@@ -933,6 +936,7 @@ export const SongTracker = ({
                 channel={3}
                 muted={channelStatus[3] && soloChannel === -1}
                 solo={soloChannel === 3}
+                patternId={patternId}
               >
                 Noise
               </TrackerHeaderCell>

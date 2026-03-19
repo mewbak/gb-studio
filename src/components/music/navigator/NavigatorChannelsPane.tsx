@@ -73,22 +73,22 @@ const StyledChannelIcon = styled.div<{ channel: number }>`
     ${(props) =>
       props.channel === 0 &&
       css`
-        // fill: rgb(71, 153, 190);
+        fill: rgb(71, 153, 190);
       `}
     ${(props) =>
       props.channel === 1 &&
       css`
-        // fill: #4375c8;
+        fill: #4375c8;
       `}
     ${(props) =>
       props.channel === 2 &&
       css`
-        // fill: #3f5bc8;
+        fill: #3f5bc8;
       `}
     ${(props) =>
       props.channel === 3 &&
       css`
-        // fill: #3d3dcd;
+        fill: #3d3dcd;
       `}
   }
 `;
