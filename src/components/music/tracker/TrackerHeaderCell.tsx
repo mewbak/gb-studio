@@ -1,6 +1,9 @@
 import React, { useCallback } from "react";
 import API from "renderer/lib/api";
-import { StyledTrackerHeaderCell } from "./style";
+import {
+  StyledTrackerHeaderCell,
+  StyledTrackerHeaderCellContents,
+} from "./style";
 import { Button } from "ui/buttons/Button";
 import { ButtonGroup } from "ui/buttons/ButtonGroup";
 import trackerActions from "store/features/tracker/trackerActions";
@@ -89,25 +92,27 @@ export const TrackerHeaderCell = ({
       $solo={solo}
       onMouseDown={onToggleMuteSolo}
     >
-      <span>{children}</span>
-      {type === "channel" && (
-        <ButtonGroup>
-          <Button
-            size="small"
-            onMouseDown={setSolo}
-            title={l10n("FIELD_SOLO_CHANNEL")}
-          >
-            <ChannelSoloIcon />
-          </Button>
-          <Button
-            size="small"
-            onMouseDown={setMute}
-            title={l10n("FIELD_MUTE_CHANNEL")}
-          >
-            <ChannelMuteIcon />
-          </Button>
-        </ButtonGroup>
-      )}
+      <StyledTrackerHeaderCellContents>
+        <span>{children}</span>
+        {type === "channel" && (
+          <ButtonGroup>
+            <Button
+              size="small"
+              onMouseDown={setSolo}
+              title={l10n("FIELD_SOLO_CHANNEL")}
+            >
+              <ChannelSoloIcon />
+            </Button>
+            <Button
+              size="small"
+              onMouseDown={setMute}
+              title={l10n("FIELD_MUTE_CHANNEL")}
+            >
+              <ChannelMuteIcon />
+            </Button>
+          </ButtonGroup>
+        )}
+      </StyledTrackerHeaderCellContents>
     </StyledTrackerHeaderCell>
   );
 };

@@ -9,26 +9,30 @@ export const StyledTrackerWrapper = styled.div`
   flex-direction: column;
 `;
 
-export const StyledTrackerOrderSidebar = styled.div`
-  width: 100px;
-  flex-shrink: 0;
-`;
-
 export const StyledTrackerContentWrapper = styled.div`
-  display: flex;
   overflow: auto;
+  flex-grow: 1;
 `;
 
-export const StyledTrackerHeader = styled.div`
-  display: flex;
+export const StyledTrackerContentTable = styled.table`
+  display: table;
+  border-collapse: collapse;
+`;
+
+export const StyledTrackerTableHeader = styled.thead`
   width: 100%;
   height: 30px;
   white-space: nowrap;
   box-shadow: 0 3px 5px rgb(0 0 0 / 20%);
   flex-shrink: 0;
-  position: relative;
+  position: sticky;
+  top: 0;
   z-index: 1;
 `;
+
+export const StyledTrackerTableBody = styled.tbody``;
+
+export const StyledTrackerTableHeaderRow = styled.tr``;
 
 export const StyledTrackerPattern = styled.div`
   overflow: auto;
@@ -57,9 +61,8 @@ interface StyledTrackerHeaderCellProps {
   $solo?: boolean;
 }
 
-export const StyledTrackerHeaderCell = styled.span<StyledTrackerHeaderCellProps>`
+export const StyledTrackerHeaderCell = styled.td<StyledTrackerHeaderCellProps>`
   position: relative;
-  display: flex;
   align-items: center;
   text-transform: uppercase;
   font-size: 11px;
@@ -82,6 +85,7 @@ export const StyledTrackerHeaderCell = styled.span<StyledTrackerHeaderCellProps>
   ${(props) =>
     props.$type === "patternIndex" &&
     css`
+      padding: 5px;
       width: 47px;
       text-align: center;
       border-bottom: 1px solid rgba(0, 0, 0, 0.1);
@@ -164,9 +168,12 @@ export const StyledTrackerHeaderCell = styled.span<StyledTrackerHeaderCellProps>
     `}
 `;
 
-export const StyledTrackerRow = styled.div`
+export const StyledTrackerHeaderCellContents = styled.div`
   display: flex;
+  align-items: center;
 `;
+
+export const StyledTrackerRow = styled.tr``;
 
 interface StyledTrackerCellProps {
   $n: number;
@@ -176,8 +183,8 @@ interface StyledTrackerCellProps {
   $size?: "normal" | "small";
 }
 
-export const StyledTrackerCell = styled.div<StyledTrackerCellProps>`
-  display: inline-flex;
+export const StyledTrackerCell = styled.td<StyledTrackerCellProps>`
+  // display: inline-flex;
   font-family: "Public Pixel", monospace;
   font-size: 12px;
   font-weight: bold;
