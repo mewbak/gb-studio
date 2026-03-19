@@ -1347,6 +1347,13 @@ export const PianoRollCanvas = ({
     };
   }, []);
 
+  const onPlayNote = useCallback(
+    (noteIndex: number) => {
+      playNotePreview(song, selectedChannel, noteIndex, currentInstrument);
+    },
+    [currentInstrument, selectedChannel, song],
+  );
+
   return (
     <StyledPianoRollScrollWrapper ref={scrollRef}>
       <StyledPianoRollScrollCanvas
@@ -1358,7 +1365,11 @@ export const PianoRollCanvas = ({
           playbackRow={playbackRow}
         />
         <StyledPianoRollScrollLeftWrapper>
-          <PianoKeyboard c5Ref={c5Ref} hoverNote={hoverNote} />
+          <PianoKeyboard
+            c5Ref={c5Ref}
+            hoverNote={hoverNote}
+            onPlayNote={onPlayNote}
+          />
         </StyledPianoRollScrollLeftWrapper>
         <StyledPianoRollScrollContentWrapper
           ref={documentRef}
