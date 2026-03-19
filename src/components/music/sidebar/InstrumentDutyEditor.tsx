@@ -84,6 +84,7 @@ export const InstrumentDutyEditor = ({
   const throttledTestInstrument = useRef(
     throttle(
       (instrument: DutyInstrument) => {
+        console.log("DTUTY EDITOR PREVIEW");
         API.music.sendToMusicWindow({
           action: "preview",
           note: OCTAVE_SIZE * 2, // C5
@@ -161,6 +162,7 @@ export const InstrumentDutyEditor = ({
     };
 
   const onTestInstrument = (note: number) => () => {
+    console.log("onTestInstrument", { note, instrument });
     API.music.sendToMusicWindow({
       action: "preview",
       note,

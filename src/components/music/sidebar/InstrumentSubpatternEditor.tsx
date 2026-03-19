@@ -898,6 +898,8 @@ export const InstrumentSubpatternEditor = ({
 
   const renderSubpattern = [...subpattern].slice(0, 32);
 
+  console.log({ subpattern });
+
   return (
     <>
       <SubpatternGrid tabIndex={0} onFocus={onFocus} onBlur={onBlur}>

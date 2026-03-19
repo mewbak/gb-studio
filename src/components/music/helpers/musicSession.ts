@@ -1,9 +1,12 @@
+/* eslint-disable camelcase */
 import type {
   MusicDataPacket,
   MusicDataReceivePacket,
 } from "shared/lib/music/types";
 import player, { PlaybackPosition } from "./player";
 import { playNotePreview } from "./notePreview";
+import { DutyInstrument } from "shared/lib/uge/types";
+import { createPatternCell } from "shared/lib/uge/song";
 
 type MusicSessionListener = (data: MusicDataReceivePacket) => void;
 
@@ -102,22 +105,77 @@ export const createMusicSession = (): MusicSession => {
         });
         break;
       case "preview": {
-        let waves = data.waveForms || [];
-        const song = player.getCurrentSong();
-        if (waves.length === 0 && song) {
-          waves = song.waves;
+        player.reset();
+        if (data.type === "duty") {
+          const song = player.getCurrentSong();
+          if (!song) {
+            return;
+          }
+          const tmpSong = {
+            ...song,
+            duty_instruments: [data.instrument as DutyInstrument],
+            // waves: [data.waves],
+            // ticks_per_row: 0,
+            // timer_enabled: false,
+            // timer_divider: 0,
+            patterns: [
+              [
+                [
+                  {
+                    note: data.note,
+                    instrument: 0,
+                    effectcode: 0xe,
+                    effectparam: 0x5,
+                  },
+                  createPatternCell(),
+                  createPatternCell(),
+                  createPatternCell(),
+                ],
+                // [
+                //   createPatternCell(),
+                //   createPatternCell(),
+                //   createPatternCell(),
+                //   createPatternCell(),
+                // ],
+                // [
+                //   createPatternCell(),
+                //   createPatternCell(),
+                //   createPatternCell(),
+                //   createPatternCell(),
+                // ],
+                // [
+                //   createPatternCell(),
+                //   createPatternCell(),
+                //   createPatternCell(),
+                //   createPatternCell(),
+                // ],
+                // [
+                //   createPatternCell(),
+                //   createPatternCell(),
+                //   createPatternCell(),
+                //   createPatternCell(),
+                // ],
+                // [
+                //   createPatternCell(),
+                //   createPatternCell(),
+                //   createPatternCell(),
+                //   createPatternCell(),
+                // ],
+                // [
+                //   createPatternCell(),
+                //   createPatternCell(),
+                //   createPatternCell(),
+                //   createPatternCell(),
+                // ],
+              ],
+            ],
+            sequence: [0],
+          };
+          console.log({ tmpSong });
+          player.stop();
+          player.play(tmpSong, [0, 0]);
+          setTimeout(() => player.stop(), 200);
         }
-        playNotePreview(
-          data.note,
-          data.type,
-          data.instrument,
-          data.square2,
-          waves,
-        );
-        emit({
-          action: "log",
-          message: "preview",
-        });
         break;
       }
       case "export-song": {
