@@ -1,6 +1,11 @@
 import React, { useCallback } from "react";
 import { DropdownButton } from "ui/buttons/DropdownButton";
-import { FormHeader } from "ui/form/layout/FormLayout";
+import {
+  FormColumn,
+  FormColumns,
+  FormHeader,
+  FormRow,
+} from "ui/form/layout/FormLayout";
 import { SidebarColumn, SidebarColumns } from "ui/sidebars/Sidebar";
 import { Label } from "ui/form/Label";
 import { Input } from "ui/form/Input";
@@ -81,8 +86,8 @@ export const SongMetadataEditor = () => {
       </FormHeader>
       <SidebarColumns>
         <SidebarColumn>
-          <div style={{ display: "flex", gap: 10, padding: 10, paddingTop: 0 }}>
-            <div style={{ width: "100%" }}>
+          <FormColumns>
+            <FormColumn>
               <Label htmlFor="name">{l10n("FIELD_NAME")}</Label>
               <Input
                 name="name"
@@ -90,8 +95,8 @@ export const SongMetadataEditor = () => {
                 value={song?.name}
                 onChange={onChangeName}
               />
-            </div>
-            <div style={{ width: "100%" }}>
+            </FormColumn>
+            <FormColumn>
               <Label htmlFor="artist">{l10n("FIELD_ARTIST")}</Label>
 
               <Input
@@ -100,49 +105,47 @@ export const SongMetadataEditor = () => {
                 value={song?.artist}
                 onChange={onChangeArtist}
               />
-            </div>
-          </div>
+            </FormColumn>
+          </FormColumns>
         </SidebarColumn>
         <SidebarColumn>
-          <div style={{ display: "flex", gap: 10, padding: 10, paddingTop: 0 }}>
-            <div style={{ width: "100%" }}>
-              <Label htmlFor="ticks_per_row">{l10n("FIELD_TEMPO")}</Label>
-              <div style={{ display: "flex", gap: 5 }}>
-                <InputGroup>
-                  <NumberInput
-                    name="ticks_per_row"
-                    type="number"
-                    value={song?.ticks_per_row}
-                    min={1}
-                    max={20}
-                    placeholder="1"
-                    onChange={onChangeTicksPerRow}
-                    title={l10n("FIELD_TEMPO_TOOLTIP")}
-                  />
-                  <InputGroupAppend>
-                    <div
-                      style={{
-                        whiteSpace: "nowrap",
-                        display: "flex",
-                        alignItems: "center",
-                        background: "white",
-                        border: "1px solid #ccc",
-                        borderLeft: 0,
-                        borderTopRightRadius: 4,
-                        borderBottomRightRadius: 4,
-                        boxSizing: "border-box",
-                        height: "100%",
-                        padding: 5,
-                        fontSize: 11,
-                      }}
-                    >
-                      ~{Math.round(getBPM(song.ticks_per_row))} BPM
-                    </div>
-                  </InputGroupAppend>
-                </InputGroup>
-              </div>
-            </div>
-          </div>
+          <FormRow>
+            <Label htmlFor="ticks_per_row">{l10n("FIELD_TEMPO")}</Label>
+          </FormRow>
+          <FormRow>
+            <InputGroup>
+              <NumberInput
+                name="ticks_per_row"
+                type="number"
+                value={song?.ticks_per_row}
+                min={1}
+                max={20}
+                placeholder="1"
+                onChange={onChangeTicksPerRow}
+                title={l10n("FIELD_TEMPO_TOOLTIP")}
+              />
+              <InputGroupAppend>
+                <div
+                  style={{
+                    whiteSpace: "nowrap",
+                    display: "flex",
+                    alignItems: "center",
+                    background: "white",
+                    border: "1px solid #ccc",
+                    borderLeft: 0,
+                    borderTopRightRadius: 4,
+                    borderBottomRightRadius: 4,
+                    boxSizing: "border-box",
+                    height: "100%",
+                    padding: 5,
+                    fontSize: 11,
+                  }}
+                >
+                  ~{Math.round(getBPM(song.ticks_per_row))} BPM
+                </div>
+              </InputGroupAppend>
+            </InputGroup>
+          </FormRow>
         </SidebarColumn>
       </SidebarColumns>
     </>

@@ -225,3 +225,26 @@ export const StyledFormSectionTitle = styled.div<StyledFormSectionTitleProps>`
 `;
 
 // #endregion FormSectionTitle
+
+// #region FormSection
+
+export const StyledFormSection = styled.div`
+  border-bottom: 1px solid ${(props) => props.theme.colors.input.border};
+`;
+
+// #endregion FormSection
+
+// #region FormColumns
+
+export const StyledFormColumns = styled.div`
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+  padding-top: 0px;
+`;
+
+export const StyledFormColumn = styled.div`
+  width: 100%;
+`;
+
+// #endregion FormSection

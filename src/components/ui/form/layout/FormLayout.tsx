@@ -1,6 +1,8 @@
 import React, { FC, ReactNode, useState } from "react";
 import { Label } from "ui/form/Label";
 import {
+  StyledFormColumn,
+  StyledFormColumns,
   StyledFormContainer,
   StyledFormDivider,
   StyledFormField,
@@ -9,6 +11,7 @@ import {
   StyledFormHeader,
   StyledFormLink,
   StyledFormRow,
+  StyledFormSection,
   StyledFormSectionTitle,
 } from "ui/form/layout/style";
 
@@ -101,6 +104,30 @@ export const FormSectionTitle = ({
     $noMarginBottom={noMarginBottom}
     children={children}
   />
+);
+
+interface FormSectionProps {
+  children: ReactNode;
+}
+
+export const FormSection = ({ children }: FormSectionProps) => (
+  <StyledFormSection children={children} />
+);
+
+interface FormColumnsProps {
+  children: ReactNode;
+}
+
+export const FormColumns = ({ children }: FormColumnsProps) => (
+  <StyledFormColumns children={children} />
+);
+
+interface FormColumnProps {
+  children: ReactNode;
+}
+
+export const FormColumn = ({ children }: FormColumnProps) => (
+  <StyledFormColumn children={children} />
 );
 
 interface ToggleableFormFieldProps {

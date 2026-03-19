@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   FormContainer,
   FormRow,
+  FormSection,
   FormSectionTitle,
 } from "ui/form/layout/FormLayout";
 import { Sidebar } from "ui/sidebars/Sidebar";
@@ -195,7 +196,7 @@ export const SongEditor = () => {
           </div>
         ) : instrumentData ? (
           <div style={{ marginTop: -1 }}>
-            <div style={{ borderBottom: "1px solid #ccc" }}>
+            <FormSection>
               <FormSectionTitle>{l10n("SIDEBAR_INSTRUMENT")}</FormSectionTitle>
               <FormRow>
                 <Label htmlFor="name">{l10n("FIELD_NAME")}</Label>
@@ -211,7 +212,7 @@ export const SongEditor = () => {
                   onChange={onChangeInstrumentName(selectedInstrument.type)}
                 />
               </FormRow>
-            </div>
+            </FormSection>
             <StickyTabs>
               <TabBar
                 value={instrumentEditorTab}

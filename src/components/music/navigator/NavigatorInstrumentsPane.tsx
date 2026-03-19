@@ -107,7 +107,6 @@ export const NavigatorInstrumentsPane = ({
   const selectedChannel = useAppSelector(
     (state) => state.tracker.selectedChannel,
   );
-  const view = useAppSelector((state) => state.tracker.view);
 
   const [openInstrumentGroupIds, setOpenInstrumentGroupIds] = useState<
     InstrumentType[]
@@ -141,11 +140,7 @@ export const NavigatorInstrumentsPane = ({
 
   const lastSelectedChannel = useRef(selectedChannel);
   useEffect(() => {
-    if (
-      view === "roll" &&
-      syncInstruments &&
-      selectedChannel !== lastSelectedChannel.current
-    ) {
+    if (syncInstruments && selectedChannel !== lastSelectedChannel.current) {
       lastSelectedChannel.current = selectedChannel;
       if (selectedChannel === 0 || selectedChannel === 1) {
         setOpenInstrumentGroupIds(["duty"]);
@@ -157,7 +152,7 @@ export const NavigatorInstrumentsPane = ({
         setOpenInstrumentGroupIds(["noise"]);
       }
     }
-  }, [selectedChannel, syncInstruments, view]);
+  }, [selectedChannel, syncInstruments]);
 
   const openInstrumentGroup = (id: InstrumentType) => {
     setOpenInstrumentGroupIds((value) =>
