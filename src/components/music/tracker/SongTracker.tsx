@@ -37,6 +37,8 @@ import {
   StyledTrackerPattern,
   StyledTrackerWrapper,
 } from "./style";
+import { SplitPaneVerticalDivider } from "ui/splitpane/SplitPaneDivider";
+import { SplitPaneHeader } from "ui/splitpane/SplitPaneHeader";
 
 function getSelectedTrackerFields(
   selectionRect: SelectionRect | undefined,
@@ -130,6 +132,11 @@ export const SongTracker = ({
   );
 
   const [playbackState, setPlaybackState] = useState([0, 0]);
+
+  const [patternsPanelOpen, setPatternsPanelOpen] = useState(true);
+  const togglePatternsPanel = useCallback(() => {
+    setPatternsPanelOpen(!patternsPanelOpen);
+  }, [patternsPanelOpen, setPatternsPanelOpen]);
 
   useEffect(() => {
     setPlaybackState(startPlaybackPosition);
@@ -884,7 +891,110 @@ export const SongTracker = ({
 
   return (
     <StyledTrackerWrapper style={{ height }}>
-      <StyledTrackerHeader
+      <StyledTrackerContentWrapper style={{ height: height - 30 }}>
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur nec
+        congue dui. Nullam placerat, dolor vitae porttitor lacinia, ipsum enim
+        bibendum justo, eget placerat tellus ex vitae magna. Vestibulum faucibus
+        felis nec dolor pellentesque sagittis. Pellentesque venenatis metus
+        erat, nec consequat lacus tristique vel. Nulla ut tempus libero. In at
+        nulla aliquet ipsum tempus consequat. Cras sollicitudin dolor a enim
+        eleifend, vel porta sapien ultricies. Integer efficitur elit non pretium
+        semper. Sed aliquam orci consectetur sagittis ullamcorper. Suspendisse
+        congue nulla vitae interdum mattis. Sed molestie vel nibh sit amet
+        dictum. Mauris aliquam vel lacus a ornare. Phasellus non lacinia erat.
+        Nunc enim eros, dapibus sit amet nulla quis, congue maximus tellus.
+        Suspendisse libero erat, tincidunt sit amet velit in, semper egestas
+        nibh. Fusce sit amet euismod nibh, ut vestibulum leo. Pellentesque at
+        libero lacinia, auctor elit id, pharetra sem. In sit amet auctor velit.
+        Suspendisse in lectus vestibulum, volutpat massa et, euismod quam. Sed
+        venenatis, felis non vehicula vulputate, dolor augue porta arcu, nec
+        tristique felis quam et nulla. Aenean ut luctus mi. Aenean tincidunt
+        aliquam erat at interdum. Nam luctus risus risus, sed congue elit
+        porttitor non. Fusce tempus diam interdum, faucibus ligula eu, pharetra
+        purus. Integer molestie mi urna. Cras non dolor eget est congue luctus.
+        Morbi quam urna, interdum eget felis quis, accumsan maximus mi. Etiam
+        nisl ligula, condimentum et orci tempor, hendrerit vulputate nibh.
+        Vestibulum gravida ut nisl sit amet gravida. Phasellus vel dolor nec
+        dolor pharetra porta. Vivamus convallis, neque at pharetra tincidunt,
+        sem eros malesuada magna, quis tincidunt est ligula et nunc. Lorem ipsum
+        dolor sit amet, consectetur adipiscing elit. Cras finibus pellentesque
+        sagittis. Quisque dui nibh, lobortis sed interdum sit amet, vestibulum
+        vitae dolor. Ut pretium, nisi euismod tristique feugiat, erat leo
+        posuere turpis, ut egestas neque justo sed ligula. In magna nunc,
+        tristique vitae pellentesque eu, vulputate eget est. Etiam tristique
+        elit massa, sit amet vehicula lorem laoreet eget. Proin aliquam risus
+        sapien, nec dignissim diam consequat eu. Donec ornare placerat libero
+        eget pharetra. Duis et pellentesque urna. Cras mattis fermentum magna,
+        eget accumsan est placerat et. Phasellus et congue leo. Vivamus congue
+        enim mauris. Mauris laoreet risus sollicitudin varius viverra.
+        Suspendisse at leo porta, semper neque porttitor, egestas ligula. Donec
+        ullamcorper interdum massa, at fermentum nibh vestibulum eget. Donec
+        placerat ut purus quis finibus. Vivamus blandit, dolor ut tincidunt
+        fringilla, libero ante semper sem, sed ultrices ante mi ut sem. Fusce
+        facilisis, lectus in bibendum pellentesque, odio nisi fermentum purus,
+        in luctus massa turpis in lacus. In laoreet eu mi vel condimentum.
+        Praesent at porta metus, sed efficitur sapien. Integer maximus eros
+        ligula, ut congue ante sagittis eu. Vivamus egestas a diam a facilisis.
+        In pharetra ex sollicitudin cursus vehicula. Pellentesque vitae
+        ultricies tellus. Morbi non quam a neque eleifend tincidunt. Curabitur
+        vel massa leo. Nulla sodales facilisis pharetra. Suspendisse id mattis
+        erat, nec imperdiet metus. Mauris semper quis justo quis varius. Nullam
+        nec turpis bibendum, faucibus mauris eu, fermentum lectus. In rhoncus
+        enim sed nisl faucibus lobortis. Praesent facilisis velit sem, ut
+        ullamcorper turpis elementum id. Interdum et malesuada fames ac ante
+        ipsum primis in faucibus. Donec pulvinar rutrum condimentum. Etiam eget
+        turpis enim. Suspendisse sed ornare dui. Duis dapibus libero ut lectus
+        cursus tristique. Aenean dapibus venenatis sem, at lobortis sem
+        ultricies quis. Aenean laoreet diam odio, id luctus felis efficitur ut.
+        Duis augue lectus, tincidunt at lobortis in, facilisis a sapien.
+        Curabitur faucibus risus ornare imperdiet suscipit. Nulla convallis
+        libero ac felis malesuada congue. Pellentesque eget est rutrum, blandit
+        lectus quis, porta mi. Suspendisse consectetur eros in pharetra
+        lobortis. Nunc efficitur ultrices mauris eget facilisis. Proin rutrum
+        tincidunt eros vitae tempus. Curabitur porttitor, massa a euismod
+        ullamcorper, nunc urna sodales nibh, a consequat neque libero et tellus.
+        Phasellus luctus, nulla sit amet iaculis vestibulum, metus dolor
+        facilisis nulla, ac iaculis ipsum ipsum tristique urna. Aliquam luctus
+        consectetur dui at malesuada. Praesent vitae metus quis nisi aliquam
+        molestie. Phasellus nec tellus sed nisi tempus pretium in ac quam. Donec
+        faucibus, orci in aliquet aliquet, orci leo blandit dui, non aliquet
+        elit lacus eu dui. Donec eu semper felis. Duis sagittis ac elit nec
+        ornare. Vivamus auctor lorem ac justo posuere, et ultricies orci
+        egestas. In tincidunt sem nisl, quis congue turpis facilisis ut. Vivamus
+        viverra sit amet est a tempus. Fusce nisl risus, facilisis sed velit et,
+        porta porttitor tortor. Suspendisse semper scelerisque posuere. Nulla eu
+        urna rhoncus, suscipit purus sit amet, sollicitudin erat. Mauris eu
+        pharetra sapien. Cras maximus elementum magna sit amet porttitor.
+        Curabitur erat neque, cursus vel dapibus quis, egestas ac quam.
+        Pellentesque velit eros, tincidunt ut congue eget, faucibus non nibh.
+        Phasellus sit amet imperdiet est, ut mollis enim. Pellentesque posuere
+        lorem quis nisi fringilla scelerisque. Suspendisse sagittis eros
+        fermentum quam gravida blandit. Nam in metus vehicula, maximus massa
+        vel, finibus enim. Ut bibendum rhoncus urna, vel efficitur nibh
+        dignissim at. Curabitur aliquam maximus eros, quis ultricies eros
+        vestibulum sit amet. Duis ex augue, tincidunt vel facilisis id,
+        elementum maximus sem. Aenean accumsan justo quis tristique porttitor.
+        Mauris dapibus leo arcu, nec sodales felis porta id. Fusce pharetra,
+        enim eget scelerisque semper, ante nisi iaculis lectus, a consectetur
+        eros nunc in mauris. Sed nec erat massa. Ut ac magna egestas, eleifend
+        libero in, auctor ex. Suspendisse congue pulvinar erat ac dictum. Sed
+        dignissim vestibulum eros auctor malesuada. Integer sed congue ante, vel
+        varius felis. In facilisis risus sed risus ultricies sagittis. Sed et
+        ante id neque convallis faucibus. Pellentesque eu volutpat sem. Maecenas
+        ullamcorper nibh orci, in iaculis tellus blandit ac. Ut dui dui, commodo
+        sit amet libero ut, pharetra congue libero. Aenean feugiat, tortor vitae
+        venenatis porttitor, lacus orci fermentum felis, non commodo sem augue
+        ac est. Donec ornare, turpis at elementum semper, nibh sapien suscipit
+        libero, a mattis ipsum dui sit amet ligula. Proin quam turpis, tincidunt
+        a nisl quis, laoreet ullamcorper ligula. Suspendisse volutpat ultricies
+        egestas. Duis sodales sapien non nisi imperdiet consectetur. Etiam
+        luctus ac augue quis egestas. Morbi a facilisis leo. Proin lobortis
+        dapibus sapien, eu vulputate nunc molestie aliquam. Ut nec purus nec
+        tortor varius tempor. Etiam dolor turpis, tempus sit amet vehicula sit
+        amet, tincidunt sed nulla. Fusce non sapien non metus facilisis rhoncus
+        faucibus sit amet libero. Morbi a sapien eget felis congue faucibus.
+        Morbi aliquam metus ut sollicitudin ornare.
+        {/* <StyledTrackerHeader
         style={{
           background: `linear-gradient(0deg, hsl(${patternHue(patternId)}deg 100% 70%) 0%, hsl(${patternHue(patternId)}deg 100% 80%) 100%)`,
         }}
@@ -929,7 +1039,6 @@ export const SongTracker = ({
         </TrackerHeaderCell>
         <StyledTrackerHeaderSpacer />
       </StyledTrackerHeader>
-      <StyledTrackerContentWrapper style={{ height: height - 30 }}>
         <StyledTrackerOrderSidebar>
           <SequenceEditor
             direction="vertical"
@@ -967,7 +1076,23 @@ export const SongTracker = ({
             );
           })}
         </StyledTrackerPattern>
+  */}
       </StyledTrackerContentWrapper>
+      <SplitPaneVerticalDivider />
+      <SplitPaneHeader
+        onToggle={togglePatternsPanel}
+        collapsed={!patternsPanelOpen}
+      >
+        {l10n("FIELD_ORDER")}
+      </SplitPaneHeader>
+      {patternsPanelOpen && (
+        <SequenceEditor
+          direction="horizontal"
+          sequence={song?.sequence}
+          patterns={song?.patterns.length}
+          playingSequence={playbackState[0]}
+        />
+      )}
     </StyledTrackerWrapper>
   );
 };

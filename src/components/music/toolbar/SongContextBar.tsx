@@ -4,7 +4,7 @@ import l10n from "shared/lib/lang/l10n";
 import { MusicDataReceivePacket } from "shared/lib/music/types";
 import trackerActions from "store/features/tracker/trackerActions";
 import { useAppDispatch, useAppSelector } from "store/hooks";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import { Button } from "ui/buttons/Button";
 import { ButtonGroup } from "ui/buttons/ButtonGroup";
 import {
@@ -23,7 +23,7 @@ const StyledSongContextBar = styled.div`
   width: 300px;
 `;
 
-const StyledSongContextBarTimer = styled.div`
+const StyledSongContextBarTimer = styled.div<{ disabled: boolean }>`
   flex-shrink: 0;
   position: relative;
   display: flex;
@@ -51,6 +51,12 @@ const StyledSongContextBarTimer = styled.div`
     );
   }
   gap: 5px;
+
+  ${(props) =>
+    props.disabled &&
+    css`
+      opacity: 0.5;
+    `}
 `;
 
 const StyledSongContextBarTimerPart = styled.div`
@@ -219,12 +225,12 @@ export const SongContextBar = () => {
         </Button>
       </ButtonGroup>
       <FixedSpacer width={10} />
-      <StyledSongContextBarTimer>
+      <StyledSongContextBarTimer disabled={!playerReady}>
         <StyledSongContextBarTimerPart>
           <StyledSongContextBarTimerPartLabel>
             ORD
           </StyledSongContextBarTimerPartLabel>
-          {String(playbackState[0]).padStart(2, "0")}
+          {String(playbackState[0] + 1).padStart(2, "0")}
         </StyledSongContextBarTimerPart>
         <StyledSongContextBarTimerPart>
           <StyledSongContextBarTimerPartLabel>
@@ -236,12 +242,14 @@ export const SongContextBar = () => {
       <FixedSpacer width={10} />
       <ButtonGroup>
         <Button
+          disabled={!playerReady}
           variant={view === "roll" ? "primary" : "normal"}
           onClick={setRollView}
         >
           <PianoIcon />
         </Button>
         <Button
+          disabled={!playerReady}
           variant={view === "tracker" ? "primary" : "normal"}
           onClick={setTrackerView}
         >

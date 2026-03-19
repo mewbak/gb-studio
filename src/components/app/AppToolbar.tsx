@@ -88,9 +88,11 @@ const AppToolbar: FC = () => {
   const windowFocus = useWindowFocus();
   const windowSize = useWindowSize();
   const smallZoom = (windowSize.width || 0) < 900;
-  const showTitle = API.platform === "darwin" && (windowSize.width || 0) > 800;
-
-  const showMusicContextBar = true;
+  const showMusicContextBar = section === "music";
+  const showTitle =
+    !showMusicContextBar &&
+    API.platform === "darwin" &&
+    (windowSize.width || 0) > 800;
 
   const sectionNames = useMemo(
     () => ({
@@ -267,7 +269,7 @@ const AppToolbar: FC = () => {
       </ToolbarLeft>
       <ToolbarCentre>
         <FlexGrow />
-        {/* {showTitle && <ToolbarTitle>{appTitle}</ToolbarTitle>} */}
+        {showTitle && <ToolbarTitle>{appTitle}</ToolbarTitle>}
         {showMusicContextBar && <SongContextBar />}
         <FlexGrow />
       </ToolbarCentre>

@@ -50,13 +50,6 @@ export const StyledToolbar = styled.div<StyledToolbarProps>`
     }
   }
 
-  ${StyledButton}[data-active] {
-    box-shadow: inset 1px 1px 5px rgba(0 0 0 / 25%);
-    svg {
-      fill: ${(props) => props.theme.colors.highlight};
-    }
-  }
-
   ${(props) => (props.$focus === false ? blurStyles : "")}
 `;
 

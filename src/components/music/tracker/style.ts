@@ -16,6 +16,7 @@ export const StyledTrackerOrderSidebar = styled.div`
 
 export const StyledTrackerContentWrapper = styled.div`
   display: flex;
+  overflow: auto;
 `;
 
 export const StyledTrackerHeader = styled.div`
