@@ -25,6 +25,9 @@ import { InstrumentSubpatternEditor } from "./sidebar/InstrumentSubpatternEditor
 import styled from "styled-components";
 import { NumberInput } from "ui/form/NumberInput";
 import { useAppDispatch, useAppSelector } from "store/hooks";
+import { SidebarHeader } from "ui/form/SidebarHeader";
+import { getBaseName } from "shared/lib/helpers/virtualFilesystem";
+import { InputGroup, InputGroupAppend } from "ui/form/InputGroup";
 
 type Instrument = DutyInstrument | NoiseInstrument | WaveInstrument;
 
@@ -194,13 +197,7 @@ export const SongEditor = () => {
   return (
     <Sidebar onClick={selectSidebar}>
       <FormHeader>
-        <EditableText
-          name="name"
-          placeholder="Song"
-          value={song?.name || ""}
-          onChange={onChangeName}
-        />
-
+        <SidebarHeader>{getBaseName(song.filename)}</SidebarHeader>
         <DropdownButton
           size="small"
           variant="transparent"
@@ -213,33 +210,68 @@ export const SongEditor = () => {
       </FormHeader>
       <SidebarColumns>
         <SidebarColumn>
-          <FormRow>
-            <Label htmlFor="artist">{l10n("FIELD_ARTIST")}</Label>
-          </FormRow>
-          <FormRow>
-            <Input
-              name="artist"
-              value={song?.artist}
-              onChange={onChangeArtist}
-            />
-          </FormRow>
+          <div style={{ display: "flex", gap: 10, padding: 10, paddingTop: 0 }}>
+            <div style={{ width: "100%" }}>
+              <Label htmlFor="name">{l10n("FIELD_NAME")}</Label>
+              <Input
+                name="name"
+                placeholder={l10n("FIELD_SONG")}
+                value={song?.name}
+                onChange={onChangeName}
+              />
+            </div>
+            <div style={{ width: "100%" }}>
+              <Label htmlFor="artist">{l10n("FIELD_ARTIST")}</Label>
+
+              <Input
+                name="artist"
+                placeholder={l10n("FIELD_ARTIST")}
+                value={song?.artist}
+                onChange={onChangeArtist}
+              />
+            </div>
+          </div>
         </SidebarColumn>
         <SidebarColumn>
-          <FormRow>
-            <Label htmlFor="ticks_per_row">{l10n("FIELD_TEMPO")}</Label>
-          </FormRow>
-          <FormRow>
-            <NumberInput
-              name="ticks_per_row"
-              type="number"
-              value={song?.ticks_per_row}
-              min={1}
-              max={20}
-              placeholder="1"
-              onChange={onChangeTicksPerRow}
-              title={l10n("FIELD_TEMPO_TOOLTIP")}
-            />
-          </FormRow>
+          <div style={{ display: "flex", gap: 10, padding: 10, paddingTop: 0 }}>
+            <div style={{ width: "100%" }}>
+              <Label htmlFor="ticks_per_row">{l10n("FIELD_TEMPO")}</Label>
+              <div style={{ display: "flex", gap: 5 }}>
+                <InputGroup>
+                  <NumberInput
+                    name="ticks_per_row"
+                    type="number"
+                    value={song?.ticks_per_row}
+                    min={1}
+                    max={20}
+                    placeholder="1"
+                    onChange={onChangeTicksPerRow}
+                    title={l10n("FIELD_TEMPO_TOOLTIP")}
+                  />
+                  <InputGroupAppend>
+                    <div
+                      style={{
+                        whiteSpace: "nowrap",
+                        display: "flex",
+                        alignItems: "center",
+                        background: "white",
+                        border: "1px solid #ccc",
+                        borderLeft: 0,
+                        borderTopRightRadius: 4,
+                        borderBottomRightRadius: 4,
+                        boxSizing: "border-box",
+                        height: "100%",
+                        padding: 5,
+                        fontSize: 11,
+                      }}
+                    >
+                      ~120 BPM
+                    </div>
+                  </InputGroupAppend>
+                </InputGroup>
+              </div>
+            </div>
+          </div>
         </SidebarColumn>
       </SidebarColumns>
 
