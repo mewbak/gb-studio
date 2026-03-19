@@ -194,7 +194,7 @@ export const MusicWebToolbar = ({
         <FlexGrow />
         <SongContextBar />
         <FlexGrow />
-        <FixedSpacer width={75} />
+        <FixedSpacer width={58} />
         <Button onClick={toggleFullscreen}>
           {isFullscreen ? <FullscreenCloseIcon /> : <FullscreenIcon />}
         </Button>

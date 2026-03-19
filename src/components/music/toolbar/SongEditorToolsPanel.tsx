@@ -55,7 +55,7 @@ interface SongEditorToolsPanelProps {
 const FloatingPanelSwitchView = styled(FloatingPanel)`
   position: absolute;
   top: 10px;
-  left: 10px;
+  right: 10px;
   z-index: 10;
 `;
 
@@ -351,21 +351,7 @@ const SongEditorToolsPanel = ({ selectedSong }: SongEditorToolsPanelProps) => {
 
   return (
     <>
-      {/* <FloatingPanelSwitchView>
-        <Button
-          variant="transparent"
-          onClick={toggleView}
-          title={
-            view === "roll"
-              ? l10n("TOOL_TRACKER_VIEW")
-              : l10n("TOOL_PIANO_ROLL_VIEW")
-          }
-        >
-          {view === "roll" ? <TrackerIcon /> : themePianoIcon}
-        </Button>
-      </FloatingPanelSwitchView> */}
-
-      <FloatingPanelTools>
+      <FloatingPanelSwitchView>
         <Button
           variant="transparent"
           disabled={!selectedSong || !modified}
@@ -393,6 +379,21 @@ const SongEditorToolsPanel = ({ selectedSong }: SongEditorToolsPanelProps) => {
             </>
           )}
         </ExportButtonWrapper>
+
+        {/* <Button
+          variant="transparent"
+          onClick={toggleView}
+          title={
+            view === "roll"
+              ? l10n("TOOL_TRACKER_VIEW")
+              : l10n("TOOL_PIANO_ROLL_VIEW")
+          }
+        >
+          {view === "roll" ? <TrackerIcon /> : themePianoIcon}
+        </Button> */}
+      </FloatingPanelSwitchView>
+
+      <FloatingPanelTools>
         {/* <FloatingPanelDivider /> */}
         {/* <Button
           variant="transparent"
@@ -418,7 +419,7 @@ const SongEditorToolsPanel = ({ selectedSong }: SongEditorToolsPanelProps) => {
         </Button> */}
         {view === "roll" && (
           <>
-            <FloatingPanelDivider />
+            {/* <FloatingPanelDivider /> */}
             <Button
               variant="transparent"
               onClick={() => setTool("pencil")}
@@ -442,9 +443,9 @@ const SongEditorToolsPanel = ({ selectedSong }: SongEditorToolsPanelProps) => {
             >
               <SelectionIcon />
             </Button>
+            <FloatingPanelDivider />
           </>
         )}
-        <FloatingPanelDivider />
         <InstrumentSelect
           name="instrument"
           value={`${defaultInstruments[0]}`}

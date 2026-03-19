@@ -74,7 +74,7 @@ const ErrorDescription = styled.div`
 
 const defaultPaneLayout: SplitPaneLayout[] = [
   { type: "fill", initialMinSize: 200 },
-  { type: "fixed", size: 190, minSize: 190 },
+  { type: "fixed", size: 190, minSize: 190, maxSize: 190 },
   { type: "fixed", size: 485 },
 ];
 

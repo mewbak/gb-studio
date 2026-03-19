@@ -14,12 +14,14 @@ export type SplitPaneLayout =
       size: number;
       initialMinSize?: number;
       minSize?: number;
+      maxSize?: number;
     }
   | {
       type: "fill";
       weight?: number;
       initialMinSize?: number;
       minSize?: number;
+      maxSize?: number;
     };
 
 interface UseVerticalSplitPaneProps {
@@ -43,6 +45,15 @@ const DEFAULT_COLLAPSED_SIZE = 30;
 
 const sum = (values: number[]) =>
   values.reduce((memo, value) => memo + value, 0);
+
+const clamp = (value: number, min: number, max: number) =>
+  Math.max(min, Math.min(max, value));
+
+const getSafeMaxSize = (value: number | undefined) =>
+  value == null ? Number.POSITIVE_INFINITY : Math.max(0, Math.floor(value));
+
+const getSafeMinSize = (value: number | undefined) =>
+  Math.max(0, Math.floor(value ?? 0));
 
 export const getDefaultSizes = (count: number, totalHeight: number) => {
   if (count <= 0) {
@@ -79,8 +90,13 @@ export const getSizesFromLayout = (
 
   for (let index = 0; index < resolvedLayout.length; index++) {
     const entry = resolvedLayout[index];
+    const maxSize = getSafeMaxSize(entry.maxSize);
+
     if (entry.type === "fill") {
-      const initialMinSize = Math.max(0, Math.floor(entry.initialMinSize ?? 0));
+      const initialMinSize = Math.min(
+        Math.max(0, Math.floor(entry.initialMinSize ?? 0)),
+        maxSize,
+      );
       sizes[index] = initialMinSize;
       fillIndexes.push(index);
       fillInitialMinTotal += initialMinSize;
@@ -109,7 +125,10 @@ export const getSizesFromLayout = (
     const entry = resolvedLayout[index];
     if (entry.type === "fixed") {
       fixedIndexes.push(index);
-      requestedFixedTotal += Math.max(0, Math.floor(entry.size));
+      requestedFixedTotal += Math.min(
+        Math.max(0, Math.floor(entry.size)),
+        getSafeMaxSize(entry.maxSize),
+      );
     }
   }
 
@@ -128,7 +147,10 @@ export const getSizesFromLayout = (
       }
 
       lastFixedIndex = index;
-      const requested = Math.max(0, Math.floor(entry.size));
+      const requested = Math.min(
+        Math.max(0, Math.floor(entry.size)),
+        getSafeMaxSize(entry.maxSize),
+      );
       const size = Math.floor(
         (assignedFixedTotal * requested) / requestedFixedTotal,
       );
@@ -138,38 +160,76 @@ export const getSizesFromLayout = (
 
     const fixedRemainder = assignedFixedTotal - usedFixedHeight;
     if (fixedRemainder > 0 && lastFixedIndex >= 0) {
-      sizes[lastFixedIndex] += fixedRemainder;
+      const maxSize = getSafeMaxSize(resolvedLayout[lastFixedIndex].maxSize);
+      sizes[lastFixedIndex] = Math.min(
+        sizes[lastFixedIndex] + fixedRemainder,
+        maxSize,
+      );
     }
   }
 
-  const totalWeight = resolvedLayout.reduce((memo, entry) => {
-    if (entry.type === "fill") {
-      return memo + Math.max(0, entry.weight ?? 1);
-    }
-    return memo;
-  }, 0);
+  let growableFillIndexes = fillIndexes.filter((index) => {
+    const entry = resolvedLayout[index];
+    return sizes[index] < getSafeMaxSize(entry.maxSize);
+  });
 
-  if (remainingHeight > 0 && totalWeight > 0) {
-    let usedFillExtraHeight = 0;
+  while (remainingHeight > 0 && growableFillIndexes.length > 0) {
+    const totalWeight = growableFillIndexes.reduce((memo, index) => {
+      const entry = resolvedLayout[index];
+      if (entry.type === "fill") {
+        return memo + Math.max(0, entry.weight ?? 1);
+      }
+      return memo;
+    }, 0);
+
+    if (totalWeight <= 0) {
+      break;
+    }
+
+    let usedThisPass = 0;
     let lastFillIndex = -1;
 
-    for (let index = 0; index < resolvedLayout.length; index++) {
+    for (let i = 0; i < growableFillIndexes.length; i++) {
+      const index = growableFillIndexes[i];
       const entry = resolvedLayout[index];
       if (entry.type !== "fill") {
         continue;
       }
 
       lastFillIndex = index;
+
       const weight = Math.max(0, entry.weight ?? 1);
-      const extraSize = Math.floor((remainingHeight * weight) / totalWeight);
+      const maxSize = getSafeMaxSize(entry.maxSize);
+      const proposedExtra = Math.floor(
+        (remainingHeight * weight) / totalWeight,
+      );
+      const available = Math.max(0, maxSize - sizes[index]);
+      const extraSize = Math.min(proposedExtra, available);
+
       sizes[index] += extraSize;
-      usedFillExtraHeight += extraSize;
+      usedThisPass += extraSize;
     }
 
-    const fillRemainder = remainingHeight - usedFillExtraHeight;
-    if (fillRemainder > 0 && lastFillIndex >= 0) {
-      sizes[lastFillIndex] += fillRemainder;
+    if (usedThisPass <= 0) {
+      break;
     }
+
+    remainingHeight -= usedThisPass;
+
+    if (remainingHeight > 0 && lastFillIndex >= 0) {
+      const maxSize = getSafeMaxSize(resolvedLayout[lastFillIndex].maxSize);
+      const extra = Math.min(
+        remainingHeight,
+        Math.max(0, maxSize - sizes[lastFillIndex]),
+      );
+      sizes[lastFillIndex] += extra;
+      remainingHeight -= extra;
+    }
+
+    growableFillIndexes = fillIndexes.filter((index) => {
+      const entry = resolvedLayout[index];
+      return sizes[index] < getSafeMaxSize(entry.maxSize);
+    });
   }
 
   return sizes;
@@ -195,6 +255,7 @@ export const fitSizesToTotal = (
   currentSizes: number[],
   totalHeight: number,
   minSizes: number[],
+  maxSizes: number[],
   collapsedSize: number,
 ) => {
   const count = currentSizes.length;
@@ -208,15 +269,26 @@ export const fitSizesToTotal = (
   }
 
   const safeCollapsedSize = Math.max(0, Math.floor(collapsedSize));
+
   const safeMinSizes = Array.from({ length: count }, (_, index) =>
     Math.max(0, Math.floor(minSizes[index] ?? 0)),
   );
+
+  const safeMaxSizes = Array.from({ length: count }, (_, index) => {
+    const minSize = safeMinSizes[index];
+    const maxSize = maxSizes[index];
+    if (maxSize == null || !Number.isFinite(maxSize)) {
+      return Number.POSITIVE_INFINITY;
+    }
+    return Math.max(minSize, Math.floor(maxSize));
+  });
+
   const preferredSizes = currentSizes.map((size) =>
     Math.max(0, Math.floor(size)),
   );
-
   const result = new Array<number>(count).fill(0);
 
+  // Important: collapsed panes stay collapsed, even if minSize > collapsedSize
   const lockedIndexes = Array.from(
     { length: count },
     (_, index) => index,
@@ -244,23 +316,20 @@ export const fitSizesToTotal = (
     return result;
   }
 
-  const remainingPreferredSizes = remainingIndexes.map(
-    (index) => preferredSizes[index],
+  const remainingPreferredSizes = remainingIndexes.map((index) =>
+    Math.min(
+      safeMaxSizes[index],
+      Math.max(safeMinSizes[index], preferredSizes[index]),
+    ),
   );
   const remainingMinSizes = remainingIndexes.map(
     (index) => safeMinSizes[index],
   );
+  const remainingMaxSizes = remainingIndexes.map(
+    (index) => safeMaxSizes[index],
+  );
 
-  const remainingPreferredTotal = sum(remainingPreferredSizes);
   const remainingMinTotal = sum(remainingMinSizes);
-
-  if (remainingPreferredTotal <= 0) {
-    const fallback = getDefaultSizes(remainingIndexes.length, remainingHeight);
-    for (let i = 0; i < remainingIndexes.length; i++) {
-      result[remainingIndexes[i]] = fallback[i] ?? 0;
-    }
-    return result;
-  }
 
   if (remainingMinTotal >= remainingHeight) {
     const fallback = getDefaultSizes(remainingIndexes.length, remainingHeight);
@@ -273,9 +342,15 @@ export const fitSizesToTotal = (
   let activeIndexes = [...remainingIndexes];
   let activeHeight = remainingHeight;
 
+  // First enforce mins if shrinking below them
   while (activeIndexes.length > 0) {
     const activePreferredTotal = sum(
-      activeIndexes.map((index) => preferredSizes[index]),
+      activeIndexes.map((index) =>
+        Math.min(
+          safeMaxSizes[index],
+          Math.max(safeMinSizes[index], preferredSizes[index]),
+        ),
+      ),
     );
 
     if (activePreferredTotal <= 0) {
@@ -286,36 +361,18 @@ export const fitSizesToTotal = (
       break;
     }
 
-    const currentActiveHeight = activeHeight;
-
     const forcedIndexes = activeIndexes.filter((index) => {
+      const preferred = Math.min(
+        safeMaxSizes[index],
+        Math.max(safeMinSizes[index], preferredSizes[index]),
+      );
       const proposed = Math.floor(
-        (currentActiveHeight * preferredSizes[index]) / activePreferredTotal,
+        (activeHeight * preferred) / activePreferredTotal,
       );
       return proposed < safeMinSizes[index];
     });
 
     if (forcedIndexes.length === 0) {
-      let used = 0;
-      let lastIndex = -1;
-
-      for (let i = 0; i < activeIndexes.length; i++) {
-        const index = activeIndexes[i];
-        lastIndex = index;
-
-        const size = Math.floor(
-          (currentActiveHeight * preferredSizes[index]) / activePreferredTotal,
-        );
-
-        result[index] = size;
-        used += size;
-      }
-
-      const remainder = currentActiveHeight - used;
-      if (remainder > 0 && lastIndex >= 0) {
-        result[lastIndex] += remainder;
-      }
-
       break;
     }
 
@@ -330,12 +387,99 @@ export const fitSizesToTotal = (
     );
   }
 
+  // Then distribute remaining height proportionally, respecting maxes too
+  while (activeIndexes.length > 0) {
+    const activePreferredTotal = sum(
+      activeIndexes.map((index) =>
+        Math.min(
+          safeMaxSizes[index],
+          Math.max(safeMinSizes[index], preferredSizes[index]),
+        ),
+      ),
+    );
+
+    if (activePreferredTotal <= 0) {
+      const fallback = getDefaultSizes(activeIndexes.length, activeHeight);
+      for (let i = 0; i < activeIndexes.length; i++) {
+        result[activeIndexes[i]] = fallback[i] ?? 0;
+      }
+      break;
+    }
+
+    const forcedMaxIndexes = activeIndexes.filter((index) => {
+      const preferred = Math.min(
+        safeMaxSizes[index],
+        Math.max(safeMinSizes[index], preferredSizes[index]),
+      );
+      const proposed = Math.floor(
+        (activeHeight * preferred) / activePreferredTotal,
+      );
+      return proposed > safeMaxSizes[index];
+    });
+
+    if (forcedMaxIndexes.length > 0) {
+      for (let i = 0; i < forcedMaxIndexes.length; i++) {
+        const index = forcedMaxIndexes[i];
+        result[index] = safeMaxSizes[index];
+        activeHeight -= safeMaxSizes[index];
+      }
+
+      activeIndexes = activeIndexes.filter(
+        (index) => !forcedMaxIndexes.includes(index),
+      );
+      continue;
+    }
+
+    let used = 0;
+    let lastIndex = -1;
+
+    for (let i = 0; i < activeIndexes.length; i++) {
+      const index = activeIndexes[i];
+      lastIndex = index;
+
+      const preferred = Math.min(
+        safeMaxSizes[index],
+        Math.max(safeMinSizes[index], preferredSizes[index]),
+      );
+
+      const size = Math.floor(
+        (activeHeight * preferred) / activePreferredTotal,
+      );
+      result[index] = size;
+      used += size;
+    }
+
+    let remainder = activeHeight - used;
+
+    // Distribute remainder without exceeding max
+    while (remainder > 0) {
+      let gaveAny = false;
+
+      for (let i = activeIndexes.length - 1; i >= 0 && remainder > 0; i--) {
+        const index = activeIndexes[i];
+        if (result[index] < safeMaxSizes[index]) {
+          result[index] += 1;
+          remainder -= 1;
+          gaveAny = true;
+        }
+      }
+
+      if (!gaveAny) {
+        break;
+      }
+    }
+
+    break;
+  }
+
   return result;
 };
 
 const resizeVerticalPaneGroups = (
   startSizes: number[],
   minSizes: number[],
+  maxSizes: number[],
+  collapsedSize: number,
   dividerIndex: number,
   delta: number,
 ) => {
@@ -346,34 +490,94 @@ const resizeVerticalPaneGroups = (
     return nextSizes;
   }
 
-  if (delta > 0) {
-    // Grow pane above divider. Take from panes below, furthest-first.
-    let remaining = delta;
+  const safeCollapsedSize = Math.max(0, Math.floor(collapsedSize));
 
-    for (let i = count - 1; i > dividerIndex && remaining > 0; i--) {
-      const minSize = minSizes[i] ?? 0;
-      const available = Math.max(0, nextSizes[i] - minSize);
+  const safeMinSizes = Array.from({ length: count }, (_, index) =>
+    Math.max(0, Math.floor(minSizes[index] ?? 0)),
+  );
+
+  const safeMaxSizes = Array.from({ length: count }, (_, index) => {
+    const minSize = safeMinSizes[index];
+    const maxSize = maxSizes[index];
+    if (maxSize == null || !Number.isFinite(maxSize)) {
+      return Number.POSITIVE_INFINITY;
+    }
+    return Math.max(minSize, Math.floor(maxSize));
+  });
+
+  const getShrinkFloor = (index: number) =>
+    nextSizes[index] <= safeCollapsedSize
+      ? safeCollapsedSize
+      : safeMinSizes[index];
+
+  const shrinkRange = (indexes: number[], amount: number) => {
+    let remaining = amount;
+
+    for (let i = 0; i < indexes.length && remaining > 0; i++) {
+      const index = indexes[i];
+      const floor = getShrinkFloor(index);
+      const available = Math.max(0, nextSizes[index] - floor);
       const taken = Math.min(available, remaining);
-      nextSizes[i] -= taken;
+      nextSizes[index] -= taken;
       remaining -= taken;
     }
 
-    nextSizes[dividerIndex] += delta - remaining;
+    return amount - remaining;
+  };
+
+  const growRange = (indexes: number[], amount: number) => {
+    let remaining = amount;
+
+    for (let i = 0; i < indexes.length && remaining > 0; i++) {
+      const index = indexes[i];
+      const maxSize = safeMaxSizes[index];
+      const available = Math.max(0, maxSize - nextSizes[index]);
+      const given = Math.min(available, remaining);
+      nextSizes[index] += given;
+      remaining -= given;
+    }
+
+    return amount - remaining;
+  };
+
+  if (delta > 0) {
+    // Divider dragged down:
+    // grow panes above divider, shrink panes below divider.
+    const shrinkOrderBelow = Array.from(
+      { length: count - (dividerIndex + 1) },
+      (_, offset) => count - 1 - offset,
+    );
+
+    const actualShrink = shrinkRange(shrinkOrderBelow, delta);
+
+    const growOrderAbove = Array.from(
+      { length: dividerIndex + 1 },
+      (_, index) => dividerIndex - index,
+    );
+
+    growRange(growOrderAbove, actualShrink);
+
     return nextSizes;
   }
 
-  // Grow pane below divider. Take from panes above, furthest-first.
-  let remaining = -delta;
+  // Divider dragged up:
+  // grow panes below divider, shrink panes above divider.
+  const requestedGrowth = -delta;
 
-  for (let i = 0; i <= dividerIndex && remaining > 0; i++) {
-    const minSize = minSizes[i] ?? 0;
-    const available = Math.max(0, nextSizes[i] - minSize);
-    const taken = Math.min(available, remaining);
-    nextSizes[i] -= taken;
-    remaining -= taken;
-  }
+  const shrinkOrderAbove = Array.from(
+    { length: dividerIndex + 1 },
+    (_, index) => index,
+  );
 
-  nextSizes[dividerIndex + 1] += -delta - remaining;
+  const actualShrink = shrinkRange(shrinkOrderAbove, requestedGrowth);
+
+  const growOrderBelow = Array.from(
+    { length: count - (dividerIndex + 1) },
+    (_, offset) => dividerIndex + 1 + offset,
+  );
+
+  growRange(growOrderBelow, actualShrink);
+
   return nextSizes;
 };
 
@@ -392,7 +596,29 @@ export const useVerticalSplitPane = ({
     [panelCount, minPaneSize, defaultLayout],
   );
 
+  const maxSizes = useMemo(
+    () =>
+      Array.from({ length: panelCount }, (_, index) => {
+        const explicitMax = defaultLayout?.[index]?.maxSize;
+        const minSize = minSizes[index] ?? minPaneSize;
+
+        if (explicitMax == null) {
+          return Number.POSITIVE_INFINITY;
+        }
+
+        return Math.max(minSize, Math.floor(explicitMax));
+      }),
+    [panelCount, defaultLayout, minSizes, minPaneSize],
+  );
+
   const minSizesKey = useMemo(() => minSizes.join(","), [minSizes]);
+  const maxSizesKey = useMemo(
+    () =>
+      maxSizes
+        .map((value) => (Number.isFinite(value) ? value : "inf"))
+        .join(","),
+    [maxSizes],
+  );
 
   const layoutKey = useMemo(
     () => JSON.stringify(defaultLayout ?? []),
@@ -419,10 +645,22 @@ export const useVerticalSplitPane = ({
       }
 
       if (currentTotal === height) {
-        return currentSizes;
+        return fitSizesToTotal(
+          currentSizes,
+          height,
+          minSizes,
+          maxSizes,
+          collapsedSize,
+        );
       }
 
-      return fitSizesToTotal(currentSizes, height, minSizes, collapsedSize);
+      return fitSizesToTotal(
+        currentSizes,
+        height,
+        minSizes,
+        maxSizes,
+        collapsedSize,
+      );
     });
   }, [
     height,
@@ -430,23 +668,41 @@ export const useVerticalSplitPane = ({
     collapsedSize,
     minSizes,
     minSizesKey,
+    maxSizes,
+    maxSizesKey,
     defaultLayout,
     layoutKey,
   ]);
 
   const resolvedSizes = useMemo(() => {
     if (sizes.length === panelCount && sum(sizes) > 0) {
-      return fitSizesToTotal(sizes, height, minSizes, collapsedSize);
+      return fitSizesToTotal(sizes, height, minSizes, maxSizes, collapsedSize);
     }
 
-    return getInitialSizes(panelCount, height, defaultLayout);
-  }, [sizes, panelCount, height, minSizes, collapsedSize, defaultLayout]);
+    return fitSizesToTotal(
+      getInitialSizes(panelCount, height, defaultLayout),
+      height,
+      minSizes,
+      maxSizes,
+      collapsedSize,
+    );
+  }, [
+    sizes,
+    panelCount,
+    height,
+    minSizes,
+    maxSizes,
+    collapsedSize,
+    defaultLayout,
+  ]);
 
   const setSizes = useCallback(
     (newSizes: number[], _manuallyEdited: boolean) => {
-      setSizesState(fitSizesToTotal(newSizes, height, minSizes, collapsedSize));
+      setSizesState(
+        fitSizesToTotal(newSizes, height, minSizes, maxSizes, collapsedSize),
+      );
     },
-    [height, minSizes, collapsedSize],
+    [height, minSizes, maxSizes, collapsedSize],
   );
 
   const ensurePaneMinHeight = useCallback(
@@ -454,14 +710,27 @@ export const useVerticalSplitPane = ({
       setSizesState((currentSizes) => {
         const workingSizes =
           currentSizes.length === panelCount && sum(currentSizes) > 0
-            ? fitSizesToTotal(currentSizes, height, minSizes, collapsedSize)
-            : getInitialSizes(panelCount, height, defaultLayout);
+            ? fitSizesToTotal(
+                currentSizes,
+                height,
+                minSizes,
+                maxSizes,
+                collapsedSize,
+              )
+            : fitSizesToTotal(
+                getInitialSizes(panelCount, height, defaultLayout),
+                height,
+                minSizes,
+                maxSizes,
+                collapsedSize,
+              );
 
         const nextSizes = [...workingSizes];
         const currentHeight = nextSizes[index] ?? 0;
-        const targetHeight = Math.max(
-          currentHeight,
-          Math.floor(requestedHeight),
+        const maxHeight = maxSizes[index] ?? Number.POSITIVE_INFINITY;
+        const targetHeight = Math.min(
+          maxHeight,
+          Math.max(currentHeight, Math.floor(requestedHeight)),
         );
 
         if (targetHeight <= currentHeight) {
@@ -488,10 +757,24 @@ export const useVerticalSplitPane = ({
           nextSizes[index] -= extraNeeded;
         }
 
-        return fitSizesToTotal(nextSizes, height, minSizes, collapsedSize);
+        return fitSizesToTotal(
+          nextSizes,
+          height,
+          minSizes,
+          maxSizes,
+          collapsedSize,
+        );
       });
     },
-    [panelCount, height, minSizes, minPaneSize, collapsedSize, defaultLayout],
+    [
+      panelCount,
+      height,
+      minSizes,
+      maxSizes,
+      minPaneSize,
+      collapsedSize,
+      defaultLayout,
+    ],
   );
 
   const [, togglePane] = useSplitPane({
@@ -524,15 +807,17 @@ export const useVerticalSplitPane = ({
       const nextSizes = resizeVerticalPaneGroups(
         dragStartSizes.current,
         minSizes,
+        maxSizes,
+        collapsedSize,
         dragIndex.current,
         delta,
       );
 
       setSizesState(
-        fitSizesToTotal(nextSizes, height, minSizes, collapsedSize),
+        fitSizesToTotal(nextSizes, height, minSizes, maxSizes, collapsedSize),
       );
     },
-    [height, minSizes, collapsedSize],
+    [height, minSizes, maxSizes, collapsedSize],
   );
 
   useEffect(() => {
