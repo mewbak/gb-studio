@@ -315,7 +315,12 @@ const MusicWebApp = () => {
   return (
     <ThemeProvider theme={theme}>
       <GlobalStyle />
-      <AppShell>
+      <AppShell
+        onContextMenu={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        }}
+      >
         <MusicWebToolbar
           themeId={themeId}
           localeId={localeId}

@@ -83,8 +83,6 @@ export const TrackerHeaderCell = ({
     [dispatch, channel, solo],
   );
 
-  // onMouseDown={setMute}
-
   return (
     <StyledTrackerHeaderCell
       $type={type}
