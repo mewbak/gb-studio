@@ -1,12 +1,20 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect, useState } from "react";
+import API from "renderer/lib/api";
+import l10n from "shared/lib/lang/l10n";
+import { MusicDataReceivePacket } from "shared/lib/music/types";
 import trackerActions from "store/features/tracker/trackerActions";
-import { PianoRollToolType } from "store/features/tracker/trackerState";
 import { useAppDispatch, useAppSelector } from "store/hooks";
 import styled from "styled-components";
 import { Button } from "ui/buttons/Button";
 import { ButtonGroup } from "ui/buttons/ButtonGroup";
-import { Slider } from "ui/form/Slider";
-import { PianoIcon, PlayIcon, StopIcon, TrackerIcon } from "ui/icons/Icons";
+import {
+  PauseIcon,
+  PianoIcon,
+  PlayIcon,
+  PlayStartIcon,
+  StopIcon,
+  TrackerIcon,
+} from "ui/icons/Icons";
 import { FixedSpacer } from "ui/spacing/Spacing";
 
 const StyledSongContextBar = styled.div`
@@ -42,12 +50,45 @@ const StyledSongContextBarTimer = styled.div`
       rgba(255, 255, 255, 0) 100%
     );
   }
+  gap: 5px;
 `;
+
+const StyledSongContextBarTimerPart = styled.div`
+  flex:grow: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+`;
+
+const StyledSongContextBarTimerPartLabel = styled.div`
+  font-size: 8px;
+`;
+
+const getPlayButtonLabel = (play: boolean, playbackFromStart: boolean) => {
+  if (play) {
+    return l10n("FIELD_PAUSE");
+  } else {
+    if (playbackFromStart) {
+      return l10n("FIELD_RESTART");
+    } else {
+      return l10n("FIELD_PLAY");
+    }
+  }
+};
 
 export const SongContextBar = () => {
   const dispatch = useAppDispatch();
 
+  const play = useAppSelector((state) => state.tracker.playing);
   const view = useAppSelector((state) => state.tracker.view);
+  const exporting = useAppSelector((state) => state.tracker.exporting);
+  const playerReady = useAppSelector((state) => state.tracker.playerReady);
+
+  const defaultStartPlaybackPosition = useAppSelector(
+    (state) => state.tracker.defaultStartPlaybackPosition,
+  );
+
+  const [playbackFromStart, setPlaybackFromStart] = useState(false);
 
   const setTrackerView = useCallback(() => {
     dispatch(trackerActions.setViewAndSave("tracker"));
@@ -57,18 +98,141 @@ export const SongContextBar = () => {
     dispatch(trackerActions.setViewAndSave("roll"));
   }, [dispatch]);
 
+  const toggleView = useCallback(() => {
+    if (view === "tracker") {
+      dispatch(trackerActions.setViewAndSave("roll"));
+    } else {
+      dispatch(trackerActions.setViewAndSave("tracker"));
+    }
+  }, [dispatch, view]);
+
+  const togglePlay = useCallback(() => {
+    if (!playerReady) return;
+    if (!play) {
+      if (playbackFromStart) {
+        API.music.sendToMusicWindow({
+          action: "position",
+          position: defaultStartPlaybackPosition,
+        });
+      }
+      dispatch(trackerActions.playTracker());
+    } else {
+      dispatch(trackerActions.pauseTracker());
+    }
+  }, [
+    defaultStartPlaybackPosition,
+    dispatch,
+    play,
+    playbackFromStart,
+    playerReady,
+  ]);
+
+  const stopPlayback = useCallback(() => {
+    dispatch(trackerActions.stopTracker());
+    API.music.sendToMusicWindow({
+      action: "stop",
+      position: defaultStartPlaybackPosition,
+    });
+  }, [defaultStartPlaybackPosition, dispatch]);
+
+  const onKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (e.target && (e.target as Node).nodeName === "INPUT") {
+        return;
+      }
+      if (e.ctrlKey || e.shiftKey) {
+        return;
+      }
+      if (e.altKey) {
+        setPlaybackFromStart(true);
+      }
+      if (e.key === "`") {
+        toggleView();
+      }
+      if (e.code === "Space") {
+        e.preventDefault();
+        togglePlay();
+      }
+    },
+    [togglePlay, toggleView],
+  );
+
+  const onKeyUp = useCallback((e: KeyboardEvent) => {
+    if (!e.altKey) {
+      setPlaybackFromStart(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("keyup", onKeyUp);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("keyup", onKeyUp);
+    };
+  });
+
+  const [playbackState, setPlaybackState] = useState([0, 0]);
+
+  const startPlaybackPosition = useAppSelector(
+    (state) => state.tracker.startPlaybackPosition,
+  );
+
+  useEffect(() => {
+    setPlaybackState(startPlaybackPosition);
+  }, [setPlaybackState, startPlaybackPosition]);
+
+  useEffect(() => {
+    const listener = (_event: unknown, d: MusicDataReceivePacket) => {
+      if (d.action === "update") {
+        setPlaybackState(d.update);
+      }
+    };
+    const unsubscribeMusicData = API.events.music.response.subscribe(listener);
+    return () => {
+      unsubscribeMusicData();
+    };
+  }, [setPlaybackState]);
+
   return (
     <StyledSongContextBar>
       <ButtonGroup>
-        <Button>
-          <PlayIcon />
+        <Button
+          disabled={!playerReady || exporting}
+          onClick={togglePlay}
+          title={getPlayButtonLabel(play, playbackFromStart)}
+        >
+          {play ? (
+            <PauseIcon />
+          ) : playbackFromStart ? (
+            <PlayStartIcon />
+          ) : (
+            <PlayIcon />
+          )}
         </Button>
-        <Button>
+        <Button
+          disabled={!playerReady || exporting}
+          onClick={stopPlayback}
+          title={l10n("FIELD_STOP")}
+        >
           <StopIcon />
         </Button>
       </ButtonGroup>
       <FixedSpacer width={10} />
-      <StyledSongContextBarTimer>00:00</StyledSongContextBarTimer>
+      <StyledSongContextBarTimer>
+        <StyledSongContextBarTimerPart>
+          <StyledSongContextBarTimerPartLabel>
+            ORD
+          </StyledSongContextBarTimerPartLabel>
+          {String(playbackState[0]).padStart(2, "0")}
+        </StyledSongContextBarTimerPart>
+        <StyledSongContextBarTimerPart>
+          <StyledSongContextBarTimerPartLabel>
+            ROW
+          </StyledSongContextBarTimerPartLabel>
+          {String(playbackState[1]).padStart(2, "0")}
+        </StyledSongContextBarTimerPart>
+      </StyledSongContextBarTimer>
       <FixedSpacer width={10} />
       <ButtonGroup>
         <Button
