@@ -233,9 +233,9 @@ export const SongEditor = () => {
               name="ticks_per_row"
               type="number"
               value={song?.ticks_per_row}
-              min={0}
+              min={1}
               max={20}
-              placeholder="0"
+              placeholder="1"
               onChange={onChangeTicksPerRow}
               title={l10n("FIELD_TEMPO_TOOLTIP")}
             />
