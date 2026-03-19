@@ -1,42 +1,30 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { DropdownButton } from "ui/buttons/DropdownButton";
-import { EditableText } from "ui/form/EditableText";
 import {
   FormContainer,
-  FormDivider,
-  FormHeader,
   FormRow,
   FormSectionTitle,
 } from "ui/form/layout/FormLayout";
-import { Sidebar, SidebarColumn, SidebarColumns } from "ui/sidebars/Sidebar";
+import { Sidebar } from "ui/sidebars/Sidebar";
 import { Label } from "ui/form/Label";
 import { Input } from "ui/form/Input";
 import { InstrumentDutyEditor } from "./InstrumentDutyEditor";
 import { InstrumentWaveEditor } from "./InstrumentWaveEditor";
 import { InstrumentNoiseEditor } from "./InstrumentNoiseEditor";
 import {
-  Song,
   DutyInstrument,
   NoiseInstrument,
   WaveInstrument,
 } from "shared/lib/uge/types";
-import { castEventToInt } from "renderer/lib/helpers/castEventValue";
 import l10n from "shared/lib/lang/l10n";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
-import { MenuItem } from "ui/menu/Menu";
 import { PatternCellEditor } from "./PatternCellEditor";
 import trackerActions from "store/features/tracker/trackerActions";
 import { StickyTabs, TabBar, TabSettings } from "ui/tabs/Tabs";
 import { InstrumentSubpatternEditor } from "./InstrumentSubpatternEditor";
 import styled from "styled-components";
-import { NumberInput } from "ui/form/NumberInput";
 import { useAppDispatch, useAppSelector } from "store/hooks";
-import { SidebarHeader } from "ui/form/SidebarHeader";
-import { getBaseName } from "shared/lib/helpers/virtualFilesystem";
-import { InputGroup, InputGroupAppend } from "ui/form/InputGroup";
-import { DutyIcon } from "ui/icons/Icons";
 import { CheckboxField } from "ui/form/CheckboxField";
-import { getBPM } from "components/music/helpers";
+import { SongMetadataEditor } from "./SongMetadataEditor";
 
 type Instrument = DutyInstrument | NoiseInstrument | WaveInstrument;
 
@@ -101,37 +89,6 @@ export const SongEditor = () => {
   const song = useAppSelector((state) => state.trackerDocument.present.song);
 
   const selectSidebar = () => {};
-
-  const onChangeSongProp = useCallback(
-    <K extends keyof Song>(key: K, value: Song[K]) => {
-      dispatch(
-        trackerDocumentActions.editSong({
-          changes: {
-            [key]: value,
-          },
-        }),
-      );
-    },
-    [dispatch],
-  );
-
-  const onChangeName = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) =>
-      onChangeSongProp("name", e.currentTarget.value),
-    [onChangeSongProp],
-  );
-
-  const onChangeArtist = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) =>
-      onChangeSongProp("artist", e.currentTarget.value),
-    [onChangeSongProp],
-  );
-
-  const onChangeTicksPerRow = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) =>
-      onChangeSongProp("ticks_per_row", castEventToInt(e, 0)),
-    [onChangeSongProp],
-  );
 
   const onChangeInstrumentName =
     (type: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -198,14 +155,6 @@ export const SongEditor = () => {
     }
   }
 
-  const onRemovePattern = useCallback(() => {
-    dispatch(
-      trackerDocumentActions.removeSequence({
-        sequenceIndex: sequenceId,
-      }),
-    );
-  }, [dispatch, sequenceId]);
-
   const selectedEffectCell = useAppSelector(
     (state) => state.tracker.selectedEffectCell,
   );
@@ -233,84 +182,7 @@ export const SongEditor = () => {
 
   return (
     <Sidebar onClick={selectSidebar}>
-      <FormHeader>
-        <SidebarHeader>{getBaseName(song.filename)}</SidebarHeader>
-        <DropdownButton
-          size="small"
-          variant="transparent"
-          menuDirection="right"
-        >
-          <MenuItem onClick={onRemovePattern}>
-            {l10n("MENU_PATTERN_DELETE")}
-          </MenuItem>
-        </DropdownButton>
-      </FormHeader>
-      <SidebarColumns>
-        <SidebarColumn>
-          <div style={{ display: "flex", gap: 10, padding: 10, paddingTop: 0 }}>
-            <div style={{ width: "100%" }}>
-              <Label htmlFor="name">{l10n("FIELD_NAME")}</Label>
-              <Input
-                name="name"
-                placeholder={l10n("FIELD_SONG")}
-                value={song?.name}
-                onChange={onChangeName}
-              />
-            </div>
-            <div style={{ width: "100%" }}>
-              <Label htmlFor="artist">{l10n("FIELD_ARTIST")}</Label>
-
-              <Input
-                name="artist"
-                placeholder={l10n("FIELD_ARTIST")}
-                value={song?.artist}
-                onChange={onChangeArtist}
-              />
-            </div>
-          </div>
-        </SidebarColumn>
-        <SidebarColumn>
-          <div style={{ display: "flex", gap: 10, padding: 10, paddingTop: 0 }}>
-            <div style={{ width: "100%" }}>
-              <Label htmlFor="ticks_per_row">{l10n("FIELD_TEMPO")}</Label>
-              <div style={{ display: "flex", gap: 5 }}>
-                <InputGroup>
-                  <NumberInput
-                    name="ticks_per_row"
-                    type="number"
-                    value={song?.ticks_per_row}
-                    min={1}
-                    max={20}
-                    placeholder="1"
-                    onChange={onChangeTicksPerRow}
-                    title={l10n("FIELD_TEMPO_TOOLTIP")}
-                  />
-                  <InputGroupAppend>
-                    <div
-                      style={{
-                        whiteSpace: "nowrap",
-                        display: "flex",
-                        alignItems: "center",
-                        background: "white",
-                        border: "1px solid #ccc",
-                        borderLeft: 0,
-                        borderTopRightRadius: 4,
-                        borderBottomRightRadius: 4,
-                        boxSizing: "border-box",
-                        height: "100%",
-                        padding: 5,
-                        fontSize: 11,
-                      }}
-                    >
-                      ~{Math.round(getBPM(song.ticks_per_row))} BPM
-                    </div>
-                  </InputGroupAppend>
-                </InputGroup>
-              </div>
-            </div>
-          </div>
-        </SidebarColumn>
-      </SidebarColumns>
+      <SongMetadataEditor />
 
       <FormContainer>
         {selectedEffectCell !== null ? (
@@ -324,11 +196,7 @@ export const SongEditor = () => {
         ) : instrumentData ? (
           <div style={{ marginTop: -1 }}>
             <div style={{ borderBottom: "1px solid #ccc" }}>
-              <FormSectionTitle>
-                {l10n("SIDEBAR_INSTRUMENT")}
-                <div style={{ flexGrow: 1 }}></div>
-                <DutyIcon />
-              </FormSectionTitle>
+              <FormSectionTitle>{l10n("SIDEBAR_INSTRUMENT")}</FormSectionTitle>
               <FormRow>
                 <Label htmlFor="name">{l10n("FIELD_NAME")}</Label>
               </FormRow>
@@ -344,25 +212,6 @@ export const SongEditor = () => {
                 />
               </FormRow>
             </div>
-
-            {/* <FormHeader>
-
-              
-              <EditableText
-                name="instrumentName"
-                placeholder={instrumentName(
-                  instrumentData,
-                  selectedInstrument.type,
-                )}
-                value={instrumentData.name || ""}
-                onChange={onChangeInstrumentName(selectedInstrument.type)}
-              />
-
-    
-            </FormHeader>
-
-             */}
-
             <StickyTabs>
               <TabBar
                 value={instrumentEditorTab}
