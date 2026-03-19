@@ -1323,6 +1323,7 @@
   "FIELD_LOOPS": "Loops",
   "FIELD_OPEN_FILE": "Open File",
   "FIELD_OPEN_FOLDER": "Open Folder",
+  "FIELD_CHANNELS": "Channels",
 
   "// 7": "Asset Viewer ---------------------------------------------",
   "ASSET_SEARCH": "Search...",

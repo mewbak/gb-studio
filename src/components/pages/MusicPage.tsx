@@ -19,7 +19,6 @@ import { SongTracker } from "components/music/tracker/SongTracker";
 import { musicSelectors } from "store/features/entities/entitiesState";
 import { SongEditor } from "components/music/SongEditor";
 import SongEditorToolsPanel from "components/music/toolbar/SongEditorToolsPanel";
-import SongEditorRightToolsPanel from "components/music/toolbar/SongEditorRightToolsPanel";
 import { loadSongFile } from "store/features/trackerDocument/trackerDocumentState";
 import { SongPianoRoll } from "components/music/piano/SongPianoRoll";
 import ModViewer from "components/music/mod/ModViewer";
@@ -35,6 +34,7 @@ import { NavigatorSongsPane } from "components/music/navigator/NavigatorSongsPan
 import SplitPaneVerticalContainer, {
   SplitPaneLayout,
 } from "ui/splitpane/SplitPaneVerticalContainer";
+import { NavigatorChannelsPane } from "components/music/navigator/NavigatorChannelsPane";
 
 const Wrapper = styled.div`
   display: flex;
@@ -74,6 +74,7 @@ const ErrorDescription = styled.div`
 
 const defaultPaneLayout: SplitPaneLayout[] = [
   { type: "fill", initialMinSize: 200 },
+  { type: "fixed", size: 190, minSize: 190 },
   { type: "fixed", size: 485 },
 ];
 
@@ -319,6 +320,7 @@ const MusicPage = () => {
               modified={modified}
               selectedSongId={selectedId || viewSongId}
             />
+            {selectedSongType === "uge" ? <NavigatorChannelsPane /> : null}
             {selectedSongType === "uge" ? <NavigatorInstrumentsPane /> : null}
           </SplitPaneVerticalContainer>
         </div>
@@ -368,17 +370,6 @@ const MusicPage = () => {
               >
                 <div style={{ position: "relative", height: "60px" }}>
                   <SongEditorToolsPanel selectedSong={viewSong} />
-                  {documentWidth > MIN_WIDTH_FOR_RIGHT_PANEL &&
-                    view === "roll" && (
-                      <SongEditorRightToolsPanel
-                        channelStatus={channelStatus}
-                        size={
-                          documentWidth > MIN_WIDTH_FOR_FULL_SIZE_RIGHT_PANEL
-                            ? "medium"
-                            : "small"
-                        }
-                      />
-                    )}
                 </div>
                 <SplitPaneVerticalDivider />
                 {renderGridView()}

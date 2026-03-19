@@ -46,6 +46,7 @@ export const UgePlayer = ({ data, onChannelStatusUpdate }: UgePlayerProps) => {
           if (onChannelStatusUpdate) {
             onChannelStatusUpdate(d.channels);
           }
+          dispatch(trackerActions.setChannelStatus(d.channels));
           break;
       }
     };

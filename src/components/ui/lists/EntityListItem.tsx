@@ -131,6 +131,7 @@ export const EntityListItem = React.forwardRef(
         if (!renderContextMenu) {
           return;
         }
+        e.preventDefault();
         const menu = renderContextMenu(item, onContextMenuClose);
         if (!menu) {
           return;

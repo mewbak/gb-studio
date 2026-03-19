@@ -35,6 +35,7 @@ interface TrackerState {
   subpatternEditorFocus: boolean;
   exportFormat: MusicExportFormat;
   exportLoopCount: number;
+  channelStatus: [boolean, boolean, boolean, boolean];
 }
 
 export const initialState: TrackerState = {
@@ -63,6 +64,7 @@ export const initialState: TrackerState = {
   subpatternEditorFocus: false,
   exportFormat: "mp3",
   exportLoopCount: 1,
+  channelStatus: [false, false, false, false],
 };
 
 const trackerSlice = createSlice({
@@ -159,6 +161,12 @@ const trackerSlice = createSlice({
         MIN_EXPORT_LOOPS,
         MAX_EXPORT_LOOPS,
       );
+    },
+    setChannelStatus: (
+      state,
+      action: PayloadAction<[boolean, boolean, boolean, boolean]>,
+    ) => {
+      state.channelStatus = action.payload;
     },
   },
   extraReducers: (builder) =>

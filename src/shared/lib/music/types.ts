@@ -75,7 +75,7 @@ export type MusicDataReceivePacket =
     }
   | {
       action: "muted";
-      channels: boolean[];
+      channels: [boolean, boolean, boolean, boolean];
     }
   | {
       action: "exported-song";

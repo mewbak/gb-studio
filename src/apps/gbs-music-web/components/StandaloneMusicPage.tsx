@@ -18,7 +18,6 @@ import editorActions from "store/features/editor/editorActions";
 import { SongTracker } from "components/music/tracker/SongTracker";
 import { SongEditor } from "components/music/SongEditor";
 import SongEditorToolsPanel from "components/music/toolbar/SongEditorToolsPanel";
-import SongEditorRightToolsPanel from "components/music/toolbar/SongEditorRightToolsPanel";
 import { loadSongFile } from "store/features/trackerDocument/trackerDocumentState";
 import { SongPianoRoll } from "components/music/piano/SongPianoRoll";
 import l10n from "shared/lib/lang/l10n";
@@ -36,6 +35,7 @@ import { NavigatorSongsPane } from "components/music/navigator/NavigatorSongsPan
 import SplitPaneVerticalContainer, {
   SplitPaneLayout,
 } from "ui/splitpane/SplitPaneVerticalContainer";
+import { NavigatorChannelsPane } from "components/music/navigator/NavigatorChannelsPane";
 
 const Wrapper = styled.div`
   display: flex;
@@ -88,6 +88,7 @@ const EmptyStateActions = styled.div`
 
 const defaultPaneLayout: SplitPaneLayout[] = [
   { type: "fill", initialMinSize: 200 },
+  { type: "fixed", size: 190, minSize: 190 },
   { type: "fixed", size: 485 },
 ];
 
@@ -434,6 +435,7 @@ export const StandaloneMusicPage = ({
                   onImportSong={onImportSong}
                   onSelectSong={onSelectSong}
                 />
+                {selectedSongType === "uge" ? <NavigatorChannelsPane /> : null}
                 {selectedSongType === "uge" ? (
                   <NavigatorInstrumentsPane />
                 ) : null}
@@ -479,16 +481,6 @@ export const StandaloneMusicPage = ({
               >
                 <div style={{ position: "relative", height: "60px" }}>
                   <SongEditorToolsPanel selectedSong={viewSong} />
-                  {rightToolsVisible ? (
-                    <SongEditorRightToolsPanel
-                      channelStatus={channelStatus}
-                      size={
-                        documentWidth > MIN_WIDTH_FOR_FULL_SIZE_RIGHT_PANEL
-                          ? "medium"
-                          : "small"
-                      }
-                    />
-                  ) : null}
                 </div>
                 {isCompactLayout && songDocument ? (
                   <MobilePanelBar>
@@ -597,6 +589,9 @@ export const StandaloneMusicPage = ({
                     onImportSong={onImportSong}
                     onSelectSong={onSelectSongWithMobileClose}
                   />
+                  {selectedSongType === "uge" ? (
+                    <NavigatorChannelsPane />
+                  ) : null}
                   {selectedSongType === "uge" ? (
                     <NavigatorInstrumentsPane />
                   ) : null}

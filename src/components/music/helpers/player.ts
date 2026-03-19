@@ -140,7 +140,10 @@ const initPlayer = (onInit: (file: Uint8Array) => void, sfx?: string) => {
   compiler.compile(["-t", "-w"], onCompileDone, console.log);
 };
 
-const setChannel = (channel: number, muted: boolean) => {
+const setChannel = (
+  channel: number,
+  muted: boolean,
+): [boolean, boolean, boolean, boolean] => {
   const unmutedChannels = channels.filter((i) => !i);
   if (unmutedChannels.length <= 1) {
     // Unmute all channels except selected one
@@ -151,10 +154,13 @@ const setChannel = (channel: number, muted: boolean) => {
     // Mute selected
     channels[channel] = emulator.setChannel(channel, muted);
   }
-  return [...channels];
+  return [channels[0], channels[1], channels[2], channels[3]];
 };
 
-const setSolo = (channel: number, enabled: boolean) => {
+const setSolo = (
+  channel: number,
+  enabled: boolean,
+): [boolean, boolean, boolean, boolean] => {
   if (enabled) {
     for (let i = 0; i < channels.length; i++) {
       channels[i] = emulator.setChannel(i, i !== channel);
@@ -164,7 +170,7 @@ const setSolo = (channel: number, enabled: boolean) => {
       channels[i] = emulator.setChannel(i, false);
     }
   }
-  return [...channels];
+  return [channels[0], channels[1], channels[2], channels[3]];
 };
 
 const loadSong = (song: Song) => {
