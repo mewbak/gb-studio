@@ -16,7 +16,13 @@ import settingsActions from "store/features/settings/settingsActions";
 import buildGameActions, {
   BuildType,
 } from "store/features/buildGame/buildGameActions";
-import { Toolbar, ToolbarTitle } from "ui/toolbar/Toolbar";
+import {
+  Toolbar,
+  ToolbarCentre,
+  ToolbarLeft,
+  ToolbarRight,
+  ToolbarTitle,
+} from "ui/toolbar/Toolbar";
 import { DropdownButton } from "ui/buttons/DropdownButton";
 import { MenuAccelerator, MenuItem } from "ui/menu/Menu";
 import { ZoomButton } from "ui/buttons/ZoomButton";
@@ -40,6 +46,8 @@ import useWindowSize from "ui/hooks/use-window-size";
 import { useAppDispatch, useAppSelector } from "store/hooks";
 import API from "renderer/lib/api";
 import clipboardActions from "store/features/clipboard/clipboardActions";
+import { SongContextBar } from "components/music/toolbar/SongContextBar";
+import styled from "styled-components";
 
 const sectionAccelerators = {
   world: "CommandOrControl+1",
@@ -81,6 +89,8 @@ const AppToolbar: FC = () => {
   const windowSize = useWindowSize();
   const smallZoom = (windowSize.width || 0) < 900;
   const showTitle = API.platform === "darwin" && (windowSize.width || 0) > 800;
+
+  const showMusicContextBar = true;
 
   const sectionNames = useMemo(
     () => ({
@@ -219,90 +229,97 @@ const AppToolbar: FC = () => {
 
   return (
     <Toolbar focus={windowFocus}>
-      <DropdownButton
-        label={
-          <span style={{ textAlign: "left", minWidth: 106 }}>
-            {sectionNames[section]}
-          </span>
-        }
-      >
-        {Object.keys(sectionNames).map((key: string) => (
-          <MenuItem
-            key={key}
-            onClick={setSection(key as NavigationSection)}
-            style={{ minWidth: 150 }}
-          >
-            {sectionNames[key as NavigationSection]}
-            {sectionAccelerators[key as NavigationSection] && (
-              <MenuAccelerator
-                accelerator={sectionAccelerators[key as NavigationSection]}
-              />
-            )}
-          </MenuItem>
-        ))}
-      </DropdownButton>
-      {showZoom && (
-        <ZoomButton
-          zoom={Math.round(zoom)}
-          size={smallZoom ? "small" : "medium"}
-          title={l10n("TOOLBAR_ZOOM_RESET")}
-          titleIn={l10n("TOOLBAR_ZOOM_IN")}
-          titleOut={l10n("TOOLBAR_ZOOM_OUT")}
-          onZoomIn={onZoomIn}
-          onZoomOut={onZoomOut}
-          onZoomReset={onZoomReset}
-        />
-      )}
-      <FlexGrow />
-      {showTitle && <ToolbarTitle>{appTitle}</ToolbarTitle>}
-      <FlexGrow />
-      {showSearch && (
-        <SearchInput
-          ref={searchInputRef}
-          placeholder={l10n("TOOLBAR_SEARCH")}
-          value={searchTerm || ""}
-          onChange={onChangeSearchTerm}
-          onSubmit={onChangeSearchTerm}
-        />
-      )}
-      <Button
-        title={l10n("TOOLBAR_OPEN_PROJECT_FOLDER")}
-        onClick={openProjectFolder}
-      >
-        <FolderIcon />
-      </Button>
-      <DropdownButton
-        title={l10n("TOOLBAR_EXPORT_AS")}
-        label={<ExportIcon />}
-        showArrow={false}
-        menuDirection="right"
-      >
-        <MenuItem onClick={onBuild("rom")}>
-          {l10n("TOOLBAR_EXPORT_ROM")}{" "}
-          <MenuAccelerator accelerator="CommandOrControl+Shift+B" />
-        </MenuItem>
-        <MenuItem onClick={onBuild("web")}>
-          {l10n("TOOLBAR_EXPORT_WEB")}{" "}
-          <MenuAccelerator accelerator="CommandOrControl+Shift+N" />
-        </MenuItem>
-        <MenuItem onClick={onBuild("pocket")}>
-          {l10n("TOOLBAR_EXPORT_POCKET")}
-          <MenuAccelerator accelerator="CommandOrControl+Shift+M" />
-        </MenuItem>
-      </DropdownButton>
-      <FixedSpacer width={10} />
-      {cancelling ? (
-        <Button title={l10n("BUILD_CANCELLING")} onClick={openBuildLog}>
-          <DotsIcon />
-        </Button>
-      ) : (
-        <Button
-          title={l10n("TOOLBAR_RUN")}
-          onClick={running ? openBuildLog : onRun}
+      <ToolbarLeft>
+        <DropdownButton
+          label={
+            <span style={{ textAlign: "left", minWidth: 106 }}>
+              {sectionNames[section]}
+            </span>
+          }
         >
-          {running ? <LoadingIcon /> : <PlayIcon />}
+          {Object.keys(sectionNames).map((key: string) => (
+            <MenuItem
+              key={key}
+              onClick={setSection(key as NavigationSection)}
+              style={{ minWidth: 150 }}
+            >
+              {sectionNames[key as NavigationSection]}
+              {sectionAccelerators[key as NavigationSection] && (
+                <MenuAccelerator
+                  accelerator={sectionAccelerators[key as NavigationSection]}
+                />
+              )}
+            </MenuItem>
+          ))}
+        </DropdownButton>
+        {showZoom && (
+          <ZoomButton
+            zoom={Math.round(zoom)}
+            size={smallZoom ? "small" : "medium"}
+            title={l10n("TOOLBAR_ZOOM_RESET")}
+            titleIn={l10n("TOOLBAR_ZOOM_IN")}
+            titleOut={l10n("TOOLBAR_ZOOM_OUT")}
+            onZoomIn={onZoomIn}
+            onZoomOut={onZoomOut}
+            onZoomReset={onZoomReset}
+          />
+        )}
+      </ToolbarLeft>
+      <ToolbarCentre>
+        <FlexGrow />
+        {/* {showTitle && <ToolbarTitle>{appTitle}</ToolbarTitle>} */}
+        {showMusicContextBar && <SongContextBar />}
+        <FlexGrow />
+      </ToolbarCentre>
+      <ToolbarRight>
+        {showSearch && (
+          <SearchInput
+            ref={searchInputRef}
+            placeholder={l10n("TOOLBAR_SEARCH")}
+            value={searchTerm || ""}
+            onChange={onChangeSearchTerm}
+            onSubmit={onChangeSearchTerm}
+          />
+        )}
+        <Button
+          title={l10n("TOOLBAR_OPEN_PROJECT_FOLDER")}
+          onClick={openProjectFolder}
+        >
+          <FolderIcon />
         </Button>
-      )}
+        <DropdownButton
+          title={l10n("TOOLBAR_EXPORT_AS")}
+          label={<ExportIcon />}
+          showArrow={false}
+          menuDirection="right"
+        >
+          <MenuItem onClick={onBuild("rom")}>
+            {l10n("TOOLBAR_EXPORT_ROM")}{" "}
+            <MenuAccelerator accelerator="CommandOrControl+Shift+B" />
+          </MenuItem>
+          <MenuItem onClick={onBuild("web")}>
+            {l10n("TOOLBAR_EXPORT_WEB")}{" "}
+            <MenuAccelerator accelerator="CommandOrControl+Shift+N" />
+          </MenuItem>
+          <MenuItem onClick={onBuild("pocket")}>
+            {l10n("TOOLBAR_EXPORT_POCKET")}
+            <MenuAccelerator accelerator="CommandOrControl+Shift+M" />
+          </MenuItem>
+        </DropdownButton>
+        <FixedSpacer width={10} />
+        {cancelling ? (
+          <Button title={l10n("BUILD_CANCELLING")} onClick={openBuildLog}>
+            <DotsIcon />
+          </Button>
+        ) : (
+          <Button
+            title={l10n("TOOLBAR_RUN")}
+            onClick={running ? openBuildLog : onRun}
+          >
+            {running ? <LoadingIcon /> : <PlayIcon />}
+          </Button>
+        )}
+      </ToolbarRight>
     </Toolbar>
   );
 };

@@ -32,10 +32,6 @@ export const StyledToolbar = styled.div<StyledToolbarProps>`
     padding-left: 10px;
   }
 
-  & > *:not(:last-child) {
-    margin-right: 5px;
-  }
-
   input {
     -webkit-app-region: no-drag;
   }
@@ -54,6 +50,13 @@ export const StyledToolbar = styled.div<StyledToolbarProps>`
     }
   }
 
+  ${StyledButton}[data-active] {
+    box-shadow: inset 1px 1px 5px rgba(0 0 0 / 25%);
+    svg {
+      fill: ${(props) => props.theme.colors.highlight};
+    }
+  }
+
   ${(props) => (props.$focus === false ? blurStyles : "")}
 `;
 
@@ -66,4 +69,27 @@ export const StyledToolbarTitle = styled.div`
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+`;
+
+export const StyledToolbarLeft = styled.div`
+  display: flex;
+  flex-grow: 1;
+  justify-content: flex-start;
+  flex-basis: 1px;
+  gap: 5px;
+`;
+
+export const StyledToolbarCentre = styled.div`
+  display: flex;
+  flex-grow: 1;
+  justify-content: center;
+  gap: 5px;
+`;
+
+export const StyledToolbarRight = styled.div`
+  display: flex;
+  flex-grow: 1;
+  justify-content: flex-end;
+  flex-basis: 1px;
+  gap: 5px;
 `;

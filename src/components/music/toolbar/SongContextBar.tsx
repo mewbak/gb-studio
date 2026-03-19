@@ -1,4 +1,7 @@
-import React from "react";
+import React, { useCallback } from "react";
+import trackerActions from "store/features/tracker/trackerActions";
+import { PianoRollToolType } from "store/features/tracker/trackerState";
+import { useAppDispatch, useAppSelector } from "store/hooks";
 import styled from "styled-components";
 import { Button } from "ui/buttons/Button";
 import { ButtonGroup } from "ui/buttons/ButtonGroup";
@@ -42,6 +45,18 @@ const StyledSongContextBarTimer = styled.div`
 `;
 
 export const SongContextBar = () => {
+  const dispatch = useAppDispatch();
+
+  const view = useAppSelector((state) => state.tracker.view);
+
+  const setTrackerView = useCallback(() => {
+    dispatch(trackerActions.setViewAndSave("tracker"));
+  }, [dispatch]);
+
+  const setRollView = useCallback(() => {
+    dispatch(trackerActions.setViewAndSave("roll"));
+  }, [dispatch]);
+
   return (
     <StyledSongContextBar>
       <ButtonGroup>
@@ -56,10 +71,16 @@ export const SongContextBar = () => {
       <StyledSongContextBarTimer>00:00</StyledSongContextBarTimer>
       <FixedSpacer width={10} />
       <ButtonGroup>
-        <Button variant="primary">
+        <Button
+          variant={view === "roll" ? "primary" : "normal"}
+          onClick={setRollView}
+        >
           <PianoIcon />
         </Button>
-        <Button>
+        <Button
+          variant={view === "tracker" ? "primary" : "normal"}
+          onClick={setTrackerView}
+        >
           <TrackerIcon />
         </Button>
       </ButtonGroup>

@@ -1,5 +1,11 @@
 import React, { ReactNode } from "react";
-import { StyledToolbar, StyledToolbarTitle } from "ui/toolbar/style";
+import {
+  StyledToolbar,
+  StyledToolbarCentre,
+  StyledToolbarLeft,
+  StyledToolbarRight,
+  StyledToolbarTitle,
+} from "ui/toolbar/style";
 
 interface ToolbarProps {
   readonly children?: ReactNode;
@@ -16,4 +22,20 @@ interface ToolbarTitleProps {
 
 export const ToolbarTitle = ({ children }: ToolbarTitleProps) => {
   return <StyledToolbarTitle children={children} />;
+};
+
+interface ToolbarBlockProps {
+  readonly children?: ReactNode;
+}
+
+export const ToolbarLeft = ({ children }: ToolbarBlockProps) => {
+  return <StyledToolbarLeft children={children} />;
+};
+
+export const ToolbarCentre = ({ children }: ToolbarBlockProps) => {
+  return <StyledToolbarCentre children={children} />;
+};
+
+export const ToolbarRight = ({ children }: ToolbarBlockProps) => {
+  return <StyledToolbarRight children={children} />;
 };

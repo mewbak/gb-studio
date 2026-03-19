@@ -479,18 +479,18 @@ export const StyledButtonGroup = styled.div`
   display: flex;
   gap: 0px;
 
-  ${StyledButton} {
+  && ${StyledButton} {
     flex-grow: 1;
     border-radius: 0px;
     border-right-width: 0;
   }
 
-  ${StyledButton}:first-child {
+  && ${StyledButton}:first-child {
     border-top-left-radius: 4px;
     border-bottom-left-radius: 4px;
   }
 
-  ${StyledButton}:last-child {
+  && ${StyledButton}:last-child {
     border-right-width: 1px;
     border-top-right-radius: 4px;
     border-bottom-right-radius: 4px;
