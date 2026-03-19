@@ -62,33 +62,33 @@ const Wrapper = styled.div`
 
 const StyledChannelIcon = styled.div<{ channel: number }>`
   svg {
-    fill: ${(props) => props.theme.colors.list.icon};
+    fill: ${(props) => props.theme.colors.highlight};
     width: 20px;
     height: 20px;
     margin-right: 10px;
 
-    // -webkit-filter: drop-shadow(1px 1px 1px rgba(0, 0, 0, 0.9));
-    // filter: drop-shadow(1px 1px 1px rgba(0, 0, 0, 0.9));
+    // -webkit-filter: drop-shadow(1px 1px 2px rgba(71, 153, 190, 0.9));
+    // filter: drop-shadow(1px 1px 2px rgba(71, 153, 190, 0.9));
 
     ${(props) =>
       props.channel === 0 &&
       css`
-        fill: #4799be;
+        // fill: rgb(71, 153, 190);
       `}
     ${(props) =>
       props.channel === 1 &&
       css`
-        fill: #4375c8;
+        // fill: #4375c8;
       `}
     ${(props) =>
       props.channel === 2 &&
       css`
-        fill: #3f5bc8;
+        // fill: #3f5bc8;
       `}
     ${(props) =>
       props.channel === 3 &&
       css`
-        fill: #3d3dcd;
+        // fill: #3d3dcd;
       `}
   }
 `;
@@ -184,10 +184,16 @@ const Row = ({ index, style, data }: ChannelNavigatorRowProps) => {
           alignItems: "center",
           boxSizing: "border-box",
           fontSize: 11,
+          fontWeight: selectedChannel === item.index ? "bold" : "normal",
+          // color:
+          //   selectedChannel === item.index
+          //     ? themeContext?.colors.highlight
+          //     : themeContext?.colors.text,
+          borderBottom: `1px solid ${themeContext?.colors.sidebar.border}`,
           background:
             selectedChannel === item.index
-              ? "black"
-              : themeContext?.colors.toolbar.background, //."linear-gradient(0deg,rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.1) 100%)",
+              ? themeContext?.colors.list.selectedBackground
+              : "transparent", //."linear-gradient(0deg,rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.1) 100%)",
         }}
       >
         <StyledChannelIcon channel={item.index}>
