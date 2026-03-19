@@ -16,7 +16,7 @@ import {
 } from "ui/splitpane/SplitPaneDivider";
 import editorActions from "store/features/editor/editorActions";
 import { SongTracker } from "components/music/tracker/SongTracker";
-import { SongEditor } from "components/music/SongEditor";
+import { SongEditor } from "components/music/sidebar/SongEditor";
 import SongEditorToolsPanel from "components/music/toolbar/SongEditorToolsPanel";
 import { loadSongFile } from "store/features/trackerDocument/trackerDocumentState";
 import { SongPianoRoll } from "components/music/piano/SongPianoRoll";
