@@ -15,6 +15,7 @@ import { testNotes } from "./helpers";
 import throttle from "lodash/throttle";
 import { NOTE_C5 } from "consts";
 import { playDutyNotePreview } from "components/music/helpers";
+import { Alert, AlertItem } from "ui/alerts/Alert";
 
 const dutyOptions = [
   {
@@ -85,8 +86,8 @@ export const InstrumentDutyEditor = ({
 
   const throttledTestInstrument = useRef(
     throttle(
-      (instrument: DutyInstrument) => {
-        playDutyNotePreview(NOTE_C5, instrument, selectedChannel === 1 ? 1 : 0);
+      (instrument: DutyInstrument, channel: number) => {
+        playDutyNotePreview(NOTE_C5, instrument, channel === 1 ? 1 : 0);
       },
       250,
       { leading: true, trailing: true },
@@ -98,24 +99,6 @@ export const InstrumentDutyEditor = ({
       throttledTestInstrument.cancel();
     };
   }, [throttledTestInstrument]);
-
-  const lastAutoPreview = useRef("");
-  const hasMounted = useRef(false);
-
-  useEffect(() => {
-    const instrumentKey = JSON.stringify(instrument);
-
-    if (
-      instrument &&
-      hasMounted.current &&
-      instrumentKey !== lastAutoPreview.current
-    ) {
-      throttledTestInstrument(instrument);
-    }
-
-    lastAutoPreview.current = instrumentKey;
-    hasMounted.current = true;
-  }, [instrument, throttledTestInstrument]);
 
   if (!instrument) return <></>;
 
@@ -138,6 +121,8 @@ export const InstrumentDutyEditor = ({
           },
         }),
       );
+      const newValue = { ...instrument, [key]: editValue };
+      throttledTestInstrument(newValue, selectedChannel);
     };
 
   const onChangeFieldSelect =
@@ -153,6 +138,8 @@ export const InstrumentDutyEditor = ({
             },
           }),
         );
+        const newValue = { ...instrument, [key]: editValue };
+        throttledTestInstrument(newValue, selectedChannel);
       }
     };
 
@@ -198,6 +185,14 @@ export const InstrumentDutyEditor = ({
           />
         </FormRow>
       )}
+      {Number(instrument.frequency_sweep_time) !== 0 &&
+        selectedChannel === 1 && (
+          <FormRow>
+            <Alert variant="info">
+              <AlertItem>{l10n("MESSAGE_SWEEP_ONLY_DUTY1")}</AlertItem>
+            </Alert>
+          </FormRow>
+        )}
       <FormDivider />
       <FormRow>
         <FormField name="duty_cycle" label={l10n("FIELD_DUTY")}>

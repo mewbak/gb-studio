@@ -134,13 +134,20 @@ export const FlatList = <T extends FlatListItem>({
     onKeyDown?.(e, items[selectedIndex]);
   };
 
+  // Keep ref to setSelectedId to prevent stale references
+  // in throttled calls used in keyboard navigation
+  const setSelectedIdRef = useRef(setSelectedId);
+  useEffect(() => {
+    setSelectedIdRef.current = setSelectedId;
+  }, [setSelectedId]);
+
   const throttledNext = useRef(
     throttle((items: T[], selectedId: string) => {
       const currentIndex = items.findIndex((item) => item.id === selectedId);
       const nextIndex = currentIndex + 1;
       const nextItem = items[nextIndex];
       if (nextItem) {
-        setSelectedId?.(nextItem.id, nextItem);
+        setSelectedIdRef.current?.(nextItem.id, nextItem);
         setFocus(nextItem.id);
       }
     }, 150),
@@ -152,7 +159,7 @@ export const FlatList = <T extends FlatListItem>({
       const nextIndex = currentIndex - 1;
       const nextItem = items[nextIndex];
       if (nextItem) {
-        setSelectedId?.(nextItem.id, nextItem);
+        setSelectedIdRef.current?.(nextItem.id, nextItem);
         setFocus(nextItem.id);
       }
     }, 150),

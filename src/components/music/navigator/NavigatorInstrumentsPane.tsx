@@ -26,6 +26,12 @@ import { assertUnreachable } from "shared/lib/helpers/assert";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
 import { SplitPaneChildProps } from "ui/splitpane/SplitPaneVerticalContainer";
 import { SplitPane } from "ui/splitpane/SplitPane";
+import {
+  playDutyNotePreview,
+  playNoiseNotePreview,
+  playWaveNotePreview,
+} from "components/music/helpers";
+import { NOTE_C5 } from "consts";
 
 const COLLAPSED_SIZE = 30;
 
@@ -76,6 +82,7 @@ const sortByIndex = (a: NavigatorItem, b: NavigatorItem) => {
 const emptyDutyInstruments: DutyInstrument[] = [];
 const emptyWaveInstruments: WaveInstrument[] = [];
 const emptyNoiseInstruments: NoiseInstrument[] = [];
+const emptyWaves: Uint8Array[] = [];
 
 export const NavigatorInstrumentsPane = ({
   height,
@@ -99,6 +106,10 @@ export const NavigatorInstrumentsPane = ({
     (state) =>
       state.trackerDocument.present.song?.noise_instruments ??
       emptyNoiseInstruments,
+  );
+
+  const waveForms = useAppSelector(
+    (state) => state.trackerDocument.present.song?.waves ?? emptyWaves,
   );
 
   const selectedInstrument = useAppSelector(
@@ -234,6 +245,20 @@ export const NavigatorInstrumentsPane = ({
         }),
       );
 
+      const instrumentId = parseInt(item.instrumentId);
+
+      if (item.type === "duty") {
+        const instrument = dutyInstruments[instrumentId];
+        playDutyNotePreview(NOTE_C5, instrument, selectedChannel === 1 ? 1 : 0);
+      } else if (item.type === "wave") {
+        const instrument = waveInstruments[instrumentId];
+        const wave = waveForms?.[instrument?.wave_index];
+        playWaveNotePreview(NOTE_C5, instrument, wave);
+      } else if (item.type === "noise") {
+        const instrument = noiseInstruments[instrumentId];
+        playNoiseNotePreview(NOTE_C5, instrument);
+      }
+
       if (!item.isGroup && syncInstruments) {
         let newSelectedChannel = 0;
         switch (item.type) {
@@ -259,7 +284,15 @@ export const NavigatorInstrumentsPane = ({
         );
       }
     },
-    [dispatch, selectedChannel, syncInstruments],
+    [
+      dispatch,
+      dutyInstruments,
+      noiseInstruments,
+      selectedChannel,
+      syncInstruments,
+      waveForms,
+      waveInstruments,
+    ],
   );
 
   const [renameId, setRenameId] = useState("");

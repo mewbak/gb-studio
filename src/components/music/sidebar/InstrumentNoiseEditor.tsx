@@ -42,24 +42,6 @@ export const InstrumentNoiseEditor = ({
     };
   }, [throttledTestInstrument]);
 
-  const lastAutoPreview = useRef("");
-  const hasMounted = useRef(false);
-
-  useEffect(() => {
-    const instrumentKey = JSON.stringify(instrument);
-
-    if (
-      instrument &&
-      hasMounted.current &&
-      instrumentKey !== lastAutoPreview.current
-    ) {
-      throttledTestInstrument(instrument);
-    }
-
-    lastAutoPreview.current = instrumentKey;
-    hasMounted.current = true;
-  }, [instrument, throttledTestInstrument]);
-
   if (!instrument) return <></>;
 
   const onChangeField =
@@ -73,6 +55,8 @@ export const InstrumentNoiseEditor = ({
           },
         }),
       );
+      const newValue = { ...instrument, [key]: editValue };
+      throttledTestInstrument(newValue);
     };
 
   const onChangeSubpattern = (macros: number[]) => {

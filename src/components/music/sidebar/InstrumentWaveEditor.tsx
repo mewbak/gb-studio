@@ -48,12 +48,8 @@ export const InstrumentWaveEditor = ({
 
   const throttledTestInstrument = useRef(
     throttle(
-      (instrument: WaveInstrument, waveForms: Uint8Array[]) => {
-        playWaveNotePreview(
-          NOTE_C5,
-          instrument,
-          waveForms[instrument.wave_index],
-        );
+      (instrument: WaveInstrument, waveForm: Uint8Array) => {
+        playWaveNotePreview(NOTE_C5, instrument, waveForm);
       },
       250,
       { leading: true, trailing: true },
@@ -65,24 +61,6 @@ export const InstrumentWaveEditor = ({
       throttledTestInstrument.cancel();
     };
   }, [throttledTestInstrument]);
-
-  const lastAutoPreview = useRef("");
-  const hasMounted = useRef(false);
-
-  useEffect(() => {
-    const instrumentKey = JSON.stringify({ instrument, waveForms });
-
-    if (
-      instrument &&
-      hasMounted.current &&
-      instrumentKey !== lastAutoPreview.current
-    ) {
-      throttledTestInstrument(instrument, waveForms);
-    }
-
-    lastAutoPreview.current = instrumentKey;
-    hasMounted.current = true;
-  }, [instrument, throttledTestInstrument, waveForms]);
 
   if (!instrument) return <></>;
 
@@ -101,6 +79,8 @@ export const InstrumentWaveEditor = ({
           },
         }),
       );
+      const newValue = { ...instrument, [key]: editValue };
+      throttledTestInstrument(newValue, waveForms[newValue.wave_index]);
     };
 
   const onChangeFieldSelect =
@@ -115,7 +95,13 @@ export const InstrumentWaveEditor = ({
           },
         }),
       );
+      const newValue = { ...instrument, [key]: editValue };
+      throttledTestInstrument(newValue, waveForms[newValue.wave_index]);
     };
+
+  const onChangeWave = (wave: Uint8Array) => {
+    throttledTestInstrument(instrument, wave);
+  };
 
   const onTestInstrument = (note: number) => () => {
     playWaveNotePreview(note, instrument, waveForms[instrument.wave_index]);
@@ -148,6 +134,7 @@ export const InstrumentWaveEditor = ({
       <WaveEditorForm
         waveId={instrument.wave_index}
         onChange={onChangeFieldSelect("wave_index")}
+        onEditWave={onChangeWave}
       />
 
       <FormDivider />
