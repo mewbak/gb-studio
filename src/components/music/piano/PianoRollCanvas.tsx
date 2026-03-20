@@ -44,6 +44,7 @@ import {
   calculatePlaybackTrackerPosition,
   clonePattern,
   commitChangedPatterns,
+  fromAbsCol,
   interpolateGridLine,
   mutatePatternsAndCollectChanges,
   noteToRow,
@@ -506,13 +507,17 @@ export const PianoRollCanvas = ({
           setIsDraggingNotes(true);
 
           const previewCellId = `${absCol}:${noteIndex}`;
+
+          const { sequenceId: originSequenceId, column: originColumn } =
+            fromAbsCol(noteDragOrigin.absCol);
+
+          const originPatternIndex = song.sequence[originSequenceId];
+          const originPattern = song.patterns[originPatternIndex];
+          const selectedCell = originPattern?.[originColumn]?.[selectedChannel];
+          const instrument = selectedCell?.instrument ?? 0;
+
           if (lastDragPreviewCellRef.current !== previewCellId) {
-            playNotePreview(
-              song,
-              selectedChannel,
-              noteIndex,
-              currentInstrument,
-            );
+            playNotePreview(song, selectedChannel, noteIndex, instrument);
             lastDragPreviewCellRef.current = previewCellId;
           }
         }
