@@ -1,10 +1,10 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import API from "renderer/lib/api";
 import l10n from "shared/lib/lang/l10n";
 import { MusicDataReceivePacket } from "shared/lib/music/types";
 import trackerActions from "store/features/tracker/trackerActions";
 import { useAppDispatch, useAppSelector } from "store/hooks";
-import styled, { css } from "styled-components";
+import styled, { css, ThemeContext } from "styled-components";
 import { Button } from "ui/buttons/Button";
 import { ButtonGroup } from "ui/buttons/ButtonGroup";
 import {
@@ -209,6 +209,11 @@ export const SongContextBar = () => {
   const patternIndex = song?.sequence[playbackState[0]] ?? 0;
   const rowIndex = playbackState[1];
 
+  const themeContext = useContext(ThemeContext);
+
+  const themePianoIcon =
+    themeContext?.type === "light" ? <PianoIcon /> : <PianoInverseIcon />;
+
   return (
     <StyledSongContextBar>
       <ButtonGroup>
@@ -261,7 +266,7 @@ export const SongContextBar = () => {
           variant={view === "roll" ? "primary" : "normal"}
           onClick={setRollView}
         >
-          {view === "roll" ? <PianoInverseIcon /> : <PianoIcon />}
+          {view === "roll" ? <PianoInverseIcon /> : themePianoIcon}
         </Button>
         <Button
           disabled={!playerReady}
