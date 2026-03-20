@@ -1,13 +1,19 @@
 /* eslint-disable camelcase */
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import editorActions from "store/features/editor/editorActions";
-import type { MusicExportFormat } from "shared/lib/music/types";
+import type { InstrumentType, MusicExportFormat } from "shared/lib/music/types";
 import clamp from "shared/lib/helpers/clamp";
 import { MAX_EXPORT_LOOPS, MIN_EXPORT_LOOPS } from "shared/lib/music/constants";
+import { addNewSongFile } from "store/features/trackerDocument/trackerDocumentState";
+import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
 
 export type PianoRollToolType = "pencil" | "eraser" | "selection" | null;
 
 export type TrackerViewType = "tracker" | "roll";
+
+interface SelectedInstrument {
+  id: string;
+  type: InstrumentType;
+}
 
 interface TrackerState {
   // status: "loading" | "error" | "loaded" | null,
@@ -29,6 +35,9 @@ interface TrackerState {
   hoverSequence: number | null;
   startPlaybackPosition: [number, number];
   defaultStartPlaybackPosition: [number, number];
+  selectedSongId: string;
+  selectedInstrument: SelectedInstrument;
+  selectedSequence: number;
   selectedPatternCells: number[];
   selection: [number, number, number, number];
   selectedEffectCell: number | null;
@@ -58,6 +67,12 @@ export const initialState: TrackerState = {
   hoverSequence: null,
   startPlaybackPosition: [0, 0],
   defaultStartPlaybackPosition: [0, 0],
+  selectedSongId: "",
+  selectedInstrument: {
+    id: "0",
+    type: "duty",
+  },
+  selectedSequence: 0,
   selectedPatternCells: [],
   selection: [-1, -1, -1, -1],
   selectedEffectCell: null,
@@ -136,6 +151,24 @@ const trackerSlice = createSlice({
       state.startPlaybackPosition = _action.payload;
       state.defaultStartPlaybackPosition = _action.payload;
     },
+    setSelectedSongId: (state, action: PayloadAction<string>) => {
+      state.selectedSongId = action.payload;
+      state.selectedInstrument = { id: "0", type: "duty" };
+      state.selectedSequence = 0;
+      state.playing = false;
+      state.playerReady = false;
+    },
+
+    setSelectedInstrument: (
+      state,
+      action: PayloadAction<SelectedInstrument>,
+    ) => {
+      state.selectedInstrument = action.payload;
+    },
+
+    setSelectedSequence: (state, action: PayloadAction<number>) => {
+      state.selectedSequence = action.payload;
+    },
     setSelectedPatternCells: (state, _action: PayloadAction<number[]>) => {
       state.selectedEffectCell = null;
       state.selectedPatternCells = _action.payload;
@@ -170,10 +203,18 @@ const trackerSlice = createSlice({
     },
   },
   extraReducers: (builder) =>
-    builder.addCase(editorActions.setSelectedSongId, (state, _action) => {
-      state.playing = false;
-      state.playerReady = false;
-    }),
+    builder
+      // When adding a new song file jump to it in navigator
+      .addCase(addNewSongFile.fulfilled, (state, action) => {
+        state.selectedSongId = action.payload.data.id;
+      })
+      // When adding a importing song file jump to it in navigator
+      .addCase(
+        trackerDocumentActions.convertModToUgeSong.fulfilled,
+        (state, action) => {
+          state.selectedSongId = action.payload.data.id;
+        },
+      ),
 });
 
 export const { actions } = trackerSlice;

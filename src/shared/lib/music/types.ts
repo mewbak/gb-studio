@@ -5,6 +5,8 @@ import type {
   WaveInstrument,
 } from "shared/lib/uge/types";
 
+export type InstrumentType = "duty" | "wave" | "noise";
+
 export type MusicExportFormat = "wav" | "mp3" | "flac";
 
 export type MusicDataPacket =

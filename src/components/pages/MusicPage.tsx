@@ -78,9 +78,6 @@ const defaultPaneLayout: SplitPaneLayout[] = [
   { type: "fixed", size: 485 },
 ];
 
-const MIN_WIDTH_FOR_RIGHT_PANEL = 670;
-const MIN_WIDTH_FOR_FULL_SIZE_RIGHT_PANEL = 790;
-
 const MusicPage = () => {
   const dispatch = useAppDispatch();
   const themeContext = useContext(ThemeContext);
@@ -99,7 +96,9 @@ const MusicPage = () => {
   const allSongs = useAppSelector(musicSelectors.selectAll);
   const allUgeSongs = useMemo(() => allSongs.sort(sortByFilename), [allSongs]);
 
-  const selectedSongId = useAppSelector((state) => state.editor.selectedSongId);
+  const selectedSongId = useAppSelector(
+    (state) => state.tracker.selectedSongId,
+  );
   const selectedId = useAppSelector((state) => state.navigation.id);
 
   const song = useAppSelector((state) =>
@@ -122,7 +121,7 @@ const MusicPage = () => {
     musicSelectors.selectById(state, viewSongId),
   );
 
-  const sequenceId = useAppSelector((state) => state.editor.selectedSequence);
+  const sequenceId = useAppSelector((state) => state.tracker.selectedSequence);
 
   const songDocument = useAppSelector(
     (state) => state.trackerDocument.present.song,
@@ -290,8 +289,6 @@ const MusicPage = () => {
       );
     }
   }, [channelStatus, sequenceId, songDocument, view, windowHeight]);
-
-  const documentWidth = windowWidth - leftPaneWidth - rightPaneWidth;
 
   return (
     <Wrapper>

@@ -1,6 +1,5 @@
 import React, { FC, useEffect, useState } from "react";
 import { useAppSelector } from "store/hooks";
-import { InstrumentType } from "store/features/editor/editorState";
 import styled from "styled-components";
 import {
   Option,
@@ -16,6 +15,7 @@ import {
   playWaveNotePreview,
 } from "components/music/helpers";
 import { NOTE_C5 } from "consts";
+import { InstrumentType } from "shared/lib/music/types";
 
 const defaultInstrumentOptions = Array(15)
   .fill("")

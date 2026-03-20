@@ -6,10 +6,8 @@ import React, {
   useState,
 } from "react";
 import { FlatList } from "ui/lists/FlatList";
-import editorActions from "store/features/editor/editorActions";
 import { EntityListItem } from "ui/lists/EntityListItem";
 import l10n from "shared/lib/lang/l10n";
-import { InstrumentType } from "store/features/editor/editorState";
 import {
   DutyInstrument,
   NoiseInstrument,
@@ -32,6 +30,7 @@ import {
   playWaveNotePreview,
 } from "components/music/helpers";
 import { NOTE_C5 } from "consts";
+import { InstrumentType } from "shared/lib/music/types";
 
 const COLLAPSED_SIZE = 30;
 
@@ -113,7 +112,7 @@ export const NavigatorInstrumentsPane = ({
   );
 
   const selectedInstrument = useAppSelector(
-    (state) => state.editor.selectedInstrument,
+    (state) => state.tracker.selectedInstrument,
   );
   const selectedChannel = useAppSelector(
     (state) => state.tracker.selectedChannel,
@@ -239,7 +238,7 @@ export const NavigatorInstrumentsPane = ({
   const setSelectedInstrument = useCallback(
     (id: string, item: InstrumentNavigatorItem) => {
       dispatch(
-        editorActions.setSelectedInstrument({
+        trackerActions.setSelectedInstrument({
           id: item.instrumentId,
           type: item.type,
         }),

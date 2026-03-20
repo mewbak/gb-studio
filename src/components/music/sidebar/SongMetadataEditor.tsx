@@ -28,7 +28,7 @@ import l10n from "shared/lib/lang/l10n";
 export const SongMetadataEditor = () => {
   const dispatch = useAppDispatch();
 
-  const sequenceId = useAppSelector((state) => state.editor.selectedSequence);
+  const sequenceId = useAppSelector((state) => state.tracker.selectedSequence);
   const song = useAppSelector((state) => state.trackerDocument.present.song);
 
   const onChangeSongProp = useCallback(

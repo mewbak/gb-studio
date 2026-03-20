@@ -16,10 +16,10 @@ import {
   WaveInstrument,
 } from "shared/lib/uge/types";
 import { RootState } from "store/configureStore";
-import { InstrumentType } from "store/features/editor/editorState";
 import API from "renderer/lib/api";
 import { MusicResourceAsset } from "shared/lib/resources/types";
 import { createPatternCell, createSong } from "shared/lib/uge/song";
+import { InstrumentType } from "shared/lib/music/types";
 
 interface TrackerDocumentState {
   status: "loading" | "error" | "loaded" | null;

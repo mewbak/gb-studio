@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { musicSelectors } from "store/features/entities/entitiesState";
 import { FlatList } from "ui/lists/FlatList";
-import editorActions from "store/features/editor/editorActions";
 import { EntityListItem, EntityListSearch } from "ui/lists/EntityListItem";
 import l10n from "shared/lib/lang/l10n";
 import { Button } from "ui/buttons/Button";
@@ -25,6 +24,7 @@ import { SplitPaneChildProps } from "ui/splitpane/SplitPaneVerticalContainer";
 import navigationActions from "store/features/navigation/navigationActions";
 import { SplitPane } from "ui/splitpane/SplitPane";
 import { DropdownButton } from "ui/buttons/DropdownButton";
+import trackerActions from "store/features/tracker/trackerActions";
 
 const COLLAPSED_SIZE = 30;
 
@@ -80,7 +80,7 @@ export const NavigatorSongsPane = ({
         return;
       }
       dispatch(navigationActions.setNavigationId(id));
-      dispatch(editorActions.setSelectedSongId(id));
+      dispatch(trackerActions.setSelectedSongId(id));
     },
     [dispatch, onSelectSong],
   );

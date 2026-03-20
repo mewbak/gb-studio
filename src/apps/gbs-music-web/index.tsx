@@ -7,7 +7,6 @@ import {
   MusicDocumentReference,
   MusicWorkspace,
 } from "shared/lib/music/workspace";
-import editorActions from "store/features/editor/editorActions";
 import trackerActions from "store/features/tracker/trackerActions";
 import styled, { ThemeProvider } from "styled-components";
 import GlobalStyle from "components/ui/globalStyle";
@@ -107,7 +106,7 @@ const setWorkspaceInStore = (workspace: MusicWorkspace) => {
     musicAssetActions.setMusicAssets(musicWorkspaceToAssets(workspace)),
   );
   store.dispatch(
-    editorActions.setSelectedSongId(workspace.activeDocumentId ?? ""),
+    trackerActions.setSelectedSongId(workspace.activeDocumentId ?? ""),
   );
 };
 
@@ -156,10 +155,12 @@ const MusicWebApp = () => {
     (state) => state.trackerDocument.present.modified,
   );
   const currentSongName = useAppSelector((state) => {
-    const currentId = state.editor.selectedSongId;
+    const currentId = state.tracker.selectedSongId;
     return musicSelectors.selectById(state, currentId)?.name ?? "";
   });
-  const selectedSongId = useAppSelector((state) => state.editor.selectedSongId);
+  const selectedSongId = useAppSelector(
+    (state) => state.tracker.selectedSongId,
+  );
 
   useEffect(() => {
     webMusicEnvironment.setWindowTitle(
@@ -267,7 +268,7 @@ const MusicWebApp = () => {
         return;
       }
       void runWithUnsavedCheck(async () => {
-        store.dispatch(editorActions.setSelectedSongId(nextSongId));
+        store.dispatch(trackerActions.setSelectedSongId(nextSongId));
       });
     },
     [runWithUnsavedCheck, selectedSongId],

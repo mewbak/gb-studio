@@ -2,7 +2,6 @@ import React, { useCallback } from "react";
 import { PatternCell } from "shared/lib/uge/types";
 import trackerActions from "store/features/tracker/trackerActions";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
-import editorActions from "store/features/editor/editorActions";
 import { useAppDispatch, useAppSelector } from "store/hooks";
 import { StyledPianoRollEffectCell, StyledPianoRollEffectRow } from "./style";
 import { PIANO_ROLL_CELL_SIZE } from "consts";
@@ -42,7 +41,7 @@ const clearEffect = (): EffectCellChanges => ({
 });
 
 const selectEffectCell = (sequenceId: number, column: number) => [
-  editorActions.setSelectedSequence(sequenceId),
+  trackerActions.setSelectedSequence(sequenceId),
   trackerActions.setSelectedEffectCell(column),
 ];
 
@@ -59,7 +58,7 @@ export const PianoRollEffectRow = React.memo(
       (state) => state.tracker.selectedEffectCell,
     );
     const selectedSequence = useAppSelector(
-      (state) => state.editor.selectedSequence,
+      (state) => state.tracker.selectedSequence,
     );
     const songDocument = useAppSelector(
       (state) => state.trackerDocument.present.song,

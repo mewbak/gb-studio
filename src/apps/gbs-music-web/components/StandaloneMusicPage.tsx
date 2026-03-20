@@ -92,8 +92,6 @@ const defaultPaneLayout: SplitPaneLayout[] = [
   { type: "fixed", size: 485 },
 ];
 
-const MIN_WIDTH_FOR_RIGHT_PANEL = 670;
-const MIN_WIDTH_FOR_FULL_SIZE_RIGHT_PANEL = 790;
 const COMPACT_LAYOUT_BREAKPOINT = 900;
 
 const MobilePanelBar = styled.div`
@@ -186,7 +184,9 @@ export const StandaloneMusicPage = ({
     () => [...allSongs].sort(sortByFilename),
     [allSongs],
   );
-  const selectedSongId = useAppSelector((state) => state.editor.selectedSongId);
+  const selectedSongId = useAppSelector(
+    (state) => state.tracker.selectedSongId,
+  );
   const song = useAppSelector((state) =>
     musicSelectors.selectById(state, selectedSongId),
   );
@@ -207,7 +207,7 @@ export const StandaloneMusicPage = ({
     musicSelectors.selectById(state, viewSongId),
   );
 
-  const sequenceId = useAppSelector((state) => state.editor.selectedSequence);
+  const sequenceId = useAppSelector((state) => state.tracker.selectedSequence);
   const songDocument = useAppSelector(
     (state) => state.trackerDocument.present.song,
   );
@@ -239,7 +239,7 @@ export const StandaloneMusicPage = ({
 
   useEffect(() => {
     if (!selectedSongId && allSortedSongs[0]?.id) {
-      dispatch(editorActions.setSelectedSongId(allSortedSongs[0].id));
+      dispatch(trackerActions.setSelectedSongId(allSortedSongs[0].id));
     }
   }, [allSortedSongs, dispatch, selectedSongId]);
 
@@ -396,12 +396,6 @@ export const StandaloneMusicPage = ({
       );
     }
   }, [paneHeight, channelStatus, sequenceId, songDocument, view]);
-
-  const documentWidth = windowWidth - leftPaneWidth - rightPaneWidth;
-  const rightToolsVisible =
-    !isCompactLayout &&
-    documentWidth > MIN_WIDTH_FOR_RIGHT_PANEL &&
-    view === "roll";
 
   return (
     <Wrapper>

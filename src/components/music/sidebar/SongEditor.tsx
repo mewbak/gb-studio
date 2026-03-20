@@ -81,12 +81,12 @@ const instrumentName = (instrument: Instrument, type: string) => {
 export const SongEditor = () => {
   const dispatch = useAppDispatch();
   const selectedInstrument = useAppSelector(
-    (state) => state.editor.selectedInstrument,
+    (state) => state.tracker.selectedInstrument,
   );
   useEffect(() => {
     dispatch(trackerActions.setSelectedEffectCell(null));
   }, [dispatch, selectedInstrument]);
-  const sequenceId = useAppSelector((state) => state.editor.selectedSequence);
+  const sequenceId = useAppSelector((state) => state.tracker.selectedSequence);
   const song = useAppSelector((state) => state.trackerDocument.present.song);
 
   const selectSidebar = () => {};

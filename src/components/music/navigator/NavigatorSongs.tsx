@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { musicSelectors } from "store/features/entities/entitiesState";
 import { FlatList } from "ui/lists/FlatList";
-import editorActions from "store/features/editor/editorActions";
 import { EntityListItem, EntityListSearch } from "ui/lists/EntityListItem";
 import l10n from "shared/lib/lang/l10n";
 import { Button } from "ui/buttons/Button";
@@ -26,6 +25,7 @@ import { FixedSpacer } from "ui/spacing/Spacing";
 import { MusicAsset } from "shared/lib/resources/types";
 import { NavigatorInstrumentsPane } from "./NavigatorInstrumentsPane";
 import { DropdownButton } from "ui/buttons/DropdownButton";
+import trackerActions from "store/features/tracker/trackerActions";
 
 const COLLAPSED_SIZE = 30;
 
@@ -70,7 +70,7 @@ export const NavigatorSongs = ({
   const songsLookup = useAppSelector((state) =>
     musicSelectors.selectEntities(state),
   );
-  const navigationId = useAppSelector((state) => state.editor.selectedSongId);
+  const navigationId = useAppSelector((state) => state.tracker.selectedSongId);
 
   const {
     values: openFolders,
@@ -94,7 +94,7 @@ export const NavigatorSongs = ({
         onSelectSong(id);
         return;
       }
-      dispatch(editorActions.setSelectedSongId(id));
+      dispatch(trackerActions.setSelectedSongId(id));
     },
     [dispatch, onSelectSong],
   );

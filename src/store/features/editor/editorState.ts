@@ -26,10 +26,8 @@ import spriteActions from "store/features/sprite/spriteActions";
 import { MIN_SIDEBAR_WIDTH } from "renderer/lib/window/sidebar";
 import type { NavigationSection } from "store/features/navigation/navigationState";
 import type { RootState } from "store/configureStore";
-import { addNewSongFile } from "store/features/trackerDocument/trackerDocumentState";
 import { selectScriptIds } from "store/features/entities/entitiesState";
 import { Variable } from "shared/lib/resources/types";
-import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
 
 export type Tool =
   | "triggers"
@@ -70,13 +68,6 @@ export interface SpriteTileSelection {
   y: number;
   width: number;
   height: number;
-}
-
-export type InstrumentType = "duty" | "wave" | "noise";
-
-interface SelectedInstrument {
-  id: string;
-  type: InstrumentType;
 }
 
 export type SlopeIncline = "medium" | "shallow" | "steep";
@@ -158,9 +149,6 @@ export interface EditorState {
   replaceSpriteTileMode: "tile" | "palette" | "objPalette" | undefined;
   parallaxHoverLayer: number | undefined;
   previewAsSceneId: string;
-  selectedSongId: string;
-  selectedInstrument: SelectedInstrument;
-  selectedSequence: number;
   precisionTileMode: boolean;
   slopePreview?: SlopePreview;
   showScriptUses: boolean;
@@ -235,12 +223,6 @@ export const initialState: EditorState = {
   replaceSpriteTileMode: undefined,
   parallaxHoverLayer: undefined,
   previewAsSceneId: "",
-  selectedSongId: "",
-  selectedInstrument: {
-    id: "0",
-    type: "duty",
-  },
-  selectedSequence: 0,
   precisionTileMode: false,
   slopePreview: undefined,
   showScriptUses: false,
@@ -949,23 +931,6 @@ const editorSlice = createSlice({
       state.previewAsSceneId = action.payload;
     },
 
-    setSelectedSongId: (state, action: PayloadAction<string>) => {
-      state.selectedSongId = action.payload;
-      state.selectedInstrument = { id: "0", type: "duty" };
-      state.selectedSequence = 0;
-    },
-
-    setSelectedInstrument: (
-      state,
-      action: PayloadAction<SelectedInstrument>,
-    ) => {
-      state.selectedInstrument = action.payload;
-    },
-
-    setSelectedSequence: (state, action: PayloadAction<number>) => {
-      state.selectedSequence = action.payload;
-    },
-
     setPrecisionTileMode: (state, action: PayloadAction<boolean>) => {
       state.precisionTileMode = action.payload;
     },
@@ -1218,17 +1183,6 @@ const editorSlice = createSlice({
       .addCase(entitiesActions.paintSlopeCollision, (state) => {
         state.slopePreview = undefined;
       })
-      // When adding a new song file jump to it in navigator
-      .addCase(addNewSongFile.fulfilled, (state, action) => {
-        state.selectedSongId = action.payload.data.id;
-      })
-      // When adding a importing song file jump to it in navigator
-      .addCase(
-        trackerDocumentActions.convertModToUgeSong.fulfilled,
-        (state, action) => {
-          state.selectedSongId = action.payload.data.id;
-        },
-      )
       // When grouping script events remove selection
       .addCase(entitiesActions.groupScriptEvents, (state) => {
         state.scriptEventSelectionIds = [];

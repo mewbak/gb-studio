@@ -1,6 +1,5 @@
 import { ThunkMiddleware } from "redux-thunk";
 import { RootState } from "store/configureStore";
-import editorActions from "store/features/editor/editorActions";
 import { musicSelectors } from "store/features/entities/entitiesState";
 import navigationActions from "store/features/navigation/navigationActions";
 import {
@@ -13,6 +12,7 @@ import electronActions from "store/features/electron/electronActions";
 import l10n from "shared/lib/lang/l10n";
 import API from "renderer/lib/api";
 import projectActions from "store/features/project/projectActions";
+import trackerActions from "store/features/tracker/trackerActions";
 
 const trackerMiddleware: ThunkMiddleware<RootState> =
   (store) => (next) => async (action) => {
@@ -21,14 +21,14 @@ const trackerMiddleware: ThunkMiddleware<RootState> =
     if (
       (navigationActions.setSection.match(action) &&
         action.payload !== "music") ||
-      (editorActions.setSelectedSongId.match(action) &&
-        action.payload !== state.editor.selectedSongId) ||
+      (trackerActions.setSelectedSongId.match(action) &&
+        action.payload !== state.tracker.selectedSongId) ||
       requestAddNewSongFile.match(action)
     ) {
       if (state.trackerDocument.present.modified) {
         // Display confirmation and stop action if
         const songsLookup = musicSelectors.selectEntities(state);
-        const selectedSong = songsLookup[state.editor.selectedSongId];
+        const selectedSong = songsLookup[state.tracker.selectedSongId];
         const option = await API.dialog.confirmUnsavedChangesTrackerDialog(
           selectedSong?.name ?? "",
         );
