@@ -1,25 +1,17 @@
 import React, {
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
-import styled, { ThemeContext } from "styled-components";
+import styled from "styled-components";
 import {
-  PlayIcon,
-  PauseIcon,
   SaveIcon,
   ExportIcon,
   PencilIcon,
   EraserIcon,
-  TrackerIcon,
   SelectionIcon,
-  PianoIcon,
-  PianoInverseIcon,
-  StopIcon,
-  PlayStartIcon,
 } from "ui/icons/Icons";
 import { FloatingPanel, FloatingPanelDivider } from "ui/panels/FloatingPanel";
 import trackerActions from "store/features/tracker/trackerActions";
@@ -75,18 +67,6 @@ const ExportButtonWrapper = styled.div`
   position: relative;
   flex-shrink: 0;
 `;
-
-const getPlayButtonLabel = (play: boolean, playbackFromStart: boolean) => {
-  if (play) {
-    return l10n("FIELD_PAUSE");
-  } else {
-    if (playbackFromStart) {
-      return l10n("FIELD_RESTART");
-    } else {
-      return l10n("FIELD_PLAY");
-    }
-  }
-};
 
 const SongEditorToolsPanel = ({ selectedSong }: SongEditorToolsPanelProps) => {
   const dispatch = useAppDispatch();
@@ -154,14 +134,6 @@ const SongEditorToolsPanel = ({ selectedSong }: SongEditorToolsPanelProps) => {
     playbackFromStart,
     playerReady,
   ]);
-
-  const stopPlayback = useCallback(() => {
-    dispatch(trackerActions.stopTracker());
-    API.music.sendToMusicWindow({
-      action: "stop",
-      position: defaultStartPlaybackPosition,
-    });
-  }, [defaultStartPlaybackPosition, dispatch]);
 
   const toggleView = useCallback(() => {
     if (view === "tracker") {
@@ -343,11 +315,6 @@ const SongEditorToolsPanel = ({ selectedSong }: SongEditorToolsPanelProps) => {
     }
     prevExporting.current = exporting;
   }, [song, playerReady, exporting]);
-
-  const themeContext = useContext(ThemeContext);
-
-  const themePianoIcon =
-    themeContext?.type === "light" ? <PianoIcon /> : <PianoInverseIcon />;
 
   return (
     <>
