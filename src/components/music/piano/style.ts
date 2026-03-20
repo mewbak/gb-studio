@@ -26,7 +26,7 @@ export const StyledPianoRollScrollWrapper = styled.div`
 
 export const StyledPianoRollScrollCanvas = styled.div`
   position: relative;
-  height: ${PIANO_ROLL_CELL_SIZE * TOTAL_NOTES}px;
+  height: ${PIANO_ROLL_CELL_SIZE * TOTAL_NOTES + 60}px;
 `;
 
 export const StyledPianoRollScrollLeftWrapper = styled.div`
@@ -51,19 +51,25 @@ export const StyledPianoRollScrollLeftWrapper = styled.div`
     margin-top: -${PIANO_ROLL_HEADER_HEIGHT}px;
     box-sizing: border-box;
   }
+`;
 
-  &::after {
-    content: "";
-    display: block;
-    position: sticky;
-    bottom: 0;
-    width: ${PIANO_ROLL_PIANO_WIDTH + 1}px;
-    height: ${PIANO_ROLL_FOOTER_HEIGHT + 1}px;
-    background: ${(props) => props.theme.colors.sidebar.background};
-    border-top: 1px solid ${(props) => props.theme.colors.sidebar.border};
-    border-right: 1px solid ${(props) => props.theme.colors.sidebar.border};
-    z-index: 20;
-    box-sizing: border-box;
+export const StyledPianoRollScrollLeftFXSpacer = styled.div`
+  display: flex;
+  position: sticky;
+  bottom: 0;
+  width: ${PIANO_ROLL_PIANO_WIDTH + 1}px;
+  height: ${PIANO_ROLL_FOOTER_HEIGHT + 1}px;
+  background: ${(props) => props.theme.colors.sidebar.background};
+  border-top: 1px solid ${(props) => props.theme.colors.sidebar.border};
+  border-right: 1px solid ${(props) => props.theme.colors.sidebar.border};
+  z-index: 20;
+  box-sizing: border-box;
+  justify-content: center;
+  align-items: center;
+  svg {
+    width: 14px;
+    height: 14px;
+    fill: ${(props) => props.theme.colors.text};
   }
 `;
 

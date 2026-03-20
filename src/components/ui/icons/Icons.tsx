@@ -247,6 +247,12 @@ export const TrackerIcon = () => (
   </svg>
 );
 
+export const FXIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24">
+    <path d="M24.0244 9.7373L19.249 14.5117L24.0244 19.2871L21.2871 22.0244L16.5117 17.249L11.7373 22.0244L9 19.2871L13.7744 14.5117L9 9.7373L11.7373 7L16.5117 11.7744L21.2871 7L24.0244 9.7373ZM13 6H4V12H9V16H4V22H0V2H13V6Z" />
+  </svg>
+);
+
 export const SelectionIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24">
     <path d="M11 23v-2h-4v2h4zm8-20h3v2h2v-4h-5v2zm-19 14h2v-4h-2v4zm0-6h2v-4h-2v4zm2-6v-2h3v-2h-5v4h2zm22 2h-2v4h2v-4zm0 6h-2v4h2v-4zm-2 6v2h-3v2h5v-4h-2zm-17 2h-3v-2h-2v4h5v-2zm12 2v-2h-4v2h4zm-6-20v-2h-4v2h4zm6 0v-2h-4v2h4z" />

@@ -18,6 +18,7 @@ import {
   StyledPianoRollScrollWrapper,
   StyledPianoRollPatternsWrapper,
   StyledPianoRollNote,
+  StyledPianoRollScrollLeftFXSpacer,
 } from "./style";
 import { PianoKeyboard } from "./PianoKeyboard";
 import {
@@ -55,6 +56,7 @@ import {
 } from "./helpers";
 import { PianoRollSequenceBar } from "./PianoRollSequenceBar";
 import { Selection } from "ui/document/Selection";
+import { FXIcon } from "ui/icons/Icons";
 
 const GRID_MARGIN = 0;
 
@@ -1355,6 +1357,9 @@ export const PianoRollCanvas = ({
             hoverNote={hoverNote}
             onPlayNote={onPlayNote}
           />
+          <StyledPianoRollScrollLeftFXSpacer>
+            <FXIcon />
+          </StyledPianoRollScrollLeftFXSpacer>
         </StyledPianoRollScrollLeftWrapper>
         <StyledPianoRollScrollContentWrapper
           ref={documentRef}
