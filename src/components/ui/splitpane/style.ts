@@ -114,7 +114,7 @@ export const StyledSplitPaneHorizontalDivider = styled.div`
   width: 1px;
   height: 100%;
   background-color: ${(props) => props.theme.colors.sidebar.border};
-  cursor: ew-resize;
+  cursor: col-resize;
   position: relative;
   z-index: 1;
 
@@ -151,7 +151,7 @@ export const StyledSplitPaneVerticalDivider = styled.div`
   width: 100%;
   height: 1px;
   background-color: ${(props) => props.theme.colors.sidebar.border};
-  cursor: ns-resize;
+  cursor: row-resize;
   position: relative;
   z-index: 1;
 
