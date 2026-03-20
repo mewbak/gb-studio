@@ -104,7 +104,7 @@ export const playNotePreview = (
     const instrument = song.wave_instruments[instrumentIndex];
     const waveForm = song.waves[instrument.wave_index];
     playWaveNotePreview(note, instrument, waveForm);
-  } else if (channel === 4) {
+  } else if (channel === 3) {
     const instrument = song.noise_instruments[instrumentIndex];
     playNoiseNotePreview(note, instrument);
   }
