@@ -209,6 +209,12 @@ const SongEditorToolsPanel = ({ selectedSong }: SongEditorToolsPanelProps) => {
         setTmpSelectionMode(true);
         setTool("selection");
       }
+      if (e.code === "KeyS" && (e.ctrlKey || e.metaKey)) {
+        if (API.env === "web") {
+          e.preventDefault();
+        }
+        saveSong();
+      }
       if (e.ctrlKey || e.shiftKey) {
         return;
       }
@@ -252,6 +258,7 @@ const SongEditorToolsPanel = ({ selectedSong }: SongEditorToolsPanelProps) => {
       view,
       subpatternEditorFocus,
       setTool,
+      saveSong,
       toggleView,
       togglePlay,
       setDefaultInstruments,
