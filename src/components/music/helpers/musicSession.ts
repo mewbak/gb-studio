@@ -5,7 +5,7 @@ import type {
 } from "shared/lib/music/types";
 import player, { PlaybackPosition } from "./player";
 import { Song } from "shared/lib/uge/types";
-import { createPattern } from "shared/lib/uge/song";
+import { createPattern, createSong } from "shared/lib/uge/song";
 
 type MusicSessionListener = (data: MusicDataReceivePacket) => void;
 
@@ -99,15 +99,10 @@ export const createMusicSession = (): MusicSession => {
         });
         break;
       case "preview": {
-        const song = player.getCurrentSong();
-        if (!song) {
-          return;
-        }
+        const previewSong: Song = createSong();
         const previewPattern = createPattern();
-        const previewSong: Song = {
-          ...song,
-          patterns: [previewPattern],
-        };
+        previewSong.patterns = [previewPattern];
+        previewSong.sequence = [0];
         if (data.type === "duty") {
           previewPattern[0][data.channel].note = data.note;
           previewPattern[0][data.channel].instrument = 0;
