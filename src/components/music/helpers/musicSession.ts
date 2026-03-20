@@ -4,9 +4,13 @@ import type {
   MusicDataReceivePacket,
 } from "shared/lib/music/types";
 import player, { PlaybackPosition } from "./player";
-import { playNotePreview } from "./notePreview";
-import { DutyInstrument } from "shared/lib/uge/types";
-import { createPatternCell } from "shared/lib/uge/song";
+import {
+  DutyInstrument,
+  NoiseInstrument,
+  Song,
+  WaveInstrument,
+} from "shared/lib/uge/types";
+import { createPattern } from "shared/lib/uge/song";
 
 type MusicSessionListener = (data: MusicDataReceivePacket) => void;
 
@@ -41,6 +45,7 @@ export const createMusicSession = (): MusicSession => {
   };
 
   const handleAction = (data: MusicDataPacket) => {
+    console.warn("MUSIC SESSION", data.action, data);
     switch (data.action) {
       case "load-song":
         player.reset();
@@ -105,77 +110,33 @@ export const createMusicSession = (): MusicSession => {
         });
         break;
       case "preview": {
-        player.reset();
-        if (data.type === "duty") {
-          const song = player.getCurrentSong();
-          if (!song) {
-            return;
-          }
-          const tmpSong = {
-            ...song,
-            duty_instruments: [data.instrument as DutyInstrument],
-            // waves: [data.waves],
-            // ticks_per_row: 0,
-            // timer_enabled: false,
-            // timer_divider: 0,
-            patterns: [
-              [
-                [
-                  {
-                    note: data.note,
-                    instrument: 0,
-                    effectcode: 0xe,
-                    effectparam: 0x5,
-                  },
-                  createPatternCell(),
-                  createPatternCell(),
-                  createPatternCell(),
-                ],
-                // [
-                //   createPatternCell(),
-                //   createPatternCell(),
-                //   createPatternCell(),
-                //   createPatternCell(),
-                // ],
-                // [
-                //   createPatternCell(),
-                //   createPatternCell(),
-                //   createPatternCell(),
-                //   createPatternCell(),
-                // ],
-                // [
-                //   createPatternCell(),
-                //   createPatternCell(),
-                //   createPatternCell(),
-                //   createPatternCell(),
-                // ],
-                // [
-                //   createPatternCell(),
-                //   createPatternCell(),
-                //   createPatternCell(),
-                //   createPatternCell(),
-                // ],
-                // [
-                //   createPatternCell(),
-                //   createPatternCell(),
-                //   createPatternCell(),
-                //   createPatternCell(),
-                // ],
-                // [
-                //   createPatternCell(),
-                //   createPatternCell(),
-                //   createPatternCell(),
-                //   createPatternCell(),
-                // ],
-              ],
-            ],
-            sequence: [0],
-          };
-          console.log({ tmpSong });
-          player.stop();
-          player.play(tmpSong, [0, 0]);
-          setTimeout(() => player.stop(), 200);
+        const song = player.getCurrentSong();
+        if (!song) {
+          return;
         }
+        const previewPattern = createPattern();
+        const previewSong: Song = {
+          ...song,
+          patterns: [previewPattern],
+        };
+        if (data.type === "duty") {
+          previewPattern[0][0].note = data.note;
+          previewPattern[0][0].instrument = 0;
+          previewSong.duty_instruments = [data.instrument as DutyInstrument];
+        } else if (data.type === "wave") {
+          previewPattern[0][2].note = data.note;
+          previewPattern[0][2].instrument = 0;
+          previewSong.wave_instruments = [data.instrument as WaveInstrument];
+          if (data.waveForms) {
+            previewSong.waves = data.waveForms;
+          }
+        } else if (data.type === "noise") {
+          previewPattern[0][3].note = data.note;
+          previewPattern[0][3].instrument = 0;
+          previewSong.noise_instruments = [data.instrument as NoiseInstrument];
+        }
+        player.reset();
+        player.playPreview(previewSong, 500);
         break;
       }
       case "export-song": {

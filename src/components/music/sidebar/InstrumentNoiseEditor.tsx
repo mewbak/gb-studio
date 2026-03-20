@@ -32,7 +32,7 @@ export const InstrumentNoiseEditor = ({
       (instrument: NoiseInstrument) => {
         API.music.sendToMusicWindow({
           action: "preview",
-          note: OCTAVE_SIZE * 4, // C_7
+          note: OCTAVE_SIZE * 2, // C_5
           type: "noise",
           instrument: instrument,
           square2: false,

@@ -1,4 +1,5 @@
 /* eslint-disable camelcase */
+import { TRACKER_PATTERN_LENGTH } from "consts";
 import {
   Song,
   PatternCell,
@@ -9,6 +10,15 @@ import {
 } from "./types";
 
 const LAST_VERSION = 6;
+
+export const createPattern = (): PatternCell[][] => {
+  return Array.from({ length: TRACKER_PATTERN_LENGTH }).map(() => [
+    createPatternCell(),
+    createPatternCell(),
+    createPatternCell(),
+    createPatternCell(),
+  ]);
+};
 
 export const createPatternCell = (): PatternCell => {
   return {

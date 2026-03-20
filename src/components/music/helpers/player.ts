@@ -229,7 +229,10 @@ const play = (song: Song, position?: PlaybackPosition) => {
   const ticksPerRowAddr = getRamAddress("ticks_per_row");
   emulator.writeMem(ticksPerRowAddr, song.ticks_per_row);
 
+  console.log("PLAY SONG HERE?", isPlayerPaused());
+
   if (isPlayerPaused()) {
+    console.log("RESET MUTE BACK TO", channels);
     emulator.setChannel(0, channels[0]);
     emulator.setChannel(1, channels[1]);
     emulator.setChannel(2, channels[2]);
@@ -252,6 +255,35 @@ const play = (song: Song, position?: PlaybackPosition) => {
       }
     };
     onSongProgressIntervalId = setInterval(updateUI, 1000 / 64);
+  }
+};
+
+const playPreview = (song: Song, length: number) => {
+  console.log("PLAY PREVIEW");
+  updateRom(song);
+  emulator.step("frame");
+  stop();
+
+  setStartPosition([0, 0]);
+
+  const ticksPerRowAddr = getRamAddress("ticks_per_row");
+  emulator.writeMem(ticksPerRowAddr, song.ticks_per_row);
+
+  if (isPlayerPaused()) {
+    emulator.setChannel(0, false);
+    emulator.setChannel(1, false);
+    emulator.setChannel(2, false);
+    emulator.setChannel(3, false);
+
+    const orderCntAddr = getRamAddress("order_cnt");
+    emulator.writeMem(orderCntAddr, song.sequence.length * 2);
+
+    doResume();
+
+    onSongProgressIntervalId = setTimeout(() => {
+      doPause();
+      stop();
+    }, length);
   }
 };
 
@@ -781,6 +813,7 @@ const player = {
   loadSong,
   loadSound,
   play,
+  playPreview,
   playSound,
   stop,
   setChannel,
