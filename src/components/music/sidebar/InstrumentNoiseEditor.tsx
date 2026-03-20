@@ -11,11 +11,11 @@ import { NoiseMacroEditorForm } from "./NoiseMacroEditorForm";
 import { Button } from "ui/buttons/Button";
 import { cloneDeep, throttle } from "lodash";
 import { Alert, AlertItem } from "ui/alerts/Alert";
-import API from "renderer/lib/api";
 import { useAppDispatch } from "store/hooks";
 import { ButtonGroup } from "ui/buttons/ButtonGroup";
 import { testNotes } from "./helpers";
-import { OCTAVE_SIZE } from "consts";
+import { NOTE_C5 } from "consts";
+import { playNoiseNotePreview } from "components/music/helpers";
 
 interface InstrumentNoiseEditorProps {
   id: string;
@@ -30,13 +30,7 @@ export const InstrumentNoiseEditor = ({
   const throttledTestInstrument = useRef(
     throttle(
       (instrument: NoiseInstrument) => {
-        API.music.sendToMusicWindow({
-          action: "preview",
-          note: OCTAVE_SIZE * 2, // C_5
-          type: "noise",
-          instrument: instrument,
-          square2: false,
-        });
+        playNoiseNotePreview(NOTE_C5, instrument);
       },
       250,
       { leading: true, trailing: true },
@@ -98,13 +92,7 @@ export const InstrumentNoiseEditor = ({
   };
 
   const onTestInstrument = (note: number) => () => {
-    API.music.sendToMusicWindow({
-      action: "preview",
-      note,
-      type: "noise",
-      instrument: instrument,
-      square2: false,
-    });
+    playNoiseNotePreview(note, instrument);
   };
 
   const noiseMacros = !instrument.subpattern_enabled

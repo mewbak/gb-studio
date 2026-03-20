@@ -8,13 +8,13 @@ import { InstrumentLengthForm } from "./InstrumentLengthForm";
 import { WaveEditorForm } from "./WaveEditorForm";
 import { Button } from "ui/buttons/Button";
 import { Alert, AlertItem } from "ui/alerts/Alert";
-import API from "renderer/lib/api";
 import { useAppDispatch } from "store/hooks";
 import { SingleValue } from "react-select";
 import { ButtonGroup } from "ui/buttons/ButtonGroup";
 import { testNotes } from "./helpers";
 import throttle from "lodash/throttle";
-import { OCTAVE_SIZE } from "consts";
+import { NOTE_C5 } from "consts";
+import { playWaveNotePreview } from "components/music/helpers";
 
 const volumeOptions = [
   {
@@ -37,8 +37,8 @@ const volumeOptions = [
 
 interface InstrumentWaveEditorProps {
   id: string;
-  instrument?: WaveInstrument;
-  waveForms?: Uint8Array[];
+  instrument: WaveInstrument;
+  waveForms: Uint8Array[];
 }
 
 export const InstrumentWaveEditor = ({
@@ -49,15 +49,12 @@ export const InstrumentWaveEditor = ({
 
   const throttledTestInstrument = useRef(
     throttle(
-      (instrument: WaveInstrument, waveForms?: Uint8Array[]) => {
-        API.music.sendToMusicWindow({
-          action: "preview",
-          note: OCTAVE_SIZE * 2, // C5
-          type: "wave",
-          instrument: instrument,
-          square2: false,
-          waveForms: waveForms,
-        });
+      (instrument: WaveInstrument, waveForms: Uint8Array[]) => {
+        playWaveNotePreview(
+          NOTE_C5,
+          instrument,
+          waveForms[instrument.wave_index],
+        );
       },
       250,
       { leading: true, trailing: true },
@@ -122,14 +119,7 @@ export const InstrumentWaveEditor = ({
     };
 
   const onTestInstrument = (note: number) => () => {
-    API.music.sendToMusicWindow({
-      action: "preview",
-      note,
-      type: "wave",
-      instrument: instrument,
-      square2: false,
-      waveForms: waveForms,
-    });
+    playWaveNotePreview(note, instrument, waveForms[instrument.wave_index]);
   };
 
   return (

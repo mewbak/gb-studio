@@ -39,7 +39,7 @@ const InstrumentEditorWrapper = styled.div`
 const renderInstrumentEditor = (
   type: string,
   instrumentData: Instrument | null,
-  waveForms?: Uint8Array[],
+  waveForms: Uint8Array[],
 ) => {
   if (type === "duty")
     return (

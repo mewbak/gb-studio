@@ -4,12 +4,7 @@ import type {
   MusicDataReceivePacket,
 } from "shared/lib/music/types";
 import player, { PlaybackPosition } from "./player";
-import {
-  DutyInstrument,
-  NoiseInstrument,
-  Song,
-  WaveInstrument,
-} from "shared/lib/uge/types";
+import { Song } from "shared/lib/uge/types";
 import { createPattern } from "shared/lib/uge/song";
 
 type MusicSessionListener = (data: MusicDataReceivePacket) => void;
@@ -73,13 +68,6 @@ export const createMusicSession = (): MusicSession => {
           message: "playing",
         });
         break;
-      case "play-sound":
-        player.playSound();
-        emit({
-          action: "log",
-          message: "playing SFX",
-        });
-        break;
       case "stop":
         if (data.position) {
           position = data.position;
@@ -121,20 +109,19 @@ export const createMusicSession = (): MusicSession => {
           patterns: [previewPattern],
         };
         if (data.type === "duty") {
-          previewPattern[0][0].note = data.note;
-          previewPattern[0][0].instrument = 0;
-          previewSong.duty_instruments = [data.instrument as DutyInstrument];
+          previewPattern[0][data.channel].note = data.note;
+          previewPattern[0][data.channel].instrument = 0;
+          previewSong.duty_instruments = [data.instrument];
         } else if (data.type === "wave") {
           previewPattern[0][2].note = data.note;
           previewPattern[0][2].instrument = 0;
-          previewSong.wave_instruments = [data.instrument as WaveInstrument];
-          if (data.waveForms) {
-            previewSong.waves = data.waveForms;
-          }
+          previewSong.wave_instruments = [data.instrument];
+          previewSong.wave_instruments[0].wave_index = 0;
+          previewSong.waves = [data.waveForm];
         } else if (data.type === "noise") {
           previewPattern[0][3].note = data.note;
           previewPattern[0][3].instrument = 0;
-          previewSong.noise_instruments = [data.instrument as NoiseInstrument];
+          previewSong.noise_instruments = [data.instrument];
         }
         player.reset();
         player.playPreview(previewSong, 500);

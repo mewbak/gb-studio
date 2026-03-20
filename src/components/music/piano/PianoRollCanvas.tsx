@@ -38,10 +38,7 @@ import {
   parseClipboardOrigin,
   NO_CHANGE_ON_PASTE,
 } from "components/music/musicClipboardHelpers";
-import {
-  getInstrumentListByType,
-  getInstrumentTypeByChannel,
-} from "components/music/helpers";
+import { playNotePreview } from "components/music/helpers";
 import {
   calculateDocumentWidth,
   calculatePlaybackTrackerPosition,
@@ -92,23 +89,6 @@ export interface SelectionRect {
   width: number;
   height: number;
 }
-
-const playNotePreview = (
-  song: Song,
-  channel: number,
-  note: number,
-  instrument: number,
-) => {
-  const instrumentType = getInstrumentTypeByChannel(channel) || "duty";
-  const instrumentList = getInstrumentListByType(song, instrumentType);
-  API.music.sendToMusicWindow({
-    action: "preview",
-    note: note,
-    type: instrumentType,
-    instrument: instrumentList[instrument],
-    square2: channel === 1,
-  });
-};
 
 export const PianoRollCanvas = ({
   song,

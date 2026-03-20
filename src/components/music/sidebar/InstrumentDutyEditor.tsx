@@ -8,14 +8,14 @@ import { InstrumentLengthForm } from "./InstrumentLengthForm";
 import { InstrumentVolumeEditor } from "./InstrumentVolumeEditor";
 import { Button } from "ui/buttons/Button";
 import { Alert, AlertItem } from "ui/alerts/Alert";
-import API from "renderer/lib/api";
 import l10n from "shared/lib/lang/l10n";
-import { useAppDispatch } from "store/hooks";
+import { useAppDispatch, useAppSelector } from "store/hooks";
 import { SingleValue } from "react-select";
 import { ButtonGroup } from "ui/buttons/ButtonGroup";
 import { testNotes } from "./helpers";
 import throttle from "lodash/throttle";
-import { OCTAVE_SIZE } from "consts";
+import { NOTE_C5 } from "consts";
+import { playDutyNotePreview } from "components/music/helpers";
 
 const dutyOptions = [
   {
@@ -80,18 +80,14 @@ export const InstrumentDutyEditor = ({
   instrument,
 }: InstrumentDutyEditorProps) => {
   const dispatch = useAppDispatch();
+  const selectedChannel = useAppSelector(
+    (state) => state.tracker.selectedChannel,
+  );
 
   const throttledTestInstrument = useRef(
     throttle(
       (instrument: DutyInstrument) => {
-        console.log("DTUTY EDITOR PREVIEW");
-        API.music.sendToMusicWindow({
-          action: "preview",
-          note: OCTAVE_SIZE * 2, // C5
-          type: "duty",
-          instrument,
-          square2: false,
-        });
+        playDutyNotePreview(NOTE_C5, instrument, selectedChannel === 1 ? 1 : 0);
       },
       250,
       { leading: true, trailing: true },
@@ -162,14 +158,7 @@ export const InstrumentDutyEditor = ({
     };
 
   const onTestInstrument = (note: number) => () => {
-    console.log("onTestInstrument", { note, instrument });
-    API.music.sendToMusicWindow({
-      action: "preview",
-      note,
-      type: "duty",
-      instrument: instrument,
-      square2: false,
-    });
+    playDutyNotePreview(note, instrument, selectedChannel === 1 ? 1 : 0);
   };
 
   return (

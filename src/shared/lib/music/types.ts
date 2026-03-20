@@ -22,9 +22,6 @@ export type MusicDataPacket =
       position?: [number, number];
     }
   | {
-      action: "play-sound";
-    }
-  | {
       action: "stop";
       position?: [number, number];
     }
@@ -34,11 +31,23 @@ export type MusicDataPacket =
     }
   | {
       action: "preview";
-      type: "duty" | "wave" | "noise";
+      type: "duty";
       note: number;
-      instrument: DutyInstrument | NoiseInstrument | WaveInstrument;
-      square2: boolean;
-      waveForms?: Uint8Array[];
+      instrument: DutyInstrument;
+      channel: 0 | 1;
+    }
+  | {
+      action: "preview";
+      type: "wave";
+      note: number;
+      instrument: WaveInstrument;
+      waveForm: Uint8Array;
+    }
+  | {
+      action: "preview";
+      type: "noise";
+      note: number;
+      instrument: NoiseInstrument;
     }
   | {
       action: "export-song";

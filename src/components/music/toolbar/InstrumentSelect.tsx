@@ -10,8 +10,12 @@ import {
   SelectCommonProps,
 } from "ui/form/Select";
 import { SingleValue } from "react-select";
-import API from "renderer/lib/api";
-import { OCTAVE_SIZE } from "consts";
+import {
+  playDutyNotePreview,
+  playNoiseNotePreview,
+  playWaveNotePreview,
+} from "components/music/helpers";
+import { NOTE_C5 } from "consts";
 
 const defaultInstrumentOptions = Array(15)
   .fill("")
@@ -57,6 +61,9 @@ export const InstrumentSelect: FC<InstrumentSelectProps> = ({
   const [currentValue, setCurrentValue] = useState<Option>();
 
   const song = useAppSelector((state) => state.trackerDocument.present.song);
+  const selectedChannel = useAppSelector(
+    (state) => state.tracker.selectedChannel,
+  );
 
   useEffect(() => {
     let instruments = defaultInstrumentOptions;
@@ -106,36 +113,25 @@ export const InstrumentSelect: FC<InstrumentSelectProps> = ({
       if (instrumentType === "duty") {
         const instrument = song?.duty_instruments[Number(newValue.value)];
         if (instrument) {
-          API.music.sendToMusicWindow({
-            action: "preview",
-            note: OCTAVE_SIZE * 2, // C5
-            type: "duty",
+          playDutyNotePreview(
+            NOTE_C5,
             instrument,
-            square2: false,
-          });
+            selectedChannel === 1 ? 1 : 0,
+          );
         }
       } else if (instrumentType === "wave") {
         const instrument = song?.wave_instruments[Number(newValue.value)];
         if (instrument) {
-          API.music.sendToMusicWindow({
-            action: "preview",
-            note: OCTAVE_SIZE * 2, // C5
-            type: "wave",
-            instrument: instrument,
-            square2: false,
-            waveForms: song?.waves,
-          });
+          playWaveNotePreview(
+            NOTE_C5,
+            instrument,
+            song.waves[instrument.wave_index],
+          );
         }
       } else if (instrumentType === "noise") {
         const instrument = song?.noise_instruments[Number(newValue.value)];
         if (instrument) {
-          API.music.sendToMusicWindow({
-            action: "preview",
-            note: OCTAVE_SIZE * 4, // C_7
-            type: "noise",
-            instrument,
-            square2: false,
-          });
+          playNoiseNotePreview(NOTE_C5, instrument);
         }
       }
     }

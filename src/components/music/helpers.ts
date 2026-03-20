@@ -1,5 +1,10 @@
-import { Song } from "shared/lib/uge/types";
-import { InstrumentType } from "store/features/editor/editorState";
+import API from "renderer/lib/api";
+import {
+  DutyInstrument,
+  NoiseInstrument,
+  Song,
+  WaveInstrument,
+} from "shared/lib/uge/types";
 
 const BPM_FACTOR = (59.727500569606 * 60) / 4;
 
@@ -8,35 +13,6 @@ export function getBPM(ticksPerRow: number): number {
 }
 
 export const patternHue = (index: number) => ((index + 1) * 137.5) % 360;
-
-export const getInstrumentTypeByChannel = (
-  channel: number,
-): InstrumentType | null => {
-  switch (channel) {
-    case 0:
-    case 1:
-      return "duty";
-    case 2:
-      return "wave";
-    case 3:
-      return "noise";
-    default:
-      return null;
-  }
-};
-
-export const getInstrumentListByType = (song: Song, type: InstrumentType) => {
-  switch (type) {
-    case "duty":
-      return song.duty_instruments;
-    case "wave":
-      return song.wave_instruments;
-    case "noise":
-      return song.noise_instruments;
-    default:
-      return [];
-  }
-};
 
 const noteName = [
   "C-",
@@ -71,4 +47,65 @@ export const renderEffect = (effectcode: number | null): string => {
 
 export const renderEffectParam = (effectparam: number | null): string => {
   return effectparam?.toString(16).toUpperCase().padStart(2, "0") || "..";
+};
+
+export const playDutyNotePreview = (
+  note: number,
+  instrument: DutyInstrument,
+  channel: 0 | 1,
+) => {
+  API.music.sendToMusicWindow({
+    action: "preview",
+    type: "duty",
+    note,
+    instrument,
+    channel,
+  });
+};
+
+export const playWaveNotePreview = (
+  note: number,
+  instrument: WaveInstrument,
+  waveForm: Uint8Array,
+) => {
+  API.music.sendToMusicWindow({
+    action: "preview",
+    type: "wave",
+    note: note,
+    instrument,
+    waveForm,
+  });
+};
+
+export const playNoiseNotePreview = (
+  note: number,
+  instrument: NoiseInstrument,
+) => {
+  API.music.sendToMusicWindow({
+    action: "preview",
+    type: "noise",
+    note: note,
+    instrument,
+  });
+};
+
+export const playNotePreview = (
+  song: Song,
+  channel: number,
+  note: number,
+  instrumentIndex: number,
+) => {
+  if (channel === 0 || channel === 1) {
+    // Duty
+    const instrument = song.duty_instruments[instrumentIndex];
+    playDutyNotePreview(note, instrument, channel);
+  } else if (channel === 2) {
+    // Wave
+    const instrument = song.wave_instruments[instrumentIndex];
+    const waveForm = song.waves[instrument.wave_index];
+    playWaveNotePreview(note, instrument, waveForm);
+  } else if (channel === 4) {
+    const instrument = song.noise_instruments[instrumentIndex];
+    playNoiseNotePreview(note, instrument);
+  }
 };

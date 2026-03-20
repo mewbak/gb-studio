@@ -11,11 +11,7 @@ import { SequenceEditor } from "components/music/SequenceEditor";
 import { TrackerRow } from "./SongRow";
 import scrollIntoView from "scroll-into-view-if-needed";
 import { TrackerHeaderCell } from "./TrackerHeaderCell";
-import {
-  getInstrumentTypeByChannel,
-  getInstrumentListByType,
-  patternHue,
-} from "components/music/helpers";
+import { patternHue, playNotePreview } from "components/music/helpers";
 import {
   NO_CHANGE_ON_PASTE,
   parseClipboardToPattern,
@@ -32,8 +28,6 @@ import l10n from "shared/lib/lang/l10n";
 import {
   StyledTrackerContentTable,
   StyledTrackerTableHeader,
-  StyledTrackerHeaderSpacer,
-  StyledTrackerPattern,
   StyledTrackerTableHeaderRow,
   StyledTrackerWrapper,
   StyledTrackerTableBody,
@@ -438,19 +432,12 @@ export const SongTracker = ({
         if (value !== null) {
           editPatternCell("instrument")(defaultInstrument);
           if (song) {
-            const instrumentType =
-              getInstrumentTypeByChannel(channel) || "duty";
-            const instrumentList = getInstrumentListByType(
+            playNotePreview(
               song,
-              instrumentType,
+              channel,
+              value + octaveOffset * 12,
+              defaultInstrument,
             );
-            API.music.sendToMusicWindow({
-              action: "preview",
-              note: value + octaveOffset * 12,
-              type: instrumentType,
-              instrument: instrumentList[defaultInstrument],
-              square2: channel === 1,
-            });
           }
           setActiveField(activeField + ROW_SIZE * editStep);
         }

@@ -164,6 +164,7 @@ export const PIANO_ROLL_HEADER_HEIGHT = 40;
 export const PIANO_ROLL_FOOTER_HEIGHT = 20;
 export const MIN_OCTAVE = 3;
 export const MAX_OCTAVE = 8;
+export const NOTE_C5 = OCTAVE_SIZE * 2;
 
 // Errors
 export const ERR_PROJECT_EXISTS = "ERR_PROJECT_EXISTS";
