@@ -50,8 +50,29 @@ export const InputGroup = styled.div`
   }
 `;
 
+export const InputGroupLabel = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  height: 100%;
+  padding: 5px;
+  box-sizing: border-box;
+  font-size: ${(props) => props.theme.typography.fontSize};
+  background: ${(props) => props.theme.colors.input.background};
+  color: ${(props) => props.theme.colors.input.text};
+  border: 1px solid ${(props) => props.theme.colors.input.border};
+  border-radius: ${(props) => props.theme.borderRadius}px;
+`;
+
 export const InputGroupPrepend = styled.div`
   ${StyledButton} {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    border-right: 0;
+    height: 28px;
+  }
+  ${InputGroupLabel} {
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
     border-right: 0;
@@ -61,6 +82,12 @@ export const InputGroupPrepend = styled.div`
 
 export const InputGroupAppend = styled.div`
   ${StyledButton} {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    border-left: 0;
+    height: 28px;
+  }
+  ${InputGroupLabel} {
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
     border-left: 0;

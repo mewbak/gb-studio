@@ -17,7 +17,11 @@ import { NumberInput } from "ui/form/NumberInput";
 import { useAppDispatch, useAppSelector } from "store/hooks";
 import { SidebarHeader } from "ui/form/SidebarHeader";
 import { getBaseName } from "shared/lib/helpers/virtualFilesystem";
-import { InputGroup, InputGroupAppend } from "ui/form/InputGroup";
+import {
+  InputGroup,
+  InputGroupAppend,
+  InputGroupLabel,
+} from "ui/form/InputGroup";
 import { getBPM } from "components/music/helpers";
 import l10n from "shared/lib/lang/l10n";
 
@@ -125,24 +129,9 @@ export const SongMetadataEditor = () => {
                 title={l10n("FIELD_TEMPO_TOOLTIP")}
               />
               <InputGroupAppend>
-                <div
-                  style={{
-                    whiteSpace: "nowrap",
-                    display: "flex",
-                    alignItems: "center",
-                    background: "white",
-                    border: "1px solid #ccc",
-                    borderLeft: 0,
-                    borderTopRightRadius: 4,
-                    borderBottomRightRadius: 4,
-                    boxSizing: "border-box",
-                    height: "100%",
-                    padding: 5,
-                    fontSize: 11,
-                  }}
-                >
+                <InputGroupLabel>
                   ~{Math.round(getBPM(song.ticks_per_row))} BPM
-                </div>
+                </InputGroupLabel>
               </InputGroupAppend>
             </InputGroup>
           </FormRow>
