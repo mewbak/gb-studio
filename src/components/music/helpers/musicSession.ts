@@ -99,6 +99,9 @@ export const createMusicSession = (): MusicSession => {
         });
         break;
       case "preview": {
+        if (!data.instrument) {
+          break;
+        }
         const previewSong: Song = createSong();
         const previewPattern = createPattern();
         previewSong.patterns = [previewPattern];

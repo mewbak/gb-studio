@@ -245,18 +245,20 @@ export const NavigatorInstrumentsPane = ({
         }),
       );
 
-      const instrumentId = parseInt(item.instrumentId);
-
-      if (item.type === "duty") {
-        const instrument = dutyInstruments[instrumentId];
-        playDutyNotePreview(NOTE_C5, instrument, selectedChannel === 1 ? 1 : 0);
-      } else if (item.type === "wave") {
-        const instrument = waveInstruments[instrumentId];
-        const wave = waveForms?.[instrument?.wave_index];
-        playWaveNotePreview(NOTE_C5, instrument, wave);
-      } else if (item.type === "noise") {
-        const instrument = noiseInstruments[instrumentId];
-        playNoiseNotePreview(NOTE_C5, instrument);
+      if (!item.isGroup) {
+        const instrumentId = parseInt(item.instrumentId);
+        if (item.type === "duty") {
+          const instrument = dutyInstruments[instrumentId];
+          const channel = selectedChannel === 1 ? 1 : 0;
+          playDutyNotePreview(NOTE_C5, instrument, channel);
+        } else if (item.type === "wave") {
+          const instrument = waveInstruments[instrumentId];
+          const wave = waveForms?.[instrument?.wave_index];
+          playWaveNotePreview(NOTE_C5, instrument, wave);
+        } else if (item.type === "noise") {
+          const instrument = noiseInstruments[instrumentId];
+          playNoiseNotePreview(NOTE_C5, instrument);
+        }
       }
 
       if (!item.isGroup && syncInstruments) {
