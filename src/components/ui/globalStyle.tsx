@@ -78,6 +78,7 @@ const GlobalStyle = createGlobalStyle`
     caret-color: ${(props) => props.theme.colors.highlight};
     background: ${(props) => props.theme.colors.background};
     color: ${(props) => props.theme.colors.text};
+    overscroll-behavior-x: none;
   }
 
   input {
