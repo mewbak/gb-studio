@@ -194,6 +194,8 @@ export const SongContextBar = () => {
     const listener = (_event: unknown, d: MusicDataReceivePacket) => {
       if (d.action === "update") {
         setPlaybackState(d.update);
+      } else if (d.action === "initialized") {
+        setPlaybackState([0, 0]);
       }
     };
     const unsubscribeMusicData = API.events.music.response.subscribe(listener);
