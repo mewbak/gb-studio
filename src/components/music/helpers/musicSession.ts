@@ -50,6 +50,7 @@ export const createMusicSession = (): MusicSession => {
       case "load-song":
         player.reset();
         player.loadSong(data.song);
+        position = [0, 0];
         emit({
           action: "log",
           message: "load song",
