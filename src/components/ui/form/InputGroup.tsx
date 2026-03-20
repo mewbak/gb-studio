@@ -50,7 +50,7 @@ export const InputGroup = styled.div`
   }
 `;
 
-export const InputGroupLabel = styled.div`
+export const InputGroupLabel = styled.label`
   display: flex;
   align-items: center;
   justify-content: center;

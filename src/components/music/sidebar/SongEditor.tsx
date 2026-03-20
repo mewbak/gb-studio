@@ -199,11 +199,12 @@ export const SongEditor = () => {
             <FormSection>
               <FormSectionTitle>{l10n("SIDEBAR_INSTRUMENT")}</FormSectionTitle>
               <FormRow>
-                <Label htmlFor="name">{l10n("FIELD_NAME")}</Label>
+                <Label htmlFor="instrument_name">{l10n("FIELD_NAME")}</Label>
               </FormRow>
               <FormRow>
                 <Input
-                  name="name"
+                  id="instrument_name"
+                  name="instrument_name"
                   placeholder={instrumentName(
                     instrumentData,
                     selectedInstrument.type,

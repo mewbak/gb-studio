@@ -94,6 +94,7 @@ export const SongMetadataEditor = () => {
             <FormColumn>
               <Label htmlFor="name">{l10n("FIELD_NAME")}</Label>
               <Input
+                id="name"
                 name="name"
                 placeholder={l10n("FIELD_SONG")}
                 value={song?.name}
@@ -104,6 +105,7 @@ export const SongMetadataEditor = () => {
               <Label htmlFor="artist">{l10n("FIELD_ARTIST")}</Label>
 
               <Input
+                id="artist"
                 name="artist"
                 placeholder={l10n("FIELD_ARTIST")}
                 value={song?.artist}
@@ -119,6 +121,7 @@ export const SongMetadataEditor = () => {
           <FormRow>
             <InputGroup>
               <NumberInput
+                id="ticks_per_row"
                 name="ticks_per_row"
                 type="number"
                 value={song?.ticks_per_row}
@@ -129,7 +132,7 @@ export const SongMetadataEditor = () => {
                 title={l10n("FIELD_TEMPO_TOOLTIP")}
               />
               <InputGroupAppend>
-                <InputGroupLabel>
+                <InputGroupLabel htmlFor="ticks_per_row">
                   ~{Math.round(getBPM(song.ticks_per_row))} BPM
                 </InputGroupLabel>
               </InputGroupAppend>
