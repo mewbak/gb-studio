@@ -441,11 +441,7 @@ export const StyledPianoRollEffectRow = styled.div`
   `}
 `;
 
-interface StyledPianoRollPlayheadProps {
-  $isPlaying: boolean;
-}
-
-export const StyledPianoRollPlayhead = styled.div<StyledPianoRollPlayheadProps>`
+export const StyledPianoRollPlayhead = styled.div`
   pointer-events: none;
   z-index: 0;
   width: ${PIANO_ROLL_CELL_SIZE - 1}px;
@@ -463,12 +459,6 @@ export const StyledPianoRollPlayhead = styled.div<StyledPianoRollPlayheadProps>`
   top: 7px;
   bottom: 0;
   left: ${PIANO_ROLL_PIANO_WIDTH}px;
-
-  ${(props) =>
-    !props.$isPlaying &&
-    css`
-      transition: transform 0.2s linear;
-    `}
 
   &:before {
     content: "";

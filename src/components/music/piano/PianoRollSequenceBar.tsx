@@ -139,7 +139,6 @@ export const PianoRollSequenceBar = ({
         </StyledPianoRollSequenceHeader>
       ))}
       <StyledPianoRollPlayhead
-        $isPlaying={playing}
         style={{ transform: `translateX(${playheadX}px)` }}
       />
     </StyledPianoRollScrollTopWrapper>
