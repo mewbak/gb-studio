@@ -10,6 +10,7 @@ import { ButtonGroup } from "ui/buttons/ButtonGroup";
 import {
   PauseIcon,
   PianoIcon,
+  PianoInverseIcon,
   PlayIcon,
   PlayStartIcon,
   StopIcon,
@@ -260,7 +261,7 @@ export const SongContextBar = () => {
           variant={view === "roll" ? "primary" : "normal"}
           onClick={setRollView}
         >
-          <PianoIcon />
+          {view === "roll" ? <PianoInverseIcon /> : <PianoIcon />}
         </Button>
         <Button
           disabled={!playerReady}
