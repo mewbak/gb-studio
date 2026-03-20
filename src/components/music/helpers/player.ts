@@ -177,6 +177,7 @@ const loadSong = (song: Song) => {
   updateRom(song);
   emulator.step("frame");
   stop();
+  resetChannels();
 };
 
 const loadSound = (sfx?: string) => {
@@ -807,6 +808,12 @@ function patchRom(targetRomFile: Uint8Array, song: Song, startAddr: number) {
 const getCurrentSong = () => currentSong;
 
 const reset = () => emulator.init(romFile);
+
+const resetChannels = () => {
+  for (let i = 0; i < 3; i++) {
+    channels[i] = false;
+  }
+};
 
 const player = {
   initPlayer,
