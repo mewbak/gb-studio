@@ -7,7 +7,6 @@ import { SliderField } from "ui/form/SliderField";
 import { InstrumentLengthForm } from "./InstrumentLengthForm";
 import { InstrumentVolumeEditor } from "./InstrumentVolumeEditor";
 import { Button } from "ui/buttons/Button";
-import { Alert, AlertItem } from "ui/alerts/Alert";
 import l10n from "shared/lib/lang/l10n";
 import { useAppDispatch, useAppSelector } from "store/hooks";
 import { SingleValue } from "react-select";
@@ -229,13 +228,6 @@ export const InstrumentDutyEditor = ({
           </ButtonGroup>
         </FormField>
       </FormRow>
-      {instrument.subpattern_enabled && (
-        <FormRow>
-          <Alert variant="info">
-            <AlertItem>{l10n("MESSAGE_NOT_PREVIEW_SUBPATTERN")}</AlertItem>
-          </Alert>
-        </FormRow>
-      )}
     </>
   );
 };

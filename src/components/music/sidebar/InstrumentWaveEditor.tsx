@@ -7,7 +7,6 @@ import { Option, Select } from "ui/form/Select";
 import { InstrumentLengthForm } from "./InstrumentLengthForm";
 import { WaveEditorForm } from "./WaveEditorForm";
 import { Button } from "ui/buttons/Button";
-import { Alert, AlertItem } from "ui/alerts/Alert";
 import { useAppDispatch } from "store/hooks";
 import { SingleValue } from "react-select";
 import { ButtonGroup } from "ui/buttons/ButtonGroup";
@@ -171,13 +170,6 @@ export const InstrumentWaveEditor = ({
           </ButtonGroup>
         </FormField>
       </FormRow>
-      {instrument.subpattern_enabled && (
-        <FormRow>
-          <Alert variant="info">
-            <AlertItem>{l10n("MESSAGE_NOT_PREVIEW_SUBPATTERN")}</AlertItem>
-          </Alert>
-        </FormRow>
-      )}
     </>
   );
 };

@@ -10,7 +10,6 @@ import { InstrumentVolumeEditor } from "./InstrumentVolumeEditor";
 import { NoiseMacroEditorForm } from "./NoiseMacroEditorForm";
 import { Button } from "ui/buttons/Button";
 import { cloneDeep, throttle } from "lodash";
-import { Alert, AlertItem } from "ui/alerts/Alert";
 import { useAppDispatch } from "store/hooks";
 import { ButtonGroup } from "ui/buttons/ButtonGroup";
 import { testNotes } from "./helpers";
@@ -166,13 +165,6 @@ export const InstrumentNoiseEditor = ({
           </ButtonGroup>
         </FormField>
       </FormRow>
-      {instrument.subpattern_enabled && (
-        <FormRow>
-          <Alert variant="info">
-            <AlertItem>{l10n("MESSAGE_NOT_PREVIEW_SUBPATTERN")}</AlertItem>
-          </Alert>
-        </FormRow>
-      )}
     </>
   );
 };
