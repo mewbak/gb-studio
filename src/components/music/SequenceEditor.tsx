@@ -257,7 +257,10 @@ const SequenceEditorFwd = ({
           }
         }}
         appendComponent={
-          <AddSequenceButton onClick={onAddSequence}>
+          <AddSequenceButton
+            onClick={onAddSequence}
+            title={l10n("FIELD_ADD_PATTERN")}
+          >
             <PlusIcon />
           </AddSequenceButton>
         }

@@ -1324,6 +1324,7 @@
   "FIELD_OPEN_FILE": "Open File",
   "FIELD_OPEN_FOLDER": "Open Folder",
   "FIELD_CHANNELS": "Channels",
+  "FIELD_ADD_PATTERN": "Add Pattern",
 
   "// 7": "Asset Viewer ---------------------------------------------",
   "ASSET_SEARCH": "Search...",

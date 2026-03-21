@@ -19,6 +19,8 @@ import {
   StyledPianoRollPatternsWrapper,
   StyledPianoRollNote,
   StyledPianoRollScrollLeftFXSpacer,
+  StyledAddPatternButton,
+  StyledAddPatternWrapper,
 } from "./style";
 import { PianoKeyboard } from "./PianoKeyboard";
 import {
@@ -56,7 +58,10 @@ import {
 } from "./helpers";
 import { PianoRollSequenceBar } from "./PianoRollSequenceBar";
 import { Selection } from "ui/document/Selection";
-import { FXIcon } from "ui/icons/Icons";
+import { FXIcon, PlusIcon } from "ui/icons/Icons";
+import useResizeObserver from "ui/hooks/use-resize-observer";
+import l10n from "shared/lib/lang/l10n";
+import { mergeRefs } from "ui/hooks/merge-refs";
 
 const GRID_MARGIN = 0;
 
@@ -390,7 +395,7 @@ export const PianoRollCanvas = ({
   }, []);
 
   const documentWidth = song.sequence
-    ? calculateDocumentWidth(song.sequence.length)
+    ? calculateDocumentWidth(song.sequence.length) + 100
     : 0;
   const totalColumns = song.sequence.length * TRACKER_PATTERN_LENGTH;
   const totalRows = TOTAL_NOTES;
@@ -1341,8 +1346,19 @@ export const PianoRollCanvas = ({
     [currentInstrument, selectedChannel, song],
   );
 
+  const [wrapperEl, wrapperSize] = useResizeObserver<HTMLDivElement>();
+
+  const onAddSequence = useCallback(
+    (e: React.MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
+      dispatch(trackerDocumentActions.addSequence());
+    },
+    [dispatch],
+  );
+
   return (
-    <StyledPianoRollScrollWrapper ref={scrollRef}>
+    <StyledPianoRollScrollWrapper ref={mergeRefs(scrollRef, wrapperEl)}>
       <StyledPianoRollScrollCanvas
         style={{ minWidth: PIANO_ROLL_PIANO_WIDTH + documentWidth }}
       >
@@ -1380,6 +1396,22 @@ export const PianoRollCanvas = ({
               />
             ))}
           </StyledPianoRollPatternsWrapper>
+          <StyledAddPatternWrapper
+            onMouseDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+            style={{
+              height: (wrapperSize.height ?? 0) - 61,
+            }}
+          >
+            <StyledAddPatternButton
+              onClick={onAddSequence}
+              title={l10n("FIELD_ADD_PATTERN")}
+            >
+              <PlusIcon />
+            </StyledAddPatternButton>
+          </StyledAddPatternWrapper>
           {isDraggingNotes &&
             previewNotes.map((previewNote) => (
               <StyledPianoRollNote
