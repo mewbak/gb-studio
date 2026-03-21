@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import styled, { css } from "styled-components";
 import { Select } from "ui/form/Select";
 import { PlusIcon } from "ui/icons/Icons";
@@ -87,6 +93,8 @@ const SequenceEditorFwd = ({
   const [selectHasFocus, setSelectHasFocus] = useState(false);
 
   const sequenceId = useAppSelector((state) => state.tracker.selectedSequence);
+  const prevSequenceLength = useRef(sequence?.length ?? 0);
+
   const setSequenceId = useCallback(
     (sequenceId: number) => {
       dispatch(trackerActions.setSelectedPatternCells([]));
@@ -96,12 +104,17 @@ const SequenceEditorFwd = ({
   );
   useEffect(() => {
     if (sequence) {
-      if (sequenceId >= sequence?.length) {
+      const sequenceItemAdded = prevSequenceLength.current < sequence.length;
+      const sequenceItemAboveMax = sequenceId >= sequence?.length;
+      const sequenceItemBelowMin = sequenceId < 0;
+
+      if (sequenceItemAdded || sequenceItemAboveMax) {
         setSequenceId(sequence.length - 1);
-      }
-      if (sequenceId < 0) {
+      } else if (sequenceItemBelowMin) {
         setSequenceId(0);
       }
+
+      prevSequenceLength.current = sequence.length;
     }
   }, [dispatch, sequence, sequenceId, setSequenceId]);
 

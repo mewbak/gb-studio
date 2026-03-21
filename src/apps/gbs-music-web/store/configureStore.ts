@@ -12,6 +12,7 @@ export const createMusicEditorStore = () =>
     reducer: rootReducer,
     devTools: {
       latency: 200,
+      actionsDenylist: ["tracker/setHover"],
     },
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware({
