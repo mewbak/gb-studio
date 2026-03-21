@@ -175,11 +175,18 @@ const openFilesWithInput = async (options?: {
       input.setAttribute("webkitdirectory", "");
     }
     input.onchange = () => {
+      if (input.parentNode) {
+        input.parentNode.removeChild(input);
+      }
       resolve(Array.from(input.files ?? []));
     };
     input.oncancel = () => {
+      if (input.parentNode) {
+        input.parentNode.removeChild(input);
+      }
       reject(new DOMException("The operation was aborted.", "AbortError"));
     };
+    document.body.appendChild(input);
     input.click();
   });
 
