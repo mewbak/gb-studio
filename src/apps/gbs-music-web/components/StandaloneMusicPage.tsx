@@ -18,6 +18,7 @@ import editorActions from "store/features/editor/editorActions";
 import { SongTracker } from "components/music/tracker/SongTracker";
 import { SongEditor } from "components/music/sidebar/SongEditor";
 import SongEditorToolsPanel from "components/music/toolbar/SongEditorToolsPanel";
+import { loadSongFile } from "store/features/trackerDocument/trackerDocumentState";
 import { SongPianoRoll } from "components/music/piano/SongPianoRoll";
 import l10n from "shared/lib/lang/l10n";
 import { clampSidebarWidth } from "renderer/lib/window/sidebar";
@@ -35,8 +36,6 @@ import SplitPaneVerticalContainer, {
   SplitPaneLayout,
 } from "ui/splitpane/SplitPaneVerticalContainer";
 import { NavigatorChannelsPane } from "components/music/navigator/NavigatorChannelsPane";
-import { assetPath } from "shared/lib/helpers/assets";
-import { loadSongFile } from "store/features/trackerDocument/trackerDocumentState";
 
 const Wrapper = styled.div`
   display: flex;
@@ -220,28 +219,20 @@ export const StandaloneMusicPage = ({
   );
   const error = useAppSelector((state) => state.trackerDocument.present.error);
 
-  // const [selectedSongPath, setSelectedSongPath] = useState("");
-  // const [selectedSongType, setSelectedSongType] = useState("");
-  // useEffect(() => {
-  //   if (viewSong) {
-  //     setSelectedSongPath(viewSong.filename);
-  //     setSelectedSongType(viewSong.type || "");
-  //   }
-  // }, [viewSong]);
-
-  // useEffect(() => {
-  //   if (selectedSongPath !== "" && selectedSongType === "uge") {
-  //     setChannelStatus([false, false, false, false]);
-  //     dispatch(loadSongFile(selectedSongPath));
-  //   }
-  // }, [dispatch, selectedSongPath, selectedSongType]);
+  const [selectedSongPath, setSelectedSongPath] = useState("");
+  const [selectedSongType, setSelectedSongType] = useState("");
+  useEffect(() => {
+    if (viewSong) {
+      setSelectedSongPath(viewSong.filename);
+      setSelectedSongType(viewSong.type || "");
+    }
+  }, [viewSong]);
 
   useEffect(() => {
-    if (viewSong && (status === "init" || viewSong.id !== selectedSongId)) {
-      dispatch(trackerActions.setSelectedSongId(viewSong.id));
-      dispatch(loadSongFile(assetPath("music", viewSong)));
+    if (selectedSongPath !== "" && selectedSongType === "uge") {
+      dispatch(loadSongFile(selectedSongPath));
     }
-  }, [dispatch, status, viewSong, selectedSongId]);
+  }, [dispatch, selectedSongPath, selectedSongType]);
 
   useEffect(() => {
     if (!selectedSongId && allSortedSongs[0]?.id) {
@@ -338,12 +329,6 @@ export const StandaloneMusicPage = ({
     }
   };
 
-  const [channelStatus, setChannelStatus] = useState([
-    false,
-    false,
-    false,
-    false,
-  ]);
   const [activeMobilePanel, setActiveMobilePanel] = useState<
     "songs" | "editor" | null
   >(null);
@@ -388,7 +373,6 @@ export const StandaloneMusicPage = ({
             sequenceId={sequenceId}
             song={songDocument}
             height={Math.max(0, paneHeight - 61)}
-            channelStatus={channelStatus}
           />
         </div>
       );
@@ -401,7 +385,7 @@ export const StandaloneMusicPage = ({
         />
       );
     }
-  }, [paneHeight, channelStatus, sequenceId, songDocument, view]);
+  }, [paneHeight, sequenceId, songDocument, view]);
 
   return (
     <Wrapper>
@@ -435,15 +419,17 @@ export const StandaloneMusicPage = ({
                   onImportSong={onImportSong}
                   onSelectSong={onSelectSong}
                 />
-                {viewSong.type === "uge" ? <NavigatorChannelsPane /> : null}
-                {viewSong.type === "uge" ? <NavigatorInstrumentsPane /> : null}
+                {selectedSongType === "uge" ? <NavigatorChannelsPane /> : null}
+                {selectedSongType === "uge" ? (
+                  <NavigatorInstrumentsPane />
+                ) : null}
               </SplitPaneVerticalContainer>
             </div>
           </div>
           <SplitPaneHorizontalDivider onMouseDown={startLeftPaneResize} />
         </>
       ) : null}
-      {viewSong.type === "mod" && viewSong ? (
+      {selectedSongType === "mod" && viewSong ? (
         <ContentWrapper style={{ height: paneHeight }}>
           <ContentMessage>
             <ErrorTitle>MOD preview not yet available</ErrorTitle>
@@ -502,10 +488,7 @@ export const StandaloneMusicPage = ({
                 ) : null}
                 <SplitPaneVerticalDivider />
                 {renderGridView()}
-                <UgePlayer
-                  data={songDocument}
-                  onChannelStatusUpdate={setChannelStatus}
-                />
+                <UgePlayer data={songDocument} />
               </div>
               {!isCompactLayout ? (
                 <>
@@ -587,8 +570,10 @@ export const StandaloneMusicPage = ({
                     onImportSong={onImportSong}
                     onSelectSong={onSelectSongWithMobileClose}
                   />
-                  {viewSong.type === "uge" ? <NavigatorChannelsPane /> : null}
-                  {viewSong.type === "uge" ? (
+                  {selectedSongType === "uge" ? (
+                    <NavigatorChannelsPane />
+                  ) : null}
+                  {selectedSongType === "uge" ? (
                     <NavigatorInstrumentsPane />
                   ) : null}
                 </SplitPaneVerticalContainer>

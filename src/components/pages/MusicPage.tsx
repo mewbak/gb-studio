@@ -243,13 +243,6 @@ const MusicPage = () => {
     }
   };
 
-  const [channelStatus, setChannelStatus] = useState([
-    false,
-    false,
-    false,
-    false,
-  ]);
-
   const view = useAppSelector((state) => state.tracker.view);
 
   const renderGridView = useCallback(() => {
@@ -262,7 +255,6 @@ const MusicPage = () => {
             sequenceId={sequenceId}
             song={songDocument}
             height={windowHeight - 100}
-            channelStatus={channelStatus}
           />
         </div>
       );
@@ -275,7 +267,7 @@ const MusicPage = () => {
         />
       );
     }
-  }, [channelStatus, sequenceId, songDocument, view, windowHeight]);
+  }, [sequenceId, songDocument, view, windowHeight]);
 
   return (
     <Wrapper>
@@ -357,10 +349,7 @@ const MusicPage = () => {
                 </div>
                 <SplitPaneVerticalDivider />
                 {renderGridView()}
-                <UgePlayer
-                  data={songDocument}
-                  onChannelStatusUpdate={setChannelStatus}
-                />
+                <UgePlayer data={songDocument} />
               </div>
               <SplitPaneHorizontalDivider onMouseDown={onResizeRight} />
               <div

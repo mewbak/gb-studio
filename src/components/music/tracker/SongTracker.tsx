@@ -67,7 +67,6 @@ interface SongTrackerProps {
   sequenceId: number;
   song: Song | null;
   height: number;
-  channelStatus: boolean[];
 }
 
 interface SelectionRect {
@@ -86,12 +85,7 @@ const CHANNEL_FIELDS = 4;
 const ROW_SIZE = CHANNEL_FIELDS * 4;
 const NUM_FIELDS = ROW_SIZE * 64;
 
-export const SongTracker = ({
-  song,
-  sequenceId,
-  height,
-  channelStatus,
-}: SongTrackerProps) => {
+export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
   const dispatch = useAppDispatch();
 
   const playing = useAppSelector((state) => state.tracker.playing);
@@ -99,6 +93,7 @@ export const SongTracker = ({
   const defaultInstruments = useAppSelector(
     (state) => state.tracker.defaultInstruments,
   );
+  const channelStatus = useAppSelector((state) => state.tracker.channelStatus);
   const octaveOffset = useAppSelector((state) => state.tracker.octaveOffset);
   const startPlaybackPosition = useAppSelector(
     (state) => state.tracker.startPlaybackPosition,

@@ -7,10 +7,9 @@ import { useAppDispatch, useAppSelector } from "store/hooks";
 
 interface UgePlayerProps {
   data: Song | null;
-  onChannelStatusUpdate?: (channels: boolean[]) => void;
 }
 
-export const UgePlayer = ({ data, onChannelStatusUpdate }: UgePlayerProps) => {
+export const UgePlayer = ({ data }: UgePlayerProps) => {
   const dispatch = useAppDispatch();
   const currentSongRef = useRef<Song | null>(data);
 
@@ -43,9 +42,6 @@ export const UgePlayer = ({ data, onChannelStatusUpdate }: UgePlayerProps) => {
           dispatch(trackerActions.playerReady(true));
           break;
         case "muted":
-          if (onChannelStatusUpdate) {
-            onChannelStatusUpdate(d.channels);
-          }
           dispatch(trackerActions.setChannelStatus(d.channels));
           break;
       }
@@ -56,7 +52,7 @@ export const UgePlayer = ({ data, onChannelStatusUpdate }: UgePlayerProps) => {
     return () => {
       unsubscribeMusicData();
     };
-  }, [onChannelStatusUpdate, dispatch]);
+  }, [dispatch]);
 
   useEffect(() => {
     if (exporting) {
