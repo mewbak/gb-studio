@@ -113,8 +113,12 @@ export const createMusicSession = (): MusicSession => {
         } else if (data.type === "wave") {
           previewPattern[0][2].note = data.note;
           previewPattern[0][2].instrument = 0;
-          previewSong.wave_instruments = [data.instrument];
-          previewSong.wave_instruments[0].wave_index = 0;
+          previewSong.wave_instruments = [
+            {
+              ...data.instrument,
+              wave_index: 0,
+            },
+          ];
           previewSong.waves = [data.waveForm];
         } else if (data.type === "noise") {
           previewPattern[0][3].note = data.note;
