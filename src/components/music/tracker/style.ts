@@ -67,22 +67,33 @@ interface StyledTrackerHeaderCellProps {
   $solo?: boolean;
 }
 
-export const StyledTrackerHeaderCell = styled.td<StyledTrackerHeaderCellProps>`
+export const StyledTrackerHeaderCellContents = styled.div`
+  display: flex;
+  align-items: center;
+  border-right-width: 1px;
+  border-right-style: solid;
+  border-right-color: inherit;
+  border-left-width: 1px;
+  border-left-style: solid;
+  border-left-color: inherit;
+  padding: 0px 10px;
+  height: 30px;
+`;
+
+export const StyledTrackerHeaderCell = styled.th<StyledTrackerHeaderCellProps>`
   position: relative;
   align-items: center;
   text-transform: uppercase;
   font-size: 11px;
   font-weight: bold;
-  padding: 0px 10px;
-  padding-right: 5px;
-  padding-left: 10px;
   height: 30px;
   flex-shrink: 0;
   color: black;
   box-sizing: border-box;
-  border-width: 0 1px 0 0;
-  border-color: rgba(0, 0, 0, 0.1);
+  border-width: 0;
+  border-color: inherit;
   border-style: solid;
+  padding: 0;
 
   svg {
     fill: #000;
@@ -91,23 +102,20 @@ export const StyledTrackerHeaderCell = styled.td<StyledTrackerHeaderCellProps>`
   ${(props) =>
     props.$type === "patternIndex" &&
     css`
-      padding: 5px;
+      padding: 0px;
       width: 47px;
       text-align: center;
-      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
     `}
 
   ${(props) =>
     props.$type === "channel" &&
     css`
       width: 133px;
-      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-
       &:hover {
         background: rgba(255, 255, 255, 0.2);
       }
-      &:nth-last-child(2) {
-        border-right-color: ${(props) => props.theme.colors.tracker.border};
+      ${StyledTrackerHeaderCellContents} {
+        padding-right: 5px;
       }
     `}
 
@@ -174,11 +182,6 @@ export const StyledTrackerHeaderCell = styled.td<StyledTrackerHeaderCellProps>`
     `}
 `;
 
-export const StyledTrackerHeaderCellContents = styled.div`
-  display: flex;
-  align-items: center;
-`;
-
 export const StyledTrackerRow = styled.tr``;
 
 interface StyledTrackerCellProps {
@@ -190,7 +193,6 @@ interface StyledTrackerCellProps {
 }
 
 export const StyledTrackerCell = styled.td<StyledTrackerCellProps>`
-  // display: inline-flex;
   font-family: "Public Pixel", monospace;
   font-size: 12px;
   font-weight: bold;
