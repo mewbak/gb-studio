@@ -176,9 +176,6 @@ export const StyledPianoKey = styled.div<StyledPianoKeyProps>`
   box-shadow: rgba(0, 0, 0, 0.1) -2px 0px 2px 0px inset;
   ${(props) => (props.$color === "black" ? blackKeyStyle : "")}
   ${(props) => (props.$highlight ? highlightStyle : "")}
-  &:hover {
-    ${highlightStyle};
-  }
   &:last-child {
     border-bottom: none;
   }
