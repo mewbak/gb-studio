@@ -101,6 +101,34 @@ export const PianoKeyboard = ({
     lastTouchedNoteRef.current = null;
   }, []);
 
+  const isDraggingRef = useRef(false);
+
+  const handleMouseDown = useCallback(
+    (noteNumber: number) => {
+      isDraggingRef.current = true;
+      onPlayNote(noteNumber);
+    },
+    [onPlayNote],
+  );
+
+  const handleMouseEnter = useCallback(
+    (noteNumber: number) => {
+      if (isDraggingRef.current) {
+        onPlayNote(noteNumber);
+      }
+    },
+    [onPlayNote],
+  );
+
+  React.useEffect(() => {
+    const handleMouseUp = () => {
+      isDraggingRef.current = false;
+    };
+
+    window.addEventListener("mouseup", handleMouseUp);
+    return () => window.removeEventListener("mouseup", handleMouseUp);
+  }, []);
+
   return (
     <StyledPianoKeyboard
       ref={keyboardRef}
@@ -134,13 +162,11 @@ export const PianoKeyboard = ({
                   title={`${note}${octave}`}
                   onMouseDown={(e) => {
                     if (e.buttons & 1) {
-                      onPlayNote(noteNumber);
+                      handleMouseDown(noteNumber);
                     }
                   }}
-                  onMouseEnter={(e) => {
-                    if (e.buttons & 1) {
-                      onPlayNote(noteNumber);
-                    }
+                  onMouseEnter={() => {
+                    handleMouseEnter(noteNumber);
                   }}
                 >
                   {isC ? `C${octave}` : undefined}
