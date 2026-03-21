@@ -34,12 +34,12 @@ declare global {
   }
 }
 
-const musicExtensions = [".uge", ".mod"];
+const musicExtensions = [".uge"];
 const newSongBaseName = "New Song";
 const accept = {
-  description: "GB Studio music files",
+  description: "GBS Music files",
   accept: {
-    "application/octet-stream": [".uge", ".mod"],
+    "application/octet-stream": [".uge"],
   },
 };
 
@@ -119,7 +119,7 @@ const createReference = (
   id: options?.id ?? filename,
   name,
   filename,
-  format: filename.toLowerCase().endsWith(".mod") ? "mod" : "uge",
+  format: "uge",
   readonly: options?.readonly,
 });
 

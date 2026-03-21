@@ -134,7 +134,7 @@ const loadSongFromFilename = async (filename: string): Promise<Song | null> => {
     id: filename,
     name: filename.split("/").pop() || filename,
     filename,
-    format: filename.toLowerCase().endsWith(".mod") ? "mod" : "uge",
+    format: "uge",
   });
   const buffer = Buffer.from(document.data);
   const song = loadUGESong(buffer);
@@ -152,7 +152,7 @@ const saveSongToFilename = async (song: Song) => {
       id: song.filename,
       name: song.filename.split("/").pop() || song.filename,
       filename: song.filename,
-      format: song.filename.toLowerCase().endsWith(".mod") ? "mod" : "uge",
+      format: "uge",
     },
     data: new Uint8Array(data),
     modified: false,

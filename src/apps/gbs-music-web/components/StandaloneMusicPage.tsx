@@ -220,19 +220,17 @@ export const StandaloneMusicPage = ({
   const error = useAppSelector((state) => state.trackerDocument.present.error);
 
   const [selectedSongPath, setSelectedSongPath] = useState("");
-  const [selectedSongType, setSelectedSongType] = useState("");
   useEffect(() => {
     if (viewSong) {
       setSelectedSongPath(viewSong.filename);
-      setSelectedSongType(viewSong.type || "");
     }
   }, [viewSong]);
 
   useEffect(() => {
-    if (selectedSongPath !== "" && selectedSongType === "uge") {
+    if (selectedSongPath !== "") {
       dispatch(loadSongFile(selectedSongPath));
     }
-  }, [dispatch, selectedSongPath, selectedSongType]);
+  }, [dispatch, selectedSongPath]);
 
   useEffect(() => {
     if (!selectedSongId && allSortedSongs[0]?.id) {
@@ -419,124 +417,101 @@ export const StandaloneMusicPage = ({
                   onImportSong={onImportSong}
                   onSelectSong={onSelectSong}
                 />
-                {selectedSongType === "uge" ? <NavigatorChannelsPane /> : null}
-                {selectedSongType === "uge" ? (
-                  <NavigatorInstrumentsPane />
-                ) : null}
+                <NavigatorChannelsPane />
+                <NavigatorInstrumentsPane />
               </SplitPaneVerticalContainer>
             </div>
           </div>
           <SplitPaneHorizontalDivider onMouseDown={startLeftPaneResize} />
         </>
       ) : null}
-      {selectedSongType === "mod" && viewSong ? (
+      {status === "error" ? (
         <ContentWrapper style={{ height: paneHeight }}>
           <ContentMessage>
-            <ErrorTitle>MOD preview not yet available</ErrorTitle>
-            <ErrorDescription>
-              The standalone web editor currently supports the UGE editor flow
-              first. MOD-specific viewer integration still needs to be ported.
-            </ErrorDescription>
+            <ErrorTitle>Can&apos;t load the song</ErrorTitle>
+            <ErrorDescription>{error}</ErrorDescription>
           </ContentMessage>
         </ContentWrapper>
-      ) : (
+      ) : songDocument !== undefined ? (
         <>
-          {status === "error" ? (
-            <ContentWrapper style={{ height: paneHeight }}>
-              <ContentMessage>
-                <ErrorTitle>Can&apos;t load the song</ErrorTitle>
-                <ErrorDescription>{error}</ErrorDescription>
-              </ContentMessage>
-            </ContentWrapper>
-          ) : songDocument !== undefined ? (
+          <div
+            style={{
+              flex: "1 1 0",
+              minWidth: 0,
+              overflow: "hidden",
+              background: themeContext?.colors.background,
+              color: themeContext?.colors.text,
+              height: paneHeight,
+              position: "relative",
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            <div style={{ position: "relative", height: "60px" }}>
+              <SongEditorToolsPanel selectedSong={viewSong} />
+            </div>
+            {isCompactLayout && songDocument ? (
+              <MobilePanelBar>
+                <MobilePanelButton
+                  variant={activeMobilePanel === "songs" ? "primary" : "normal"}
+                  onClick={openSongsPanel}
+                >
+                  <SongIcon /> {l10n("FIELD_SONGS")}
+                </MobilePanelButton>
+                <MobilePanelButton
+                  variant={
+                    activeMobilePanel === "editor" ? "primary" : "normal"
+                  }
+                  onClick={openEditorPanel}
+                >
+                  <StackIcon /> {l10n("SIDEBAR_INSTRUMENT")}
+                </MobilePanelButton>
+              </MobilePanelBar>
+            ) : null}
+            <SplitPaneVerticalDivider />
+            {renderGridView()}
+            <UgePlayer data={songDocument} />
+          </div>
+          {!isCompactLayout ? (
             <>
+              <SplitPaneHorizontalDivider onMouseDown={onResizeRight} />
               <div
                 style={{
-                  flex: "1 1 0",
-                  minWidth: 0,
+                  width: rightPaneWidth,
+                  background: themeContext?.colors.sidebar.background,
+                  height: "100%",
                   overflow: "hidden",
-                  background: themeContext?.colors.background,
-                  color: themeContext?.colors.text,
-                  height: paneHeight,
                   position: "relative",
-                  display: "flex",
-                  flexDirection: "column",
                 }}
               >
-                <div style={{ position: "relative", height: "60px" }}>
-                  <SongEditorToolsPanel selectedSong={viewSong} />
-                </div>
-                {isCompactLayout && songDocument ? (
-                  <MobilePanelBar>
-                    <MobilePanelButton
-                      variant={
-                        activeMobilePanel === "songs" ? "primary" : "normal"
-                      }
-                      onClick={openSongsPanel}
-                    >
-                      <SongIcon /> {l10n("FIELD_SONGS")}
-                    </MobilePanelButton>
-                    <MobilePanelButton
-                      variant={
-                        activeMobilePanel === "editor" ? "primary" : "normal"
-                      }
-                      onClick={openEditorPanel}
-                    >
-                      <StackIcon /> {l10n("SIDEBAR_INSTRUMENT")}
-                    </MobilePanelButton>
-                  </MobilePanelBar>
-                ) : null}
-                <SplitPaneVerticalDivider />
-                {renderGridView()}
-                <UgePlayer data={songDocument} />
+                <SongEditor />
               </div>
-              {!isCompactLayout ? (
-                <>
-                  <SplitPaneHorizontalDivider onMouseDown={onResizeRight} />
-                  <div
-                    style={{
-                      width: rightPaneWidth,
-                      background: themeContext?.colors.sidebar.background,
-                      height: "100%",
-                      overflow: "hidden",
-                      position: "relative",
-                    }}
-                  >
-                    <SongEditor />
-                  </div>
-                </>
-              ) : null}
             </>
-          ) : (
-            <ContentWrapper style={{ height: paneHeight }}>
-              <ContentMessage>
-                {status === "loading"
-                  ? l10n("FIELD_LOADING")
-                  : "No song loaded"}
-                {status !== "loading" ? (
-                  <EmptyStateActions>
-                    {onCreateSong ? (
-                      <Button onClick={onCreateSong}>New Song</Button>
-                    ) : null}
-                    {onImportSong ? (
-                      <Button variant="normal" onClick={onImportSong}>
-                        Open File
-                      </Button>
-                    ) : null}
-                    {onOpenDirectoryWorkspace ? (
-                      <Button
-                        variant="normal"
-                        onClick={onOpenDirectoryWorkspace}
-                      >
-                        Open Folder
-                      </Button>
-                    ) : null}
-                  </EmptyStateActions>
-                ) : null}
-              </ContentMessage>
-            </ContentWrapper>
-          )}
+          ) : null}
         </>
+      ) : (
+        <ContentWrapper style={{ height: paneHeight }}>
+          <ContentMessage>
+            {status === "loading" ? l10n("FIELD_LOADING") : "No song loaded"}
+            {status !== "loading" ? (
+              <EmptyStateActions>
+                {onCreateSong ? (
+                  <Button onClick={onCreateSong}>New Song</Button>
+                ) : null}
+                {onImportSong ? (
+                  <Button variant="normal" onClick={onImportSong}>
+                    Open File
+                  </Button>
+                ) : null}
+                {onOpenDirectoryWorkspace ? (
+                  <Button variant="normal" onClick={onOpenDirectoryWorkspace}>
+                    Open Folder
+                  </Button>
+                ) : null}
+              </EmptyStateActions>
+            ) : null}
+          </ContentMessage>
+        </ContentWrapper>
       )}
       {isCompactLayout && activeMobilePanel ? (
         <>
@@ -570,12 +545,8 @@ export const StandaloneMusicPage = ({
                     onImportSong={onImportSong}
                     onSelectSong={onSelectSongWithMobileClose}
                   />
-                  {selectedSongType === "uge" ? (
-                    <NavigatorChannelsPane />
-                  ) : null}
-                  {selectedSongType === "uge" ? (
-                    <NavigatorInstrumentsPane />
-                  ) : null}
+                  <NavigatorChannelsPane />
+                  <NavigatorInstrumentsPane />
                 </SplitPaneVerticalContainer>
               ) : (
                 <div
