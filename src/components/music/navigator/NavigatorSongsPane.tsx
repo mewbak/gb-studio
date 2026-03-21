@@ -85,6 +85,7 @@ export const NavigatorSongsPane = ({
 
   const addSong = useCallback(
     (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+      e.preventDefault();
       e.stopPropagation();
       ensureMinHeight?.(200);
       setAddSongMode(true);
@@ -189,7 +190,7 @@ export const NavigatorSongsPane = ({
                 variant="transparent"
                 size="small"
                 title={l10n("TOOL_ADD_SONG_LABEL")}
-                onClick={addSong}
+                onMouseDown={addSong}
               >
                 <PlusIcon />
               </Button>
