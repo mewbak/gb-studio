@@ -35,6 +35,8 @@ import SplitPaneVerticalContainer, {
 } from "ui/splitpane/SplitPaneVerticalContainer";
 import { NavigatorChannelsPane } from "components/music/navigator/NavigatorChannelsPane";
 import trackerActions from "store/features/tracker/trackerActions";
+import { loadSongFile } from "store/features/trackerDocument/trackerDocumentState";
+import { assetPath } from "shared/lib/helpers/assets";
 
 const Wrapper = styled.div`
   display: flex;
@@ -119,6 +121,19 @@ const MusicPage = () => {
   const viewSong = useAppSelector((state) =>
     musicSelectors.selectById(state, viewSongId),
   );
+
+  const [selectedSongPath, setSelectedSongPath] = useState("");
+  useEffect(() => {
+    if (viewSong) {
+      setSelectedSongPath(assetPath("music", viewSong));
+    }
+  }, [viewSong]);
+
+  useEffect(() => {
+    if (selectedSongPath !== "" && viewSong?.type === "uge") {
+      dispatch(loadSongFile(selectedSongPath));
+    }
+  }, [dispatch, selectedSongPath, viewSong.type]);
 
   const sequenceId = useAppSelector((state) => state.tracker.selectedSequence);
 
