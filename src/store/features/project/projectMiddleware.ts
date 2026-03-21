@@ -106,10 +106,7 @@ const projectMiddleware: Middleware<Dispatch, RootState> =
       );
     } else if (actions.renameMusicAsset.match(action)) {
       const state = store.getState();
-      if (
-        state.trackerDocument.present.song &&
-        state.trackerDocument.present.modified
-      ) {
+      if (state.trackerDocument.present.song && state.tracker.modified) {
         await API.tracker.saveUGEFile(state.trackerDocument.present.song);
       }
       await renameAsset(

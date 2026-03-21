@@ -140,13 +140,9 @@ const MusicPage = () => {
   const songDocument = useAppSelector(
     (state) => state.trackerDocument.present.song,
   );
-  const modified = useAppSelector(
-    (state) => state.trackerDocument.present.modified,
-  );
-  const status = useAppSelector(
-    (state) => state.trackerDocument.present.status,
-  );
-  const error = useAppSelector((state) => state.trackerDocument.present.error);
+  const modified = useAppSelector((state) => state.tracker.modified);
+  const status = useAppSelector((state) => state.tracker.status);
+  const error = useAppSelector((state) => state.tracker.error);
 
   useEffect(() => {
     if (viewSong && (status === "init" || viewSong.id !== selectedSongId)) {

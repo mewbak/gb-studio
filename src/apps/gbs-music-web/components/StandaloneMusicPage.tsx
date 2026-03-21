@@ -78,13 +78,6 @@ const ErrorDescription = styled.div`
   padding-top: 5px;
 `;
 
-const EmptyStateActions = styled.div`
-  display: flex;
-  gap: 10px;
-  margin-top: 16px;
-  flex-wrap: wrap;
-  justify-content: center;
-`;
 
 const defaultPaneLayout: SplitPaneLayout[] = [
   { type: "fill", initialMinSize: 200 },
@@ -211,13 +204,9 @@ export const StandaloneMusicPage = ({
   const songDocument = useAppSelector(
     (state) => state.trackerDocument.present.song,
   );
-  const modified = useAppSelector(
-    (state) => state.trackerDocument.present.modified,
-  );
-  const status = useAppSelector(
-    (state) => state.trackerDocument.present.status,
-  );
-  const error = useAppSelector((state) => state.trackerDocument.present.error);
+  const modified = useAppSelector((state) => state.tracker.modified);
+  const status = useAppSelector((state) => state.tracker.status);
+  const error = useAppSelector((state) => state.tracker.error);
 
   const [selectedSongPath, setSelectedSongPath] = useState("");
   useEffect(() => {
@@ -493,23 +482,6 @@ export const StandaloneMusicPage = ({
         <ContentWrapper style={{ height: paneHeight }}>
           <ContentMessage>
             {status === "loading" ? l10n("FIELD_LOADING") : "No song loaded"}
-            {status !== "loading" ? (
-              <EmptyStateActions>
-                {onCreateSong ? (
-                  <Button onClick={onCreateSong}>New Song</Button>
-                ) : null}
-                {onImportSong ? (
-                  <Button variant="normal" onClick={onImportSong}>
-                    Open File
-                  </Button>
-                ) : null}
-                {onOpenDirectoryWorkspace ? (
-                  <Button variant="normal" onClick={onOpenDirectoryWorkspace}>
-                    Open Folder
-                  </Button>
-                ) : null}
-              </EmptyStateActions>
-            ) : null}
           </ContentMessage>
         </ContentWrapper>
       )}

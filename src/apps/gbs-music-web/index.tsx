@@ -151,9 +151,7 @@ const MusicWebApp = () => {
   >(null);
   const theme = useMemo(() => getThemeById(themeId), [themeId]);
   const singleDocumentMode = !supportsPersistentSave();
-  const modified = useAppSelector(
-    (state) => state.trackerDocument.present.modified,
-  );
+  const modified = useAppSelector((state) => state.tracker.modified);
   const currentSongName = useAppSelector((state) => {
     const currentId = state.tracker.selectedSongId;
     return musicSelectors.selectById(state, currentId)?.name ?? "";

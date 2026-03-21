@@ -1,11 +1,12 @@
 /* eslint-disable camelcase */
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction, UnknownAction } from "@reduxjs/toolkit";
 import type { InstrumentType, MusicExportFormat } from "shared/lib/music/types";
 import clamp from "shared/lib/helpers/clamp";
 import { MAX_EXPORT_LOOPS, MIN_EXPORT_LOOPS } from "shared/lib/music/constants";
 import {
   addNewSongFile,
   loadSongFile,
+  saveSongFile,
 } from "store/features/trackerDocument/trackerDocumentState";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
 
@@ -19,15 +20,17 @@ interface SelectedInstrument {
 }
 
 interface TrackerState {
-  // status: "loading" | "error" | "loaded" | null,
-  // error?: string;
+  status: "loading" | "error" | "loaded" | "init";
+  error?: string;
+  modified: boolean;
+
   playing: boolean;
   exporting: boolean;
   playerReady: boolean;
   // song?: Song;
   octaveOffset: number;
   editStep: number;
-  // modified: boolean;
+
   view: TrackerViewType;
   tool: PianoRollToolType;
   defaultInstruments: [number, number, number, number];
@@ -52,7 +55,10 @@ interface TrackerState {
 
 export const initialState: TrackerState = {
   // status: null,
-  // error: "",
+  status: "init",
+  error: "",
+  modified: false,
+
   playing: false,
   exporting: false,
   playerReady: false,
@@ -202,14 +208,28 @@ const trackerSlice = createSlice({
   },
   extraReducers: (builder) =>
     builder
-      .addCase(loadSongFile.fulfilled, (state, _action) => {
+      .addCase(loadSongFile.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(loadSongFile.rejected, (state, action) => {
+        state.status = "error";
+        state.error = action.error.message;
+      })
+      .addCase(loadSongFile.fulfilled, (state) => {
         return {
           ...initialState,
           selectedSongId: state.selectedSongId,
           view: state.view,
+          status: "loaded",
+          modified: false,
         };
       })
+      .addCase(saveSongFile.fulfilled, (state) => {
+        state.modified = false;
+      })
       .addCase(trackerDocumentActions.unloadSong, (state) => {
+        state.modified = false;
+        state.status = "init";
         state.playerReady = false;
       })
       // When adding a new song file jump to it in navigator
@@ -221,6 +241,16 @@ const trackerSlice = createSlice({
         trackerDocumentActions.convertModToUgeSong.fulfilled,
         (state, action) => {
           state.selectedSongId = action.payload.data.id;
+        },
+      )
+      .addMatcher(
+        (action: UnknownAction): action is UnknownAction =>
+          action.type.startsWith("tracker/edit") ||
+          action.type.startsWith("tracker/addSequence") ||
+          action.type.startsWith("tracker/removeSequence") ||
+          action.type.startsWith("tracker/moveSequence"),
+        (state, _action) => {
+          state.modified = true;
         },
       ),
 });

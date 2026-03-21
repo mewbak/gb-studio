@@ -77,9 +77,7 @@ const SongEditorToolsPanel = ({ selectedSong }: SongEditorToolsPanelProps) => {
     (state) => state.tracker.subpatternEditorFocus,
   );
 
-  const modified = useAppSelector(
-    (state) => state.trackerDocument.present.modified,
-  );
+  const modified = useAppSelector((state) => state.tracker.modified);
   const song = useAppSelector((state) => state.trackerDocument.present.song);
 
   const view = useAppSelector((state) => state.tracker.view);

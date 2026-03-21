@@ -26,7 +26,7 @@ const trackerMiddleware: ThunkMiddleware<RootState> =
         action.payload !== state.tracker.selectedSongId) ||
       requestAddNewSongFile.match(action)
     ) {
-      if (state.trackerDocument.present.modified) {
+      if (state.tracker.modified) {
         // Display confirmation and stop action if
         const songsLookup = musicSelectors.selectEntities(state);
         const selectedSong = songsLookup[state.tracker.selectedSongId];
@@ -55,7 +55,7 @@ const trackerMiddleware: ThunkMiddleware<RootState> =
 
     if (
       projectActions.saveProject.pending.match(action) &&
-      state.trackerDocument.present.modified
+      state.tracker.modified
     ) {
       store.dispatch(saveSongFile());
     }

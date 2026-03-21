@@ -1,6 +1,5 @@
 /* eslint-disable camelcase */
 import {
-  UnknownAction,
   createAsyncThunk,
   createSlice,
   PayloadAction,
@@ -22,16 +21,16 @@ import { createPatternCell, createSong } from "shared/lib/uge/song";
 import { InstrumentType } from "shared/lib/music/types";
 
 interface TrackerDocumentState {
-  status: "loading" | "error" | "loaded" | "init";
-  error?: string;
+  // status: "loading" | "error" | "loaded" | "init";
+  // error?: string;
   song?: Song;
-  modified: boolean;
+  // modified: boolean;
 }
 
 export const initialState: TrackerDocumentState = {
-  status: "init",
-  error: "",
-  modified: false,
+  // status: "init",
+  // error: "",
+  // modified: false,
 };
 
 export const requestAddNewSongFile = createAction<string>(
@@ -59,6 +58,7 @@ export const loadSongFile = createAsyncThunk<Song, string>(
   "tracker/loadSong",
   async (path, _thunkApi): Promise<Song> => {
     const song = await API.tracker.loadUGEFile(path);
+    // return new Promise((resolve) => setTimeout(() => resolve(song), 500000));
     return song;
   },
 );
@@ -68,7 +68,7 @@ export const saveSongFile = createAsyncThunk<void, void>(
   async (_, thunkApi) => {
     const state = thunkApi.getState() as RootState;
 
-    if (!state.trackerDocument.present.modified) {
+    if (!state.tracker.modified) {
       throw new Error("Cannot save unmodified song");
     }
     if (!state.trackerDocument.present.song) {
@@ -91,8 +91,6 @@ const trackerSlice = createSlice({
   reducers: {
     unloadSong: (state, _action: PayloadAction<void>) => {
       state.song = undefined;
-      state.modified = false;
-      state.status = "init";
     },
     editSong: (state, _action: PayloadAction<{ changes: Partial<Song> }>) => {
       if (state.song) {
@@ -506,42 +504,15 @@ const trackerSlice = createSlice({
   },
   extraReducers: (builder) =>
     builder
-      .addCase(loadSongFile.pending, (state, _action) => {
-        state.status = "loading";
+      .addCase(loadSongFile.pending, (state) => {
+        state.song = undefined;
       })
-      .addCase(loadSongFile.rejected, (state, action) => {
-        console.error(action.error);
-        state.status = "error";
+      .addCase(loadSongFile.rejected, (state) => {
         state.song = createSong();
-        state.error = action.error.message;
       })
       .addCase(loadSongFile.fulfilled, (state, action) => {
         state.song = action.payload;
-        state.status = "loaded";
-        state.modified = false;
-      })
-      .addCase(addNewSongFile.pending, (state, action) => {
-        console.log(state, action);
-      })
-      .addCase(addNewSongFile.rejected, (state, action) => {
-        console.error(action.error);
-      })
-      .addCase(addNewSongFile.fulfilled, (state, action) => {
-        console.log(state, action);
-      })
-      .addCase(saveSongFile.fulfilled, (state, _action) => {
-        state.modified = false;
-      })
-      .addMatcher(
-        (action: UnknownAction): action is UnknownAction =>
-          action.type.startsWith("tracker/edit") ||
-          action.type.startsWith("tracker/addSequence") ||
-          action.type.startsWith("tracker/removeSequence") ||
-          action.type.startsWith("tracker/moveSequence"),
-        (state, _action) => {
-          state.modified = true;
-        },
-      ),
+      }),
 });
 
 export const { actions } = trackerSlice;
