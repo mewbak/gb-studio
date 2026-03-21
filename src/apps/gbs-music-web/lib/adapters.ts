@@ -103,13 +103,6 @@ const getSaveFilePicker = () => {
   return picker;
 };
 
-const createWorkspaceFilename = (
-  name: string,
-  workspace?: Pick<MusicWorkspace, "openMode" | "rootName">,
-) =>
-  workspace?.openMode === "directory" && workspace.rootName
-    ? `${workspace.rootName}/${name}`
-    : name;
 
 const createReference = (
   name: string,
@@ -190,38 +183,26 @@ const openFilesWithInput = async (options?: {
     input.click();
   });
 
-const toReferenceFilename = (
-  file: File,
-  workspace?: Pick<MusicWorkspace, "openMode" | "rootName">,
-) => {
+const toReferenceFilename = (file: File) => {
   const relativePath =
     typeof file.webkitRelativePath === "string" &&
     file.webkitRelativePath.length > 0
       ? file.webkitRelativePath
       : file.name;
-  if (workspace?.openMode === "directory" && workspace.rootName) {
-    return `${workspace.rootName}/${relativePath.split("/").pop() || file.name}`;
-  }
+  // if (workspace?.openMode === "directory" && workspace.rootName) {
+  //   return `${workspace.rootName}/${relativePath.split("/").pop() || file.name}`;
+  // }
   return relativePath;
 };
 
-const registerHandleReference = (
-  handle: FileSystemFileHandle,
-  workspace?: Pick<MusicWorkspace, "openMode" | "rootName">,
-) => {
-  const reference = createReference(
-    handle.name,
-    createWorkspaceFilename(handle.name, workspace),
-  );
+const registerHandleReference = (handle: FileSystemFileHandle) => {
+  const reference = createReference(handle.name, handle.name);
   fileHandles.set(reference.filename, handle);
   return reference;
 };
 
-const registerFallbackFileReference = async (
-  file: File,
-  workspace?: Pick<MusicWorkspace, "openMode" | "rootName">,
-) => {
-  const filename = toReferenceFilename(file, workspace);
+const registerFallbackFileReference = async (file: File) => {
+  const filename = toReferenceFilename(file);
   const id = `fallback-${fallbackDocumentId++}-${filename}`;
   const reference = createReference(file.name, filename, { id });
   storeInMemoryDocument(reference, new Uint8Array(await file.arrayBuffer()));
@@ -257,19 +238,15 @@ const findAvailableSongName = async (
   }
 };
 
-const createFallbackNewSongReference = (
-  workspace?: Pick<MusicWorkspace, "openMode" | "rootName">,
-) => {
+const createFallbackNewSongReference = () => {
   const suffix = fallbackDocumentId++ || 0;
   const fileName =
     suffix === 0
       ? `${newSongBaseName}.uge`
       : `${newSongBaseName} ${suffix + 1}.uge`;
-  const reference = createReference(
-    fileName.replace(/\.uge$/, ""),
-    createWorkspaceFilename(fileName, workspace),
-    { id: `fallback-new-${suffix}-${fileName}` },
-  );
+  const reference = createReference(fileName.replace(/\.uge$/, ""), fileName, {
+    id: `fallback-new-${suffix}-${fileName}`,
+  });
   return reference;
 };
 
@@ -344,12 +321,7 @@ export const webMusicEnvironment: MusicEnvironment<MusicBinaryDocument> = {
     const rootName = createFallbackWorkspaceRoot(musicFiles);
     currentDirectoryHandle = undefined;
     const documents = await Promise.all(
-      musicFiles.map((file) =>
-        registerFallbackFileReference(file, {
-          openMode: "directory",
-          rootName,
-        }),
-      ),
+      musicFiles.map((file) => registerFallbackFileReference(file)),
     );
     const sortedDocuments = sortByName(documents);
     return createMusicWorkspace({
@@ -434,30 +406,29 @@ export const webMusicEnvironment: MusicEnvironment<MusicBinaryDocument> = {
   },
 };
 
-export const importMusicDocument = async (
-  workspace?: Pick<MusicWorkspace, "openMode" | "rootName">,
-): Promise<MusicDocumentReference | null> => {
-  try {
-    if (supportsFileOpenPicker()) {
-      const [handle] = await getOpenFilePicker()({
-        multiple: false,
-        types: [accept],
-      });
-      return registerHandleReference(handle, workspace);
-    }
+export const importMusicDocument =
+  async (): Promise<MusicDocumentReference | null> => {
+    try {
+      if (supportsFileOpenPicker()) {
+        const [handle] = await getOpenFilePicker()({
+          multiple: false,
+          types: [accept],
+        });
+        return registerHandleReference(handle);
+      }
 
-    const [file] = await openFilesWithInput({ multiple: false });
-    if (!file) {
-      return null;
+      const [file] = await openFilesWithInput({ multiple: false });
+      if (!file) {
+        return null;
+      }
+      return registerFallbackFileReference(file);
+    } catch (error) {
+      if (isAbortError(error)) {
+        return null;
+      }
+      throw error;
     }
-    return registerFallbackFileReference(file, workspace);
-  } catch (error) {
-    if (isAbortError(error)) {
-      return null;
-    }
-    throw error;
-  }
-};
+  };
 
 export const createTemplateMusicDocument = async (
   data: Uint8Array,
@@ -469,13 +440,17 @@ export const createTemplateMusicDocument = async (
       currentDirectoryHandle &&
       supportsFileSystemAccess()
     ) {
+      console.log("HERE");
       const filename = await findAvailableSongName(currentDirectoryHandle);
+      console.log("AAA", { filename });
       const handle = await currentDirectoryHandle.getFileHandle(filename, {
         create: true,
       });
       await writeFileHandle(handle, data);
-      const reference = registerHandleReference(handle, workspace);
+      console.log("CCC", { handle, workspace });
+      const reference = registerHandleReference(handle);
       storeInMemoryDocument(reference, data, false);
+      console.log("DDD", { reference });
       return reference;
     }
 
@@ -491,7 +466,7 @@ export const createTemplateMusicDocument = async (
       return reference;
     }
 
-    const reference = createFallbackNewSongReference(workspace);
+    const reference = createFallbackNewSongReference();
     storeInMemoryDocument(reference, data, false);
     currentDirectoryHandle = undefined;
     return reference;

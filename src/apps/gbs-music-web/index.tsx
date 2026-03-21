@@ -209,7 +209,7 @@ const MusicWebApp = () => {
   }, [applyWorkspace, singleDocumentMode, workspace]);
 
   const importSong = useCallback(async () => {
-    const document = await importMusicDocument(workspace);
+    const document = await importMusicDocument();
     if (!document) {
       return;
     }
