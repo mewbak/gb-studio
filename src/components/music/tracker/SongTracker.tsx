@@ -4,6 +4,7 @@ import React, {
   useEffect,
   useCallback,
   useMemo,
+  useLayoutEffect,
 } from "react";
 import { Song, PatternCell } from "shared/lib/uge/types";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
@@ -84,6 +85,8 @@ export interface Position {
 const CHANNEL_FIELDS = 4;
 const ROW_SIZE = CHANNEL_FIELDS * 4;
 const NUM_FIELDS = ROW_SIZE * 64;
+const TRACKER_HEADER_HEIGHT = 30;
+const TRACKER_CELL_HEIGHT = 25;
 
 export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
   const dispatch = useAppDispatch();
@@ -165,17 +168,6 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
       }
     }
   }, [activeField, dispatch]);
-
-  const playingRowRef = useRef<HTMLSpanElement>(null);
-  if (playingRowRef && playingRowRef.current) {
-    if (playing) {
-      playingRowRef.current.scrollIntoView({
-        behavior: "auto",
-        block: "center",
-        inline: "nearest",
-      });
-    }
-  }
 
   const activeFieldRef = useRef<HTMLSpanElement>(null);
 
@@ -558,15 +550,6 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
         }
 
         setActiveField(newActiveField);
-
-        if (activeFieldRef && activeFieldRef.current) {
-          if (!playing) {
-            scrollIntoView(activeFieldRef.current.parentElement as Element, {
-              scrollMode: "if-needed",
-              block: "nearest",
-            });
-          }
-        }
       }
 
       let currentFocus: KeyWhen = null;
@@ -624,10 +607,22 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
       deleteSelectedTrackerFields,
       selectionRect,
       selectionOrigin,
-      playing,
       transposeSelectedTrackerFields,
     ],
   );
+
+  useLayoutEffect(() => {
+    if (!playing && activeFieldRef && activeFieldRef.current) {
+      const parentEl = activeFieldRef.current.parentElement;
+      if (parentEl) {
+        scrollIntoView(parentEl, {
+          scrollMode: "if-needed",
+          block: "end",
+          inline: "end",
+        });
+      }
+    }
+  }, [playing, activeField]);
 
   const handleKeyUp = useCallback((e: KeyboardEvent) => {
     if (!e.shiftKey) {
@@ -875,17 +870,31 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
     return -1;
   }, [channelStatus]);
 
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const playbackRow = playbackState[1];
+
+  useLayoutEffect(() => {
+    if (scrollRef.current && playing) {
+      const rect = scrollRef.current.getBoundingClientRect();
+      const halfHeight = rect.height * 0.5;
+      scrollRef.current.scrollTop =
+        TRACKER_HEADER_HEIGHT + playbackRow * TRACKER_CELL_HEIGHT - halfHeight;
+    }
+  }, [playing, playbackRow]);
+
   return (
     <StyledTrackerWrapper style={{ height }}>
-      <StyledTrackerContentWrapper>
+      <StyledTrackerContentWrapper ref={scrollRef}>
         <StyledTrackerContentTable>
           <StyledTrackerTableHeader
             style={{
               background: `linear-gradient(0deg, hsl(${patternHue(patternId)}deg 100% 70%) 0%, hsl(${patternHue(patternId)}deg 100% 80%) 100%)`,
+              borderColor: `hsl(${patternHue(patternId)}deg 80% 50% / 30%)`,
             }}
           >
             <StyledTrackerTableHeaderRow>
-              <TrackerHeaderCell type="patternIndex" patternId={patternId}>
+              <TrackerHeaderCell type="patternIndex">
                 {String(patternId).padStart(2, "0")}
               </TrackerHeaderCell>
               <TrackerHeaderCell
@@ -893,7 +902,6 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
                 channel={0}
                 muted={channelStatus[0] && soloChannel === -1}
                 solo={soloChannel === 0}
-                patternId={patternId}
               >
                 Duty 1
               </TrackerHeaderCell>
@@ -902,7 +910,6 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
                 channel={1}
                 muted={channelStatus[1] && soloChannel === -1}
                 solo={soloChannel === 1}
-                patternId={patternId}
               >
                 Duty 2
               </TrackerHeaderCell>
@@ -911,7 +918,6 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
                 channel={2}
                 muted={channelStatus[2] && soloChannel === -1}
                 solo={soloChannel === 2}
-                patternId={patternId}
               >
                 Wave
               </TrackerHeaderCell>
@@ -920,14 +926,16 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
                 channel={3}
                 muted={channelStatus[3] && soloChannel === -1}
                 solo={soloChannel === 3}
-                patternId={patternId}
               >
                 Noise
               </TrackerHeaderCell>
             </StyledTrackerTableHeaderRow>
           </StyledTrackerTableHeader>
-          <StyledTrackerTableBody>
-            {/* <StyledTrackerPattern tabIndex={0} onFocus={onFocus} onBlur={onBlur}> */}
+          <StyledTrackerTableBody
+            tabIndex={0}
+            onFocus={onFocus}
+            onBlur={onBlur}
+          >
             {pattern?.map((row: PatternCell[], i: number) => {
               const isActiveRow =
                 activeField !== undefined &&
@@ -936,7 +944,6 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
                 playbackState[0] === sequenceId && playbackState[1] === i;
               const isSelected = selectedTrackerRows?.indexOf(i) !== -1;
               return (
-                // <span ref={isPlaying ? playingRowRef : null} key={`__${i}`}>
                 <TrackerRow
                   id={`__${i}`}
                   n={i}
@@ -951,10 +958,8 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
                     !isPlaying && isSelected ? selectedTrackerFields || [] : []
                   }
                 />
-                // </span>
               );
             })}
-            {/* </StyledTrackerPattern> */}
           </StyledTrackerTableBody>
         </StyledTrackerContentTable>
       </StyledTrackerContentWrapper>

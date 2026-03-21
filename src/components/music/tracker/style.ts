@@ -202,6 +202,7 @@ export const StyledTrackerCell = styled.td<StyledTrackerCellProps>`
   border-style: solid;
   margin: 0;
   height: 25px;
+  padding: 0;
   justify-content: center;
   align-items: center;
   text-align: center;
