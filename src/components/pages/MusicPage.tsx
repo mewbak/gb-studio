@@ -19,14 +19,13 @@ import { SongTracker } from "components/music/tracker/SongTracker";
 import { musicSelectors } from "store/features/entities/entitiesState";
 import { SongEditor } from "components/music/sidebar/SongEditor";
 import SongEditorToolsPanel from "components/music/toolbar/SongEditorToolsPanel";
-import { loadSongFile } from "store/features/trackerDocument/trackerDocumentState";
+// import { loadSongFile } from "store/features/trackerDocument/trackerDocumentState";
 import { SongPianoRoll } from "components/music/piano/SongPianoRoll";
 import ModViewer from "components/music/mod/ModViewer";
 import l10n from "shared/lib/lang/l10n";
 import { clampSidebarWidth } from "renderer/lib/window/sidebar";
 import { UgePlayer } from "components/music/UgePlayer";
-import trackerActions from "store/features/tracker/trackerActions";
-import { assetPath } from "shared/lib/helpers/assets";
+// import { assetPath } from "shared/lib/helpers/assets";
 import { useAppDispatch, useAppSelector } from "store/hooks";
 import { sortByFilename } from "shared/lib/entities/entitiesHelpers";
 import { NavigatorInstrumentsPane } from "components/music/navigator/NavigatorInstrumentsPane";
@@ -35,6 +34,7 @@ import SplitPaneVerticalContainer, {
   SplitPaneLayout,
 } from "ui/splitpane/SplitPaneVerticalContainer";
 import { NavigatorChannelsPane } from "components/music/navigator/NavigatorChannelsPane";
+import trackerActions from "store/features/tracker/trackerActions";
 
 const Wrapper = styled.div`
   display: flex;
@@ -99,7 +99,6 @@ const MusicPage = () => {
   const selectedSongId = useAppSelector(
     (state) => state.tracker.selectedSongId,
   );
-  const selectedId = useAppSelector((state) => state.navigation.id);
 
   const song = useAppSelector((state) =>
     musicSelectors.selectById(state, selectedSongId),
@@ -134,23 +133,11 @@ const MusicPage = () => {
   );
   const error = useAppSelector((state) => state.trackerDocument.present.error);
 
-  const [selectedSongPath, setSelectedSongPath] = useState("");
-  const [selectedSongType, setSelectedSongType] = useState("");
   useEffect(() => {
-    if (viewSong) {
-      setSelectedSongPath(assetPath("music", viewSong));
-      setSelectedSongType(viewSong.type || "");
+    if (viewSong && (status === "init" || viewSong.id !== selectedSongId)) {
+      dispatch(trackerActions.setSelectedSongId(viewSong.id));
     }
-  }, [viewSong]);
-
-  useEffect(() => {
-    if (selectedSongPath !== "" && selectedSongType === "uge") {
-      setChannelStatus([false, false, false, false]);
-      dispatch({ type: "@@TRACKER_INIT" });
-      dispatch(loadSongFile(selectedSongPath));
-      dispatch(trackerActions.init());
-    }
-  }, [dispatch, selectedSongPath, selectedSongType]);
+  }, [dispatch, status, viewSong, selectedSongId]);
 
   const [leftPaneWidth, setLeftPaneSize, startLeftPaneResize] = useResizable({
     initialSize: navigatorSidebarWidth,
@@ -315,15 +302,15 @@ const MusicPage = () => {
           >
             <NavigatorSongsPane
               modified={modified}
-              selectedSongId={selectedId || viewSongId}
+              selectedSongId={selectedSongId || viewSongId}
             />
-            {selectedSongType === "uge" ? <NavigatorChannelsPane /> : null}
-            {selectedSongType === "uge" ? <NavigatorInstrumentsPane /> : null}
+            {viewSong.type === "uge" ? <NavigatorChannelsPane /> : null}
+            {viewSong.type === "uge" ? <NavigatorInstrumentsPane /> : null}
           </SplitPaneVerticalContainer>
         </div>
       </div>
       <SplitPaneHorizontalDivider onMouseDown={startLeftPaneResize} />
-      {selectedSongType === "mod" && viewSong ? (
+      {viewSong.type === "mod" && viewSong ? (
         <div
           style={{
             flex: "1 1 0",

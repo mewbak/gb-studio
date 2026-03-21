@@ -22,14 +22,14 @@ import { createPatternCell, createSong } from "shared/lib/uge/song";
 import { InstrumentType } from "shared/lib/music/types";
 
 interface TrackerDocumentState {
-  status: "loading" | "error" | "loaded" | null;
+  status: "loading" | "error" | "loaded" | "init";
   error?: string;
   song?: Song;
   modified: boolean;
 }
 
 export const initialState: TrackerDocumentState = {
-  status: null,
+  status: "init",
   error: "",
   modified: false,
 };
@@ -55,9 +55,9 @@ export const addNewSongFile = createAsyncThunk<
   },
 );
 
-export const loadSongFile = createAsyncThunk<Song | null, string>(
+export const loadSongFile = createAsyncThunk<Song, string>(
   "tracker/loadSong",
-  async (path, _thunkApi): Promise<Song | null> => {
+  async (path, _thunkApi): Promise<Song> => {
     const song = await API.tracker.loadUGEFile(path);
     return song;
   },
@@ -89,13 +89,10 @@ const trackerSlice = createSlice({
   name: "tracker",
   initialState,
   reducers: {
-    loadSong: (state, _action: PayloadAction<Song>) => {
-      state.song = _action.payload;
-      state.modified = false;
-    },
     unloadSong: (state, _action: PayloadAction<void>) => {
       state.song = undefined;
       state.modified = false;
+      state.status = "init";
     },
     editSong: (state, _action: PayloadAction<{ changes: Partial<Song> }>) => {
       if (state.song) {
@@ -519,11 +516,9 @@ const trackerSlice = createSlice({
         state.error = action.error.message;
       })
       .addCase(loadSongFile.fulfilled, (state, action) => {
-        if (action.payload) {
-          state.song = action.payload;
-          state.status = "loaded";
-          state.modified = false;
-        }
+        state.song = action.payload;
+        state.status = "loaded";
+        state.modified = false;
       })
       .addCase(addNewSongFile.pending, (state, action) => {
         console.log(state, action);

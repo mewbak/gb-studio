@@ -344,7 +344,7 @@ const APISetup = {
   tracker: {
     addNewUGEFile: (path: string): Promise<MusicResourceAsset> =>
       ipcRenderer.invoke("tracker:new", path),
-    loadUGEFile: (path: string): Promise<Song | null> =>
+    loadUGEFile: (path: string): Promise<Song> =>
       ipcRenderer.invoke("tracker:load", path),
     saveUGEFile: (song: Song): Promise<void> =>
       ipcRenderer.invoke("tracker:save", song),

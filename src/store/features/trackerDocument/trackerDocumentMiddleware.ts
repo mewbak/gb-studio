@@ -4,6 +4,7 @@ import { musicSelectors } from "store/features/entities/entitiesState";
 import navigationActions from "store/features/navigation/navigationActions";
 import {
   addNewSongFile,
+  loadSongFile,
   requestAddNewSongFile,
   saveSongFile,
 } from "./trackerDocumentState";
@@ -13,11 +14,13 @@ import l10n from "shared/lib/lang/l10n";
 import API from "renderer/lib/api";
 import projectActions from "store/features/project/projectActions";
 import trackerActions from "store/features/tracker/trackerActions";
+import { assetPath } from "shared/lib/helpers/assets";
 
 const trackerMiddleware: ThunkMiddleware<RootState> =
   (store) => (next) => async (action) => {
     const state = store.getState();
-
+    console.log("selectedSongId", state.tracker.selectedSongId);
+    console.log("ACTION", JSON.stringify(action));
     if (
       (navigationActions.setSection.match(action) &&
         action.payload !== "music") ||
@@ -35,16 +38,32 @@ const trackerMiddleware: ThunkMiddleware<RootState> =
         switch (option) {
           case 0: // Save and continue
             store.dispatch(saveSongFile());
-            store.dispatch({ type: "@@TRACKER_INIT" });
             break;
           case 1: // continue without saving
             store.dispatch(trackerDocumentActions.unloadSong());
-            store.dispatch({ type: "@@TRACKER_INIT" });
             break;
           case 2: // cancel
           default:
             return;
         }
+      }
+    }
+
+    if (
+      trackerActions.setSelectedSongId.match(action) &&
+      (action.payload !== state.tracker.selectedSongId ||
+        state.trackerDocument.present.status === "init")
+    ) {
+      console.warn("LOAD SONG", {
+        p: action.payload,
+        s: state.tracker.selectedSongId,
+        SP: action.payload !== state.tracker.selectedSongId,
+        r: state.tracker.playerReady,
+      });
+      const songsLookup = musicSelectors.selectEntities(state);
+      const selectedSong = songsLookup[action.payload];
+      if (selectedSong) {
+        store.dispatch(loadSongFile(assetPath("music", selectedSong)));
       }
     }
 

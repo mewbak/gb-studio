@@ -40,7 +40,7 @@ interface InstrumentData {
   noise_macro: number[];
 }
 
-export const loadUGESong = (buffer: Buffer): Song | null => {
+export const loadUGESong = (buffer: Buffer): Song => {
   const data = buffer.buffer.slice(
     buffer.byteOffset,
     buffer.byteOffset + buffer.byteLength,

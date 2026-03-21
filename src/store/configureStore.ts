@@ -21,7 +21,7 @@ const store = configureStore({
   reducer: rootReducer,
   devTools: {
     latency: 200,
-    actionsDenylist: ["editor/sceneHover"],
+    actionsDenylist: ["editor/sceneHover", "tracker/setHover"],
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

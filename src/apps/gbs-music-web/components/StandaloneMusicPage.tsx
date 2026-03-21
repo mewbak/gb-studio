@@ -18,7 +18,6 @@ import editorActions from "store/features/editor/editorActions";
 import { SongTracker } from "components/music/tracker/SongTracker";
 import { SongEditor } from "components/music/sidebar/SongEditor";
 import SongEditorToolsPanel from "components/music/toolbar/SongEditorToolsPanel";
-import { loadSongFile } from "store/features/trackerDocument/trackerDocumentState";
 import { SongPianoRoll } from "components/music/piano/SongPianoRoll";
 import l10n from "shared/lib/lang/l10n";
 import { clampSidebarWidth } from "renderer/lib/window/sidebar";
@@ -36,6 +35,8 @@ import SplitPaneVerticalContainer, {
   SplitPaneLayout,
 } from "ui/splitpane/SplitPaneVerticalContainer";
 import { NavigatorChannelsPane } from "components/music/navigator/NavigatorChannelsPane";
+import { assetPath } from "shared/lib/helpers/assets";
+import { loadSongFile } from "store/features/trackerDocument/trackerDocumentState";
 
 const Wrapper = styled.div`
   display: flex;
@@ -219,23 +220,28 @@ export const StandaloneMusicPage = ({
   );
   const error = useAppSelector((state) => state.trackerDocument.present.error);
 
-  const [selectedSongPath, setSelectedSongPath] = useState("");
-  const [selectedSongType, setSelectedSongType] = useState("");
-  useEffect(() => {
-    if (viewSong) {
-      setSelectedSongPath(viewSong.filename);
-      setSelectedSongType(viewSong.type || "");
-    }
-  }, [viewSong]);
+  // const [selectedSongPath, setSelectedSongPath] = useState("");
+  // const [selectedSongType, setSelectedSongType] = useState("");
+  // useEffect(() => {
+  //   if (viewSong) {
+  //     setSelectedSongPath(viewSong.filename);
+  //     setSelectedSongType(viewSong.type || "");
+  //   }
+  // }, [viewSong]);
+
+  // useEffect(() => {
+  //   if (selectedSongPath !== "" && selectedSongType === "uge") {
+  //     setChannelStatus([false, false, false, false]);
+  //     dispatch(loadSongFile(selectedSongPath));
+  //   }
+  // }, [dispatch, selectedSongPath, selectedSongType]);
 
   useEffect(() => {
-    if (selectedSongPath !== "" && selectedSongType === "uge") {
-      setChannelStatus([false, false, false, false]);
-      dispatch({ type: "@@TRACKER_INIT" });
-      dispatch(loadSongFile(selectedSongPath));
-      dispatch(trackerActions.init());
+    if (viewSong && (status === "init" || viewSong.id !== selectedSongId)) {
+      dispatch(trackerActions.setSelectedSongId(viewSong.id));
+      dispatch(loadSongFile(assetPath("music", viewSong)));
     }
-  }, [dispatch, selectedSongPath, selectedSongType]);
+  }, [dispatch, status, viewSong, selectedSongId]);
 
   useEffect(() => {
     if (!selectedSongId && allSortedSongs[0]?.id) {
@@ -429,17 +435,15 @@ export const StandaloneMusicPage = ({
                   onImportSong={onImportSong}
                   onSelectSong={onSelectSong}
                 />
-                {selectedSongType === "uge" ? <NavigatorChannelsPane /> : null}
-                {selectedSongType === "uge" ? (
-                  <NavigatorInstrumentsPane />
-                ) : null}
+                {viewSong.type === "uge" ? <NavigatorChannelsPane /> : null}
+                {viewSong.type === "uge" ? <NavigatorInstrumentsPane /> : null}
               </SplitPaneVerticalContainer>
             </div>
           </div>
           <SplitPaneHorizontalDivider onMouseDown={startLeftPaneResize} />
         </>
       ) : null}
-      {selectedSongType === "mod" && viewSong ? (
+      {viewSong.type === "mod" && viewSong ? (
         <ContentWrapper style={{ height: paneHeight }}>
           <ContentMessage>
             <ErrorTitle>MOD preview not yet available</ErrorTitle>
@@ -583,10 +587,8 @@ export const StandaloneMusicPage = ({
                     onImportSong={onImportSong}
                     onSelectSong={onSelectSongWithMobileClose}
                   />
-                  {selectedSongType === "uge" ? (
-                    <NavigatorChannelsPane />
-                  ) : null}
-                  {selectedSongType === "uge" ? (
+                  {viewSong.type === "uge" ? <NavigatorChannelsPane /> : null}
+                  {viewSong.type === "uge" ? (
                     <NavigatorInstrumentsPane />
                   ) : null}
                 </SplitPaneVerticalContainer>

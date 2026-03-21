@@ -3,7 +3,10 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import type { InstrumentType, MusicExportFormat } from "shared/lib/music/types";
 import clamp from "shared/lib/helpers/clamp";
 import { MAX_EXPORT_LOOPS, MIN_EXPORT_LOOPS } from "shared/lib/music/constants";
-import { addNewSongFile } from "store/features/trackerDocument/trackerDocumentState";
+import {
+  addNewSongFile,
+  loadSongFile,
+} from "store/features/trackerDocument/trackerDocumentState";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
 
 export type PianoRollToolType = "pencil" | "eraser" | "selection" | null;
@@ -86,7 +89,6 @@ const trackerSlice = createSlice({
   name: "tracker",
   initialState,
   reducers: {
-    init: (state) => ({ ...initialState, view: state.view }),
     playTracker: (state, _action: PayloadAction<void>) => {
       state.playing = true;
     },
@@ -103,8 +105,9 @@ const trackerSlice = createSlice({
         state.playing = false;
       }
     },
-    playerReady: (state, _action: PayloadAction<boolean>) => {
-      state.playerReady = _action.payload;
+    playerReady: (state, action: PayloadAction<boolean>) => {
+      console.warn("SET PLAYER READY TO ", action.payload);
+      state.playerReady = action.payload;
     },
     setView: (state, action: PayloadAction<TrackerViewType>) => {
       state.view = action.payload;
@@ -153,12 +156,7 @@ const trackerSlice = createSlice({
     },
     setSelectedSongId: (state, action: PayloadAction<string>) => {
       state.selectedSongId = action.payload;
-      state.selectedInstrument = { id: "0", type: "duty" };
-      state.selectedSequence = 0;
-      state.playing = false;
-      state.playerReady = false;
     },
-
     setSelectedInstrument: (
       state,
       action: PayloadAction<SelectedInstrument>,
@@ -204,6 +202,16 @@ const trackerSlice = createSlice({
   },
   extraReducers: (builder) =>
     builder
+      .addCase(loadSongFile.fulfilled, (state, _action) => {
+        return {
+          ...initialState,
+          selectedSongId: state.selectedSongId,
+          view: state.view,
+        };
+      })
+      .addCase(trackerDocumentActions.unloadSong, (state) => {
+        state.playerReady = false;
+      })
       // When adding a new song file jump to it in navigator
       .addCase(addNewSongFile.fulfilled, (state, action) => {
         state.selectedSongId = action.payload.data.id;

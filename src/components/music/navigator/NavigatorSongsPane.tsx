@@ -21,7 +21,6 @@ import {
 import { FixedSpacer } from "ui/spacing/Spacing";
 import { MusicAsset } from "shared/lib/resources/types";
 import { SplitPaneChildProps } from "ui/splitpane/SplitPaneVerticalContainer";
-import navigationActions from "store/features/navigation/navigationActions";
 import { SplitPane } from "ui/splitpane/SplitPane";
 import { DropdownButton } from "ui/buttons/DropdownButton";
 import trackerActions from "store/features/tracker/trackerActions";
@@ -79,7 +78,6 @@ export const NavigatorSongsPane = ({
         onSelectSong(id);
         return;
       }
-      dispatch(navigationActions.setNavigationId(id));
       dispatch(trackerActions.setSelectedSongId(id));
     },
     [dispatch, onSelectSong],
