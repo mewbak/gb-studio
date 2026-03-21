@@ -15,6 +15,7 @@ export const StyledTrackerContentWrapper = styled.div`
 `;
 
 export const StyledTrackerContentTable = styled.table`
+  width: 600px;
   display: table;
   border-collapse: collapse;
 
