@@ -19,6 +19,7 @@ let romFile: Uint8Array;
 let currentSequence = -1;
 let currentRow = -1;
 let isExporting = false;
+let isPlayingSong = false;
 
 const channels = [false, false, false, false];
 
@@ -233,6 +234,8 @@ const play = (song: Song, position?: PlaybackPosition) => {
   console.log("PLAY SONG HERE?", isPlayerPaused());
 
   if (isPlayerPaused()) {
+    isPlayingSong = true;
+
     console.log("RESET MUTE BACK TO", channels);
     emulator.setChannel(0, channels[0]);
     emulator.setChannel(1, channels[1]);
@@ -333,6 +336,7 @@ const playSound = () => {
 
 const stop = (position?: PlaybackPosition) => {
   console.log("STOP!");
+  isPlayingSong = false;
 
   if (!isPlayerPaused()) {
     doPause();
@@ -822,6 +826,7 @@ const player = {
   play,
   playPreview,
   playSound,
+  isPlayingSong: () => isPlayingSong,
   stop,
   setChannel,
   setSolo,

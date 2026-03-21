@@ -99,6 +99,9 @@ export const createMusicSession = (): MusicSession => {
         });
         break;
       case "preview": {
+        if (player.isPlayingSong()) {
+          return;
+        }
         if (!data.instrument) {
           break;
         }
