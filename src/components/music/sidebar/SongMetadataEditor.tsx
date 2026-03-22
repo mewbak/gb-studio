@@ -1,5 +1,4 @@
 import React, { useCallback } from "react";
-import { DropdownButton } from "ui/buttons/DropdownButton";
 import {
   FormColumn,
   FormColumns,
@@ -12,7 +11,6 @@ import { Input } from "ui/form/Input";
 import { Song } from "shared/lib/uge/types";
 import { castEventToInt } from "renderer/lib/helpers/castEventValue";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
-import { MenuItem } from "ui/menu/Menu";
 import { NumberInput } from "ui/form/NumberInput";
 import { useAppDispatch, useAppSelector } from "store/hooks";
 import { SidebarHeader } from "ui/form/SidebarHeader";
@@ -28,7 +26,6 @@ import l10n from "shared/lib/lang/l10n";
 export const SongMetadataEditor = () => {
   const dispatch = useAppDispatch();
 
-  const sequenceId = useAppSelector((state) => state.tracker.selectedSequence);
   const song = useAppSelector((state) => state.trackerDocument.present.song);
 
   const onChangeSongProp = useCallback(
