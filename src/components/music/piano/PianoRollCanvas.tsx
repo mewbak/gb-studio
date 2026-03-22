@@ -348,6 +348,30 @@ export const PianoRollCanvas = ({
     ],
   );
 
+  const transposeSelectedIds = useCallback(
+    (direction: "up" | "down", size: "note" | "octave") => {
+      dispatch(
+        trackerDocumentActions.transposeAbsoluteCells({
+          channelId: selectedChannel,
+          absRows: selectedPatternCells,
+          direction,
+          size,
+        }),
+      );
+    },
+    [dispatch, selectedPatternCells, selectedChannel],
+  );
+
+  const changeInstrumentForSelectedIds = useCallback(() => {
+    dispatch(
+      trackerDocumentActions.changeInstrumentAbsoluteCells({
+        channelId: selectedChannel,
+        absRows: selectedPatternCells,
+        instrumentId: selectedInstrumentId,
+      }),
+    );
+  }, [dispatch, selectedChannel, selectedInstrumentId, selectedPatternCells]);
+
   const handleKeyDownActionsRef = useRef(handleKeyDownActions);
 
   useEffect(() => {
@@ -359,6 +383,32 @@ export const PianoRollCanvas = ({
         clonePatternCells.current = true;
         setIsCloneMode(true);
       }
+      if (e.ctrlKey) {
+        if (e.shiftKey) {
+          if (e.code === "KeyQ" || e.key === "+" || e.key === "=") {
+            transposeSelectedIds("up", "octave");
+            return true;
+          }
+          if (e.code === "KeyA" || e.key === "_") {
+            transposeSelectedIds("down", "octave");
+            return true;
+          }
+        } else {
+          if (e.code === "KeyQ" || e.key === "=") {
+            transposeSelectedIds("up", "note");
+            return true;
+          }
+          if (e.code === "KeyA" || e.key === "-") {
+            transposeSelectedIds("down", "note");
+            return true;
+          }
+          if (e.code === "KeyI") {
+            changeInstrumentForSelectedIds();
+            return true;
+          }
+        }
+      }
+
       handleKeyDownActionsRef.current(e);
     };
 
@@ -379,7 +429,7 @@ export const PianoRollCanvas = ({
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("keyup", onKeyUp);
     };
-  }, []);
+  }, [transposeSelectedIds, changeInstrumentForSelectedIds]);
 
   const displayChannels = useMemo(
     () =>

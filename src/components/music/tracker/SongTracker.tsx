@@ -595,6 +595,16 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
     [editPatternCell],
   );
 
+  const changeInstrumentForSelectedIds = useCallback(() => {
+    dispatch(
+      trackerDocumentActions.changeInstrumentTrackerFields({
+        patternId,
+        selectedTrackerFields,
+        instrumentId: selectedInstrumentId,
+      }),
+    );
+  }, [dispatch, patternId, selectedInstrumentId, selectedTrackerFields]);
+
   const handleStructureKey = useCallback(
     (e: KeyboardEvent) => {
       const currentActiveField = activeFieldValueRef.current;
@@ -647,12 +657,17 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
             transposeSelectedTrackerFields(-1, false);
             return true;
           }
+          if (e.code === "KeyI") {
+            changeInstrumentForSelectedIds();
+            return true;
+          }
         }
       }
 
       return false;
     },
     [
+      changeInstrumentForSelectedIds,
       clearSelection,
       deleteSelectedTrackerFields,
       getCurrentSelectedTrackerFields,
