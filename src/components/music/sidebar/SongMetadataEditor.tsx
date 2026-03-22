@@ -62,14 +62,6 @@ export const SongMetadataEditor = () => {
     [onChangeSongProp],
   );
 
-  const onRemovePattern = useCallback(() => {
-    dispatch(
-      trackerDocumentActions.removeSequence({
-        sequenceIndex: sequenceId,
-      }),
-    );
-  }, [dispatch, sequenceId]);
-
   if (!song) {
     return null;
   }
@@ -78,15 +70,6 @@ export const SongMetadataEditor = () => {
     <>
       <FormHeader>
         <SidebarHeader>{getBaseName(song.filename)}</SidebarHeader>
-        <DropdownButton
-          size="small"
-          variant="transparent"
-          menuDirection="right"
-        >
-          <MenuItem onClick={onRemovePattern}>
-            {l10n("MENU_PATTERN_DELETE")}
-          </MenuItem>
-        </DropdownButton>
       </FormHeader>
       <SidebarColumns>
         <SidebarColumn>
