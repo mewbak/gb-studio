@@ -63,7 +63,6 @@ const TrackerRowFwd = React.forwardRef<HTMLSpanElement, TrackerRowProps>(
         {row.map((cell, channelId) => {
           const ret = (
             <StyledTrackerCell
-              $isPlaying={isPlaying}
               $isActive={isActive}
               $isMuted={channelStatus[channelId]}
               $n={n}

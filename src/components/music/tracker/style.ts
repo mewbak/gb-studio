@@ -190,7 +190,7 @@ export const StyledTrackerRow = styled.tr``;
 interface StyledTrackerCellProps {
   $n: number;
   $isActive: boolean;
-  $isPlaying: boolean;
+  $isPlaying?: boolean;
   $isMuted: boolean;
   $size?: "normal" | "small";
 }
