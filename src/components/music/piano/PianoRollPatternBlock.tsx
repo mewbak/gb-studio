@@ -49,6 +49,7 @@ export const PianoRollPatternBlock = ({
       $isPlaying={playing}
     >
       <StyledPianoRollPatternBlockGrid $size="small" />
+      <StyledPianoRollPatternBlockGrid $size="medium" />
       <StyledPianoRollPatternBlockGrid $size="large" />
 
       <PianoRollCrosshair

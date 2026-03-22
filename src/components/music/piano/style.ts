@@ -543,7 +543,7 @@ export const StyledPatternChannelNotes = styled.div<StyledPatternChannelNotesPro
 `;
 
 export const StyledPianoRollPatternBlockGrid = styled.div<{
-  $size: "large" | "small";
+  $size: "large" | "medium" | "small";
 }>`
   position: absolute;
   top: 0;
@@ -571,6 +571,29 @@ export const StyledPianoRollPatternBlockGrid = styled.div<{
         );
       background-size: ${PIANO_ROLL_CELL_SIZE * 8}px
         ${PIANO_ROLL_CELL_SIZE * OCTAVE_SIZE}px;
+    `}
+
+  ${(props) =>
+    props.$size === "medium" &&
+    css`
+      background-image:
+        linear-gradient(
+          90deg,
+          ${(props) => props.theme.colors.tracker.rollCell.border} 0,
+          ${(props) => props.theme.colors.tracker.rollCell.border} 1px,
+          transparent 1px,
+          transparent 986px
+        ),
+        linear-gradient(
+          0deg,
+          ${(props) => props.theme.colors.tracker.rollCell.border} 0,
+          ${(props) => props.theme.colors.tracker.rollCell.border} 1px,
+          transparent 1px,
+          transparent 986px
+        );
+      background-size: ${PIANO_ROLL_CELL_SIZE * 4}px
+        ${PIANO_ROLL_CELL_SIZE * OCTAVE_SIZE}px;
+      opacity: 0.5;
     `}
 
   ${(props) =>
