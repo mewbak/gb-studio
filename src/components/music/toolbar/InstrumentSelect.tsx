@@ -146,6 +146,7 @@ export const InstrumentSelect: FC<InstrumentSelectProps> = ({
 
   return (
     <Select
+      classNamePrefix="CustomSelect--Left CustomSelect--WidthAuto"
       value={currentValue}
       options={options}
       onChange={onSelectChange}
@@ -154,7 +155,7 @@ export const InstrumentSelect: FC<InstrumentSelectProps> = ({
           <OptionLabelWithPreview
             preview={<LabelColor $instrument={Number(option.value)} />}
           >
-            {option.label}
+            {String(option.value + 1).padStart(2, "0")}: {option.label}
           </OptionLabelWithPreview>
         );
       }}
@@ -163,6 +164,7 @@ export const InstrumentSelect: FC<InstrumentSelectProps> = ({
           <SingleValueWithPreview
             preview={<LabelColor $instrument={Number(value)} />}
           >
+            {String((currentValue?.value ?? 0) + 1).padStart(2, "0")}:{" "}
             {currentValue?.label}
           </SingleValueWithPreview>
         ),

@@ -197,7 +197,13 @@ export const SongEditor = () => {
         ) : instrumentData ? (
           <div style={{ marginTop: -1 }}>
             <FormSection>
-              <FormSectionTitle>{l10n("SIDEBAR_INSTRUMENT")}</FormSectionTitle>
+              <FormSectionTitle>
+                {l10n("SIDEBAR_INSTRUMENT")}{" "}
+                {String(parseInt(selectedInstrument.id, 10) + 1).padStart(
+                  2,
+                  "0",
+                )}
+              </FormSectionTitle>
               <FormRow>
                 <Label htmlFor="instrument_name">{l10n("FIELD_NAME")}</Label>
               </FormRow>

@@ -414,6 +414,7 @@ const SongEditorToolsPanel = ({ selectedSong }: SongEditorToolsPanelProps) => {
             <FloatingPanelDivider />
             <Select
               className="OctaveSelect"
+              classNamePrefix="CustomSelect--Left CustomSelect--WidthAuto"
               value={octaveOffsetOptions.find((i) => i.value === octaveOffset)}
               options={octaveOffsetOptions}
               onChange={(newValue: SingleValue<OctaveOffsetOptions>) => {
@@ -425,6 +426,7 @@ const SongEditorToolsPanel = ({ selectedSong }: SongEditorToolsPanelProps) => {
             <FloatingPanelDivider />
             <Select
               className="StepSelect"
+              classNamePrefix="CustomSelect--Left CustomSelect--WidthAuto"
               value={stepOptions.find((i) => i.value === editStep)}
               options={stepOptions}
               onChange={(newValue: SingleValue<StepOption>) => {

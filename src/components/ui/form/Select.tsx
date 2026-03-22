@@ -54,7 +54,9 @@ const menuPortalEl = document.getElementById("MenuPortal");
 export const Select: typeof WindowedSelect = styled(WindowedSelect).attrs(
   (props) => ({
     className: "CustomSelect",
-    classNamePrefix: "CustomSelect",
+    classNamePrefix: props.classNamePrefix
+      ? `${props.classNamePrefix} CustomSelect`
+      : "CustomSelect",
     styles: {
       option: (base) => ({
         ...base,

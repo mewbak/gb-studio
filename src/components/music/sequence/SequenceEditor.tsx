@@ -94,6 +94,7 @@ const SequenceItem = ({
     >
       <div style={{ padding: "0 0 2px 2px" }}>{item.sequenceIndex + 1}:</div>
       <Select
+        classNamePrefix="CustomSelect--Left CustomSelect--WidthAuto"
         value={sequenceOptions.find(
           (option) => option.value === item.patternId,
         )}

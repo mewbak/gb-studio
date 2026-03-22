@@ -139,8 +139,18 @@ const GlobalStyle = createGlobalStyle`
 
   body .CustomSelect__menu {
     z-index: 100;
-    min-width: 200px;
+    min-width: 100px;
+
     right: 0;
+  }
+
+  body .CustomSelect--Left.CustomSelect__menu {
+    right: auto;
+    left: 0;
+  }
+
+  body .CustomSelect--WidthAuto.CustomSelect__menu {
+    width: auto;
   }
 
   body .CustomSelect__menu-list {
