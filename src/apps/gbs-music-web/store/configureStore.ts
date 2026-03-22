@@ -20,3 +20,5 @@ export const createMusicEditorStore = () =>
         immutableCheck: false,
       }),
   });
+
+export type MusicEditorStore = ReturnType<typeof createMusicEditorStore>;

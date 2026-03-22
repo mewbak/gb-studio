@@ -37,7 +37,7 @@ import { Select } from "ui/form/Select";
 
 const root = createRoot(document.getElementById("App") as HTMLElement);
 const store = createMusicEditorStore();
-const webApiController = installWebRendererApi();
+const webApiController = installWebRendererApi(store);
 void store.dispatch(trackerActions.initViewFromSaved());
 
 initKeyBindings();

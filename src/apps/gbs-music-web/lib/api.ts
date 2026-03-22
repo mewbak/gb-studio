@@ -17,6 +17,8 @@ import {
   setStoredSetting,
 } from "./preferences";
 import type { MusicSession } from "components/music/helpers/musicSession";
+import { MusicEditorStore } from "gbs-music-web/store/configureStore";
+import { TRACKER_REDO, TRACKER_UNDO } from "consts";
 
 type MusicResponseListener = (
   _event: unknown,
@@ -159,7 +161,7 @@ const saveSongToFilename = async (song: Song) => {
   });
 };
 
-export const installWebRendererApi = () => {
+export const installWebRendererApi = (store: MusicEditorStore) => {
   setL10NData(defaultLocaleData);
   void applyLocale(currentLocaleId);
 
@@ -194,6 +196,18 @@ export const installWebRendererApi = () => {
       event.preventDefault();
       dispatchClipboardEvent("paste");
       return;
+    }
+
+    if (key === "z") {
+      if (event.shiftKey) {
+        if (store.getState().trackerDocument.future.length > 0) {
+          store.dispatch({ type: TRACKER_REDO });
+        }
+      } else {
+        if (store.getState().trackerDocument.past.length > 0) {
+          store.dispatch({ type: TRACKER_UNDO });
+        }
+      }
     }
   });
 
