@@ -1053,6 +1053,20 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
     }
   }, [playing, playbackRow]);
 
+  const sequenceLength = song?.sequence.length ?? 0;
+  const playbackOrder = playbackState[0];
+
+  useEffect(() => {
+    if (playbackOrder >= sequenceLength) {
+      // Playback has overflowed song
+      // e.g. deleted a pattern when playback was inside that pattern
+      API.music.sendToMusicWindow({
+        action: "position",
+        position: [0, 0],
+      });
+    }
+  }, [playbackOrder, sequenceLength]);
+
   return (
     <StyledTrackerWrapper style={{ height }}>
       <StyledTrackerContentWrapper ref={scrollRef}>

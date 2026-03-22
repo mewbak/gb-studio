@@ -85,6 +85,10 @@ export const createMusicSession = (): MusicSession => {
           action: "log",
           message: "position",
         });
+        emit({
+          action: "update",
+          update: position,
+        });
         break;
       case "set-mute":
         emit({

@@ -1,4 +1,4 @@
-import React, { useRef, useCallback } from "react";
+import React, { useRef, useCallback, useEffect } from "react";
 import { Song } from "shared/lib/uge/types";
 import { useAppDispatch } from "store/hooks";
 import {
@@ -121,6 +121,17 @@ export const PianoRollSequenceBar = ({
     },
     [dispatch],
   );
+
+  useEffect(() => {
+    if (playbackOrder >= sequenceLength) {
+      // Playback has overflowed song
+      // e.g. deleted a pattern when playback was inside that pattern
+      API.music.sendToMusicWindow({
+        action: "position",
+        position: [0, 0],
+      });
+    }
+  }, [playbackOrder, sequenceLength]);
 
   const updatePlaybackPosition = useCallback(
     (e: MouseEvent) => {
