@@ -120,6 +120,9 @@ export const StyledTrackerHeaderCell = styled.th<StyledTrackerHeaderCellProps>`
       }
       ${StyledTrackerHeaderCellContents} {
         padding-right: 5px;
+        span {
+          text-align: left;
+        }
       }
     `}
 
