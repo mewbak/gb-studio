@@ -28,7 +28,6 @@ import { SingleValue } from "react-select";
 import { MusicAsset } from "shared/lib/resources/types";
 import SongExportForm from "./SongExportForm";
 import l10n from "shared/lib/lang/l10n";
-import { InstrumentType } from "shared/lib/music/types";
 
 interface OctaveOffsetOptions {
   value: number;
@@ -288,27 +287,18 @@ const SongEditorToolsPanel = ({ selectedSong }: SongEditorToolsPanelProps) => {
   const selectedChannel = useAppSelector(
     (state) => state.tracker.selectedChannel,
   );
-  const [instrumentType, setInstrumentType] = useState<
-    InstrumentType | undefined
-  >();
-  useEffect(() => {
-    if (view === "roll") {
-      switch (selectedChannel) {
-        case 0:
-        case 1:
-          setInstrumentType("duty");
-          break;
-        case 2:
-          setInstrumentType("wave");
-          break;
-        case 3:
-          setInstrumentType("noise");
-          break;
-      }
-    } else {
-      setInstrumentType(undefined);
+  const instrumentType = useMemo(() => {
+    switch (selectedChannel) {
+      case 0:
+      case 1:
+        return "duty";
+      case 2:
+        return "wave";
+      case 3:
+        return "noise";
     }
-  }, [view, setInstrumentType, song, selectedChannel]);
+    return undefined;
+  }, [selectedChannel]);
 
   const prevExporting = useRef(exporting);
   useEffect(() => {
