@@ -1114,10 +1114,7 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
   }, [sequenceId, clearSelection]);
 
   return (
-    <StyledTrackerWrapper
-      style={{ height }}
-      onContextMenu={onSelectionContextMenu}
-    >
+    <StyledTrackerWrapper style={{ height }}>
       <StyledTrackerContentWrapper ref={scrollRef}>
         <StyledTrackerContentTable>
           <StyledTrackerTableHeader
@@ -1174,7 +1171,11 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
             </StyledTrackerTableHeaderRow>
           </StyledTrackerTableHeader>
 
-          <StyledTrackerTableBody tabIndex={0} onFocus={onFocus}>
+          <StyledTrackerTableBody
+            tabIndex={0}
+            onFocus={onFocus}
+            onContextMenu={onSelectionContextMenu}
+          >
             {pattern?.map((row: PatternCell[], i: number) => {
               const isActiveRow =
                 activeField !== undefined &&
