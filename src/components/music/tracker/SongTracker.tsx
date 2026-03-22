@@ -114,8 +114,8 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
   const [selectionRect, setSelectionRect] = useState<
     SelectionRect | undefined
   >();
-  const [isSelecting, setIsSelecting] = useState(false);
-  const [isMouseDown, setIsMouseDown] = useState(false);
+  const isSelectingRef = useRef(false);
+  const isMouseDownRef = useRef(false);
 
   const selectedTrackerFields = useMemo(
     () => getSelectedTrackerFields(selectionRect, selectionOrigin),
@@ -300,10 +300,10 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
       const rowId = e.target.dataset["row"];
 
       if (!!fieldId) {
-        setIsMouseDown(true);
+        isMouseDownRef.current = true;
 
         if (e.shiftKey) {
-          setIsSelecting(true);
+          isSelectingRef.current = true;
 
           const newActiveField =
             ((parseInt(fieldId) % NUM_FIELDS) + NUM_FIELDS) % NUM_FIELDS;
@@ -344,24 +344,19 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
     [dispatch, selectionOrigin, sequenceId],
   );
 
-  const handleMouseUp = useCallback(
-    (e: MouseEvent) => {
-      if (!e.target || !(e.target instanceof HTMLElement)) {
-        return;
-      }
-      if (isMouseDown) {
-        setIsMouseDown(false);
-      }
-    },
-    [isMouseDown],
-  );
+  const handleMouseUp = useCallback((e: MouseEvent) => {
+    if (!e.target || !(e.target instanceof HTMLElement)) {
+      return;
+    }
+    isMouseDownRef.current = false;
+  }, []);
 
   const handleMouseMove = useCallback(
     (e: MouseEvent) => {
       if (!e.target || !(e.target instanceof HTMLElement)) {
         return;
       }
-      if (isMouseDown) {
+      if (isMouseDownRef.current) {
         const fieldId = e.target.dataset["fieldid"];
 
         if (!!fieldId) {
@@ -381,7 +376,7 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
         }
       }
     },
-    [isMouseDown, selectionOrigin],
+    [selectionOrigin],
   );
 
   const handleKeyDown = useCallback(
@@ -519,8 +514,8 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
           tmpActiveField += 4;
         }
       }
-      if (e.shiftKey && !isSelecting) {
-        setIsSelecting(true);
+      if (e.shiftKey && !isSelectingRef.current) {
+        isSelectingRef.current = true;
         if (!selectionRect) {
           const x = activeField % ROW_SIZE;
           const y = Math.floor(activeField / ROW_SIZE);
@@ -534,7 +529,7 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
         const newActiveField =
           ((tmpActiveField % NUM_FIELDS) + NUM_FIELDS) % NUM_FIELDS;
 
-        if (isSelecting && selectionOrigin) {
+        if (isSelectingRef.current && selectionOrigin) {
           const x2 = newActiveField % ROW_SIZE;
           const y2 = Math.floor(newActiveField / ROW_SIZE);
 
@@ -595,7 +590,6 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
     },
     [
       activeField,
-      isSelecting,
       dispatch,
       patternId,
       defaultInstruments,
@@ -626,7 +620,7 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
 
   const handleKeyUp = useCallback((e: KeyboardEvent) => {
     if (!e.shiftKey) {
-      setIsSelecting(false);
+      isSelectingRef.current = false;
     }
   }, []);
 
