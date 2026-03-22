@@ -1196,7 +1196,7 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
                   ref={activeFieldRef}
                   channelStatus={channelStatus}
                   selectedTrackerFields={
-                    !isPlaying && isSelected ? selectedTrackerFields : []
+                    isSelected ? selectedTrackerFields : []
                   }
                 />
               );
