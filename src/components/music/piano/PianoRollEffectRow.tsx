@@ -145,7 +145,7 @@ export const PianoRollEffectRow = React.memo(
             <StyledPianoRollEffectCell
               key={`fx_${columnIdx}_${channelId}`}
               data-type="note"
-              data-column={columnIdx}
+              data-row={columnIdx}
               $isSelected={isSelected}
               style={{ left: `${columnIdx * PIANO_ROLL_CELL_SIZE}px` }}
             >

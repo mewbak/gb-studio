@@ -22,37 +22,8 @@ export const rowToNote = (row: number) => TOTAL_NOTES - 1 - row;
 export const wrapNote = (note: number) =>
   ((note % TOTAL_NOTES) + TOTAL_NOTES) % TOTAL_NOTES;
 
-export interface AbsColPosition {
-  sequenceId: number;
-  column: number;
-}
-
-export const toAbsCol = (sequenceId: number, column: number) =>
-  sequenceId * TRACKER_PATTERN_LENGTH + column;
-
-export const fromAbsCol = (absCol: number): AbsColPosition => ({
-  sequenceId: Math.floor(absCol / TRACKER_PATTERN_LENGTH),
-  column: absCol % TRACKER_PATTERN_LENGTH,
-});
-
-export interface ResolvedAbsCol extends AbsColPosition {
-  patternId: number;
-}
-
-export const resolveAbsCol = (
-  sequence: number[],
-  absCol: number,
-): ResolvedAbsCol | null => {
-  const { sequenceId, column } = fromAbsCol(absCol);
-  const patternId = sequence[sequenceId];
-  if (patternId === undefined) {
-    return null;
-  }
-  return { sequenceId, column, patternId };
-};
-
 export const clonePattern = (pattern: PatternCell[][]) =>
-  pattern.map((column) => column.map((cell) => ({ ...cell })));
+  pattern.map((row) => row.map((cell) => ({ ...cell })));
 
 export const clonePatterns = (patterns: PatternCell[][][]) =>
   patterns.map(clonePattern);
@@ -81,7 +52,7 @@ export const commitChangedPatterns = (
 };
 
 export interface RollGridPoint {
-  absCol: number;
+  absRow: number;
   note: number;
 }
 
@@ -94,9 +65,9 @@ export const interpolateGridLine = (
   }
 
   const points: RollGridPoint[] = [];
-  let x0 = from.absCol;
+  let x0 = from.absRow;
   let y0 = from.note;
-  const x1 = to.absCol;
+  const x1 = to.absRow;
   const y1 = to.note;
   const dx = Math.abs(x1 - x0);
   const dy = Math.abs(y1 - y0);
@@ -114,7 +85,7 @@ export const interpolateGridLine = (
       err += dx;
       y0 += sy;
     }
-    points.push({ absCol: x0, note: y0 });
+    points.push({ absRow: x0, note: y0 });
   }
 
   return points;

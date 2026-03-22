@@ -12,7 +12,7 @@ export const convertModToUgeSong = createAsyncThunk<
     asset: MusicAsset;
     allMusic: MusicAsset[];
   }
->("tracker/convertModToUge", async ({ asset, allMusic }) => {
+>("trackerDocument/convertModToUge", async ({ asset, allMusic }) => {
   const data = await API.tracker.convertModToUge(asset);
   // Find existing asset with same filename to get correct id
   const existingAsset = matchAssetEntity(data, allMusic);

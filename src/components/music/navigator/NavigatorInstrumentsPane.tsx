@@ -275,14 +275,7 @@ export const NavigatorInstrumentsPane = ({
         }
         dispatch(trackerActions.setSelectedChannel(newSelectedChannel));
         const newDefaultInstrument = parseInt(item.instrumentId);
-        dispatch(
-          trackerActions.setDefaultInstruments([
-            newDefaultInstrument,
-            newDefaultInstrument,
-            newDefaultInstrument,
-            newDefaultInstrument,
-          ]),
-        );
+        dispatch(trackerActions.setSelectedInstrumentId(newDefaultInstrument));
       }
     },
     [

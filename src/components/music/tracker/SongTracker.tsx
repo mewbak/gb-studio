@@ -38,7 +38,6 @@ import { SplitPaneVerticalDivider } from "ui/splitpane/SplitPaneDivider";
 import { SplitPaneHeader } from "ui/splitpane/SplitPaneHeader";
 import {
   buildSelectionRect,
-  CHANNEL_FIELDS,
   fieldToPosition,
   getFieldColumnFocus,
   getMovedField,
@@ -46,13 +45,15 @@ import {
   normalizeFieldIndex,
   Position,
   positionToField,
-  ROW_SIZE,
   SelectionRect,
   TRACKER_CELL_HEIGHT,
   TRACKER_HEADER_HEIGHT,
 } from "./helpers";
 import renderPatternContextMenu from "components/music/contentMenus/renderPatternContextMenu";
+import renderTrackerContextMenu from "components/music/contentMenus/renderTrackerContextMenu";
 import { DropdownButton } from "ui/buttons/DropdownButton";
+import { TRACKER_CHANNEL_FIELDS, TRACKER_ROW_SIZE } from "consts";
+import { useContextMenu } from "ui/hooks/use-context-menu";
 
 interface SongTrackerProps {
   sequenceId: number;
@@ -65,9 +66,6 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
 
   const playing = useAppSelector((state) => state.tracker.playing);
   const editStep = useAppSelector((state) => state.tracker.editStep);
-  const defaultInstruments = useAppSelector(
-    (state) => state.tracker.defaultInstruments,
-  );
   const channelStatus = useAppSelector((state) => state.tracker.channelStatus);
   const octaveOffset = useAppSelector((state) => state.tracker.octaveOffset);
   const startPlaybackPosition = useAppSelector(
@@ -77,6 +75,9 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
     (state) => state.tracker.subpatternEditorFocus,
   );
   const channelId = useAppSelector((state) => state.tracker.selectedChannel);
+  const selectedInstrumentId = useAppSelector(
+    (state) => state.tracker.selectedInstrumentId,
+  );
 
   const patternId = song?.sequence[sequenceId] ?? 0;
   const pattern = song?.patterns[patternId];
@@ -99,7 +100,7 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
   const patternRef = useRef(pattern);
   const patternIdRef = useRef(patternId);
   const songRef = useRef(song);
-  const defaultInstrumentsRef = useRef(defaultInstruments);
+
   const octaveOffsetRef = useRef(octaveOffset);
   const editStepRef = useRef(editStep);
   const channelIdRef = useRef(channelId);
@@ -122,9 +123,11 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
     songRef.current = song;
   }, [song]);
 
+  const selectedInstrumentIdRef = useRef(selectedInstrumentId);
+
   useEffect(() => {
-    defaultInstrumentsRef.current = defaultInstruments;
-  }, [defaultInstruments]);
+    selectedInstrumentIdRef.current = selectedInstrumentId;
+  }, [selectedInstrumentId]);
 
   useEffect(() => {
     octaveOffsetRef.current = octaveOffset;
@@ -190,7 +193,7 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
   const selectedTrackerRowSet = useMemo(() => {
     const rows = new Set<number>();
     for (const field of selectedTrackerFields) {
-      rows.add(Math.floor(field / ROW_SIZE));
+      rows.add(Math.floor(field / TRACKER_ROW_SIZE));
     }
     return rows;
   }, [selectedTrackerFields]);
@@ -223,13 +226,15 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
       return;
     }
 
-    const newChannelId = Math.floor((activeField % ROW_SIZE) / CHANNEL_FIELDS);
+    const newChannelId = Math.floor(
+      (activeField % TRACKER_ROW_SIZE) / TRACKER_CHANNEL_FIELDS,
+    );
     dispatch(trackerActions.setSelectedChannel(newChannelId));
 
-    if (activeField % CHANNEL_FIELDS >= 2) {
+    if (activeField % TRACKER_CHANNEL_FIELDS >= 2) {
       dispatch(
         trackerActions.setSelectedEffectCell(
-          Math.floor(activeField / ROW_SIZE),
+          Math.floor(activeField / TRACKER_ROW_SIZE),
         ),
       );
     }
@@ -357,9 +362,9 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
       }
 
       const newChannelId = Math.floor(
-        (currentActiveField % ROW_SIZE) / CHANNEL_FIELDS,
+        (currentActiveField % TRACKER_ROW_SIZE) / TRACKER_CHANNEL_FIELDS,
       );
-      const startRow = Math.floor(currentActiveField / ROW_SIZE);
+      const startRow = Math.floor(currentActiveField / TRACKER_ROW_SIZE);
       const newPattern = cloneDeep(currentPattern);
 
       if (uninsert) {
@@ -387,6 +392,9 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
   const handleMouseDown = useCallback(
     (e: MouseEvent) => {
       if (!(e.target instanceof HTMLElement)) {
+        return;
+      }
+      if (e.button > 1) {
         return;
       }
 
@@ -435,7 +443,10 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
     ],
   );
 
-  const handleMouseUp = useCallback(() => {
+  const handleMouseUp = useCallback((e: MouseEvent) => {
+    if (e.button > 1) {
+      return;
+    }
     isMouseDownRef.current = false;
   }, []);
 
@@ -504,7 +515,6 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
   const editNoteField = useCallback(
     (value: number | null) => {
       const editingField = activeFieldValueRef.current;
-      const currentDefaultInstruments = defaultInstrumentsRef.current;
       const currentOctaveOffset = octaveOffsetRef.current;
       const currentEditStep = editStepRef.current;
       const currentSong = songRef.current;
@@ -514,7 +524,7 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
       }
 
       const channel = Math.floor(editingField / 4) % 4;
-      const defaultInstrument = currentDefaultInstruments[channel];
+      const instrument = selectedInstrumentIdRef.current;
 
       editPatternCell(
         "note",
@@ -522,18 +532,18 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
       );
 
       if (value !== null) {
-        editPatternCell("instrument", defaultInstrument);
+        editPatternCell("instrument", instrument);
 
         if (currentSong) {
           playNotePreview(
             currentSong,
             channel,
             value + currentOctaveOffset * 12,
-            defaultInstrument,
+            instrument,
           );
         }
 
-        setActiveField(editingField + ROW_SIZE * currentEditStep);
+        setActiveField(editingField + TRACKER_ROW_SIZE * currentEditStep);
       }
     },
     [editPatternCell, setActiveField],
@@ -620,20 +630,20 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
 
       if (e.ctrlKey) {
         if (e.shiftKey) {
-          if (e.key === "Q" || e.key === "+" || e.key === "=") {
+          if (e.code === "KeyQ" || e.key === "+" || e.key === "=") {
             transposeSelectedTrackerFields(1, true);
             return true;
           }
-          if (e.key === "A" || e.key === "_") {
+          if (e.code === "KeyA" || e.key === "_") {
             transposeSelectedTrackerFields(-1, true);
             return true;
           }
         } else {
-          if (e.key === "=") {
+          if (e.code === "KeyQ" || e.key === "=") {
             transposeSelectedTrackerFields(1, false);
             return true;
           }
-          if (e.key === "-") {
+          if (e.code === "KeyA" || e.key === "-") {
             transposeSelectedTrackerFields(-1, false);
             return true;
           }
@@ -691,13 +701,15 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
 
         setSelectionRect(buildSelectionRect(origin, newActiveField));
       } else {
-        clearSelection();
+        const origin = fieldToPosition(newActiveField);
+        setSelectionOrigin(origin);
+        setSelectionRect(buildSelectionRect(origin, newActiveField));
       }
 
       setActiveField(newActiveField);
       return true;
     },
-    [clearSelection, setActiveField, setSelectionOrigin, setSelectionRect],
+    [setActiveField, setSelectionOrigin, setSelectionRect],
   );
 
   const handleEditKey = useCallback(
@@ -814,7 +826,7 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
     const currentChannelId = channelIdRef.current;
 
     if (noSelection) {
-      const offset = CHANNEL_FIELDS * currentChannelId;
+      const offset = TRACKER_CHANNEL_FIELDS * currentChannelId;
       setSelectionOrigin({ x: offset, y: 0 });
       setSelectionRect({
         x: offset,
@@ -912,11 +924,6 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
     }
   }, [setActiveField]);
 
-  const onBlur = useCallback(() => {
-    setActiveField(undefined);
-    clearSelection();
-  }, [clearSelection, setActiveField]);
-
   const onCopy = useCallback(
     (e: ClipboardEvent) => {
       if (!(e.target instanceof HTMLElement)) {
@@ -992,7 +999,7 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
       return;
     }
 
-    const startRow = Math.floor(tempActiveField / ROW_SIZE);
+    const startRow = Math.floor(tempActiveField / TRACKER_ROW_SIZE);
     const newPattern = cloneDeep(currentPattern);
 
     for (let i = 0; i < newPastedPattern.length; i++) {
@@ -1072,7 +1079,7 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
     }
   }, [playbackOrder, sequenceLength]);
 
-  const contextMenu = useMemo(
+  const patternContextMenu = useMemo(
     () =>
       renderPatternContextMenu({
         dispatch,
@@ -1083,8 +1090,34 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
     [dispatch, patternIndex, orderIndex, orderLength],
   );
 
+  const getSelectionContextMenu = useCallback(
+    () =>
+      renderTrackerContextMenu({
+        dispatch,
+        patternId: patternIndex,
+        selectedTrackerFields,
+        selectedInstrumentId,
+      }),
+    [dispatch, patternIndex, selectedTrackerFields, selectedInstrumentId],
+  );
+
+  const {
+    onContextMenu: onSelectionContextMenu,
+    contextMenuElement: selectionContextMenuElement,
+  } = useContextMenu({
+    getMenu: getSelectionContextMenu,
+  });
+
+  useLayoutEffect(() => {
+    // If sequence id changes clear the current selection
+    clearSelection();
+  }, [sequenceId, clearSelection]);
+
   return (
-    <StyledTrackerWrapper style={{ height }}>
+    <StyledTrackerWrapper
+      style={{ height }}
+      onContextMenu={onSelectionContextMenu}
+    >
       <StyledTrackerContentWrapper ref={scrollRef}>
         <StyledTrackerContentTable>
           <StyledTrackerTableHeader
@@ -1100,7 +1133,7 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
                     variant="transparent"
                     label={String(patternId).padStart(2, "0")}
                   >
-                    {contextMenu}
+                    {patternContextMenu}
                   </DropdownButton>
                 ) : (
                   String(patternId).padStart(2, "0")
@@ -1141,25 +1174,22 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
             </StyledTrackerTableHeaderRow>
           </StyledTrackerTableHeader>
 
-          <StyledTrackerTableBody
-            tabIndex={0}
-            onFocus={onFocus}
-            onBlur={onBlur}
-          >
+          <StyledTrackerTableBody tabIndex={0} onFocus={onFocus}>
             {pattern?.map((row: PatternCell[], i: number) => {
               const isActiveRow =
                 activeField !== undefined &&
-                Math.floor(activeField / ROW_SIZE) === i;
+                Math.floor(activeField / TRACKER_ROW_SIZE) === i;
               const isPlaying =
                 playbackState[0] === sequenceId && playbackState[1] === i;
               const isSelected = selectedTrackerRowSet.has(i);
 
               return (
                 <TrackerRow
+                  key={`__${i}`}
                   id={`__${i}`}
                   n={i}
                   row={row}
-                  fieldCount={i * ROW_SIZE}
+                  fieldCount={i * TRACKER_ROW_SIZE}
                   activeField={isActiveRow ? activeField : undefined}
                   isActive={isActiveRow}
                   isPlaying={isPlaying}
@@ -1190,6 +1220,7 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
           playingSequence={playbackState[0]}
         />
       )}
+      {selectionContextMenuElement}
     </StyledTrackerWrapper>
   );
 };

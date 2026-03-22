@@ -20,13 +20,13 @@ import trackerActions from "store/features/tracker/trackerActions";
 import {
   calculateDocumentWidth,
   calculatePlaybackTrackerPosition,
-  fromAbsCol,
 } from "./helpers";
 import API from "renderer/lib/api";
 import l10n from "shared/lib/lang/l10n";
 import { useContextMenu } from "ui/hooks/use-context-menu";
 import renderPatternContextMenu from "components/music/contentMenus/renderPatternContextMenu";
 import { DropdownButton } from "ui/buttons/DropdownButton";
+import { fromAbsRow } from "store/features/trackerDocument/trackerDocumentHelpers";
 
 interface PianoRollSequenceBarProps {
   song: Song;
@@ -102,8 +102,8 @@ export const PianoRollSequenceBar = ({
   const lastPositionRef = useRef<[number, number] | null>(null);
 
   const setPlaybackPosition = useCallback(
-    (sequenceId: number, col: number) => {
-      const next: [number, number] = [sequenceId, col];
+    (sequenceId: number, rowId: number) => {
+      const next: [number, number] = [sequenceId, rowId];
       const prev = lastPositionRef.current;
 
       if (prev && prev[0] === next[0] && prev[1] === next[1]) {
@@ -145,15 +145,15 @@ export const PianoRollSequenceBar = ({
 
       const totalCols = sequenceLength * TRACKER_PATTERN_LENGTH;
 
-      const absCol = clamp(
+      const absRow = clamp(
         Math.floor(x / PIANO_ROLL_CELL_SIZE),
         0,
         totalCols - 1,
       );
 
-      const { sequenceId, column } = fromAbsCol(absCol);
+      const { sequenceId, rowId } = fromAbsRow(absRow);
 
-      setPlaybackPosition(sequenceId, column);
+      setPlaybackPosition(sequenceId, rowId);
     },
     [sequenceLength, setPlaybackPosition],
   );

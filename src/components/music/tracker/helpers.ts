@@ -1,4 +1,8 @@
-import { TRACKER_PATTERN_LENGTH } from "consts";
+import {
+  TRACKER_CHANNEL_FIELDS,
+  TRACKER_NUM_FIELDS,
+  TRACKER_ROW_SIZE,
+} from "consts";
 import { KeyWhen } from "renderer/lib/keybindings/keyBindings";
 
 export interface SelectionRect {
@@ -13,22 +17,19 @@ export interface Position {
   y: number;
 }
 
-export const CHANNEL_FIELDS = 4;
-export const ROW_SIZE = CHANNEL_FIELDS * 4;
-export const NUM_FIELDS = ROW_SIZE * TRACKER_PATTERN_LENGTH;
 export const TRACKER_HEADER_HEIGHT = 30;
 export const TRACKER_CELL_HEIGHT = 25;
 
 export const normalizeFieldIndex = (field: number) =>
-  ((field % NUM_FIELDS) + NUM_FIELDS) % NUM_FIELDS;
+  ((field % TRACKER_NUM_FIELDS) + TRACKER_NUM_FIELDS) % TRACKER_NUM_FIELDS;
 
 export const fieldToPosition = (field: number): Position => ({
-  x: field % ROW_SIZE,
-  y: Math.floor(field / ROW_SIZE),
+  x: field % TRACKER_ROW_SIZE,
+  y: Math.floor(field / TRACKER_ROW_SIZE),
 });
 
 export const positionToField = (position: Position) =>
-  position.y * ROW_SIZE + position.x;
+  position.y * TRACKER_ROW_SIZE + position.x;
 
 export const buildSelectionRect = (
   origin: Position,
@@ -61,7 +62,7 @@ export const getSelectedTrackerFields = (
         y <= selectionRect.y + selectionRect.height;
         y++
       ) {
-        selectedTrackerFields.push(y * ROW_SIZE + x);
+        selectedTrackerFields.push(y * TRACKER_ROW_SIZE + x);
       }
     }
   } else if (selectionOrigin) {
@@ -97,11 +98,13 @@ export const getMovedField = (
     case "ArrowRight":
       return field + 1;
     case "ArrowDown":
-      return field + ROW_SIZE;
+      return field + TRACKER_ROW_SIZE;
     case "ArrowUp":
-      return field - ROW_SIZE;
+      return field - TRACKER_ROW_SIZE;
     case "Tab":
-      return field + (shiftKey ? -CHANNEL_FIELDS : CHANNEL_FIELDS);
+      return (
+        field + (shiftKey ? -TRACKER_CHANNEL_FIELDS : TRACKER_CHANNEL_FIELDS)
+      );
     default:
       return null;
   }

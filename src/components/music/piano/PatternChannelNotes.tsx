@@ -34,15 +34,14 @@ export const PatternChannelNotes = React.memo(
 
     return (
       <StyledPatternChannelNotes $active={isActive}>
-        {pattern?.map((column, columnIdx) => {
-          const cell = column[channelId];
+        {pattern?.map((row, rowIndex) => {
+          const cell = row[channelId];
           if (!cell || cell.note === null) return null;
 
-          const absoluteColumn =
-            sequenceId * TRACKER_PATTERN_LENGTH + columnIdx;
+          const absRow = sequenceId * TRACKER_PATTERN_LENGTH + rowIndex;
 
           const isSelected =
-            isActive && selectedPatternCells.indexOf(absoluteColumn) !== -1;
+            isActive && selectedPatternCells.indexOf(absRow) !== -1;
 
           if (cell.instrument !== null) {
             instrument = cell.instrument;
@@ -54,15 +53,15 @@ export const PatternChannelNotes = React.memo(
           const usingPreviousInstrument =
             cell.instrument === null && instrument !== null;
 
-          const left = columnIdx * PIANO_ROLL_CELL_SIZE;
+          const left = rowIndex * PIANO_ROLL_CELL_SIZE;
           const effect = cell.effectparam ?? 0;
 
           return (
-            <React.Fragment key={`note_${columnIdx}_${channelId}`}>
+            <React.Fragment key={`note_${rowIndex}_${channelId}`}>
               <StyledPianoRollNote
                 data-type="note"
                 data-note={cell.note}
-                data-column={columnIdx}
+                data-row={rowIndex}
                 $instrument={noteInstrument}
                 $usingPreviousInstrument={usingPreviousInstrument}
                 $isSelected={isSelected}

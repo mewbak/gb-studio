@@ -53,15 +53,15 @@ export const parsePatternToClipboard = (
   pattern: PatternCell[][],
   channelId?: number,
   selectedCells?: number[],
-  originAbsCol?: number,
+  originAbsRow?: number,
 ) => {
   let parsed: string[] = [
     "GBStudio hUGETracker Piano format compatible with...",
     "ModPlug Tracker  XM",
   ];
 
-  if (originAbsCol !== undefined) {
-    parsed.push(`GBStudio origin: ${originAbsCol}`);
+  if (originAbsRow !== undefined) {
+    parsed.push(`GBStudio origin: ${originAbsRow}`);
   }
 
   if (!selectedCells) {

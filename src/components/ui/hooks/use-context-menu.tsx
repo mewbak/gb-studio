@@ -9,6 +9,7 @@ interface ContextMenuState {
 
 interface UseContextMenuOptions {
   enabled?: boolean;
+  getIsEnabled?: (e: React.MouseEvent) => boolean;
   getMenu: (args: { closeMenu: () => void }) => JSX.Element[];
 }
 
@@ -21,6 +22,7 @@ interface UseContextMenuResult {
 
 export const useContextMenu = ({
   enabled = true,
+  getIsEnabled,
   getMenu,
 }: UseContextMenuOptions): UseContextMenuResult => {
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
@@ -33,6 +35,11 @@ export const useContextMenu = ({
     (e: React.MouseEvent) => {
       if (!enabled) {
         return;
+      }
+      if (getIsEnabled !== undefined) {
+        if (!getIsEnabled(e)) {
+          return;
+        }
       }
 
       const menu = getMenu({ closeMenu });
@@ -49,7 +56,7 @@ export const useContextMenu = ({
         menu,
       });
     },
-    [enabled, getMenu, closeMenu],
+    [enabled, getIsEnabled, getMenu, closeMenu],
   );
 
   const contextMenuElement = useMemo(() => {

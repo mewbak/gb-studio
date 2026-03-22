@@ -19,6 +19,13 @@ import API from "renderer/lib/api";
 import { MusicResourceAsset } from "shared/lib/resources/types";
 import { createPatternCell, createSong } from "shared/lib/uge/song";
 import { InstrumentType } from "shared/lib/music/types";
+import {
+  fromAbsRow,
+  getTransposeNoteDelta,
+  resolveTrackerCellFields,
+  resolveUniqueTrackerCells,
+  transposePatternCellNote,
+} from "./trackerDocumentHelpers";
 
 interface TrackerDocumentState {
   // status: "loading" | "error" | "loaded" | "init";
@@ -34,14 +41,14 @@ export const initialState: TrackerDocumentState = {
 };
 
 export const requestAddNewSongFile = createAction<string>(
-  "tracker/requestAddNewSong",
+  "trackerDocument/requestAddNewSong",
 );
 
 export const addNewSongFile = createAsyncThunk<
   { data: MusicResourceAsset },
   string
 >(
-  "tracker/addNewSong",
+  "trackerDocument/addNewSong",
   async (
     path,
     _thunkApi,
@@ -55,7 +62,7 @@ export const addNewSongFile = createAsyncThunk<
 );
 
 export const loadSongFile = createAsyncThunk<Song, string>(
-  "tracker/loadSong",
+  "trackerDocument/loadSong",
   async (path, _thunkApi): Promise<Song> => {
     const song = await API.tracker.loadUGEFile(path);
     // return new Promise((resolve) => setTimeout(() => resolve(song), 500000));
@@ -64,7 +71,7 @@ export const loadSongFile = createAsyncThunk<Song, string>(
 );
 
 export const saveSongFile = createAsyncThunk<void, void>(
-  "tracker/saveSong",
+  "trackerDocument/saveSong",
   async (_, thunkApi) => {
     const state = thunkApi.getState() as RootState;
 
@@ -86,7 +93,7 @@ export const saveSongFile = createAsyncThunk<void, void>(
 );
 
 const trackerSlice = createSlice({
-  name: "tracker",
+  name: "trackerDocument",
   initialState,
   reducers: {
     unloadSong: (state, _action: PayloadAction<void>) => {
@@ -253,6 +260,223 @@ const trackerSlice = createSlice({
         patterns,
       };
     },
+
+    transposeTrackerFields: (
+      state,
+      action: PayloadAction<{
+        patternId: number;
+        selectedTrackerFields: number[];
+        direction: "up" | "down";
+        size: "note" | "octave";
+      }>,
+    ) => {
+      if (!state.song) {
+        return;
+      }
+
+      const { patternId, selectedTrackerFields, direction, size } =
+        action.payload;
+      const noteDelta = getTransposeNoteDelta(direction, size);
+
+      const resolvedCells = resolveUniqueTrackerCells(
+        patternId,
+        selectedTrackerFields,
+      );
+
+      for (const { patternId, rowIndex, channelIndex } of resolvedCells) {
+        const pattern = state.song.patterns?.[patternId];
+        if (!pattern) {
+          continue;
+        }
+        const cell = pattern[rowIndex]?.[channelIndex];
+        transposePatternCellNote(cell, noteDelta);
+      }
+    },
+
+    transposeAbsoluteCells: (
+      state,
+      action: PayloadAction<{
+        channelId: number;
+        absRows: number[];
+        direction: "up" | "down";
+        size: "note" | "octave";
+      }>,
+    ) => {
+      if (!state.song) {
+        return;
+      }
+
+      const { channelId, absRows, direction, size } = action.payload;
+      const noteDelta = getTransposeNoteDelta(direction, size);
+
+      const seen = new Set<string>();
+
+      for (const absRow of absRows) {
+        const { sequenceId, rowId } = fromAbsRow(absRow);
+        const patternId = state.song.sequence[sequenceId];
+
+        if (patternId === undefined) {
+          continue;
+        }
+
+        const key = `${patternId}:${rowId}:${channelId}`;
+        if (seen.has(key)) {
+          continue;
+        }
+        seen.add(key);
+
+        const cell = state.song.patterns?.[patternId]?.[rowId]?.[channelId];
+        transposePatternCellNote(cell, noteDelta);
+      }
+    },
+
+    changeInstrumentTrackerFields: (
+      state,
+      action: PayloadAction<{
+        patternId: number;
+        selectedTrackerFields: number[];
+        instrumentId: number;
+      }>,
+    ) => {
+      if (!state.song) {
+        return;
+      }
+
+      const { patternId, selectedTrackerFields, instrumentId } = action.payload;
+
+      const resolvedCells = resolveUniqueTrackerCells(
+        patternId,
+        selectedTrackerFields,
+      );
+
+      for (const { patternId, rowIndex, channelIndex } of resolvedCells) {
+        const pattern = state.song.patterns?.[patternId];
+        if (!pattern) {
+          continue;
+        }
+        const cell = pattern[rowIndex]?.[channelIndex];
+        if (cell) {
+          cell.instrument = instrumentId;
+        }
+      }
+    },
+
+    changeInstrumentAbsoluteCells: (
+      state,
+      action: PayloadAction<{
+        channelId: number;
+        absRows: number[];
+        instrumentId: number;
+      }>,
+    ) => {
+      if (!state.song) {
+        return;
+      }
+
+      const { channelId, absRows, instrumentId } = action.payload;
+
+      const seen = new Set<string>();
+
+      for (const absRow of absRows) {
+        const { sequenceId, rowId } = fromAbsRow(absRow);
+        const patternId = state.song.sequence[sequenceId];
+
+        if (patternId === undefined) {
+          continue;
+        }
+
+        const key = `${patternId}:${rowId}:${channelId}`;
+        if (seen.has(key)) {
+          continue;
+        }
+        seen.add(key);
+
+        const cell = state.song.patterns?.[patternId]?.[rowId]?.[channelId];
+        if (cell) {
+          cell.instrument = instrumentId;
+        }
+      }
+    },
+
+    clearTrackerFields: (
+      state,
+      action: PayloadAction<{
+        patternId: number;
+        selectedTrackerFields: number[];
+      }>,
+    ) => {
+      if (!state.song) {
+        return;
+      }
+
+      const { patternId, selectedTrackerFields } = action.payload;
+
+      const resolvedCells = resolveTrackerCellFields(
+        patternId,
+        selectedTrackerFields,
+      );
+
+      for (const {
+        patternId,
+        rowIndex,
+        channelIndex,
+        fieldIndex,
+      } of resolvedCells) {
+        const pattern = state.song.patterns?.[patternId];
+        if (!pattern) {
+          continue;
+        }
+        const cell = pattern[rowIndex]?.[channelIndex];
+        if (cell) {
+          if (fieldIndex === 0) {
+            cell.note = null;
+          } else if (fieldIndex === 1) {
+            cell.instrument = null;
+          } else if (fieldIndex === 2) {
+            cell.effectcode = null;
+          } else if (fieldIndex === 3) {
+            cell.effectparam = null;
+          }
+        }
+      }
+    },
+
+    clearAbsoluteCells: (
+      state,
+      action: PayloadAction<{
+        channelId: number;
+        absRows: number[];
+      }>,
+    ) => {
+      if (!state.song) {
+        return;
+      }
+
+      const { channelId, absRows } = action.payload;
+
+      const seen = new Set<string>();
+
+      for (const absRow of absRows) {
+        const { sequenceId, rowId } = fromAbsRow(absRow);
+        const patternId = state.song.sequence[sequenceId];
+
+        if (patternId === undefined) {
+          continue;
+        }
+
+        const key = `${patternId}:${rowId}:${channelId}`;
+        if (seen.has(key)) {
+          continue;
+        }
+        seen.add(key);
+
+        if (state.song.patterns?.[patternId]?.[rowId]?.[channelId]) {
+          state.song.patterns[patternId][rowId][channelId] =
+            createPatternCell();
+        }
+      }
+    },
+
     editSubPatternCell: (
       state,
       _action: PayloadAction<{

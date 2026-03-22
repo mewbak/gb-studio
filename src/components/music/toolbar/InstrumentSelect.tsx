@@ -2,7 +2,6 @@ import React, { FC, useEffect, useState } from "react";
 import { useAppSelector } from "store/hooks";
 import styled from "styled-components";
 import {
-  Option,
   Select,
   OptionLabelWithPreview,
   SingleValueWithPreview,
@@ -17,12 +16,17 @@ import {
 import { NOTE_C5 } from "consts";
 import { InstrumentType } from "shared/lib/music/types";
 
+type InstrumentOption = {
+  value: number;
+  label: string;
+};
+
 const defaultInstrumentOptions = Array(15)
   .fill("")
   .map((_, i) => ({
-    value: `${i}`,
+    value: i,
     label: `Instrument ${i + 1}`,
-  })) as Option[];
+  })) as InstrumentOption[];
 
 interface LabelColorProps {
   $instrument?: number;
@@ -42,8 +46,8 @@ const LabelColor = styled.div<LabelColorProps>`
 
 interface InstrumentSelectProps extends SelectCommonProps {
   name: string;
-  value?: string;
-  onChange?: (newId: string) => void;
+  value?: number;
+  onChange?: (newId: number) => void;
   optional?: boolean;
   optionalLabel?: string;
   optionalDefaultInstrumentId?: string;
@@ -56,9 +60,10 @@ export const InstrumentSelect: FC<InstrumentSelectProps> = ({
   onChange,
   ...selectProps
 }) => {
-  const [options, setOptions] = useState<Option[]>([]);
-  const [currentInstrument, setCurrentInstrument] = useState<Option>();
-  const [currentValue, setCurrentValue] = useState<Option>();
+  const [options, setOptions] = useState<InstrumentOption[]>([]);
+  const [currentInstrument, setCurrentInstrument] =
+    useState<InstrumentOption>();
+  const [currentValue, setCurrentValue] = useState<InstrumentOption>();
 
   const song = useAppSelector((state) => state.trackerDocument.present.song);
   const selectedChannel = useAppSelector(
@@ -71,25 +76,27 @@ export const InstrumentSelect: FC<InstrumentSelectProps> = ({
       switch (instrumentType) {
         case "duty":
           instruments = song?.duty_instruments.map((instrument) => ({
-            value: `${instrument.index}`,
+            value: instrument.index,
             label: instrument.name || `Duty ${instrument.index + 1}`,
           }));
           break;
         case "wave":
           instruments = song?.wave_instruments.map((instrument) => ({
-            value: `${instrument.index}`,
+            value: instrument.index,
             label: instrument.name || `Wave ${instrument.index + 1}`,
           }));
           break;
         case "noise":
           instruments = song?.noise_instruments.map((instrument) => ({
-            value: `${instrument.index}`,
+            value: instrument.index,
             label: instrument.name || `Noise ${instrument.index + 1}`,
           }));
           break;
       }
     }
-    setOptions(([] as Option[]).concat([] as Option[], instruments));
+    setOptions(
+      ([] as InstrumentOption[]).concat([] as InstrumentOption[], instruments),
+    );
   }, [instrumentType, song]);
 
   useEffect(() => {
@@ -107,7 +114,7 @@ export const InstrumentSelect: FC<InstrumentSelectProps> = ({
     }
   }, [currentInstrument, options]);
 
-  const onSelectChange = (newValue: SingleValue<Option>) => {
+  const onSelectChange = (newValue: SingleValue<InstrumentOption>) => {
     if (newValue) {
       onChange?.(newValue.value);
       if (instrumentType === "duty") {
@@ -142,7 +149,7 @@ export const InstrumentSelect: FC<InstrumentSelectProps> = ({
       value={currentValue}
       options={options}
       onChange={onSelectChange}
-      formatOptionLabel={(option: Option) => {
+      formatOptionLabel={(option: InstrumentOption) => {
         return (
           <OptionLabelWithPreview
             preview={<LabelColor $instrument={Number(option.value)} />}

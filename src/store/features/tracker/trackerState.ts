@@ -33,7 +33,7 @@ interface TrackerState {
 
   view: TrackerViewType;
   tool: PianoRollToolType;
-  defaultInstruments: [number, number, number, number];
+  selectedInstrumentId: number;
   selectedChannel: number;
   visibleChannels: number[];
   hoverNote: number | null;
@@ -68,7 +68,7 @@ export const initialState: TrackerState = {
   // modified: false,
   view: "roll",
   tool: "pencil",
-  defaultInstruments: [0, 0, 0, 0],
+  selectedInstrumentId: 0,
   selectedChannel: 0,
   visibleChannels: [0, 1, 2, 3],
   hoverNote: null,
@@ -133,11 +133,8 @@ const trackerSlice = createSlice({
     setTool: (state, _action: PayloadAction<PianoRollToolType>) => {
       state.tool = _action.payload;
     },
-    setDefaultInstruments: (
-      state,
-      _action: PayloadAction<[number, number, number, number]>,
-    ) => {
-      state.defaultInstruments = _action.payload;
+    setSelectedInstrumentId: (state, action: PayloadAction<number>) => {
+      state.selectedInstrumentId = clamp(action.payload, 0, 15);
     },
     setSelectedChannel: (state, _action: PayloadAction<number>) => {
       state.selectedPatternCells = [];
@@ -248,10 +245,11 @@ const trackerSlice = createSlice({
       )
       .addMatcher(
         (action: UnknownAction): action is UnknownAction =>
-          action.type.startsWith("tracker/edit") ||
-          action.type.startsWith("tracker/addSequence") ||
-          action.type.startsWith("tracker/removeSequence") ||
-          action.type.startsWith("tracker/moveSequence"),
+          action.type.startsWith("trackerDocument/") &&
+          !action.type.startsWith("trackerDocument/loadSong") &&
+          !action.type.startsWith("trackerDocument/saveSong") &&
+          !action.type.startsWith("trackerDocument/addNewSong") &&
+          !action.type.startsWith("trackerDocument/requestAddNewSong"),
         (state, _action) => {
           state.modified = true;
         },

@@ -1329,6 +1329,11 @@
   "FIELD_MOVE_BACK": "Move Backward",
   "FIELD_MOVE_FORWARD": "Move Forward",
   "FIELD_MOVE_END": "Move To End",
+  "FIELD_TRANSPOSE_SEMITONE": "Transpose {n} Semitone",
+  "FIELD_TRANSPOSE_OCTAVE": "Transpose {n} Octave",
+  "FIELD_CHANGE_INSTRUMENT": "Change Instrument",
+  "FIELD_DELETE_NOTE": "Delete Note",
+  "FIELD_DELETE_NOTES": "Delete Notes",
 
   "// 7": "Asset Viewer ---------------------------------------------",
   "ASSET_SEARCH": "Search...",

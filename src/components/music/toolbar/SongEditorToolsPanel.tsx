@@ -162,20 +162,13 @@ const SongEditorToolsPanel = ({ selectedSong }: SongEditorToolsPanelProps) => {
     setShowExportPanel(false);
   }, []);
 
-  const defaultInstruments = useAppSelector(
-    (state) => state.tracker.defaultInstruments,
+  const selectedInstrumentId = useAppSelector(
+    (state) => state.tracker.selectedInstrumentId,
   );
 
-  const setDefaultInstruments = useCallback(
+  const setSelectedInstrumentId = useCallback(
     (instrument: number) => {
-      dispatch(
-        trackerActions.setDefaultInstruments([
-          instrument,
-          instrument,
-          instrument,
-          instrument,
-        ]),
-      );
+      dispatch(trackerActions.setSelectedInstrumentId(instrument));
     },
     [dispatch],
   );
@@ -230,23 +223,23 @@ const SongEditorToolsPanel = ({ selectedSong }: SongEditorToolsPanelProps) => {
       }
       if (!subpatternEditorFocus) {
         if (e.code === "Digit1") {
-          setDefaultInstruments(0);
+          setSelectedInstrumentId(0);
         } else if (e.code === "Digit2") {
-          setDefaultInstruments(1);
+          setSelectedInstrumentId(1);
         } else if (e.code === "Digit3") {
-          setDefaultInstruments(2);
+          setSelectedInstrumentId(2);
         } else if (e.code === "Digit4") {
-          setDefaultInstruments(3);
+          setSelectedInstrumentId(3);
         } else if (e.code === "Digit5") {
-          setDefaultInstruments(4);
+          setSelectedInstrumentId(4);
         } else if (e.code === "Digit6") {
-          setDefaultInstruments(5);
+          setSelectedInstrumentId(5);
         } else if (e.code === "Digit7") {
-          setDefaultInstruments(6);
+          setSelectedInstrumentId(6);
         } else if (e.code === "Digit8") {
-          setDefaultInstruments(7);
+          setSelectedInstrumentId(7);
         } else if (e.code === "Digit9") {
-          setDefaultInstruments(8);
+          setSelectedInstrumentId(8);
         }
       }
     },
@@ -258,7 +251,7 @@ const SongEditorToolsPanel = ({ selectedSong }: SongEditorToolsPanelProps) => {
       saveSong,
       toggleView,
       togglePlay,
-      setDefaultInstruments,
+      setSelectedInstrumentId,
     ],
   );
 
@@ -410,9 +403,9 @@ const SongEditorToolsPanel = ({ selectedSong }: SongEditorToolsPanelProps) => {
         )}
         <InstrumentSelect
           name="instrument"
-          value={`${defaultInstruments[0]}`}
+          value={selectedInstrumentId}
           onChange={(newValue) => {
-            setDefaultInstruments(parseInt(newValue));
+            setSelectedInstrumentId(newValue);
           }}
           instrumentType={instrumentType}
         />
