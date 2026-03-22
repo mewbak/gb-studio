@@ -66,7 +66,7 @@ export const StyledTrackerHeaderSpacer = styled.div`
 `;
 
 interface StyledTrackerHeaderCellProps {
-  $type: "channel" | "patternIndex" | "order";
+  $type: "channel" | "patternIndex";
   $muted?: boolean;
   $solo?: boolean;
 }
@@ -80,7 +80,7 @@ export const StyledTrackerHeaderCellContents = styled.div`
   border-left-width: 1px;
   border-left-style: solid;
   border-left-color: inherit;
-  padding: 0px 10px;
+  padding: 0px;
   height: 30px;
 `;
 
@@ -107,7 +107,7 @@ export const StyledTrackerHeaderCell = styled.th<StyledTrackerHeaderCellProps>`
     props.$type === "patternIndex" &&
     css`
       padding: 0px;
-      width: 47px;
+      width: 55px;
       text-align: center;
     `}
 
@@ -119,23 +119,13 @@ export const StyledTrackerHeaderCell = styled.th<StyledTrackerHeaderCellProps>`
         background: rgba(255, 255, 255, 0.2);
       }
       ${StyledTrackerHeaderCellContents} {
+        padding-left: 10px;
         padding-right: 5px;
         span {
           text-align: left;
         }
       }
     `}
-
-  ${(props) =>
-    props.$type === "order" &&
-    css`
-      width: 101px;
-      background: ${(props) => props.theme.colors.sidebar.background};
-      color: ${(props) => props.theme.colors.text};
-      border-right: 1px solid ${(props) => props.theme.colors.sidebar.border};
-      border-bottom: 1px solid ${(props) => props.theme.colors.sidebar.border};
-    `}
-
 
   span {
     display: block;
@@ -147,6 +137,7 @@ export const StyledTrackerHeaderCell = styled.th<StyledTrackerHeaderCellProps>`
     border-color: rgba(0 0 0 / 0.3);
     border-color: transparent;
     color: #000;
+    font-weight: bold;
   }
 
   ${StyledButtonGroup} {
@@ -154,10 +145,10 @@ export const StyledTrackerHeaderCell = styled.th<StyledTrackerHeaderCellProps>`
     box-shadow:
       2px 2px 3px rgba(0 0 0 / 30%),
       -2px -2px 3px rgba(255 255 255 / 30%);
-  }
 
-  ${StyledButton}:last-child {
-    border-left-color: rgba(0 0 0 / 15%);
+    ${StyledButton}:last-child {
+      border-left-color: rgba(0 0 0 / 15%);
+    }
   }
 
   ${(props) =>

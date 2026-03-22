@@ -13,7 +13,7 @@ import { ChannelMuteIcon, ChannelSoloIcon } from "ui/icons/Icons";
 
 interface TrackerHeaderCellProps {
   channel?: number;
-  type: "channel" | "patternIndex" | "order";
+  type: "channel" | "patternIndex";
   children?: React.ReactNode;
   muted?: boolean;
   solo?: boolean;

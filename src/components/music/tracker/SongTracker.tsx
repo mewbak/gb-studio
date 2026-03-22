@@ -51,6 +51,8 @@ import {
   TRACKER_CELL_HEIGHT,
   TRACKER_HEADER_HEIGHT,
 } from "./helpers";
+import renderPatternContextMenu from "components/music/contentMenus/renderPatternContextMenu";
+import { DropdownButton } from "ui/buttons/DropdownButton";
 
 interface SongTrackerProps {
   sequenceId: number;
@@ -1055,6 +1057,9 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
 
   const sequenceLength = song?.sequence.length ?? 0;
   const playbackOrder = playbackState[0];
+  const patternIndex = patternId;
+  const orderIndex = sequenceId;
+  const orderLength = sequenceLength;
 
   useEffect(() => {
     if (playbackOrder >= sequenceLength) {
@@ -1066,6 +1071,17 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
       });
     }
   }, [playbackOrder, sequenceLength]);
+
+  const contextMenu = useMemo(
+    () =>
+      renderPatternContextMenu({
+        dispatch,
+        patternIndex,
+        orderIndex,
+        orderLength,
+      }),
+    [dispatch, patternIndex, orderIndex, orderLength],
+  );
 
   return (
     <StyledTrackerWrapper style={{ height }}>
@@ -1079,7 +1095,16 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
           >
             <StyledTrackerTableHeaderRow>
               <TrackerHeaderCell type="patternIndex">
-                {String(patternId).padStart(2, "0")}
+                {orderLength > 1 ? (
+                  <DropdownButton
+                    variant="transparent"
+                    label={String(patternId).padStart(2, "0")}
+                  >
+                    {contextMenu}
+                  </DropdownButton>
+                ) : (
+                  String(patternId).padStart(2, "0")
+                )}
               </TrackerHeaderCell>
               <TrackerHeaderCell
                 type="channel"
