@@ -76,7 +76,7 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
   );
   const channelId = useAppSelector((state) => state.tracker.selectedChannel);
 
-  const patternId = song?.sequence[sequenceId] || 0;
+  const patternId = song?.sequence[sequenceId] ?? 0;
   const pattern = song?.patterns[patternId];
 
   const [selectionOrigin, setSelectionOriginState] = useState<
@@ -93,11 +93,48 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
   const selectionRectRef = useRef<SelectionRect | undefined>(undefined);
   const activeFieldValueRef = useRef<number | undefined>(undefined);
 
+  const selectedTrackerFieldsRef = useRef<number[]>([]);
+  const patternRef = useRef(pattern);
+  const patternIdRef = useRef(patternId);
+  const songRef = useRef(song);
+  const defaultInstrumentsRef = useRef(defaultInstruments);
+  const octaveOffsetRef = useRef(octaveOffset);
+  const editStepRef = useRef(editStep);
+  const channelIdRef = useRef(channelId);
+
   const isSelectingRef = useRef(false);
   const isMouseDownRef = useRef(false);
 
   const activeFieldRef = useRef<HTMLSpanElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    patternRef.current = pattern;
+  }, [pattern]);
+
+  useEffect(() => {
+    patternIdRef.current = patternId;
+  }, [patternId]);
+
+  useEffect(() => {
+    songRef.current = song;
+  }, [song]);
+
+  useEffect(() => {
+    defaultInstrumentsRef.current = defaultInstruments;
+  }, [defaultInstruments]);
+
+  useEffect(() => {
+    octaveOffsetRef.current = octaveOffset;
+  }, [octaveOffset]);
+
+  useEffect(() => {
+    editStepRef.current = editStep;
+  }, [editStep]);
+
+  useEffect(() => {
+    channelIdRef.current = channelId;
+  }, [channelId]);
 
   const setSelectionOrigin = useCallback((value: Position | undefined) => {
     selectionOriginRef.current = value;
@@ -144,10 +181,17 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
     [selectionOrigin, selectionRect],
   );
 
-  const selectedTrackerRows = useMemo(
-    () => selectedTrackerFields.map((field) => Math.floor(field / ROW_SIZE)),
-    [selectedTrackerFields],
-  );
+  useEffect(() => {
+    selectedTrackerFieldsRef.current = selectedTrackerFields;
+  }, [selectedTrackerFields]);
+
+  const selectedTrackerRowSet = useMemo(() => {
+    const rows = new Set<number>();
+    for (const field of selectedTrackerFields) {
+      rows.add(Math.floor(field / ROW_SIZE));
+    }
+    return rows;
+  }, [selectedTrackerFields]);
 
   const togglePatternsPanel = useCallback(() => {
     setPatternsPanelOpen((value) => !value);
@@ -189,16 +233,24 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
     }
   }, [activeField, dispatch]);
 
+  const getCurrentSelectedTrackerFields = useCallback(() => {
+    return selectedTrackerFieldsRef.current;
+  }, []);
+
   const transposeSelectedTrackerFields = useCallback(
     (change: number, large: boolean) => {
-      if (!pattern || selectedTrackerFields.length === 0) {
+      const currentPattern = patternRef.current;
+      const currentPatternId = patternIdRef.current;
+      const currentSelectedTrackerFields = getCurrentSelectedTrackerFields();
+
+      if (!currentPattern || currentSelectedTrackerFields.length === 0) {
         return;
       }
 
-      const newPattern = cloneDeep(pattern);
+      const newPattern = cloneDeep(currentPattern);
 
-      for (let i = 0; i < selectedTrackerFields.length; i++) {
-        const field = selectedTrackerFields[i];
+      for (let i = 0; i < currentSelectedTrackerFields.length; i++) {
+        const field = currentSelectedTrackerFields[i];
         const rowIndex = Math.floor(field / 16);
         const channelIndex = Math.floor(field / 4) % 4;
         const newPatternCell = {
@@ -239,23 +291,27 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
 
       dispatch(
         trackerDocumentActions.editPattern({
-          patternId,
+          patternId: currentPatternId,
           pattern: newPattern,
         }),
       );
     },
-    [dispatch, pattern, patternId, selectedTrackerFields],
+    [dispatch, getCurrentSelectedTrackerFields],
   );
 
   const deleteSelectedTrackerFields = useCallback(() => {
-    if (!pattern || selectedTrackerFields.length === 0) {
+    const currentPattern = patternRef.current;
+    const currentPatternId = patternIdRef.current;
+    const currentSelectedTrackerFields = getCurrentSelectedTrackerFields();
+
+    if (!currentPattern || currentSelectedTrackerFields.length === 0) {
       return;
     }
 
-    const newPattern = cloneDeep(pattern);
+    const newPattern = cloneDeep(currentPattern);
 
-    for (let i = 0; i < selectedTrackerFields.length; i++) {
-      const field = selectedTrackerFields[i];
+    for (let i = 0; i < currentSelectedTrackerFields.length; i++) {
+      const field = currentSelectedTrackerFields[i];
       const rowIndex = Math.floor(field / 16);
       const channelIndex = Math.floor(field / 4) % 4;
       const newPatternCell = {
@@ -282,17 +338,19 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
 
     dispatch(
       trackerDocumentActions.editPattern({
-        patternId,
+        patternId: currentPatternId,
         pattern: newPattern,
       }),
     );
-  }, [dispatch, pattern, patternId, selectedTrackerFields]);
+  }, [dispatch, getCurrentSelectedTrackerFields]);
 
   const insertTrackerFields = useCallback(
     (uninsert: boolean) => {
       const currentActiveField = activeFieldValueRef.current;
+      const currentPattern = patternRef.current;
+      const currentPatternId = patternIdRef.current;
 
-      if (!pattern || currentActiveField === undefined) {
+      if (!currentPattern || currentActiveField === undefined) {
         return;
       }
 
@@ -300,7 +358,7 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
         (currentActiveField % ROW_SIZE) / CHANNEL_FIELDS,
       );
       const startRow = Math.floor(currentActiveField / ROW_SIZE);
-      const newPattern = cloneDeep(pattern);
+      const newPattern = cloneDeep(currentPattern);
 
       if (uninsert) {
         for (let i = startRow; i < 63; i++) {
@@ -316,12 +374,12 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
 
       dispatch(
         trackerDocumentActions.editPattern({
-          patternId,
+          patternId: currentPatternId,
           pattern: newPattern,
         }),
       );
     },
-    [dispatch, pattern, patternId],
+    [dispatch],
   );
 
   const handleMouseDown = useCallback(
@@ -419,13 +477,15 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
   const editPatternCell = useCallback(
     (type: keyof PatternCell, value: number | null) => {
       const editingField = activeFieldValueRef.current;
+      const currentPatternId = patternIdRef.current;
+
       if (editingField === undefined) {
         return;
       }
 
       dispatch(
         trackerDocumentActions.editPatternCell({
-          patternId,
+          patternId: currentPatternId,
           cell: [
             Math.floor(editingField / 16),
             Math.floor(editingField / 4) % 4,
@@ -436,47 +496,45 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
         }),
       );
     },
-    [dispatch, patternId],
+    [dispatch],
   );
 
   const editNoteField = useCallback(
     (value: number | null) => {
       const editingField = activeFieldValueRef.current;
+      const currentDefaultInstruments = defaultInstrumentsRef.current;
+      const currentOctaveOffset = octaveOffsetRef.current;
+      const currentEditStep = editStepRef.current;
+      const currentSong = songRef.current;
+
       if (editingField === undefined) {
         return;
       }
 
       const channel = Math.floor(editingField / 4) % 4;
-      const defaultInstrument = defaultInstruments[channel];
+      const defaultInstrument = currentDefaultInstruments[channel];
 
       editPatternCell(
         "note",
-        value === null ? null : value + octaveOffset * 12,
+        value === null ? null : value + currentOctaveOffset * 12,
       );
 
       if (value !== null) {
         editPatternCell("instrument", defaultInstrument);
 
-        if (song) {
+        if (currentSong) {
           playNotePreview(
-            song,
+            currentSong,
             channel,
-            value + octaveOffset * 12,
+            value + currentOctaveOffset * 12,
             defaultInstrument,
           );
         }
 
-        setActiveField(editingField + ROW_SIZE * editStep);
+        setActiveField(editingField + ROW_SIZE * currentEditStep);
       }
     },
-    [
-      defaultInstruments,
-      editPatternCell,
-      editStep,
-      octaveOffset,
-      setActiveField,
-      song,
-    ],
+    [editPatternCell, setActiveField],
   );
 
   const editInstrumentField = useCallback(
@@ -528,6 +586,7 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
   const handleStructureKey = useCallback(
     (e: KeyboardEvent) => {
       const currentActiveField = activeFieldValueRef.current;
+      const currentSelectedTrackerFields = getCurrentSelectedTrackerFields();
 
       if (e.key === "Escape") {
         e.preventDefault();
@@ -542,7 +601,7 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
           return true;
         }
 
-        if (selectedTrackerFields.length > 0) {
+        if (currentSelectedTrackerFields.length > 0) {
           e.preventDefault();
           deleteSelectedTrackerFields();
           return true;
@@ -584,8 +643,8 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
     [
       clearSelection,
       deleteSelectedTrackerFields,
+      getCurrentSelectedTrackerFields,
       insertTrackerFields,
-      selectedTrackerFields,
       transposeSelectedTrackerFields,
     ],
   );
@@ -750,8 +809,10 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
       selectionRectRef.current.width === 0 ||
       selectionRectRef.current.height === 0;
 
+    const currentChannelId = channelIdRef.current;
+
     if (noSelection) {
-      const offset = CHANNEL_FIELDS * channelId;
+      const offset = CHANNEL_FIELDS * currentChannelId;
       setSelectionOrigin({ x: offset, y: 0 });
       setSelectionRect({
         x: offset,
@@ -763,7 +824,7 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
       setSelectionOrigin({ x: 0, y: 0 });
       setSelectionRect({ x: 0, y: 0, width: 15, height: 63 });
     }
-  }, [channelId, setSelectionOrigin, setSelectionRect]);
+  }, [setSelectionOrigin, setSelectionRect]);
 
   useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);
@@ -864,31 +925,37 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
         return;
       }
 
-      if (!pattern || selectedTrackerFields.length === 0) {
+      const currentPattern = patternRef.current;
+      const currentSelectedTrackerFields = getCurrentSelectedTrackerFields();
+
+      if (!currentPattern || currentSelectedTrackerFields.length === 0) {
         return;
       }
 
       const parsedSelectedPattern = parsePatternFieldsToClipboard(
-        pattern,
-        selectedTrackerFields,
+        currentPattern,
+        currentSelectedTrackerFields,
       );
 
       e.preventDefault();
       e.clipboardData?.setData("text/plain", parsedSelectedPattern);
       void API.clipboard.writeText(parsedSelectedPattern);
     },
-    [pattern, selectedTrackerFields],
+    [getCurrentSelectedTrackerFields],
   );
 
   const onCut = useCallback(
     (e?: ClipboardEvent) => {
-      if (!pattern || selectedTrackerFields.length === 0) {
+      const currentPattern = patternRef.current;
+      const currentSelectedTrackerFields = getCurrentSelectedTrackerFields();
+
+      if (!currentPattern || currentSelectedTrackerFields.length === 0) {
         return;
       }
 
       const parsedSelectedPattern = parsePatternFieldsToClipboard(
-        pattern,
-        selectedTrackerFields,
+        currentPattern,
+        currentSelectedTrackerFields,
       );
 
       e?.preventDefault();
@@ -896,11 +963,15 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
       void API.clipboard.writeText(parsedSelectedPattern);
       deleteSelectedTrackerFields();
     },
-    [deleteSelectedTrackerFields, pattern, selectedTrackerFields],
+    [deleteSelectedTrackerFields, getCurrentSelectedTrackerFields],
   );
 
   const onPaste = useCallback(async () => {
-    if (!pattern) {
+    const currentPattern = patternRef.current;
+    const currentPatternId = patternIdRef.current;
+    const currentChannelId = channelIdRef.current;
+
+    if (!currentPattern) {
       return;
     }
 
@@ -915,20 +986,20 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
       await API.clipboard.readText(),
     );
 
-    if (!newPastedPattern || channelId === undefined) {
+    if (!newPastedPattern || currentChannelId === undefined) {
       return;
     }
 
     const startRow = Math.floor(tempActiveField / ROW_SIZE);
-    const newPattern = cloneDeep(pattern);
+    const newPattern = cloneDeep(currentPattern);
 
     for (let i = 0; i < newPastedPattern.length; i++) {
       const pastedPatternCellRow = newPastedPattern[i];
 
-      for (let j = 0; j < 4 - channelId; j++) {
+      for (let j = 0; j < 4 - currentChannelId; j++) {
         if (pastedPatternCellRow[j] && newPattern[startRow + i]) {
-          newPattern[startRow + i][channelId + j] = mergeWith(
-            newPattern[startRow + i][channelId + j],
+          newPattern[startRow + i][currentChannelId + j] = mergeWith(
+            newPattern[startRow + i][currentChannelId + j],
             pastedPatternCellRow[j],
             (o, s) => (s === NO_CHANGE_ON_PASTE ? o : s),
           );
@@ -938,18 +1009,11 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
 
     dispatch(
       trackerDocumentActions.editPattern({
-        patternId,
+        patternId: currentPatternId,
         pattern: newPattern,
       }),
     );
-  }, [
-    channelId,
-    dispatch,
-    getCurrentFieldOrSelectionStart,
-    pattern,
-    patternId,
-    setActiveField,
-  ]);
+  }, [dispatch, getCurrentFieldOrSelectionStart, setActiveField]);
 
   useEffect(() => {
     if (subpatternEditorFocus) {
@@ -1049,7 +1113,7 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
                 Math.floor(activeField / ROW_SIZE) === i;
               const isPlaying =
                 playbackState[0] === sequenceId && playbackState[1] === i;
-              const isSelected = selectedTrackerRows.indexOf(i) !== -1;
+              const isSelected = selectedTrackerRowSet.has(i);
 
               return (
                 <TrackerRow
