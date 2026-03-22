@@ -38,7 +38,7 @@ const rootReducer = combineReducers({
   tracker,
   trackerDocument: undoable(trackerDocument, {
     limit: 20,
-    initTypes: ["tracker/loadSong/pending"],
+    initTypes: ["tracker/loadSong/pending", "tracker/unloadSong"],
     filter: (action, currentState, previousHistory) => {
       if (
         action.type.startsWith("tracker/loadSong/fulfilled") ||
