@@ -292,6 +292,9 @@ export const StyledPianoRollSequenceHeaderPattern = styled.div<{
     height: 14px;
     color: #000;
     padding: 0 5px;
+    svg {
+      fill: #000;
+    }
   }
 
   span {
