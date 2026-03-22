@@ -18,7 +18,7 @@ import {
   parseClipboardToPattern,
   parsePatternFieldsToClipboard,
 } from "components/music/musicClipboardHelpers";
-import { getKeys, KeyWhen } from "renderer/lib/keybindings/keyBindings";
+import { getKeys } from "renderer/lib/keybindings/keyBindings";
 import trackerActions from "store/features/tracker/trackerActions";
 import { clamp, cloneDeep, mergeWith } from "lodash";
 import API from "renderer/lib/api";
@@ -36,57 +36,27 @@ import {
 } from "./style";
 import { SplitPaneVerticalDivider } from "ui/splitpane/SplitPaneDivider";
 import { SplitPaneHeader } from "ui/splitpane/SplitPaneHeader";
-
-function getSelectedTrackerFields(
-  selectionRect: SelectionRect | undefined,
-  selectionOrigin: Position | undefined,
-) {
-  const selectedTrackerFields = [];
-  if (selectionRect) {
-    for (
-      let i = selectionRect.x;
-      i <= selectionRect.x + selectionRect.width;
-      i++
-    ) {
-      for (
-        let j = selectionRect.y;
-        j <= selectionRect.y + selectionRect.height;
-        j++
-      ) {
-        selectedTrackerFields.push(j * ROW_SIZE + i);
-      }
-    }
-  } else if (selectionOrigin) {
-    selectedTrackerFields.push(
-      selectionOrigin.y * ROW_SIZE + selectionOrigin.x,
-    );
-  }
-  return selectedTrackerFields;
-}
+import {
+  buildSelectionRect,
+  CHANNEL_FIELDS,
+  fieldToPosition,
+  getFieldColumnFocus,
+  getMovedField,
+  getSelectedTrackerFields,
+  normalizeFieldIndex,
+  Position,
+  positionToField,
+  ROW_SIZE,
+  SelectionRect,
+  TRACKER_CELL_HEIGHT,
+  TRACKER_HEADER_HEIGHT,
+} from "./helpers";
 
 interface SongTrackerProps {
   sequenceId: number;
   song: Song | null;
   height: number;
 }
-
-interface SelectionRect {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
-
-export interface Position {
-  x: number;
-  y: number;
-}
-
-const CHANNEL_FIELDS = 4;
-const ROW_SIZE = CHANNEL_FIELDS * 4;
-const NUM_FIELDS = ROW_SIZE * 64;
-const TRACKER_HEADER_HEIGHT = 30;
-const TRACKER_CELL_HEIGHT = 25;
 
 export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
   const dispatch = useAppDispatch();
@@ -104,37 +74,89 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
   const subpatternEditorFocus = useAppSelector(
     (state) => state.tracker.subpatternEditorFocus,
   );
+  const channelId = useAppSelector((state) => state.tracker.selectedChannel);
 
   const patternId = song?.sequence[sequenceId] || 0;
   const pattern = song?.patterns[patternId];
 
-  const [selectionOrigin, setSelectionOrigin] = useState<
+  const [selectionOrigin, setSelectionOriginState] = useState<
     Position | undefined
   >();
-  const [selectionRect, setSelectionRect] = useState<
+  const [selectionRect, setSelectionRectState] = useState<
     SelectionRect | undefined
   >();
+  const [activeField, setActiveFieldState] = useState<number | undefined>();
+  const [playbackState, setPlaybackState] = useState<[number, number]>([0, 0]);
+  const [patternsPanelOpen, setPatternsPanelOpen] = useState(true);
+
+  const selectionOriginRef = useRef<Position | undefined>(undefined);
+  const selectionRectRef = useRef<SelectionRect | undefined>(undefined);
+  const activeFieldValueRef = useRef<number | undefined>(undefined);
+
   const isSelectingRef = useRef(false);
   const isMouseDownRef = useRef(false);
+
+  const activeFieldRef = useRef<HTMLSpanElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const setSelectionOrigin = useCallback((value: Position | undefined) => {
+    selectionOriginRef.current = value;
+    setSelectionOriginState(value);
+  }, []);
+
+  const setSelectionRect = useCallback((value: SelectionRect | undefined) => {
+    selectionRectRef.current = value;
+    setSelectionRectState(value);
+  }, []);
+
+  const setActiveField = useCallback((value: number | undefined) => {
+    activeFieldValueRef.current = value;
+    setActiveFieldState(value);
+  }, []);
+
+  const clearSelection = useCallback(() => {
+    isSelectingRef.current = false;
+    setSelectionOrigin(undefined);
+    setSelectionRect(undefined);
+  }, [setSelectionOrigin, setSelectionRect]);
+
+  const setSingleFieldSelection = useCallback(
+    (field: number) => {
+      setSelectionOrigin(fieldToPosition(field));
+      setSelectionRect(undefined);
+    },
+    [setSelectionOrigin, setSelectionRect],
+  );
+
+  const updateSelectionToField = useCallback(
+    (field: number) => {
+      const origin = selectionOriginRef.current;
+      if (!origin) {
+        return;
+      }
+      setSelectionRect(buildSelectionRect(origin, field));
+    },
+    [setSelectionRect],
+  );
 
   const selectedTrackerFields = useMemo(
     () => getSelectedTrackerFields(selectionRect, selectionOrigin),
     [selectionOrigin, selectionRect],
   );
-  const selectedTrackerRows = selectedTrackerFields?.map((f) =>
-    Math.floor(f / ROW_SIZE),
+
+  const selectedTrackerRows = useMemo(
+    () => selectedTrackerFields.map((field) => Math.floor(field / ROW_SIZE)),
+    [selectedTrackerFields],
   );
 
-  const [playbackState, setPlaybackState] = useState([0, 0]);
-
-  const [patternsPanelOpen, setPatternsPanelOpen] = useState(true);
   const togglePatternsPanel = useCallback(() => {
-    setPatternsPanelOpen(!patternsPanelOpen);
-  }, [patternsPanelOpen, setPatternsPanelOpen]);
+    setPatternsPanelOpen((value) => !value);
+  }, []);
 
   useEffect(() => {
     setPlaybackState(startPlaybackPosition);
-  }, [setPlaybackState, startPlaybackPosition]);
+  }, [startPlaybackPosition]);
+
   useEffect(() => {
     const listener = (_event: unknown, d: MusicDataReceivePacket) => {
       if (d.action === "update") {
@@ -143,255 +165,261 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
         setPlaybackState([0, 0]);
       }
     };
-    const unsubscribeMusicData = API.events.music.response.subscribe(listener);
 
+    const unsubscribeMusicData = API.events.music.response.subscribe(listener);
     return () => {
       unsubscribeMusicData();
     };
-  }, [setPlaybackState]);
-
-  const [activeField, setActiveField] = useState<number | undefined>();
-  const channelId = useAppSelector((state) => state.tracker.selectedChannel);
+  }, []);
 
   useEffect(() => {
-    if (activeField !== undefined) {
-      const newChannelId = Math.floor(
-        (activeField % ROW_SIZE) / CHANNEL_FIELDS,
+    if (activeField === undefined) {
+      return;
+    }
+
+    const newChannelId = Math.floor((activeField % ROW_SIZE) / CHANNEL_FIELDS);
+    dispatch(trackerActions.setSelectedChannel(newChannelId));
+
+    if (activeField % CHANNEL_FIELDS >= 2) {
+      dispatch(
+        trackerActions.setSelectedEffectCell(
+          Math.floor(activeField / ROW_SIZE),
+        ),
       );
-      dispatch(trackerActions.setSelectedChannel(newChannelId));
-      if (activeField % CHANNEL_FIELDS >= 2) {
-        dispatch(
-          trackerActions.setSelectedEffectCell(
-            Math.floor(activeField / ROW_SIZE),
-          ),
-        );
-      }
     }
   }, [activeField, dispatch]);
 
-  const activeFieldRef = useRef<HTMLSpanElement>(null);
-
   const transposeSelectedTrackerFields = useCallback(
     (change: number, large: boolean) => {
-      if (pattern && selectedTrackerFields) {
-        const newPattern = cloneDeep(pattern);
-        for (let i = 0; i < selectedTrackerFields.length; i++) {
-          const field = selectedTrackerFields[i];
-          const newPatternCell = {
-            ...newPattern[Math.floor(field / 16)][Math.floor(field / 4) % 4],
-          };
-
-          if (field % 4 === 0 && newPatternCell.note !== null) {
-            newPatternCell.note = clamp(
-              newPatternCell.note + (large ? change * 12 : change),
-              0,
-              71,
-            );
-          }
-          if (field % 4 === 1 && newPatternCell.instrument !== null) {
-            newPatternCell.instrument = clamp(
-              newPatternCell.instrument + (large ? change * 10 : change),
-              0,
-              14,
-            );
-          }
-          if (field % 4 === 2 && newPatternCell.effectcode !== null) {
-            newPatternCell.effectcode = clamp(
-              newPatternCell.effectcode + change,
-              0,
-              15,
-            );
-          }
-          if (field % 4 === 3 && newPatternCell.effectparam !== null) {
-            newPatternCell.effectparam = clamp(
-              newPatternCell.effectparam + (large ? change * 16 : change),
-              0,
-              255,
-            );
-          }
-
-          newPattern[Math.floor(field / 16)][Math.floor(field / 4) % 4] =
-            newPatternCell;
-        }
-        dispatch(
-          trackerDocumentActions.editPattern({
-            patternId: patternId,
-            pattern: newPattern,
-          }),
-        );
+      if (!pattern || selectedTrackerFields.length === 0) {
+        return;
       }
+
+      const newPattern = cloneDeep(pattern);
+
+      for (let i = 0; i < selectedTrackerFields.length; i++) {
+        const field = selectedTrackerFields[i];
+        const rowIndex = Math.floor(field / 16);
+        const channelIndex = Math.floor(field / 4) % 4;
+        const newPatternCell = {
+          ...newPattern[rowIndex][channelIndex],
+        };
+
+        if (field % 4 === 0 && newPatternCell.note !== null) {
+          newPatternCell.note = clamp(
+            newPatternCell.note + (large ? change * 12 : change),
+            0,
+            71,
+          );
+        }
+        if (field % 4 === 1 && newPatternCell.instrument !== null) {
+          newPatternCell.instrument = clamp(
+            newPatternCell.instrument + (large ? change * 10 : change),
+            0,
+            14,
+          );
+        }
+        if (field % 4 === 2 && newPatternCell.effectcode !== null) {
+          newPatternCell.effectcode = clamp(
+            newPatternCell.effectcode + change,
+            0,
+            15,
+          );
+        }
+        if (field % 4 === 3 && newPatternCell.effectparam !== null) {
+          newPatternCell.effectparam = clamp(
+            newPatternCell.effectparam + (large ? change * 16 : change),
+            0,
+            255,
+          );
+        }
+
+        newPattern[rowIndex][channelIndex] = newPatternCell;
+      }
+
+      dispatch(
+        trackerDocumentActions.editPattern({
+          patternId,
+          pattern: newPattern,
+        }),
+      );
     },
     [dispatch, pattern, patternId, selectedTrackerFields],
   );
 
   const deleteSelectedTrackerFields = useCallback(() => {
-    if (pattern && selectedTrackerFields) {
-      const newPattern = cloneDeep(pattern);
-      for (let i = 0; i < selectedTrackerFields.length; i++) {
-        const field = selectedTrackerFields[i];
-        const newPatternCell = {
-          ...newPattern[Math.floor(field / 16)][Math.floor(field / 4) % 4],
-        };
-
-        switch (field % 4) {
-          case 0:
-            newPatternCell.note = null;
-            break;
-          case 1:
-            newPatternCell.instrument = null;
-            break;
-          case 2:
-            newPatternCell.effectcode = null;
-            break;
-          case 3:
-            newPatternCell.effectparam = null;
-            break;
-        }
-
-        newPattern[Math.floor(field / 16)][Math.floor(field / 4) % 4] =
-          newPatternCell;
-      }
-      dispatch(
-        trackerDocumentActions.editPattern({
-          patternId: patternId,
-          pattern: newPattern,
-        }),
-      );
+    if (!pattern || selectedTrackerFields.length === 0) {
+      return;
     }
+
+    const newPattern = cloneDeep(pattern);
+
+    for (let i = 0; i < selectedTrackerFields.length; i++) {
+      const field = selectedTrackerFields[i];
+      const rowIndex = Math.floor(field / 16);
+      const channelIndex = Math.floor(field / 4) % 4;
+      const newPatternCell = {
+        ...newPattern[rowIndex][channelIndex],
+      };
+
+      switch (field % 4) {
+        case 0:
+          newPatternCell.note = null;
+          break;
+        case 1:
+          newPatternCell.instrument = null;
+          break;
+        case 2:
+          newPatternCell.effectcode = null;
+          break;
+        case 3:
+          newPatternCell.effectparam = null;
+          break;
+      }
+
+      newPattern[rowIndex][channelIndex] = newPatternCell;
+    }
+
+    dispatch(
+      trackerDocumentActions.editPattern({
+        patternId,
+        pattern: newPattern,
+      }),
+    );
   }, [dispatch, pattern, patternId, selectedTrackerFields]);
 
   const insertTrackerFields = useCallback(
     (uninsert: boolean) => {
-      if (pattern && activeField !== undefined) {
-        const newChannelId = Math.floor(
-          (activeField % ROW_SIZE) / CHANNEL_FIELDS,
-        );
-        const startRow = Math.floor(activeField / ROW_SIZE);
-        const newPattern = cloneDeep(pattern);
-        if (uninsert) {
-          for (let i = startRow; i < 63; i++) {
-            newPattern[i][newChannelId] = newPattern[i + 1][newChannelId];
-          }
-        } else {
-          for (let i = 63; i > startRow; i--) {
-            newPattern[i][newChannelId] = newPattern[i - 1][newChannelId];
-          }
-        }
-        newPattern[uninsert ? 63 : startRow][newChannelId] =
-          createPatternCell();
-        dispatch(
-          trackerDocumentActions.editPattern({
-            patternId: patternId,
-            pattern: newPattern,
-          }),
-        );
+      const currentActiveField = activeFieldValueRef.current;
+
+      if (!pattern || currentActiveField === undefined) {
+        return;
       }
+
+      const newChannelId = Math.floor(
+        (currentActiveField % ROW_SIZE) / CHANNEL_FIELDS,
+      );
+      const startRow = Math.floor(currentActiveField / ROW_SIZE);
+      const newPattern = cloneDeep(pattern);
+
+      if (uninsert) {
+        for (let i = startRow; i < 63; i++) {
+          newPattern[i][newChannelId] = newPattern[i + 1][newChannelId];
+        }
+      } else {
+        for (let i = 63; i > startRow; i--) {
+          newPattern[i][newChannelId] = newPattern[i - 1][newChannelId];
+        }
+      }
+
+      newPattern[uninsert ? 63 : startRow][newChannelId] = createPatternCell();
+
+      dispatch(
+        trackerDocumentActions.editPattern({
+          patternId,
+          pattern: newPattern,
+        }),
+      );
     },
-    [dispatch, pattern, patternId, activeField],
+    [dispatch, pattern, patternId],
   );
 
   const handleMouseDown = useCallback(
     (e: MouseEvent) => {
-      if (!e.target || !(e.target instanceof HTMLElement)) {
+      if (!(e.target instanceof HTMLElement)) {
         return;
       }
 
-      const fieldId = e.target.dataset["fieldid"];
-      const rowId = e.target.dataset["row"];
+      const fieldId = e.target.dataset.fieldid;
+      const rowId = e.target.dataset.row;
 
-      if (!!fieldId) {
+      if (fieldId !== undefined) {
+        const parsedField = parseInt(fieldId, 10);
+        const normalizedField = normalizeFieldIndex(parsedField);
+
         isMouseDownRef.current = true;
 
-        if (e.shiftKey) {
+        if (e.shiftKey && selectionOriginRef.current) {
           isSelectingRef.current = true;
-
-          const newActiveField =
-            ((parseInt(fieldId) % NUM_FIELDS) + NUM_FIELDS) % NUM_FIELDS;
-
-          if (selectionOrigin) {
-            const x2 = newActiveField % ROW_SIZE;
-            const y2 = Math.floor(newActiveField / ROW_SIZE);
-
-            const x = Math.min(selectionOrigin.x, x2);
-            const y = Math.min(selectionOrigin.y, y2);
-            const width = Math.abs(selectionOrigin.x - x2);
-            const height = Math.abs(selectionOrigin.y - y2);
-            setSelectionRect({ x, y, width, height });
-          }
-          setActiveField(parseInt(fieldId));
+          setActiveField(normalizedField);
+          updateSelectionToField(normalizedField);
         } else {
-          setActiveField(parseInt(fieldId));
-          const x = parseInt(fieldId) % ROW_SIZE;
-          const y = Math.floor(parseInt(fieldId) / ROW_SIZE);
-          setSelectionOrigin({ x, y });
-          setSelectionRect(undefined);
+          isSelectingRef.current = false;
+          setActiveField(normalizedField);
+          setSingleFieldSelection(normalizedField);
         }
-      } else if (rowId) {
+        return;
+      }
+
+      if (rowId !== undefined) {
+        const row = parseInt(rowId, 10);
+
         dispatch(
-          trackerActions.setDefaultStartPlaybackPosition([
-            sequenceId,
-            parseInt(rowId),
-          ]),
+          trackerActions.setDefaultStartPlaybackPosition([sequenceId, row]),
         );
         API.music.sendToMusicWindow({
           action: "position",
-          position: [sequenceId, parseInt(rowId)],
+          position: [sequenceId, row],
         });
-      } else {
-        setActiveField(undefined);
+        return;
       }
+
+      setActiveField(undefined);
     },
-    [dispatch, selectionOrigin, sequenceId],
+    [
+      dispatch,
+      sequenceId,
+      setActiveField,
+      setSingleFieldSelection,
+      updateSelectionToField,
+    ],
   );
 
-  const handleMouseUp = useCallback((e: MouseEvent) => {
-    if (!e.target || !(e.target instanceof HTMLElement)) {
-      return;
-    }
+  const handleMouseUp = useCallback(() => {
     isMouseDownRef.current = false;
   }, []);
 
   const handleMouseMove = useCallback(
     (e: MouseEvent) => {
-      if (!e.target || !(e.target instanceof HTMLElement)) {
+      if (!isMouseDownRef.current) {
         return;
       }
-      if (isMouseDownRef.current) {
-        const fieldId = e.target.dataset["fieldid"];
 
-        if (!!fieldId) {
-          const newActiveField =
-            ((parseInt(fieldId) % NUM_FIELDS) + NUM_FIELDS) % NUM_FIELDS;
-
-          if (selectionOrigin) {
-            const x2 = newActiveField % ROW_SIZE;
-            const y2 = Math.floor(newActiveField / ROW_SIZE);
-
-            const x = Math.min(selectionOrigin.x, x2);
-            const y = Math.min(selectionOrigin.y, y2);
-            const width = Math.abs(selectionOrigin.x - x2);
-            const height = Math.abs(selectionOrigin.y - y2);
-            setSelectionRect({ x, y, width, height });
-          }
-        }
+      if (!(e.target instanceof HTMLElement)) {
+        return;
       }
+
+      const fieldId = e.target.dataset.fieldid;
+      if (fieldId === undefined) {
+        return;
+      }
+
+      const parsedField = parseInt(fieldId, 10);
+      const normalizedField = normalizeFieldIndex(parsedField);
+
+      updateSelectionToField(normalizedField);
     },
-    [selectionOrigin],
+    [updateSelectionToField],
   );
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
+      const currentActiveField = activeFieldValueRef.current;
+      const currentSelectionRect = selectionRectRef.current;
+
       const editPatternCell =
         (type: keyof PatternCell) => (value: number | null) => {
-          if (activeField === undefined) {
+          const editingField = activeFieldValueRef.current;
+          if (editingField === undefined) {
             return;
           }
+
           dispatch(
             trackerDocumentActions.editPatternCell({
-              patternId: patternId,
+              patternId,
               cell: [
-                Math.floor(activeField / 16),
-                Math.floor(activeField / 4) % 4,
+                Math.floor(editingField / 16),
+                Math.floor(editingField / 4) % 4,
               ],
               changes: {
                 [type]: value,
@@ -401,18 +429,21 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
         };
 
       const editNoteField = (value: number | null) => {
-        if (activeField === undefined) {
+        const editingField = activeFieldValueRef.current;
+        if (editingField === undefined) {
           return;
         }
 
-        const channel = Math.floor(activeField / 4) % 4;
+        const channel = Math.floor(editingField / 4) % 4;
         const defaultInstrument = defaultInstruments[channel];
 
         editPatternCell("note")(
           value === null ? null : value + octaveOffset * 12,
         );
+
         if (value !== null) {
           editPatternCell("instrument")(defaultInstrument);
+
           if (song) {
             playNotePreview(
               song,
@@ -421,26 +452,27 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
               defaultInstrument,
             );
           }
-          setActiveField(activeField + ROW_SIZE * editStep);
+
+          setActiveField(editingField + ROW_SIZE * editStep);
         }
       };
 
       const editInstrumentField = (value: number | null) => {
-        if (activeFieldRef && activeFieldRef.current) {
-          const el = activeFieldRef.current;
-          let newValue = value;
-          if (
-            value !== null &&
-            el.innerText !== ".." &&
-            el.innerText !== "15"
-          ) {
-            newValue = 10 * parseInt(el.innerText[1]) + value;
-            if (newValue > 15) newValue = 15;
-          }
-          editPatternCell("instrument")(
-            newValue === null ? null : newValue - 1,
-          );
+        if (!activeFieldRef.current) {
+          return;
         }
+
+        const el = activeFieldRef.current;
+        let newValue = value;
+
+        if (value !== null && el.innerText !== ".." && el.innerText !== "15") {
+          newValue = 10 * parseInt(el.innerText[1], 10) + value;
+          if (newValue > 15) {
+            newValue = 15;
+          }
+        }
+
+        editPatternCell("instrument")(newValue === null ? null : newValue - 1);
       };
 
       const editEffectCodeField = (value: number | null) => {
@@ -448,29 +480,34 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
       };
 
       const editEffectParamField = (value: number | null) => {
-        if (activeFieldRef && activeFieldRef.current) {
-          const el = activeFieldRef.current;
-          let newValue = value;
-          if (value !== null && el.innerText !== "..") {
-            newValue = 16 * parseInt(el.innerText[1], 16) + value;
-          }
-          editPatternCell("effectparam")(newValue);
+        if (!activeFieldRef.current) {
+          return;
         }
+
+        const el = activeFieldRef.current;
+        let newValue = value;
+
+        if (value !== null && el.innerText !== "..") {
+          newValue = 16 * parseInt(el.innerText[1], 16) + value;
+        }
+
+        editPatternCell("effectparam")(newValue);
       };
 
       if (e.key === "Escape") {
         e.preventDefault();
-        setSelectionOrigin(undefined);
-        setSelectionRect(undefined);
+        clearSelection();
+        return;
       }
 
       if (e.key === "Backspace" || e.key === "Delete") {
-        if ((e.shiftKey || e.ctrlKey) && activeField !== undefined) {
+        if ((e.shiftKey || e.ctrlKey) && currentActiveField !== undefined) {
           e.preventDefault();
           insertTrackerFields(true);
           return;
         }
-        if (selectedTrackerFields && selectedTrackerFields.length > 0) {
+
+        if (selectedTrackerFields.length > 0) {
           e.preventDefault();
           deleteSelectedTrackerFields();
           return;
@@ -478,104 +515,78 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
       }
 
       if (e.key === "Insert" || e.key === "Enter") {
-        if (activeField !== undefined) {
+        if (currentActiveField !== undefined) {
+          e.preventDefault();
           insertTrackerFields(false);
           return;
         }
       }
 
-      if (activeField === undefined) {
+      if (currentActiveField === undefined) {
         return;
       }
 
-      let tmpActiveField = activeField;
+      const movedField = getMovedField(currentActiveField, e.key, e.shiftKey);
 
-      if (e.key === "ArrowLeft") {
+      if (movedField !== null) {
         e.preventDefault();
-        tmpActiveField -= 1;
-      }
-      if (e.key === "ArrowRight") {
-        e.preventDefault();
-        tmpActiveField += 1;
-      }
-      if (e.key === "ArrowDown") {
-        e.preventDefault();
-        tmpActiveField += ROW_SIZE;
-      }
-      if (e.key === "ArrowUp") {
-        e.preventDefault();
-        tmpActiveField -= ROW_SIZE;
-      }
-      if (e.key === "Tab") {
-        e.preventDefault();
-        if (e.shiftKey) {
-          tmpActiveField -= 4;
+
+        const newActiveField = normalizeFieldIndex(movedField);
+
+        // Shift+Tab should navigate but should NOT start a range selection.
+        const shouldExtendSelection =
+          e.shiftKey &&
+          (e.key === "ArrowLeft" ||
+            e.key === "ArrowRight" ||
+            e.key === "ArrowUp" ||
+            e.key === "ArrowDown");
+
+        if (shouldExtendSelection) {
+          if (!isSelectingRef.current) {
+            isSelectingRef.current = true;
+
+            if (!currentSelectionRect) {
+              setSelectionOrigin(fieldToPosition(currentActiveField));
+            }
+          }
+
+          const origin =
+            selectionOriginRef.current ?? fieldToPosition(currentActiveField);
+          setSelectionRect(buildSelectionRect(origin, newActiveField));
         } else {
-          tmpActiveField += 4;
-        }
-      }
-      if (e.shiftKey && !isSelectingRef.current) {
-        isSelectingRef.current = true;
-        if (!selectionRect) {
-          const x = activeField % ROW_SIZE;
-          const y = Math.floor(activeField / ROW_SIZE);
-          setSelectionOrigin({
-            x,
-            y,
-          });
-        }
-      }
-      if (activeField !== tmpActiveField) {
-        const newActiveField =
-          ((tmpActiveField % NUM_FIELDS) + NUM_FIELDS) % NUM_FIELDS;
-
-        if (isSelectingRef.current && selectionOrigin) {
-          const x2 = newActiveField % ROW_SIZE;
-          const y2 = Math.floor(newActiveField / ROW_SIZE);
-
-          const x = Math.min(selectionOrigin.x, x2);
-          const y = Math.min(selectionOrigin.y, y2);
-          const width = Math.abs(selectionOrigin.x - x2);
-          const height = Math.abs(selectionOrigin.y - y2);
-
-          setSelectionRect({ x, y, width, height });
-        } else {
-          setSelectionOrigin(undefined);
-          setSelectionRect(undefined);
+          clearSelection();
         }
 
         setActiveField(newActiveField);
+        return;
       }
 
-      let currentFocus: KeyWhen = null;
-
-      switch (activeField % 4) {
-        case 0:
-          currentFocus = "noteColumnFocus";
-          break;
-        case 1:
-          currentFocus = "instrumentColumnFocus";
-          break;
-        case 2:
-          currentFocus = "effectCodeColumnFocus";
-          break;
-        case 3:
-          currentFocus = "effectParamColumnFocus";
-          break;
-      }
+      const currentFocus = getFieldColumnFocus(currentActiveField);
 
       if (e.ctrlKey) {
         if (e.shiftKey) {
-          if (e.key === "Q" || e.key === "+" || e.key === "=")
-            return transposeSelectedTrackerFields(1, true);
-          if (e.key === "A" || e.key === "_")
-            return transposeSelectedTrackerFields(-1, true);
+          if (e.key === "Q" || e.key === "+" || e.key === "=") {
+            transposeSelectedTrackerFields(1, true);
+            return;
+          }
+          if (e.key === "A" || e.key === "_") {
+            transposeSelectedTrackerFields(-1, true);
+            return;
+          }
         } else {
-          if (e.key === "=") return transposeSelectedTrackerFields(1, false);
-          if (e.key === "-") return transposeSelectedTrackerFields(-1, false);
+          if (e.key === "=") {
+            transposeSelectedTrackerFields(1, false);
+            return;
+          }
+          if (e.key === "-") {
+            transposeSelectedTrackerFields(-1, false);
+            return;
+          }
         }
         return;
-      } else if (e.metaKey) {
+      }
+
+      if (e.metaKey) {
         return;
       }
 
@@ -589,24 +600,25 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
       }
     },
     [
-      activeField,
-      dispatch,
-      patternId,
+      clearSelection,
       defaultInstruments,
-      song,
-      octaveOffset,
-      editStep,
-      selectedTrackerFields,
-      insertTrackerFields,
       deleteSelectedTrackerFields,
-      selectionRect,
-      selectionOrigin,
+      dispatch,
+      editStep,
+      insertTrackerFields,
+      octaveOffset,
+      patternId,
+      selectedTrackerFields,
+      setActiveField,
+      setSelectionOrigin,
+      setSelectionRect,
+      song,
       transposeSelectedTrackerFields,
     ],
   );
 
   useLayoutEffect(() => {
-    if (!playing && activeFieldRef && activeFieldRef.current) {
+    if (!playing && activeFieldRef.current) {
       const parentEl = activeFieldRef.current.parentElement;
       if (parentEl) {
         scrollIntoView(parentEl, {
@@ -626,27 +638,36 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
 
   const handleWheel = useCallback(
     (e: WheelEvent) => {
-      if (e.ctrlKey) {
-        e.preventDefault();
-        const delta = e.deltaY === 0 ? e.deltaX : e.deltaY;
-        if (e.shiftKey) {
-          if (delta < 0) return transposeSelectedTrackerFields(1, true);
-          if (delta > 0) return transposeSelectedTrackerFields(-1, true);
-        } else {
-          if (delta < 0) return transposeSelectedTrackerFields(1, false);
-          if (delta > 0) return transposeSelectedTrackerFields(-1, false);
-        }
+      if (!e.ctrlKey) {
         return;
+      }
+
+      e.preventDefault();
+
+      const delta = e.deltaY === 0 ? e.deltaX : e.deltaY;
+
+      if (e.shiftKey) {
+        if (delta < 0) {
+          transposeSelectedTrackerFields(1, true);
+          return;
+        }
+        if (delta > 0) {
+          transposeSelectedTrackerFields(-1, true);
+          return;
+        }
+      } else {
+        if (delta < 0) {
+          transposeSelectedTrackerFields(1, false);
+          return;
+        }
+        if (delta > 0) {
+          transposeSelectedTrackerFields(-1, false);
+          return;
+        }
       }
     },
     [transposeSelectedTrackerFields],
   );
-
-  const selectionRectRef = useRef(selectionRect);
-
-  useEffect(() => {
-    selectionRectRef.current = selectionRect;
-  }, [selectionRect]);
 
   const onSelectAll = useCallback(() => {
     const selection = window.getSelection();
@@ -660,7 +681,6 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
       selectionRectRef.current.height === 0;
 
     if (noSelection) {
-      // Select single channel
       const offset = CHANNEL_FIELDS * channelId;
       setSelectionOrigin({ x: offset, y: 0 });
       setSelectionRect({
@@ -670,11 +690,10 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
         height: 63,
       });
     } else {
-      // Select all channels
       setSelectionOrigin({ x: 0, y: 0 });
       setSelectionRect({ x: 0, y: 0, width: 15, height: 63 });
     }
-  }, [channelId]);
+  }, [channelId, setSelectionOrigin, setSelectionRect]);
 
   useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);
@@ -696,8 +715,8 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
     handleKeyDown,
     handleKeyUp,
     handleMouseDown,
-    handleMouseMove,
     handleMouseUp,
+    handleMouseMove,
     handleWheel,
   ]);
 
@@ -705,6 +724,7 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
     if (subpatternEditorFocus) {
       return;
     }
+
     const onKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.code === "KeyA") {
         const target = e.target as HTMLElement | null;
@@ -728,13 +748,15 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
       if (Date.now() < lastSelectionChange + 100) {
         return;
       }
+
       lastSelectionChange = Date.now();
+
       const selection = window.getSelection();
       if (!selection || selection.focusNode) {
         return;
       }
-      window.getSelection()?.empty();
 
+      window.getSelection()?.empty();
       e.preventDefault();
       onSelectAll();
     };
@@ -751,120 +773,140 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
     };
   }, [onSelectAll, subpatternEditorFocus]);
 
-  const onFocus = useCallback(
-    (_e: React.FocusEvent<HTMLDivElement>) => {
-      if (activeField === undefined) {
-        setActiveField(0);
-      }
-    },
-    [activeField, setActiveField],
-  );
+  const onFocus = useCallback(() => {
+    if (activeFieldValueRef.current === undefined) {
+      setActiveField(0);
+    }
+  }, [setActiveField]);
 
-  const onBlur = useCallback((_e: React.FocusEvent<HTMLDivElement>) => {
+  const onBlur = useCallback(() => {
     setActiveField(undefined);
-    setSelectionOrigin(undefined);
-    setSelectionRect(undefined);
-  }, []);
+    clearSelection();
+  }, [clearSelection, setActiveField]);
 
   const onCopy = useCallback(
     (e: ClipboardEvent) => {
-      if (!(e.target instanceof HTMLElement)) return;
+      if (!(e.target instanceof HTMLElement)) {
+        return;
+      }
+
       if (e.target.nodeName === "INPUT") {
         return;
       }
-      if (pattern && selectedTrackerFields) {
-        // const parsedSelectedPattern = parsePatternToClipboard(pattern);
-        const parsedSelectedPattern = parsePatternFieldsToClipboard(
-          pattern,
-          selectedTrackerFields,
-        );
-        e.preventDefault();
-        e.clipboardData?.setData("text/plain", parsedSelectedPattern);
-        void API.clipboard.writeText(parsedSelectedPattern);
+
+      if (!pattern || selectedTrackerFields.length === 0) {
+        return;
       }
+
+      const parsedSelectedPattern = parsePatternFieldsToClipboard(
+        pattern,
+        selectedTrackerFields,
+      );
+
+      e.preventDefault();
+      e.clipboardData?.setData("text/plain", parsedSelectedPattern);
+      void API.clipboard.writeText(parsedSelectedPattern);
     },
     [pattern, selectedTrackerFields],
   );
 
   const onCut = useCallback(
     (e?: ClipboardEvent) => {
-      if (pattern && selectedTrackerFields) {
-        const parsedSelectedPattern = parsePatternFieldsToClipboard(
-          pattern,
-          selectedTrackerFields,
-        );
-        e?.preventDefault();
-        e?.clipboardData?.setData("text/plain", parsedSelectedPattern);
-        void API.clipboard.writeText(parsedSelectedPattern);
-        deleteSelectedTrackerFields();
+      if (!pattern || selectedTrackerFields.length === 0) {
+        return;
       }
+
+      const parsedSelectedPattern = parsePatternFieldsToClipboard(
+        pattern,
+        selectedTrackerFields,
+      );
+
+      e?.preventDefault();
+      e?.clipboardData?.setData("text/plain", parsedSelectedPattern);
+      void API.clipboard.writeText(parsedSelectedPattern);
+      deleteSelectedTrackerFields();
     },
     [deleteSelectedTrackerFields, pattern, selectedTrackerFields],
   );
 
   const onPaste = useCallback(async () => {
-    if (pattern) {
-      const tempActiveField =
-        activeField !== undefined
-          ? activeField
-          : selectionOrigin
-            ? selectionOrigin.y * ROW_SIZE + selectionOrigin.x
-            : 0;
-      if (activeField === undefined) {
-        setActiveField(tempActiveField);
-      }
-      const newPastedPattern = parseClipboardToPattern(
-        await API.clipboard.readText(),
-      );
-      if (newPastedPattern && channelId !== undefined) {
-        const startRow = Math.floor(tempActiveField / ROW_SIZE);
-        const newPattern = cloneDeep(pattern);
-        for (let i = 0; i < newPastedPattern.length; i++) {
-          const pastedPatternCellRow = newPastedPattern[i];
-          for (let j = 0; j < 4 - channelId; j++) {
-            if (pastedPatternCellRow[j] && newPattern[startRow + i]) {
-              newPattern[startRow + i][channelId + j] = mergeWith(
-                newPattern[startRow + i][channelId + j],
-                pastedPatternCellRow[j],
-                (o, s) => (s === NO_CHANGE_ON_PASTE ? o : s),
-              );
-            }
-          }
-        }
-        dispatch(
-          trackerDocumentActions.editPattern({
-            patternId: patternId,
-            pattern: newPattern,
-          }),
-        );
-      }
+    if (!pattern) {
+      return;
     }
-  }, [activeField, channelId, dispatch, pattern, patternId, selectionOrigin]);
 
-  // Clipboard
-  useEffect(() => {
-    if (!subpatternEditorFocus) {
-      window.addEventListener("copy", onCopy);
-      window.addEventListener("cut", onCut);
-      window.addEventListener("paste", onPaste);
-      return () => {
-        window.removeEventListener("copy", onCopy);
-        window.removeEventListener("cut", onCut);
-        window.removeEventListener("paste", onPaste);
-      };
+    const currentActiveField = activeFieldValueRef.current;
+    const currentSelectionOrigin = selectionOriginRef.current;
+
+    const tempActiveField =
+      currentActiveField !== undefined
+        ? currentActiveField
+        : currentSelectionOrigin
+          ? positionToField(currentSelectionOrigin)
+          : 0;
+
+    if (currentActiveField === undefined) {
+      setActiveField(tempActiveField);
     }
+
+    const newPastedPattern = parseClipboardToPattern(
+      await API.clipboard.readText(),
+    );
+
+    if (!newPastedPattern || channelId === undefined) {
+      return;
+    }
+
+    const startRow = Math.floor(tempActiveField / ROW_SIZE);
+    const newPattern = cloneDeep(pattern);
+
+    for (let i = 0; i < newPastedPattern.length; i++) {
+      const pastedPatternCellRow = newPastedPattern[i];
+
+      for (let j = 0; j < 4 - channelId; j++) {
+        if (pastedPatternCellRow[j] && newPattern[startRow + i]) {
+          newPattern[startRow + i][channelId + j] = mergeWith(
+            newPattern[startRow + i][channelId + j],
+            pastedPatternCellRow[j],
+            (o, s) => (s === NO_CHANGE_ON_PASTE ? o : s),
+          );
+        }
+      }
+    }
+
+    dispatch(
+      trackerDocumentActions.editPattern({
+        patternId,
+        pattern: newPattern,
+      }),
+    );
+  }, [channelId, dispatch, pattern, patternId, setActiveField]);
+
+  useEffect(() => {
+    if (subpatternEditorFocus) {
+      return;
+    }
+
+    window.addEventListener("copy", onCopy);
+    window.addEventListener("cut", onCut);
+    window.addEventListener("paste", onPaste);
+
+    return () => {
+      window.removeEventListener("copy", onCopy);
+      window.removeEventListener("cut", onCut);
+      window.removeEventListener("paste", onPaste);
+    };
   }, [onCopy, onCut, onPaste, subpatternEditorFocus]);
 
   const soloChannel = useMemo(() => {
     const firstUnmuted = channelStatus.findIndex((x) => !x);
     const lastUnmuted = channelStatus.findLastIndex((x) => !x);
+
     if (firstUnmuted !== -1 && firstUnmuted === lastUnmuted) {
       return firstUnmuted;
     }
+
     return -1;
   }, [channelStatus]);
-
-  const scrollRef = useRef<HTMLDivElement>(null);
 
   const playbackRow = playbackState[1];
 
@@ -925,6 +967,7 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
               </TrackerHeaderCell>
             </StyledTrackerTableHeaderRow>
           </StyledTrackerTableHeader>
+
           <StyledTrackerTableBody
             tabIndex={0}
             onFocus={onFocus}
@@ -936,7 +979,8 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
                 Math.floor(activeField / ROW_SIZE) === i;
               const isPlaying =
                 playbackState[0] === sequenceId && playbackState[1] === i;
-              const isSelected = selectedTrackerRows?.indexOf(i) !== -1;
+              const isSelected = selectedTrackerRows.indexOf(i) !== -1;
+
               return (
                 <TrackerRow
                   id={`__${i}`}
@@ -949,7 +993,7 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
                   ref={activeFieldRef}
                   channelStatus={channelStatus}
                   selectedTrackerFields={
-                    !isPlaying && isSelected ? selectedTrackerFields || [] : []
+                    !isPlaying && isSelected ? selectedTrackerFields : []
                   }
                 />
               );

@@ -1,4 +1,3 @@
-import l10n from "shared/lib/lang/l10n";
 import { SubPatternCell } from "shared/lib/uge/types";
 import React, {
   useCallback,
@@ -8,8 +7,6 @@ import React, {
   useState,
 } from "react";
 import styled, { css } from "styled-components";
-import { CheckboxField } from "ui/form/CheckboxField";
-import { FormRow } from "ui/form/layout/FormLayout";
 import { renderEffect, renderEffectParam } from "components/music/helpers";
 import {
   NO_CHANGE_ON_PASTE,
@@ -22,11 +19,10 @@ import { SelectionRect } from "components/music/piano/PianoRollCanvas";
 import scrollIntoView from "scroll-into-view-if-needed";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
 import { cloneDeep, mergeWith } from "lodash";
-import { Position } from "components/music/tracker/SongTracker";
+import { Position } from "components/music/tracker/helpers";
 import API from "renderer/lib/api";
 import { useAppDispatch, useAppSelector } from "store/hooks";
 import { createSubPatternCell } from "shared/lib/uge/song";
-import { TabSettings } from "ui/tabs/Tabs";
 
 const CHANNEL_FIELDS = 4;
 const ROW_SIZE = CHANNEL_FIELDS * 1;

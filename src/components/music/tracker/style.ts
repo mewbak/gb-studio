@@ -37,7 +37,9 @@ export const StyledTrackerTableHeader = styled.thead`
   z-index: 2;
 `;
 
-export const StyledTrackerTableBody = styled.tbody``;
+export const StyledTrackerTableBody = styled.tbody`
+  box-shadow: none !important;
+`;
 
 export const StyledTrackerTableHeaderRow = styled.tr``;
 
