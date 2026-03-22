@@ -19,6 +19,9 @@ export const StyledButton = styled.button<StyledButtonProps>`
   display: inline-flex;
   justify-content: center;
   align-items: center;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
   font-size: ${(props) => props.theme.typography.fontSize};
   border-radius: ${(props) => props.theme.borderRadius}px;
   height: 28px;

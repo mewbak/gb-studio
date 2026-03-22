@@ -232,6 +232,9 @@ const trackerSlice = createSlice({
         state.status = "init";
         state.playerReady = false;
       })
+      .addCase(trackerDocumentActions.moveSequence, (state, action) => {
+        state.selectedSequence = action.payload.toIndex;
+      })
       // When adding a new song file jump to it in navigator
       .addCase(addNewSongFile.fulfilled, (state, action) => {
         state.selectedSongId = action.payload.data.id;

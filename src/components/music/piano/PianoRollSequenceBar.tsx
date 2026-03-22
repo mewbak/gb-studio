@@ -1,6 +1,6 @@
 import React, { useRef, useCallback } from "react";
 import { Song } from "shared/lib/uge/types";
-import { useAppDispatch, useAppSelector } from "store/hooks";
+import { useAppDispatch } from "store/hooks";
 import {
   PIANO_ROLL_PIANO_WIDTH,
   PIANO_ROLL_CELL_SIZE,
@@ -24,6 +24,9 @@ import {
 } from "./helpers";
 import API from "renderer/lib/api";
 import l10n from "shared/lib/lang/l10n";
+import { useContextMenu } from "ui/hooks/use-context-menu";
+import renderPatternContextMenu from "components/music/contentMenus/renderPatternContextMenu";
+import { DropdownButton } from "ui/buttons/DropdownButton";
 
 interface PianoRollSequenceBarProps {
   song: Song;
@@ -31,14 +34,66 @@ interface PianoRollSequenceBarProps {
   playbackRow: number;
 }
 
+interface PianoRollSequenceBarPatternProps {
+  patternIndex: number;
+  orderIndex: number;
+  orderLength: number;
+}
+
+const PianoRollSequenceBarPattern = ({
+  patternIndex,
+  orderIndex,
+  orderLength,
+}: PianoRollSequenceBarPatternProps) => {
+  const dispatch = useAppDispatch();
+
+  const getContextMenu = useCallback(
+    (onClose?: () => void) =>
+      renderPatternContextMenu({
+        dispatch,
+        patternIndex,
+        orderIndex,
+        orderLength,
+        onClose,
+      }),
+    [dispatch, patternIndex, orderIndex, orderLength],
+  );
+
+  const { onContextMenu, contextMenuElement } = useContextMenu({
+    getMenu: ({ closeMenu }) => getContextMenu(closeMenu),
+  });
+
+  return (
+    <StyledPianoRollSequenceHeaderPattern
+      $patternIndex={patternIndex}
+      onContextMenu={onContextMenu}
+    >
+      <StyledPianoRollSequenceHeaderText>
+        {orderLength > 1 ? (
+          <DropdownButton
+            variant="transparent"
+            label={`${l10n("FIELD_PATTERN")} ${String(patternIndex).padStart(2, "0")}`}
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            {getContextMenu()}
+          </DropdownButton>
+        ) : (
+          <span>
+            {l10n("FIELD_PATTERN")} {String(patternIndex).padStart(2, "0")}
+          </span>
+        )}
+      </StyledPianoRollSequenceHeaderText>
+      {contextMenuElement}
+    </StyledPianoRollSequenceHeaderPattern>
+  );
+};
+
 export const PianoRollSequenceBar = ({
   song,
   playbackOrder,
   playbackRow,
 }: PianoRollSequenceBarProps) => {
   const dispatch = useAppDispatch();
-
-  const playing = useAppSelector((state) => state.tracker.playing);
 
   const sequenceLength = song.sequence.length;
   const documentWidth = calculateDocumentWidth(sequenceLength);
@@ -130,12 +185,11 @@ export const PianoRollSequenceBar = ({
               {i + 1}
             </StyledPianoRollSequenceHeaderText>
           </StyledPianoRollSequenceHeaderOrder>
-
-          <StyledPianoRollSequenceHeaderPattern $patternIndex={pattern}>
-            <StyledPianoRollSequenceHeaderText>
-              {l10n("FIELD_PATTERN")} {String(pattern).padStart(2, "0")}
-            </StyledPianoRollSequenceHeaderText>
-          </StyledPianoRollSequenceHeaderPattern>
+          <PianoRollSequenceBarPattern
+            orderIndex={i}
+            patternIndex={pattern}
+            orderLength={song.sequence.length}
+          />
         </StyledPianoRollSequenceHeader>
       ))}
       <StyledPianoRollPlayhead

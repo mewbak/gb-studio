@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Song } from "shared/lib/uge/types";
 import { SplitPaneVerticalDivider } from "ui/splitpane/SplitPaneDivider";
-import { SequenceEditor } from "components/music/SequenceEditor";
+import { SequenceEditor } from "components/music/sequence/SequenceEditor";
 import { SplitPaneHeader } from "ui/splitpane/SplitPaneHeader";
 import { MusicDataReceivePacket } from "shared/lib/music/types";
 import { useAppSelector } from "store/hooks";

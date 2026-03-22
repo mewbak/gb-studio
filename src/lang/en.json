@@ -1325,6 +1325,10 @@
   "FIELD_OPEN_FOLDER": "Open Folder",
   "FIELD_CHANNELS": "Channels",
   "FIELD_ADD_PATTERN": "Add Pattern",
+  "FIELD_MOVE_START": "Move To Start",
+  "FIELD_MOVE_BACK": "Move Backward",
+  "FIELD_MOVE_FORWARD": "Move Forward",
+  "FIELD_MOVE_END": "Move To End",
 
   "// 7": "Asset Viewer ---------------------------------------------",
   "ASSET_SEARCH": "Search...",

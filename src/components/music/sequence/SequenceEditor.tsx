@@ -5,7 +5,6 @@ import React, {
   useRef,
   useState,
 } from "react";
-import styled, { css } from "styled-components";
 import { Select } from "ui/form/Select";
 import { PlusIcon } from "ui/icons/Icons";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
@@ -13,8 +12,15 @@ import trackerActions from "store/features/tracker/trackerActions";
 import { useAppDispatch, useAppSelector } from "store/hooks";
 import { SingleValue } from "react-select";
 import { SortableList } from "ui/lists/SortableList";
-import { patternHue } from "./helpers";
+import { patternHue } from "components/music/helpers";
 import l10n from "shared/lib/lang/l10n";
+import renderPatternContextMenu from "components/music/contentMenus/renderPatternContextMenu";
+import { useContextMenu } from "ui/hooks/use-context-menu";
+import {
+  StyledAddSequenceButton,
+  StyledSequenceEditorWrapper,
+  StyledSequenceItem,
+} from "./style";
 
 interface SequenceOption {
   value: number;
@@ -35,51 +41,78 @@ interface SequenceListItem {
 }
 
 interface SequenceItemProps {
-  $active: boolean;
-  $selected: boolean;
+  item: SequenceListItem;
+  isSelected: boolean;
+  playingSequence: number;
+  sequenceOptions: SequenceOption[];
+  sequenceLength: number;
+  setSelectHasFocus: (value: boolean) => void;
 }
 
-const Wrapper = styled.div`
-  display: flex;
-  flex-direction: column;
-  background-color: ${(props) => props.theme.colors.sidebar.background};
-  flex-shrink: 0;
+const SequenceItem = ({
+  item,
+  isSelected,
+  playingSequence,
+  sequenceOptions,
+  sequenceLength,
+  setSelectHasFocus,
+}: SequenceItemProps) => {
+  const dispatch = useAppDispatch();
 
-  .CustomSelect {
-    min-width: 0;
-  }
-`;
+  const editSequence = useCallback(
+    (newValue: SequenceOption) => {
+      dispatch(
+        trackerDocumentActions.editSequence({
+          sequenceIndex: item.sequenceIndex,
+          sequenceId: newValue.value,
+        }),
+      );
+    },
+    [dispatch, item.sequenceIndex],
+  );
 
-const SequenceItem = styled.div<SequenceItemProps>`
-  border: 1px solid ${(props) => props.theme.colors.tracker.border};
-  background-color: ${(props) => props.theme.colors.button.nestedBackground};
-  color: ${(props) => props.theme.colors.input.text};
-  padding: 4px;
-  min-width: 60px;
-  border-radius: 4px;
-  box-sizing: border-box;
+  const { onContextMenu, contextMenuElement } = useContextMenu({
+    getMenu: ({ closeMenu }) =>
+      renderPatternContextMenu({
+        dispatch,
+        patternIndex: item.patternId,
+        orderIndex: item.sequenceIndex,
+        orderLength: sequenceLength,
+        onClose: closeMenu,
+      }),
+  });
 
-  ${(props) =>
-    props.$selected
-      ? css`
-          box-shadow: 0 0 0px 4px ${(props) => props.theme.colors.highlight};
-        `
-      : ""}
-`;
-
-const AddSequenceButton = styled.button`
-  background: ${(props) => props.theme.colors.button.nestedBackground};
-  min-width: 60px;
-  min-height: 55px;
-  border: 0;
-  border-radius: 4px;
-  svg {
-    fill: ${(props) => props.theme.colors.button.text};
-  }
-  &:hover {
-    background: ${(props) => props.theme.colors.button.nestedActiveBackground};
-  }
-`;
+  return (
+    <StyledSequenceItem
+      $selected={isSelected}
+      $active={playingSequence === item.sequenceIndex}
+      style={{
+        color: "#000",
+        background: `linear-gradient(0deg, hsl(${patternHue(item.patternId)}deg 100% 70%) 0%, hsl(${patternHue(item.patternId)}deg 100% 90%) 100%)`,
+      }}
+      onContextMenu={onContextMenu}
+    >
+      <div style={{ padding: "0 0 2px 2px" }}>{item.sequenceIndex + 1}:</div>
+      <Select
+        value={sequenceOptions.find(
+          (option) => option.value === item.patternId,
+        )}
+        formatOptionLabel={(option, { context }) =>
+          context === "value" ? option.shortLabel : option.label
+        }
+        options={sequenceOptions}
+        onFocus={() => setSelectHasFocus(true)}
+        onBlur={() => setSelectHasFocus(false)}
+        onChange={(newValue: SingleValue<SequenceOption>) => {
+          if (newValue) {
+            editSequence(newValue);
+          }
+        }}
+      />
+      {contextMenuElement}
+    </StyledSequenceItem>
+  );
+};
 
 const SequenceEditorFwd = ({
   sequence,
@@ -91,7 +124,6 @@ const SequenceEditorFwd = ({
   const dispatch = useAppDispatch();
 
   const [selectHasFocus, setSelectHasFocus] = useState(false);
-
   const sequenceId = useAppSelector((state) => state.tracker.selectedSequence);
   const prevSequenceLength = useRef(sequence?.length ?? 0);
 
@@ -102,6 +134,7 @@ const SequenceEditorFwd = ({
     },
     [dispatch],
   );
+
   useEffect(() => {
     if (sequence) {
       const sequenceItemAdded = prevSequenceLength.current < sequence.length;
@@ -139,18 +172,6 @@ const SequenceEditorFwd = ({
         label: `${l10n("FIELD_PATTERN")} ${(patterns || 1).toString().padStart(2, "0")} (New)`,
       },
     ]);
-
-  const editSequence = useCallback(
-    (index: number, newValue: SequenceOption) => {
-      dispatch(
-        trackerDocumentActions.editSequence({
-          sequenceIndex: index,
-          sequenceId: newValue.value,
-        }),
-      );
-    },
-    [dispatch],
-  );
 
   const onAddSequence = useCallback(() => {
     dispatch(trackerDocumentActions.addSequence());
@@ -204,7 +225,7 @@ const SequenceEditorFwd = ({
   );
 
   return (
-    <Wrapper style={{ height }}>
+    <StyledSequenceEditorWrapper style={{ height }}>
       <SortableList
         itemType={"sequence"}
         items={sequenceItems}
@@ -218,33 +239,13 @@ const SequenceEditorFwd = ({
         }}
         renderItem={(item, { isSelected }) => (
           <SequenceItem
-            $selected={isSelected}
-            $active={playingSequence === item.sequenceIndex}
-            style={{
-              color: "#000",
-              background: `linear-gradient(0deg, hsl(${patternHue(item.patternId)}deg 100% 70%) 0%, hsl(${patternHue(item.patternId)}deg 100% 90%) 100%)`,
-            }}
-          >
-            <div style={{ padding: "0 0 2px 2px" }}>
-              {item.sequenceIndex + 1}:
-            </div>
-            <Select
-              value={sequenceOptions.find(
-                (option) => option.value === item.patternId,
-              )}
-              formatOptionLabel={(option, { context }) =>
-                context === "value" ? option.shortLabel : option.label
-              }
-              options={sequenceOptions}
-              onFocus={() => setSelectHasFocus(true)}
-              onBlur={() => setSelectHasFocus(false)}
-              onChange={(newValue: SingleValue<SequenceOption>) => {
-                if (newValue) {
-                  editSequence(item.sequenceIndex, newValue);
-                }
-              }}
-            />
-          </SequenceItem>
+            item={item}
+            isSelected={isSelected}
+            playingSequence={playingSequence}
+            sequenceOptions={sequenceOptions}
+            setSelectHasFocus={setSelectHasFocus}
+            sequenceLength={sequenceItems.length}
+          />
         )}
         moveItems={onMoveSequence}
         onKeyDown={(e) => {
@@ -257,15 +258,15 @@ const SequenceEditorFwd = ({
           }
         }}
         appendComponent={
-          <AddSequenceButton
+          <StyledAddSequenceButton
             onClick={onAddSequence}
             title={l10n("FIELD_ADD_PATTERN")}
           >
             <PlusIcon />
-          </AddSequenceButton>
+          </StyledAddSequenceButton>
         }
       />
-    </Wrapper>
+    </StyledSequenceEditorWrapper>
   );
 };
 

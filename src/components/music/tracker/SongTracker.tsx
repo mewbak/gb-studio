@@ -8,7 +8,7 @@ import React, {
 } from "react";
 import { Song, PatternCell } from "shared/lib/uge/types";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
-import { SequenceEditor } from "components/music/SequenceEditor";
+import { SequenceEditor } from "components/music/sequence/SequenceEditor";
 import { TrackerRow } from "./SongRow";
 import scrollIntoView from "scroll-into-view-if-needed";
 import { TrackerHeaderCell } from "./TrackerHeaderCell";

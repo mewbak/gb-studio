@@ -9,6 +9,7 @@ import {
   TRACKER_PATTERN_LENGTH,
 } from "consts";
 import { patternHue } from "components/music/helpers";
+import { StyledButton } from "ui/buttons/style";
 
 export const StyledPianoRollWrapper = styled.div`
   position: relative;
@@ -240,8 +241,8 @@ export const StyledPianoRollSequenceHeaderOrder = styled.div`
 
 export const StyledPianoRollSequenceHeaderText = styled.div`
   position: sticky;
-  left: 30px;
-  padding: 0 10px;
+  left: 31px;
+  padding: 0 5px;
 `;
 
 export const StyledPianoRollSequenceHeaderPattern = styled.div<{
@@ -275,10 +276,8 @@ export const StyledPianoRollSequenceHeaderPattern = styled.div<{
     content: "";
     background: linear-gradient(
       90deg,
-      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.5) 00%,
       rgba(255, 255, 255, 0.1) 30%,
-      rgba(255, 255, 255, 0.5) 50%,
-      rgba(255, 255, 255, 0.1) 70%,
       rgba(255, 255, 255, 0) 100%
     );
     mix-blend-mode: overlay;
@@ -286,7 +285,19 @@ export const StyledPianoRollSequenceHeaderPattern = styled.div<{
     height: 100%;
     display: flex;
     align-items: center;
-    left: -250%;
+    left: 0px;
+  }
+
+  ${StyledButton} {
+    height: 14px;
+    color: #000;
+    padding: 0 5px;
+  }
+
+  span {
+    height: 14px;
+    color: #000;
+    padding: 0 5px;
   }
 `;
 
