@@ -28,38 +28,6 @@ const renderTrackerContextMenu = ({
   }
   return [
     <MenuItem
-      key="transpose-up-note"
-      onClick={() => {
-        dispatch(
-          trackerDocumentActions.transposeTrackerFields({
-            patternId,
-            selectedTrackerFields,
-            direction: "up",
-            size: "note",
-          }),
-        );
-      }}
-    >
-      {l10n("FIELD_TRANSPOSE_SEMITONE", { n: "+1" })}
-      <MenuAccelerator accelerator="Control+Q" />
-    </MenuItem>,
-    <MenuItem
-      key="transpose-down-note"
-      onClick={() => {
-        dispatch(
-          trackerDocumentActions.transposeTrackerFields({
-            patternId,
-            selectedTrackerFields,
-            direction: "down",
-            size: "note",
-          }),
-        );
-      }}
-    >
-      {l10n("FIELD_TRANSPOSE_SEMITONE", { n: "-1" })}
-      <MenuAccelerator accelerator="Control+A" />
-    </MenuItem>,
-    <MenuItem
       key="transpose-up-octave"
       onClick={() => {
         dispatch(
@@ -91,7 +59,38 @@ const renderTrackerContextMenu = ({
       {l10n("FIELD_TRANSPOSE_OCTAVE", { n: "-1" })}
       <MenuAccelerator accelerator="Control+Shift+A" />
     </MenuItem>,
-
+    <MenuItem
+      key="transpose-up-note"
+      onClick={() => {
+        dispatch(
+          trackerDocumentActions.transposeTrackerFields({
+            patternId,
+            selectedTrackerFields,
+            direction: "up",
+            size: "note",
+          }),
+        );
+      }}
+    >
+      {l10n("FIELD_TRANSPOSE_SEMITONE", { n: "+1" })}
+      <MenuAccelerator accelerator="Alt+Shift+Q" />
+    </MenuItem>,
+    <MenuItem
+      key="transpose-down-note"
+      onClick={() => {
+        dispatch(
+          trackerDocumentActions.transposeTrackerFields({
+            patternId,
+            selectedTrackerFields,
+            direction: "down",
+            size: "note",
+          }),
+        );
+      }}
+    >
+      {l10n("FIELD_TRANSPOSE_SEMITONE", { n: "-1" })}
+      <MenuAccelerator accelerator="Alt+Shift+A" />
+    </MenuItem>,
     <MenuDivider key="clipboard"></MenuDivider>,
     <MenuItem
       key="cut"

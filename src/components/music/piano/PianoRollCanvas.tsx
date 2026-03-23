@@ -252,7 +252,7 @@ export const PianoRollCanvas = ({
       return;
     }
     const onKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.code === "KeyA") {
+      if ((e.metaKey || e.ctrlKey) && !e.shiftKey && e.code === "KeyA") {
         const target = e.target as HTMLElement | null;
         const isEditable =
           target instanceof HTMLInputElement ||
