@@ -503,7 +503,7 @@
   "FIELD_SHIFT_CLOCK_MASK": "Shift Clock Mask",
   "FIELD_DIVIDING_RATIO": "Dividing Ratio",
   "FIELD_BIT_COUNT": "7 bit Counter",
-  "FIELD_SUBPATTERN_ENBALED": "Subpattern Enabled",
+  "FIELD_SUBPATTERN_ENABLED": "Subpattern Enabled",
   "FIELD_INPUT_JUMP": "Jump Button",
   "FIELD_INPUT_JUMP_DESC": "The button that makes the player jump.",
   "FIELD_INPUT_RUN": "Run Button",

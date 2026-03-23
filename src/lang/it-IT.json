@@ -501,7 +501,7 @@
   "FIELD_SHIFT_CLOCK_MASK": "Shift Clock Mask",
   "FIELD_DIVIDING_RATIO": "Rapporto Divisione",
   "FIELD_BIT_COUNT": "Contatore 7 bit",
-  "FIELD_SUBPATTERN_ENBALED": "Sottopattern Abilitato",
+  "FIELD_SUBPATTERN_ENABLED": "Sottopattern Abilitato",
   "FIELD_INPUT_JUMP": "Pulsante Salto",
   "FIELD_INPUT_JUMP_DESC": "Il pulsante che fa saltare il giocatore.",
   "FIELD_INPUT_RUN": "Pulsante Corsa",

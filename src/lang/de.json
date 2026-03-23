@@ -474,7 +474,7 @@
   "FIELD_SHIFT_CLOCK_MASK": "Verschiebung der Taktmaske",
   "FIELD_DIVIDING_RATIO": "Teilungsrate",
   "FIELD_BIT_COUNT": "7-bit-Zähler",
-  "FIELD_SUBPATTERN_ENBALED": "Submuster aktiviert",
+  "FIELD_SUBPATTERN_ENABLED": "Submuster aktiviert",
   "FIELD_INPUT_JUMP": "Sprungtaste",
   "FIELD_INPUT_RUN": "Lauftaste",
   "FIELD_INPUT_INTERACT": "Interaktionstaste",

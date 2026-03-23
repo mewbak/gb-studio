@@ -496,7 +496,7 @@
   "FIELD_SHIFT_CLOCK_MASK": "シフトクロックマスク",
   "FIELD_DIVIDING_RATIO": "分割比",
   "FIELD_BIT_COUNT": "7 ビットカウンター",
-  "FIELD_SUBPATTERN_ENBALED": "サブパターンの有効化",
+  "FIELD_SUBPATTERN_ENABLED": "サブパターンの有効化",
   "FIELD_INPUT_JUMP": "ジャンプボタン",
   "FIELD_INPUT_JUMP_DESC": "プレイヤーをジャンプさせるボタン。",
   "FIELD_INPUT_RUN": "走行ボタン",

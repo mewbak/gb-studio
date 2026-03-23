@@ -469,7 +469,7 @@
   "FIELD_SHIFT_CLOCK_MASK": "Shift Clock Mask",
   "FIELD_DIVIDING_RATIO": "Rasio Pembagian",
   "FIELD_BIT_COUNT": "Counter 7 bit",
-  "FIELD_SUBPATTERN_ENBALED": "Subpolanya Diaktifkan",
+  "FIELD_SUBPATTERN_ENABLED": "Subpolanya Diaktifkan",
   "FIELD_INPUT_JUMP": "Tombol Melompat",
   "FIELD_INPUT_RUN": "Tombol Berlari",
   "FIELD_INPUT_INTERACT": "Tombol Interaksi",

@@ -467,7 +467,7 @@
   "FIELD_SHIFT_CLOCK_MASK": "移位时钟掩码",
   "FIELD_DIVIDING_RATIO": "分割比率",
   "FIELD_BIT_COUNT": "7 位计数器",
-  "FIELD_SUBPATTERN_ENBALED": "子模式已启用",
+  "FIELD_SUBPATTERN_ENABLED": "子模式已启用",
   "FIELD_INPUT_JUMP": "跳跃按钮",
   "FIELD_INPUT_RUN": "奔跑按钮",
   "FIELD_INPUT_INTERACT": "互动按钮",

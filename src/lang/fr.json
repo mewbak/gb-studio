@@ -494,7 +494,7 @@
   "FIELD_SHIFT_CLOCK_MASK": "Masque de décalage d’horloge",
   "FIELD_DIVIDING_RATIO": "Rapport de division",
   "FIELD_BIT_COUNT": "Compteur 7 bits",
-  "FIELD_SUBPATTERN_ENBALED": "Sous-modèle activé",
+  "FIELD_SUBPATTERN_ENABLED": "Sous-modèle activé",
   "FIELD_INPUT_JUMP": "Bouton de saut",
   "FIELD_INPUT_JUMP_DESC": "Le bouton qui permet au joueur de sauter.",
   "FIELD_INPUT_RUN": "Bouton de course",

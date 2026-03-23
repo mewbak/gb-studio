@@ -503,7 +503,7 @@
   "FIELD_SHIFT_CLOCK_MASK": "Маска зсуву тактового сигналу",
   "FIELD_DIVIDING_RATIO": "Коефіцієнт ділення",
   "FIELD_BIT_COUNT": "7-бітний лічильник",
-  "FIELD_SUBPATTERN_ENBALED": "Підпаттерн увімкнено",
+  "FIELD_SUBPATTERN_ENABLED": "Підпаттерн увімкнено",
   "FIELD_INPUT_JUMP": "Кнопка стрибка",
   "FIELD_INPUT_JUMP_DESC": "Кнопка для стрибка гравця.",
   "FIELD_INPUT_RUN": "Кнопка бігу",

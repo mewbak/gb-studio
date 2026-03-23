@@ -494,7 +494,7 @@
   "FIELD_SHIFT_CLOCK_MASK": "Máscara de reloj de desplazamiento",
   "FIELD_DIVIDING_RATIO": "Relación de división",
   "FIELD_BIT_COUNT": "Contador de 7 bits",
-  "FIELD_SUBPATTERN_ENBALED": "Subpatrón habilitado",
+  "FIELD_SUBPATTERN_ENABLED": "Subpatrón habilitado",
   "FIELD_INPUT_JUMP": "Botón de salto",
   "FIELD_INPUT_JUMP_DESC": "El botón que hace que el jugador salte.",
   "FIELD_INPUT_RUN": "Botón Ejecutar",

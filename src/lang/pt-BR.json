@@ -501,7 +501,7 @@
   "FIELD_SHIFT_CLOCK_MASK": "Máscara do relógio de deslocamento",
   "FIELD_DIVIDING_RATIO": "Proporção de divisão",
   "FIELD_BIT_COUNT": "Contador do 7.º bit",
-  "FIELD_SUBPATTERN_ENBALED": "Subpadrão habilitado",
+  "FIELD_SUBPATTERN_ENABLED": "Subpadrão habilitado",
   "FIELD_INPUT_JUMP": "Botão de pulo",
   "FIELD_INPUT_JUMP_DESC": "O botão que faz o jogador pular.",
   "FIELD_INPUT_RUN": "Botão de correr",
