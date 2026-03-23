@@ -49,12 +49,14 @@ interface InstrumentSelectProps extends SelectCommonProps {
   value?: number;
   onChange?: (newId: number) => void;
   noneLabel?: string;
+  note?: number;
 }
 
 export const InstrumentSelect: FC<InstrumentSelectProps> = ({
   value,
   onChange,
   noneLabel,
+  note,
   ...selectProps
 }) => {
   const [options, setOptions] = useState<InstrumentOption[]>([]);
@@ -66,6 +68,8 @@ export const InstrumentSelect: FC<InstrumentSelectProps> = ({
   const selectedChannel = useAppSelector(
     (state) => state.tracker.selectedChannel,
   );
+
+  const previewNote = note ?? NOTE_C5;
 
   useEffect(() => {
     let instruments = defaultInstrumentOptions;
@@ -119,7 +123,7 @@ export const InstrumentSelect: FC<InstrumentSelectProps> = ({
         const instrument = song?.duty_instruments[Number(newValue.value)];
         if (instrument) {
           playDutyNotePreview(
-            NOTE_C5,
+            previewNote,
             instrument,
             selectedChannel === 1 ? 1 : 0,
           );
@@ -128,7 +132,7 @@ export const InstrumentSelect: FC<InstrumentSelectProps> = ({
         const instrument = song?.wave_instruments[Number(newValue.value)];
         if (instrument) {
           playWaveNotePreview(
-            NOTE_C5,
+            previewNote,
             instrument,
             song.waves[instrument.wave_index],
           );
@@ -136,7 +140,7 @@ export const InstrumentSelect: FC<InstrumentSelectProps> = ({
       } else if (selectedChannel === 3) {
         const instrument = song?.noise_instruments[Number(newValue.value)];
         if (instrument) {
-          playNoiseNotePreview(NOTE_C5, instrument);
+          playNoiseNotePreview(previewNote, instrument);
         }
       }
     }

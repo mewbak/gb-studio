@@ -939,6 +939,41 @@ const trackerSlice = createSlice({
       }
     },
 
+    changeNoteAbsoluteCells: (
+      state,
+      action: PayloadAction<{
+        patternCells: PatternCellAddress[];
+        note: number;
+      }>,
+    ) => {
+      if (!state.song) {
+        return;
+      }
+
+      const { patternCells, note } = action.payload;
+
+      const seen = new Set<string>();
+
+      for (const { sequenceId, rowId, channelId } of patternCells) {
+        const patternId = state.song.sequence[sequenceId];
+
+        if (patternId === undefined) {
+          continue;
+        }
+
+        const key = `${patternId}:${rowId}:${channelId}`;
+        if (seen.has(key)) {
+          continue;
+        }
+        seen.add(key);
+
+        const cell = state.song.patterns?.[patternId]?.[rowId]?.[channelId];
+        if (cell) {
+          cell.note = note;
+        }
+      }
+    },
+
     shiftTrackerFields: (
       state,
       action: PayloadAction<{
