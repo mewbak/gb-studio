@@ -67,15 +67,18 @@ const renderInstrumentEditor = (
     );
 };
 
-const instrumentName = (instrument: Instrument, type: string) => {
+const defaultInstrumentName = (instrument: Instrument, type: string) => {
   let typeName = "Instrument";
   if (type === "duty") typeName = "Duty";
   if (type === "wave") typeName = "Wave";
   if (type === "noise") typeName = "Noise";
+  return `${typeName} ${String(instrument.index + 1).padStart(2, "0")}`;
+};
 
+const instrumentName = (instrument: Instrument, type: string) => {
   return instrument.name
     ? instrument.name
-    : `${typeName} ${instrument.index + 1}`;
+    : defaultInstrumentName(instrument, type);
 };
 
 export const SongEditor = () => {
@@ -199,10 +202,7 @@ export const SongEditor = () => {
             <FormSection>
               <FormSectionTitle>
                 {l10n("SIDEBAR_INSTRUMENT")}{" "}
-                {String(parseInt(selectedInstrument.id, 10) + 1).padStart(
-                  2,
-                  "0",
-                )}
+                {defaultInstrumentName(instrumentData, selectedInstrument.type)}
               </FormSectionTitle>
               <FormRow>
                 <Label htmlFor="instrument_name">{l10n("FIELD_NAME")}</Label>
