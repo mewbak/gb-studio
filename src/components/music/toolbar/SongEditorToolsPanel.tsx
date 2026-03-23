@@ -277,22 +277,6 @@ const SongEditorToolsPanel = ({ selectedSong }: SongEditorToolsPanelProps) => {
     };
   });
 
-  const selectedChannel = useAppSelector(
-    (state) => state.tracker.selectedChannel,
-  );
-  const instrumentType = useMemo(() => {
-    switch (selectedChannel) {
-      case 0:
-      case 1:
-        return "duty";
-      case 2:
-        return "wave";
-      case 3:
-        return "noise";
-    }
-    return undefined;
-  }, [selectedChannel]);
-
   const prevExporting = useRef(exporting);
   useEffect(() => {
     if (!song || !playerReady) {
@@ -407,7 +391,6 @@ const SongEditorToolsPanel = ({ selectedSong }: SongEditorToolsPanelProps) => {
           onChange={(newValue) => {
             setSelectedInstrumentId(newValue);
           }}
-          instrumentType={instrumentType}
         />
         {view === "tracker" && (
           <>

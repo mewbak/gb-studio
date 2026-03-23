@@ -14,7 +14,7 @@ import {
   playWaveNotePreview,
 } from "components/music/helpers";
 import { NOTE_C5 } from "consts";
-import { InstrumentType } from "shared/lib/music/types";
+import l10n from "shared/lib/lang/l10n";
 
 type InstrumentOption = {
   value: number;
@@ -48,16 +48,13 @@ interface InstrumentSelectProps extends SelectCommonProps {
   name: string;
   value?: number;
   onChange?: (newId: number) => void;
-  optional?: boolean;
-  optionalLabel?: string;
-  optionalDefaultInstrumentId?: string;
-  instrumentType?: InstrumentType;
+  noneLabel?: string;
 }
 
 export const InstrumentSelect: FC<InstrumentSelectProps> = ({
   value,
-  instrumentType,
   onChange,
+  noneLabel,
   ...selectProps
 }) => {
   const [options, setOptions] = useState<InstrumentOption[]>([]);
@@ -73,20 +70,21 @@ export const InstrumentSelect: FC<InstrumentSelectProps> = ({
   useEffect(() => {
     let instruments = defaultInstrumentOptions;
     if (song) {
-      switch (instrumentType) {
-        case "duty":
+      switch (selectedChannel) {
+        case 0:
+        case 1:
           instruments = song?.duty_instruments.map((instrument) => ({
             value: instrument.index,
             label: instrument.name || `Duty ${instrument.index + 1}`,
           }));
           break;
-        case "wave":
+        case 2:
           instruments = song?.wave_instruments.map((instrument) => ({
             value: instrument.index,
             label: instrument.name || `Wave ${instrument.index + 1}`,
           }));
           break;
-        case "noise":
+        case 3:
           instruments = song?.noise_instruments.map((instrument) => ({
             value: instrument.index,
             label: instrument.name || `Noise ${instrument.index + 1}`,
@@ -97,7 +95,7 @@ export const InstrumentSelect: FC<InstrumentSelectProps> = ({
     setOptions(
       ([] as InstrumentOption[]).concat([] as InstrumentOption[], instruments),
     );
-  }, [instrumentType, song]);
+  }, [selectedChannel, song]);
 
   useEffect(() => {
     setCurrentInstrument(options.find((v) => v.value === value));
@@ -107,17 +105,17 @@ export const InstrumentSelect: FC<InstrumentSelectProps> = ({
     if (currentInstrument) {
       setCurrentValue(currentInstrument);
     } else {
-      const firstInstrument = options[0];
-      if (firstInstrument) {
-        setCurrentValue(firstInstrument);
-      }
+      setCurrentValue({
+        value: -1,
+        label: noneLabel ?? l10n("FIELD_NONE"),
+      });
     }
-  }, [currentInstrument, options]);
+  }, [currentInstrument, noneLabel, options]);
 
   const onSelectChange = (newValue: SingleValue<InstrumentOption>) => {
     if (newValue) {
       onChange?.(newValue.value);
-      if (instrumentType === "duty") {
+      if (selectedChannel === 0 || selectedChannel === 1) {
         const instrument = song?.duty_instruments[Number(newValue.value)];
         if (instrument) {
           playDutyNotePreview(
@@ -126,7 +124,7 @@ export const InstrumentSelect: FC<InstrumentSelectProps> = ({
             selectedChannel === 1 ? 1 : 0,
           );
         }
-      } else if (instrumentType === "wave") {
+      } else if (selectedChannel === 2) {
         const instrument = song?.wave_instruments[Number(newValue.value)];
         if (instrument) {
           playWaveNotePreview(
@@ -135,7 +133,7 @@ export const InstrumentSelect: FC<InstrumentSelectProps> = ({
             song.waves[instrument.wave_index],
           );
         }
-      } else if (instrumentType === "noise") {
+      } else if (selectedChannel === 3) {
         const instrument = song?.noise_instruments[Number(newValue.value)];
         if (instrument) {
           playNoiseNotePreview(NOTE_C5, instrument);
@@ -160,14 +158,19 @@ export const InstrumentSelect: FC<InstrumentSelectProps> = ({
         );
       }}
       components={{
-        SingleValue: () => (
-          <SingleValueWithPreview
-            preview={<LabelColor $instrument={Number(value)} />}
-          >
-            {String((currentValue?.value ?? 0) + 1).padStart(2, "0")}:{" "}
-            {currentValue?.label}
-          </SingleValueWithPreview>
-        ),
+        SingleValue: () =>
+          !currentValue || currentValue.value === -1 ? (
+            <SingleValueWithPreview>
+              {currentValue?.label}
+            </SingleValueWithPreview>
+          ) : (
+            <SingleValueWithPreview
+              preview={<LabelColor $instrument={Number(value)} />}
+            >
+              {String((currentValue?.value ?? 0) + 1).padStart(2, "0")}:{" "}
+              {currentValue?.label}
+            </SingleValueWithPreview>
+          ),
       }}
       {...selectProps}
     />

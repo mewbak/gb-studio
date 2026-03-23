@@ -1183,17 +1183,6 @@ export const PianoRollCanvas = ({
               .filter((cell) => cell !== null),
           ),
         );
-      } else if (!isDraggingNotes && selectedPatternCells.length === 1) {
-        const selectedCell = selectedPatternCells[0];
-        const patternId = song.sequence[selectedCell.sequenceId];
-        dispatch(
-          trackerActions.setSelectedEffectCell({
-            sequenceId: selectedCell.sequenceId,
-            patternId,
-            rowId: selectedCell.rowId,
-            channelId: selectedCell.channelId,
-          }),
-        );
       }
 
       setSelectionRect(undefined);

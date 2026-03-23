@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import { PatternCell } from "shared/lib/uge/types";
 import trackerActions from "store/features/tracker/trackerActions";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
@@ -52,6 +52,19 @@ export const PianoRollEffectRow = React.memo(
     const selectedEffectCell = useAppSelector(
       (state) => state.tracker.selectedEffectCell,
     );
+    const selectedPatternCells = useAppSelector(
+      (state) => state.tracker.selectedPatternCells,
+    );
+
+    const selectedRowIds = useMemo(() => {
+      return selectedPatternCells
+        .filter(
+          (cell) =>
+            cell.sequenceId === sequenceId && cell.channelId === channelId,
+        )
+        .map((cell) => cell.rowId);
+    }, [channelId, selectedPatternCells, sequenceId]);
+
     const songDocument = useAppSelector(
       (state) => state.trackerDocument.present.song,
     );
@@ -91,6 +104,15 @@ export const PianoRollEffectRow = React.memo(
                 channelId,
               }),
             );
+            dispatch(
+              trackerActions.setSelectedPatternCells([
+                {
+                  sequenceId,
+                  rowId: col,
+                  channelId,
+                },
+              ]),
+            );
           }
         } else if (e.button === 2 || (tool === "eraser" && e.button === 0)) {
           if (hasEffect(cell)) {
@@ -123,12 +145,7 @@ export const PianoRollEffectRow = React.memo(
         {renderPattern?.map((column: PatternCell[], columnIdx: number) => {
           const cell = column[channelId];
 
-          const isSelected = !!(
-            selectedEffectCell &&
-            selectedEffectCell.patternId === patternId &&
-            selectedEffectCell.rowId === columnIdx &&
-            selectedEffectCell.channelId === channelId
-          );
+          const isSelected = selectedRowIds.includes(columnIdx);
 
           if (
             !cell ||

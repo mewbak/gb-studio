@@ -28,7 +28,7 @@ interface OptionLabelWithInfoProps {
 }
 
 interface SingleValueWithPreviewProps {
-  preview: ReactNode;
+  preview?: ReactNode;
   children: ReactNode;
 }
 
@@ -280,11 +280,13 @@ export const SingleValueWithPreview: FC<SingleValueWithPreviewProps> = ({
   children,
 }) => (
   <SingleValueWithPreviewWrapper>
-    <SingleValuePreview>
-      <SingleValuePreviewOffset>
-        <ValuePreview>{preview}</ValuePreview>
-      </SingleValuePreviewOffset>
-    </SingleValuePreview>
+    {preview && (
+      <SingleValuePreview>
+        <SingleValuePreviewOffset>
+          <ValuePreview>{preview}</ValuePreview>
+        </SingleValuePreviewOffset>
+      </SingleValuePreview>
+    )}
     {children}
   </SingleValueWithPreviewWrapper>
 );

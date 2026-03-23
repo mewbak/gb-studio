@@ -247,14 +247,6 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
     );
     dispatch(trackerActions.setSelectedChannel(newChannelId));
 
-    dispatch(
-      trackerActions.setSelectedEffectCell({
-        sequenceId,
-        patternId,
-        rowId: Math.floor(activeField / TRACKER_ROW_SIZE),
-        channelId: newChannelId,
-      }),
-    );
   }, [activeField, dispatch, patternId, sequenceId]);
 
   const handleMouseDown = useCallback(
@@ -316,6 +308,8 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
       return;
     }
     isMouseDownRef.current = false;
+    isSelectingRef.current = false;
+    selectionOriginRef.current = undefined;
   }, []);
 
   const handleMouseMove = useCallback(

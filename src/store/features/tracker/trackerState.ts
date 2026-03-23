@@ -19,6 +19,8 @@ export type PianoRollToolType = "pencil" | "eraser" | "selection" | null;
 
 export type TrackerViewType = "tracker" | "roll";
 
+export type TrackerSidebarViewType = "instrument" | "cell";
+
 interface SelectedInstrument {
   id: string;
   type: InstrumentType;
@@ -81,6 +83,7 @@ interface TrackerState {
   exportLoopCount: number;
   channelStatus: [boolean, boolean, boolean, boolean];
   pastedPattern: PatternCell[][] | null;
+  sidebarView: TrackerSidebarViewType;
 }
 
 export const initialState: TrackerState = {
@@ -120,6 +123,7 @@ export const initialState: TrackerState = {
   exportLoopCount: 1,
   channelStatus: [false, false, false, false],
   pastedPattern: null,
+  sidebarView: "instrument",
 };
 
 const trackerSlice = createSlice({
@@ -166,10 +170,10 @@ const trackerSlice = createSlice({
     },
     setSelectedInstrumentId: (state, action: PayloadAction<number>) => {
       state.selectedInstrumentId = clamp(action.payload, 0, 15);
+      state.sidebarView = "instrument";
     },
     setSelectedChannel: (state, action: PayloadAction<number>) => {
       if (state.selectedChannel !== action.payload) {
-        state.selectedPatternCells = [];
         state.selectedEffectCell = null;
         state.selectedChannel = action.payload;
       }
@@ -208,6 +212,9 @@ const trackerSlice = createSlice({
       action: PayloadAction<PatternCellAddress[]>,
     ) => {
       state.selectedPatternCells = action.payload;
+      if (action.payload.length > 0) {
+        state.sidebarView = "cell";
+      }
     },
     setSelectedEffectCell: (
       state,
@@ -252,6 +259,10 @@ const trackerSlice = createSlice({
 
     clearPastedPattern: (state) => {
       state.pastedPattern = null;
+    },
+
+    setSidebarView: (state, action: PayloadAction<TrackerSidebarViewType>) => {
+      state.sidebarView = action.payload;
     },
   },
   extraReducers: (builder) =>

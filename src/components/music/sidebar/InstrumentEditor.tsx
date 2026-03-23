@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import styled from "styled-components";
 
 import {
@@ -23,7 +23,6 @@ import {
 } from "shared/lib/uge/types";
 import l10n from "shared/lib/lang/l10n";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
-import trackerActions from "store/features/tracker/trackerActions";
 import { useAppDispatch, useAppSelector } from "store/hooks";
 
 type Instrument = DutyInstrument | NoiseInstrument | WaveInstrument;
@@ -64,9 +63,6 @@ export const InstrumentEditor = () => {
   const [instrumentEditorTab, setInstrumentEditorTab] =
     useState<InstrumentEditorTab>("main");
 
-  useEffect(() => {
-    dispatch(trackerActions.setSelectedEffectCell(null));
-  }, [dispatch, selectedInstrument]);
 
   const instrumentType = selectedInstrument.type as InstrumentType;
   const selectedInstrumentId = Number.parseInt(selectedInstrument.id, 10);
