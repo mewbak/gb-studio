@@ -163,7 +163,6 @@ export const InstrumentEditor = () => {
 
   return (
     <>
-      ABC
       <FormSection>
         <FormSectionTitle>
           {l10n("SIDEBAR_INSTRUMENT")}{" "}

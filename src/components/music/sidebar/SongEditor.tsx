@@ -16,14 +16,11 @@ export const SongEditor = () => {
   const selectedEffectCell = useAppSelector(
     (state) => state.tracker.selectedEffectCell,
   );
-  const sequenceId = useAppSelector((state) => state.tracker.selectedSequence);
   const song = useAppSelector((state) => state.trackerDocument.present.song);
 
   useEffect(() => {
     dispatch(trackerActions.setSelectedEffectCell(null));
   }, [dispatch, selectedInstrument]);
-
-  const patternId = song?.sequence[sequenceId] ?? 0;
 
   if (!song) {
     return null;
@@ -33,11 +30,10 @@ export const SongEditor = () => {
     if (selectedEffectCell !== null) {
       return (
         <div style={{ marginTop: -1 }}>
-          [-{selectedEffectCell}-]
           <PatternCellEditor
-            id={selectedEffectCell}
-            patternId={patternId}
-            pattern={song.patterns[patternId][selectedEffectCell]}
+            rowId={selectedEffectCell.rowId}
+            patternId={selectedEffectCell.patternId}
+            channelId={selectedEffectCell.channelId}
           />
         </div>
       );

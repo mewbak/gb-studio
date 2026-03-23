@@ -230,12 +230,15 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
 
     if (activeField % TRACKER_CHANNEL_FIELDS >= 2) {
       dispatch(
-        trackerActions.setSelectedEffectCell(
-          Math.floor(activeField / TRACKER_ROW_SIZE),
-        ),
+        trackerActions.setSelectedEffectCell({
+          sequenceId,
+          patternId,
+          rowId: Math.floor(activeField / TRACKER_ROW_SIZE),
+          channelId: newChannelId,
+        }),
       );
     }
-  }, [activeField, dispatch]);
+  }, [activeField, dispatch, patternId, sequenceId]);
 
   const getCurrentSelectedTrackerFields = useCallback(() => {
     return selectedTrackerFieldsRef.current;

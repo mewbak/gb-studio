@@ -895,6 +895,18 @@ export const PianoRollCanvas = ({
           if (!selectedPatternCells.includes(absRow)) {
             dispatch(trackerActions.setSelectedPatternCells([absRow]));
           }
+
+          const { sequenceId, rowId } = fromAbsRow(absRow);
+          const patternId = song.sequence[sequenceId];
+          dispatch(
+            trackerActions.setSelectedEffectCell({
+              sequenceId,
+              patternId,
+              rowId,
+              channelId: selectedChannel,
+            }),
+          );
+
           setIsMouseDown(true);
           setIsDraggingNotes(false);
           setNoteDragOrigin({ absRow: absRow, note: cell.note });

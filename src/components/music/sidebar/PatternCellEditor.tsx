@@ -153,17 +153,22 @@ const VibrateWaveFormOptionWrapper = styled.div`
 `;
 
 interface PatternCellEditorProps {
-  id: number;
   patternId: number;
-  pattern: PatternCell[];
+  rowId: number;
+  channelId: number;
 }
 
 export const PatternCellEditor = ({
-  id,
   patternId,
-  pattern,
+  rowId,
+  channelId,
 }: PatternCellEditorProps) => {
   const dispatch = useAppDispatch();
+
+  const pattern = useAppSelector(
+    (state) =>
+      state.trackerDocument.present.song?.patterns?.[patternId]?.[rowId],
+  );
 
   const effectCodeOptions: EffectCodeOptionGroup[] = useMemo(
     () => [
@@ -285,17 +290,16 @@ export const PatternCellEditor = ({
     [],
   );
 
-  const selectedChannel = useAppSelector(
-    (state) => state.tracker.selectedChannel,
-  );
-
   const [selectedEffectCode, setSelectedEffectCode] =
     useState<EffectCodeOption>();
   useEffect(() => {
+    if (!pattern) {
+      return;
+    }
     let option: EffectCodeOption | null = null;
     effectCodeOptions.find((optGroup) => {
       const foundOption = optGroup.options.find(
-        (opt) => opt.value === pattern[selectedChannel].effectcode,
+        (opt) => opt.value === pattern[channelId].effectcode,
       );
       if (foundOption) {
         option = foundOption;
@@ -304,7 +308,7 @@ export const PatternCellEditor = ({
       return false;
     });
     setSelectedEffectCode(option || effectCodeOptions[0]?.options[0]);
-  }, [effectCodeOptions, pattern, selectedChannel, selectedEffectCode]);
+  }, [effectCodeOptions, pattern, channelId, selectedEffectCode]);
 
   const renderEffectEditor = (
     note: number | null,
@@ -784,7 +788,7 @@ export const PatternCellEditor = ({
       dispatch(
         trackerDocumentActions.editPatternCell({
           patternId: patternId,
-          cell: [id, selectedChannel],
+          cell: [rowId, channelId],
           changes: {
             [key]: editValue,
           },
@@ -810,13 +814,17 @@ export const PatternCellEditor = ({
       dispatch(
         trackerDocumentActions.editPatternCell({
           patternId: patternId,
-          cell: [id, selectedChannel],
+          cell: [rowId, channelId],
           changes: newChanges,
         }),
       );
     };
 
-  const { note, effectcode, effectparam } = pattern[selectedChannel];
+  if (!pattern) {
+    return null;
+  }
+
+  const { note, effectcode, effectparam } = pattern[channelId];
 
   return (
     <>

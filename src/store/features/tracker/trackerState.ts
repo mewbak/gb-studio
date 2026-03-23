@@ -12,7 +12,10 @@ import trackerDocumentActions from "store/features/trackerDocument/trackerDocume
 import { PatternCell } from "shared/lib/uge/types";
 import { AppThunk } from "store/configureStore";
 import API from "renderer/lib/api";
-import { parseClipboardToPattern } from "store/features/trackerDocument/trackerDocumentHelpers";
+import {
+  parseClipboardToPattern,
+  toAbsRow,
+} from "store/features/trackerDocument/trackerDocumentHelpers";
 
 export type PianoRollToolType = "pencil" | "eraser" | "selection" | null;
 
@@ -21,6 +24,13 @@ export type TrackerViewType = "tracker" | "roll";
 interface SelectedInstrument {
   id: string;
   type: InstrumentType;
+}
+
+interface CellAddress {
+  sequenceId: number;
+  patternId: number;
+  rowId: number;
+  channelId: number;
 }
 
 export const pasteAbsoluteCells =
@@ -67,7 +77,7 @@ interface TrackerState {
   selectedSequence: number;
   selectedPatternCells: number[];
   selection: [number, number, number, number];
-  selectedEffectCell: number | null;
+  selectedEffectCell: CellAddress | null;
   subpatternEditorFocus: boolean;
   exportFormat: MusicExportFormat;
   exportLoopCount: number;
@@ -199,9 +209,16 @@ const trackerSlice = createSlice({
       state.selectedEffectCell = null;
       state.selectedPatternCells = _action.payload;
     },
-    setSelectedEffectCell: (state, action: PayloadAction<number | null>) => {
+    setSelectedEffectCell: (
+      state,
+      action: PayloadAction<CellAddress | null>,
+    ) => {
       if (state.selectedEffectCell !== action.payload) {
-        state.selectedPatternCells = [];
+        if (action.payload) {
+          state.selectedPatternCells = [
+            toAbsRow(action.payload.sequenceId, action.payload.rowId),
+          ];
+        }
         state.selectedEffectCell = action.payload;
       }
     },
