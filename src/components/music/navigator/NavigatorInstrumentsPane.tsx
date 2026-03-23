@@ -114,6 +114,7 @@ export const NavigatorInstrumentsPane = ({
   const selectedInstrument = useAppSelector(
     (state) => state.tracker.selectedInstrument,
   );
+
   const selectedChannel = useAppSelector(
     (state) => state.tracker.selectedChannel,
   );
@@ -339,6 +340,32 @@ export const NavigatorInstrumentsPane = ({
       item.name
     }`;
   }, []);
+
+  const selectedChannelType = useMemo(() => {
+    if (selectedChannel === 2) {
+      return "wave";
+    } else if (selectedChannel === 3) {
+      return "noise";
+    }
+    return "duty";
+  }, [selectedChannel]);
+
+  useEffect(() => {
+    if (syncInstruments && selectedChannelType !== selectedInstrument.type) {
+      dispatch(
+        trackerActions.setSelectedInstrument({
+          id: selectedInstrument.id,
+          type: selectedChannelType,
+        }),
+      );
+    }
+  }, [
+    dispatch,
+    selectedChannelType,
+    selectedInstrument.id,
+    selectedInstrument.type,
+    syncInstruments,
+  ]);
 
   return (
     <SplitPane style={{ height }}>
