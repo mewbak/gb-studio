@@ -83,7 +83,7 @@ export const InstrumentEditor = () => {
     setInstrumentEditorTab(tab);
   }, []);
 
-  const instrumentData = useMemo(() => {
+  const resolvedInstrument = useMemo(() => {
     if (!song) {
       return null;
     }
@@ -91,20 +91,20 @@ export const InstrumentEditor = () => {
     if (instrumentType === "duty") {
       return {
         instrumentType,
-        data: song.duty_instruments[selectedInstrumentId] ?? null,
+        instrument: song.duty_instruments[selectedInstrumentId] ?? null,
       };
     }
 
     if (instrumentType === "noise") {
       return {
         instrumentType,
-        data: song.noise_instruments[selectedInstrumentId] ?? null,
+        instrument: song.noise_instruments[selectedInstrumentId] ?? null,
       };
     }
 
     return {
       instrumentType,
-      data: song.wave_instruments[selectedInstrumentId] ?? null,
+      instrument: song.wave_instruments[selectedInstrumentId] ?? null,
     };
   }, [song, instrumentType, selectedInstrumentId]);
 
@@ -122,31 +122,31 @@ export const InstrumentEditor = () => {
 
   const onChangeInstrumentName = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      if (!instrumentData) {
+      if (!resolvedInstrument) {
         return;
       }
 
       dispatch(
         editInstrument({
-          instrumentId: instrumentData.data.index,
+          instrumentId: resolvedInstrument.instrument.index,
           changes: {
             name: e.currentTarget.value,
           },
         }),
       );
     },
-    [dispatch, editInstrument, instrumentData],
+    [dispatch, editInstrument, resolvedInstrument],
   );
 
   const onChangeInstrumentSubpatternEnabled = useCallback(
     (enabled: boolean) => {
-      if (!instrumentData) {
+      if (!resolvedInstrument) {
         return;
       }
 
       dispatch(
         editInstrument({
-          instrumentId: instrumentData.data.index,
+          instrumentId: resolvedInstrument.instrument.index,
           changes: {
             // eslint-disable-next-line camelcase
             subpattern_enabled: enabled,
@@ -154,10 +154,10 @@ export const InstrumentEditor = () => {
         }),
       );
     },
-    [dispatch, editInstrument, instrumentData],
+    [dispatch, editInstrument, resolvedInstrument],
   );
 
-  if (!song || !instrumentData) {
+  if (!song || !resolvedInstrument || !resolvedInstrument.instrument) {
     return null;
   }
 
@@ -167,8 +167,8 @@ export const InstrumentEditor = () => {
         <FormSectionTitle>
           {l10n("SIDEBAR_INSTRUMENT")}{" "}
           {getDefaultInstrumentName(
-            instrumentData.data,
-            instrumentData.instrumentType,
+            resolvedInstrument.instrument,
+            resolvedInstrument.instrumentType,
           )}
         </FormSectionTitle>
 
@@ -181,10 +181,10 @@ export const InstrumentEditor = () => {
             id="instrument_name"
             name="instrument_name"
             placeholder={getInstrumentName(
-              instrumentData.data,
-              instrumentData.instrumentType,
+              resolvedInstrument.instrument,
+              resolvedInstrument.instrumentType,
             )}
-            value={instrumentData.data.name || ""}
+            value={resolvedInstrument.instrument.name || ""}
             onChange={onChangeInstrumentName}
           />
         </FormRow>
@@ -202,7 +202,7 @@ export const InstrumentEditor = () => {
             <CheckboxField
               name="subpatternEnabled"
               label={l10n("FIELD_SUBPATTERN_ENABLED")}
-              checked={instrumentData.data.subpattern_enabled}
+              checked={resolvedInstrument.instrument.subpattern_enabled}
               onChange={(e) =>
                 onChangeInstrumentSubpatternEnabled(e.target.checked)
               }
@@ -212,36 +212,36 @@ export const InstrumentEditor = () => {
       </StickyTabs>
       <InstrumentEditorWrapper>
         {instrumentEditorTab === "main" &&
-        instrumentData.instrumentType === "duty" ? (
+        resolvedInstrument.instrumentType === "duty" ? (
           <InstrumentDutyEditor
-            id={`instrument_${instrumentData.data.index}`}
-            instrument={instrumentData.data}
+            id={`instrument_${resolvedInstrument.instrument.index}`}
+            instrument={resolvedInstrument.instrument}
           />
         ) : null}
 
         {instrumentEditorTab === "main" &&
-        instrumentData.instrumentType === "noise" ? (
+        resolvedInstrument.instrumentType === "noise" ? (
           <InstrumentNoiseEditor
-            id={`instrument_${instrumentData.data.index}`}
-            instrument={instrumentData.data}
+            id={`instrument_${resolvedInstrument.instrument.index}`}
+            instrument={resolvedInstrument.instrument}
           />
         ) : null}
 
         {instrumentEditorTab === "main" &&
-        instrumentData.instrumentType === "wave" ? (
+        resolvedInstrument.instrumentType === "wave" ? (
           <InstrumentWaveEditor
-            id={`instrument_${instrumentData.data.index}`}
-            instrument={instrumentData.data}
+            id={`instrument_${resolvedInstrument.instrument.index}`}
+            instrument={resolvedInstrument.instrument}
             waveForms={song.waves}
           />
         ) : null}
 
         {instrumentEditorTab === "subpattern" ? (
           <InstrumentSubpatternEditor
-            enabled={instrumentData.data.subpattern_enabled}
-            subpattern={instrumentData.data.subpattern}
-            instrumentId={instrumentData.data.index}
-            instrumentType={instrumentData.instrumentType}
+            enabled={resolvedInstrument.instrument.subpattern_enabled}
+            subpattern={resolvedInstrument.instrument.subpattern}
+            instrumentId={resolvedInstrument.instrument.index}
+            instrumentType={resolvedInstrument.instrumentType}
           />
         ) : null}
       </InstrumentEditorWrapper>
