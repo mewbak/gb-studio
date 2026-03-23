@@ -6,7 +6,7 @@ import React, {
   useState,
   useLayoutEffect,
 } from "react";
-import { Song, PatternCell } from "shared/lib/uge/types";
+import { Song } from "shared/lib/uge/types";
 import { useAppDispatch, useAppSelector } from "store/hooks";
 import { PianoRollPatternBlock } from "./PianoRollPatternBlock";
 import {
@@ -35,12 +35,7 @@ import trackerActions from "store/features/tracker/trackerActions";
 import API from "renderer/lib/api";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
 import { createPatternCell } from "shared/lib/uge/song";
-import {
-  parsePatternToClipboard,
-  parseClipboardToPattern,
-  parseClipboardOrigin,
-  NO_CHANGE_ON_PASTE,
-} from "components/music/musicClipboardHelpers";
+import { NO_CHANGE_ON_PASTE } from "components/music/musicClipboardHelpers";
 import { playNotePreview } from "components/music/helpers";
 import {
   calculateDocumentWidth,
@@ -66,6 +61,12 @@ import {
 } from "store/features/trackerDocument/trackerDocumentHelpers";
 import renderPianoContextMenu from "components/music/contentMenus/renderPianoContextMenu";
 import { useContextMenu } from "ui/hooks/use-context-menu";
+import {
+  copyAbsoluteCells,
+  cutAbsoluteCells,
+  pasteInPlace,
+} from "store/features/trackerDocument/trackerDocumentState";
+import { pasteAbsoluteCells } from "store/features/tracker/trackerState";
 
 const GRID_MARGIN = 0;
 
@@ -121,13 +122,11 @@ export const PianoRollCanvas = ({
   const subpatternEditorFocus = useAppSelector(
     (state) => state.tracker.subpatternEditorFocus,
   );
+  const pastedPattern = useAppSelector((state) => state.tracker.pastedPattern);
 
   const addToSelection = useRef(false);
   const clonePatternCells = useRef(false);
   const [isCloneMode, setIsCloneMode] = useState(false);
-  const [pastedPattern, setPastedPattern] = useState<PatternCell[][] | null>(
-    null,
-  );
 
   const [isMouseDown, setIsMouseDown] = useState<boolean>(false);
   const [isDraggingNotes, setIsDraggingNotes] = useState(false);
@@ -336,7 +335,7 @@ export const PianoRollCanvas = ({
         setIsDraggingNotes(false);
         setDragDelta({ rows: 0, notes: 0 });
         setNoteDragOrigin(null);
-        setPastedPattern(null);
+        dispatch(trackerActions.clearPastedPattern());
       }
     },
     [
@@ -346,20 +345,6 @@ export const PianoRollCanvas = ({
       song.patterns,
       song.sequence,
     ],
-  );
-
-  const transposeSelectedIds = useCallback(
-    (direction: "up" | "down", size: "note" | "octave") => {
-      dispatch(
-        trackerDocumentActions.transposeAbsoluteCells({
-          channelId: selectedChannel,
-          absRows: selectedPatternCells,
-          direction,
-          size,
-        }),
-      );
-    },
-    [dispatch, selectedPatternCells, selectedChannel],
   );
 
   const changeInstrumentForSelectedIds = useCallback(() => {
@@ -383,29 +368,71 @@ export const PianoRollCanvas = ({
         clonePatternCells.current = true;
         setIsCloneMode(true);
       }
-      if (e.ctrlKey) {
-        if (e.shiftKey) {
-          if (e.code === "KeyQ" || e.key === "+" || e.key === "=") {
-            transposeSelectedIds("up", "octave");
-            return true;
-          }
-          if (e.code === "KeyA" || e.key === "_") {
-            transposeSelectedIds("down", "octave");
-            return true;
-          }
-        } else {
-          if (e.code === "KeyQ" || e.key === "=") {
-            transposeSelectedIds("up", "note");
-            return true;
-          }
-          if (e.code === "KeyA" || e.key === "-") {
-            transposeSelectedIds("down", "note");
-            return true;
-          }
-          if (e.code === "KeyI") {
-            changeInstrumentForSelectedIds();
-            return true;
-          }
+      if (e.ctrlKey && e.shiftKey) {
+        if (e.code === "KeyQ" || e.key === "+" || e.key === "=") {
+          dispatch(
+            trackerDocumentActions.transposeAbsoluteCells({
+              channelId: selectedChannel,
+              absRows: selectedPatternCells,
+              direction: "up",
+              size: "octave",
+            }),
+          );
+          return true;
+        }
+        if (e.code === "KeyA" || e.key === "_") {
+          dispatch(
+            trackerDocumentActions.transposeAbsoluteCells({
+              channelId: selectedChannel,
+              absRows: selectedPatternCells,
+              direction: "down",
+              size: "octave",
+            }),
+          );
+          return true;
+        }
+      } else if (e.altKey && e.shiftKey) {
+        if (e.code === "KeyQ" || e.key === "=") {
+          dispatch(
+            trackerDocumentActions.transposeAbsoluteCells({
+              channelId: selectedChannel,
+              absRows: selectedPatternCells,
+              direction: "up",
+              size: "note",
+            }),
+          );
+          return true;
+        }
+        if (e.code === "KeyA" || e.key === "-") {
+          dispatch(
+            trackerDocumentActions.transposeAbsoluteCells({
+              channelId: selectedChannel,
+              absRows: selectedPatternCells,
+              direction: "down",
+              size: "note",
+            }),
+          );
+          return true;
+        }
+      } else if (e.ctrlKey) {
+        if (e.code === "KeyI") {
+          dispatch(
+            trackerDocumentActions.changeInstrumentAbsoluteCells({
+              channelId: selectedChannel,
+              absRows: selectedPatternCells,
+              instrumentId: selectedInstrumentId,
+            }),
+          );
+          return true;
+        }
+        if (e.code === "KeyK") {
+          dispatch(
+            trackerDocumentActions.interpolateAbsoluteCells({
+              channelId: selectedChannel,
+              absRows: selectedPatternCells,
+            }),
+          );
+          return true;
         }
       }
 
@@ -429,7 +456,13 @@ export const PianoRollCanvas = ({
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("keyup", onKeyUp);
     };
-  }, [transposeSelectedIds, changeInstrumentForSelectedIds]);
+  }, [
+    changeInstrumentForSelectedIds,
+    dispatch,
+    selectedChannel,
+    selectedPatternCells,
+    selectedInstrumentId,
+  ]);
 
   const displayChannels = useMemo(
     () =>
@@ -825,7 +858,7 @@ export const PianoRollCanvas = ({
             );
           },
         );
-        setPastedPattern(null);
+        dispatch(trackerActions.clearPastedPattern());
         return;
       }
 
@@ -1174,140 +1207,41 @@ export const PianoRollCanvas = ({
     (e: ClipboardEvent) => {
       if (!(e.target instanceof HTMLElement)) return;
       if (e.target.nodeName === "INPUT") return;
-      if (selectedPatternCells.length === 0) return;
-      const flatPattern = song.sequence.flatMap((pid) => song.patterns[pid]);
-      const originAbsRow = Math.min(...selectedPatternCells);
-      const parsedSelectedPattern = parsePatternToClipboard(
-        flatPattern,
-        selectedChannel,
-        selectedPatternCells,
-        originAbsRow,
+      dispatch(
+        copyAbsoluteCells({
+          channelId: selectedChannel,
+          absRows: selectedPatternCells,
+        }),
       );
-      e.preventDefault();
-      e.clipboardData?.setData("text/plain", parsedSelectedPattern);
-      void API.clipboard.writeText(parsedSelectedPattern);
     },
-    [selectedChannel, selectedPatternCells, song.patterns, song.sequence],
+    [dispatch, selectedChannel, selectedPatternCells],
   );
 
   const onCut = useCallback(
-    (e?: ClipboardEvent) => {
-      if (selectedPatternCells.length === 0) return;
-      const flatPattern = song.sequence.flatMap((pid) => song.patterns[pid]);
-      const originAbsRow = Math.min(...selectedPatternCells);
-      const parsedSelectedPattern = parsePatternToClipboard(
-        flatPattern,
-        selectedChannel,
-        selectedPatternCells,
-        originAbsRow,
+    (e: ClipboardEvent) => {
+      if (!(e.target instanceof HTMLElement)) return;
+      if (e.target.nodeName === "INPUT") return;
+      dispatch(
+        cutAbsoluteCells({
+          channelId: selectedChannel,
+          absRows: selectedPatternCells,
+        }),
       );
-      e?.preventDefault();
-      e?.clipboardData?.setData("text/plain", parsedSelectedPattern);
-      void API.clipboard.writeText(parsedSelectedPattern);
-      const { clonedPatterns, changedPatternIds } =
-        mutatePatternsAndCollectChanges(song.patterns, (patterns, changed) => {
-          for (const absRow of selectedPatternCells) {
-            const resolved = resolveAbsRow(song.sequence, absRow);
-            if (!resolved) continue;
-            patterns[resolved.patternId][resolved.rowId][selectedChannel] =
-              createPatternCell();
-            changed.add(resolved.patternId);
-          }
-        });
-
-      commitChangedPatterns(
-        changedPatternIds,
-        clonedPatterns,
-        (patternId, pattern) => {
-          dispatch(
-            trackerDocumentActions.editPattern({
-              patternId,
-              pattern,
-            }),
-          );
-        },
-      );
-      dispatch(trackerActions.setSelectedPatternCells([]));
     },
-    [
-      dispatch,
-      selectedChannel,
-      selectedPatternCells,
-      song.patterns,
-      song.sequence,
-    ],
+    [dispatch, selectedChannel, selectedPatternCells],
   );
 
-  const onPaste = useCallback(async () => {
-    const newPastedPattern = parseClipboardToPattern(
-      await API.clipboard.readText(),
-    );
-    if (newPastedPattern && newPastedPattern.length > 0) {
-      setPastedPattern(newPastedPattern);
-      dispatch(trackerActions.setSelectedPatternCells([]));
-      const el = document.querySelector(":focus") as unknown as
-        | BlurableDOMElement
-        | undefined;
-      if (el && el.blur) el.blur();
-    }
+  const onPaste = useCallback(() => {
+    dispatch(pasteAbsoluteCells());
   }, [dispatch]);
 
-  const onPasteInPlace = useCallback(async () => {
-    const clipboardText = await API.clipboard.readText();
-    const newPastedPattern = parseClipboardToPattern(clipboardText);
-    const originAbsRow = parseClipboardOrigin(clipboardText) ?? 0;
-
-    if (!newPastedPattern || newPastedPattern.length === 0) return;
-
-    const { clonedPatterns, changedPatternIds } =
-      mutatePatternsAndCollectChanges(song.patterns, (patterns, changed) => {
-        for (let offset = 0; offset < newPastedPattern.length; offset++) {
-          const cell = newPastedPattern[offset][0];
-          if (cell.note === null || cell.note === NO_CHANGE_ON_PASTE) continue;
-          const absRow = originAbsRow + offset;
-          if (absRow >= totalAbsRows) break;
-          const resolved = resolveAbsRow(song.sequence, absRow);
-          if (!resolved) continue;
-          const existing =
-            patterns[resolved.patternId][resolved.rowId][selectedChannel];
-          patterns[resolved.patternId][resolved.rowId][selectedChannel] = {
-            ...existing,
-            note: cell.note,
-            instrument:
-              cell.instrument !== NO_CHANGE_ON_PASTE
-                ? cell.instrument
-                : existing.instrument,
-            effectcode:
-              cell.effectcode !== NO_CHANGE_ON_PASTE
-                ? cell.effectcode
-                : existing.effectcode,
-            effectparam:
-              cell.effectparam !== NO_CHANGE_ON_PASTE
-                ? cell.effectparam
-                : existing.effectparam,
-          };
-          changed.add(resolved.patternId);
-        }
-      });
-
-    commitChangedPatterns(
-      changedPatternIds,
-      clonedPatterns,
-      (patternId, pattern) => {
-        dispatch(
-          trackerDocumentActions.editPattern({
-            patternId,
-            pattern,
-          }),
-        );
-      },
+  const onPasteInPlace = useCallback(() => {
+    void dispatch(
+      pasteInPlace({
+        channelId: selectedChannel,
+      }),
     );
-    dispatch(trackerActions.setSelectedPatternCells([]));
-    const el = document.querySelector(":focus") as unknown as
-      | BlurableDOMElement
-      | undefined;
-    if (el && el.blur) el.blur();
-  }, [dispatch, selectedChannel, song.patterns, song.sequence, totalAbsRows]);
+  }, [dispatch, selectedChannel]);
 
   const lastSequenceId = useRef(sequenceId);
   useEffect(() => {

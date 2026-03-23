@@ -9,6 +9,10 @@ import {
   saveSongFile,
 } from "store/features/trackerDocument/trackerDocumentState";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
+import { PatternCell } from "shared/lib/uge/types";
+import { AppThunk } from "store/configureStore";
+import API from "renderer/lib/api";
+import { parseClipboardToPattern } from "store/features/trackerDocument/trackerDocumentHelpers";
 
 export type PianoRollToolType = "pencil" | "eraser" | "selection" | null;
 
@@ -18,6 +22,23 @@ interface SelectedInstrument {
   id: string;
   type: InstrumentType;
 }
+
+export const pasteAbsoluteCells =
+  (): AppThunk<Promise<void>> => async (dispatch) => {
+    const clipboardText = await API.clipboard.readText();
+    const pastedPattern = parseClipboardToPattern(clipboardText);
+
+    if (!pastedPattern || pastedPattern.length === 0) {
+      return;
+    }
+
+    dispatch(
+      actions.setPastedPattern({
+        pattern: pastedPattern,
+      }),
+    );
+    dispatch(actions.setSelectedPatternCells([]));
+  };
 
 interface TrackerState {
   status: "loading" | "error" | "loaded" | "init";
@@ -51,6 +72,7 @@ interface TrackerState {
   exportFormat: MusicExportFormat;
   exportLoopCount: number;
   channelStatus: [boolean, boolean, boolean, boolean];
+  pastedPattern: PatternCell[][] | null;
 }
 
 export const initialState: TrackerState = {
@@ -89,6 +111,7 @@ export const initialState: TrackerState = {
   exportFormat: "mp3",
   exportLoopCount: 1,
   channelStatus: [false, false, false, false],
+  pastedPattern: null,
 };
 
 const trackerSlice = createSlice({
@@ -201,6 +224,18 @@ const trackerSlice = createSlice({
       action: PayloadAction<[boolean, boolean, boolean, boolean]>,
     ) => {
       state.channelStatus = action.payload;
+    },
+    setPastedPattern: (
+      state,
+      action: PayloadAction<{
+        pattern: PatternCell[][];
+      }>,
+    ) => {
+      state.pastedPattern = action.payload.pattern;
+    },
+
+    clearPastedPattern: (state) => {
+      state.pastedPattern = null;
     },
   },
   extraReducers: (builder) =>

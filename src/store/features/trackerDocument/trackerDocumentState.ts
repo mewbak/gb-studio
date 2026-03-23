@@ -14,7 +14,7 @@ import {
   NoiseInstrument,
   WaveInstrument,
 } from "shared/lib/uge/types";
-import { RootState } from "store/configureStore";
+import { AppThunk, RootState } from "store/configureStore";
 import API from "renderer/lib/api";
 import { MusicResourceAsset } from "shared/lib/resources/types";
 import { createPatternCell, createSong } from "shared/lib/uge/song";
@@ -22,6 +22,10 @@ import { InstrumentType } from "shared/lib/music/types";
 import {
   fromAbsRow,
   getTransposeNoteDelta,
+  NO_CHANGE_ON_PASTE,
+  parseClipboardOrigin,
+  parseClipboardToPattern,
+  parsePatternToClipboard,
   resolveTrackerCellFields,
   resolveUniqueTrackerCells,
   transposePatternCellNote,
@@ -65,7 +69,6 @@ export const loadSongFile = createAsyncThunk<Song, string>(
   "trackerDocument/loadSong",
   async (path, _thunkApi): Promise<Song> => {
     const song = await API.tracker.loadUGEFile(path);
-    // return new Promise((resolve) => setTimeout(() => resolve(song), 500000));
     return song;
   },
 );
@@ -91,6 +94,164 @@ export const saveSongFile = createAsyncThunk<void, void>(
     }
   },
 );
+
+const selectTrackerDocumentSong = (state: RootState) =>
+  state.trackerDocument.present.song;
+
+export const copyAbsoluteCells =
+  (args: { channelId: number; absRows: number[] }): AppThunk =>
+  (_dispatch, getState) => {
+    const state = getState();
+    const song = selectTrackerDocumentSong(state);
+
+    if (!song) {
+      return;
+    }
+
+    const { channelId, absRows } = args;
+
+    if (absRows.length === 0) {
+      return;
+    }
+
+    const flatPattern = song.sequence.flatMap(
+      (patternId) => song.patterns[patternId],
+    );
+    const originAbsRow = Math.min(...absRows);
+
+    const clipboardText = parsePatternToClipboard(
+      flatPattern,
+      channelId,
+      absRows,
+      originAbsRow,
+    );
+
+    void API.clipboard.writeText(clipboardText);
+  };
+
+export const cutAbsoluteCells =
+  (args: {
+    channelId: number;
+    absRows: number[];
+    clipboardEvent?: ClipboardEvent;
+  }): AppThunk =>
+  (dispatch, getState) => {
+    const state = getState();
+    const song = selectTrackerDocumentSong(state);
+
+    if (!song) {
+      return;
+    }
+
+    const { channelId, absRows, clipboardEvent } = args;
+
+    if (absRows.length === 0) {
+      return;
+    }
+
+    const flatPattern = song.sequence.flatMap(
+      (patternId) => song.patterns[patternId],
+    );
+    const originAbsRow = Math.min(...absRows);
+
+    const clipboardText = parsePatternToClipboard(
+      flatPattern,
+      channelId,
+      absRows,
+      originAbsRow,
+    );
+
+    clipboardEvent?.preventDefault();
+    clipboardEvent?.clipboardData?.setData("text/plain", clipboardText);
+    void API.clipboard.writeText(clipboardText);
+
+    dispatch(
+      actions.clearAbsoluteCells({
+        channelId,
+        absRows,
+      }),
+    );
+  };
+
+export const pasteInPlace =
+  (args: { channelId: number }): AppThunk<Promise<void>> =>
+  async (dispatch, getState) => {
+    const state = getState();
+    const song = selectTrackerDocumentSong(state);
+
+    if (!song) {
+      return;
+    }
+
+    const totalAbsRows = song.sequence.length * 64;
+    const clipboardText = await API.clipboard.readText();
+    const pastedPattern = parseClipboardToPattern(clipboardText);
+    const originAbsRow = parseClipboardOrigin(clipboardText) ?? 0;
+
+    if (!pastedPattern || pastedPattern.length === 0) {
+      return;
+    }
+
+    const changes: Array<{
+      patternId: number;
+      rowId: number;
+      channelId: number;
+      changes: Partial<PatternCell>;
+    }> = [];
+
+    for (let offset = 0; offset < pastedPattern.length; offset++) {
+      const cell = pastedPattern[offset]?.[0];
+      if (!cell) {
+        continue;
+      }
+
+      if (cell.note === null || cell.note === NO_CHANGE_ON_PASTE) {
+        continue;
+      }
+
+      const absRow = originAbsRow + offset;
+      if (absRow >= totalAbsRows) {
+        break;
+      }
+
+      const { sequenceId, rowId } = fromAbsRow(absRow);
+      const patternId = song.sequence[sequenceId];
+
+      if (patternId === undefined) {
+        continue;
+      }
+
+      const existing = song.patterns?.[patternId]?.[rowId]?.[args.channelId];
+      if (!existing) {
+        continue;
+      }
+
+      changes.push({
+        patternId,
+        rowId,
+        channelId: args.channelId,
+        changes: {
+          note: cell.note,
+          instrument:
+            cell.instrument !== NO_CHANGE_ON_PASTE
+              ? cell.instrument
+              : existing.instrument,
+          effectcode:
+            cell.effectcode !== NO_CHANGE_ON_PASTE
+              ? cell.effectcode
+              : existing.effectcode,
+          effectparam:
+            cell.effectparam !== NO_CHANGE_ON_PASTE
+              ? cell.effectparam
+              : existing.effectparam,
+        },
+      });
+    }
+
+    if (changes.length > 0) {
+      dispatch(actions.applyPatternCellChanges({ changes }));
+    }
+  };
 
 const trackerSlice = createSlice({
   name: "trackerDocument",
@@ -260,6 +421,52 @@ const trackerSlice = createSlice({
         patterns,
       };
     },
+    applyPatternCellChanges: (
+      state,
+      action: PayloadAction<{
+        changes: Array<{
+          patternId: number;
+          rowId: number;
+          channelId: number;
+          changes: Partial<PatternCell>;
+        }>;
+      }>,
+    ) => {
+      if (!state.song) {
+        return;
+      }
+
+      for (const change of action.payload.changes) {
+        const cell =
+          state.song.patterns?.[change.patternId]?.[change.rowId]?.[
+            change.channelId
+          ];
+
+        if (!cell) {
+          continue;
+        }
+
+        let patch = { ...change.changes };
+
+        if (
+          patch.effectcode &&
+          patch.effectcode !== null &&
+          (patch.effectparam === null || patch.effectparam === undefined) &&
+          cell.effectparam === null
+        ) {
+          patch = {
+            ...patch,
+            effectparam: 0,
+          };
+        }
+
+        state.song.patterns[change.patternId][change.rowId][change.channelId] =
+          {
+            ...cell,
+            ...patch,
+          };
+      }
+    },
 
     transposeTrackerFields: (
       state,
@@ -327,6 +534,104 @@ const trackerSlice = createSlice({
 
         const cell = state.song.patterns?.[patternId]?.[rowId]?.[channelId];
         transposePatternCellNote(cell, noteDelta);
+      }
+    },
+
+    interpolateAbsoluteCells: (
+      state,
+      action: PayloadAction<{
+        channelId: number;
+        absRows: number[];
+      }>,
+    ) => {
+      if (!state.song) {
+        return;
+      }
+
+      const { channelId, absRows } = action.payload;
+
+      if (absRows.length === 0) {
+        return;
+      }
+
+      const sortedAbsRows = [...new Set(absRows)].sort((a, b) => a - b);
+
+      let startAbsRow: number | null = null;
+      let startNote: number | null = null;
+      let startInstrument: number | null = null;
+      let endAbsRow: number | null = null;
+      let endNote: number | null = null;
+
+      for (const absRow of sortedAbsRows) {
+        const { sequenceId, rowId } = fromAbsRow(absRow);
+        const patternId = state.song.sequence[sequenceId];
+
+        if (patternId === undefined) {
+          continue;
+        }
+
+        const cell = state.song.patterns?.[patternId]?.[rowId]?.[channelId];
+        if (!cell || cell.note === null) {
+          continue;
+        }
+
+        startAbsRow = absRow;
+        startNote = cell.note;
+        startInstrument = cell.instrument;
+        break;
+      }
+
+      for (let i = sortedAbsRows.length - 1; i >= 0; i--) {
+        const absRow = sortedAbsRows[i];
+        const { sequenceId, rowId } = fromAbsRow(absRow);
+        const patternId = state.song.sequence[sequenceId];
+
+        if (patternId === undefined) {
+          continue;
+        }
+
+        const cell = state.song.patterns?.[patternId]?.[rowId]?.[channelId];
+        if (!cell || cell.note === null) {
+          continue;
+        }
+
+        endAbsRow = absRow;
+        endNote = cell.note;
+        break;
+      }
+
+      if (
+        startAbsRow === null ||
+        startNote === null ||
+        endAbsRow === null ||
+        endNote === null
+      ) {
+        return;
+      }
+
+      if (startAbsRow >= endAbsRow - 1) {
+        return;
+      }
+
+      const span = endAbsRow - startAbsRow;
+      const noteDelta = endNote - startNote;
+
+      for (let absRow = startAbsRow + 1; absRow < endAbsRow; absRow++) {
+        const { sequenceId, rowId } = fromAbsRow(absRow);
+        const patternId = state.song.sequence[sequenceId];
+
+        if (patternId === undefined) {
+          continue;
+        }
+
+        const cell = state.song.patterns?.[patternId]?.[rowId]?.[channelId];
+        if (!cell) {
+          continue;
+        }
+
+        const t = (absRow - startAbsRow) / span;
+        cell.note = Math.round(startNote + noteDelta * t);
+        cell.instrument = startInstrument;
       }
     },
 

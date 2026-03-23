@@ -1,4 +1,4 @@
-import { configureStore } from "@reduxjs/toolkit";
+import { Action, configureStore, ThunkAction } from "@reduxjs/toolkit";
 import rootReducer from "./rootReducer";
 import electronMiddleware from "./features/electron/electronMiddleware";
 import buildGameMiddleware from "./features/buildGame/buildGameMiddleware";
@@ -48,5 +48,11 @@ const store = configureStore({
 export type AppDispatch = typeof store.dispatch;
 export type AppStore = typeof store;
 export type AppState = ReturnType<typeof store.getState>;
+export type AppThunk<ReturnType = void> = ThunkAction<
+  ReturnType,
+  RootState,
+  unknown,
+  Action<string>
+>;
 
 export default store;
