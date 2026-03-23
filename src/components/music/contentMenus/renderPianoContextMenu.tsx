@@ -1,6 +1,7 @@
 import React, { Dispatch } from "react";
 import { UnknownAction } from "redux";
 import l10n from "shared/lib/lang/l10n";
+import { PatternCellAddress } from "shared/lib/uge/editor/types";
 import { AppThunk } from "store/configureStore";
 import { pasteAbsoluteCells } from "store/features/tracker/trackerState";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
@@ -13,18 +14,18 @@ import { MenuAccelerator, MenuDivider, MenuItem } from "ui/menu/Menu";
 
 interface PianoContextMenuProps {
   dispatch: Dispatch<UnknownAction | AppThunk>;
-  selectedAbsRows: number[];
+  selectedPatternCells: PatternCellAddress[];
   channelId: number;
   selectedInstrumentId: number;
 }
 
 const renderPianoContextMenu = ({
   dispatch,
-  selectedAbsRows,
+  selectedPatternCells,
   channelId,
   selectedInstrumentId,
 }: PianoContextMenuProps) => {
-  if (selectedAbsRows.length === 0) {
+  if (selectedPatternCells.length === 0) {
     return [
       <MenuItem
         key="paste"
@@ -57,8 +58,7 @@ const renderPianoContextMenu = ({
       onClick={() => {
         dispatch(
           trackerDocumentActions.transposeAbsoluteCells({
-            absRows: selectedAbsRows,
-            channelId,
+            patternCells: selectedPatternCells,
             direction: "up",
             size: "octave",
           }),
@@ -73,8 +73,7 @@ const renderPianoContextMenu = ({
       onClick={() => {
         dispatch(
           trackerDocumentActions.transposeAbsoluteCells({
-            absRows: selectedAbsRows,
-            channelId,
+            patternCells: selectedPatternCells,
             direction: "down",
             size: "octave",
           }),
@@ -89,8 +88,7 @@ const renderPianoContextMenu = ({
       onClick={() => {
         dispatch(
           trackerDocumentActions.transposeAbsoluteCells({
-            absRows: selectedAbsRows,
-            channelId,
+            patternCells: selectedPatternCells,
             direction: "up",
             size: "note",
           }),
@@ -105,8 +103,7 @@ const renderPianoContextMenu = ({
       onClick={() => {
         dispatch(
           trackerDocumentActions.transposeAbsoluteCells({
-            absRows: selectedAbsRows,
-            channelId,
+            patternCells: selectedPatternCells,
             direction: "down",
             size: "note",
           }),
@@ -122,8 +119,7 @@ const renderPianoContextMenu = ({
       onClick={() => {
         dispatch(
           cutAbsoluteCells({
-            channelId,
-            absRows: selectedAbsRows,
+            patternCells: selectedPatternCells,
           }),
         );
       }}
@@ -136,8 +132,7 @@ const renderPianoContextMenu = ({
       onClick={() => {
         dispatch(
           copyAbsoluteCells({
-            channelId,
-            absRows: selectedAbsRows,
+            patternCells: selectedPatternCells,
           }),
         );
       }}
@@ -168,15 +163,14 @@ const renderPianoContextMenu = ({
       <MenuAccelerator accelerator="CommandOrControl+Shift+V" />
     </MenuItem>,
     <MenuDivider key="div-change"></MenuDivider>,
-    ...(selectedAbsRows.length > 1
+    ...(selectedPatternCells.length > 1
       ? [
           <MenuItem
             key="interpolate"
             onClick={() => {
               dispatch(
                 trackerDocumentActions.interpolateAbsoluteCells({
-                  absRows: selectedAbsRows,
-                  channelId,
+                  patternCells: selectedPatternCells,
                 }),
               );
             }}
@@ -191,8 +185,7 @@ const renderPianoContextMenu = ({
       onClick={() => {
         dispatch(
           trackerDocumentActions.changeInstrumentAbsoluteCells({
-            absRows: selectedAbsRows,
-            channelId,
+            patternCells: selectedPatternCells,
             instrumentId: selectedInstrumentId,
           }),
         );
@@ -207,8 +200,7 @@ const renderPianoContextMenu = ({
       onClick={() => {
         dispatch(
           trackerDocumentActions.clearAbsoluteCells({
-            absRows: selectedAbsRows,
-            channelId,
+            patternCells: selectedPatternCells,
           }),
         );
       }}

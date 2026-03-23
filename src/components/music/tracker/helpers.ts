@@ -4,6 +4,8 @@ import {
   TRACKER_ROW_SIZE,
 } from "consts";
 import { KeyWhen } from "renderer/lib/keybindings/keyBindings";
+import { PatternCellAddress } from "shared/lib/uge/editor/types";
+import { resolveUniqueTrackerCells } from "store/features/trackerDocument/trackerDocumentHelpers";
 
 export interface SelectionRect {
   x: number;
@@ -108,4 +110,20 @@ export const getMovedField = (
     default:
       return null;
   }
+};
+
+export const trackerFieldsToPatternCells = (
+  sequenceId: number,
+  patternId: number,
+  selectedTrackerFields: number[],
+): PatternCellAddress[] => {
+  const resolvedCells = resolveUniqueTrackerCells(
+    patternId,
+    selectedTrackerFields,
+  );
+  return resolvedCells.map(({ rowIndex, channelIndex }) => ({
+    sequenceId,
+    rowId: rowIndex,
+    channelId: channelIndex,
+  }));
 };

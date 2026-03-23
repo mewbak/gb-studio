@@ -12,10 +12,8 @@ import trackerDocumentActions from "store/features/trackerDocument/trackerDocume
 import { PatternCell } from "shared/lib/uge/types";
 import { AppThunk } from "store/configureStore";
 import API from "renderer/lib/api";
-import {
-  parseClipboardToPattern,
-  toAbsRow,
-} from "store/features/trackerDocument/trackerDocumentHelpers";
+import { parseClipboardToPattern } from "store/features/trackerDocument/trackerDocumentHelpers";
+import { PatternCellAddress } from "shared/lib/uge/editor/types";
 
 export type PianoRollToolType = "pencil" | "eraser" | "selection" | null;
 
@@ -58,7 +56,7 @@ interface TrackerState {
   playing: boolean;
   exporting: boolean;
   playerReady: boolean;
-  // song?: Song;
+
   octaveOffset: number;
   editStep: number;
 
@@ -75,7 +73,7 @@ interface TrackerState {
   selectedSongId: string;
   selectedInstrument: SelectedInstrument;
   selectedSequence: number;
-  selectedPatternCells: number[];
+  selectedPatternCells: PatternCellAddress[];
   selection: [number, number, number, number];
   selectedEffectCell: CellAddress | null;
   subpatternEditorFocus: boolean;
@@ -205,20 +203,17 @@ const trackerSlice = createSlice({
     setSelectedSequence: (state, action: PayloadAction<number>) => {
       state.selectedSequence = action.payload;
     },
-    setSelectedPatternCells: (state, _action: PayloadAction<number[]>) => {
-      state.selectedEffectCell = null;
-      state.selectedPatternCells = _action.payload;
+    setSelectedPatternCells: (
+      state,
+      action: PayloadAction<PatternCellAddress[]>,
+    ) => {
+      state.selectedPatternCells = action.payload;
     },
     setSelectedEffectCell: (
       state,
       action: PayloadAction<CellAddress | null>,
     ) => {
       if (state.selectedEffectCell !== action.payload) {
-        if (action.payload) {
-          state.selectedPatternCells = [
-            toAbsRow(action.payload.sequenceId, action.payload.rowId),
-          ];
-        }
         state.selectedEffectCell = action.payload;
       }
     },

@@ -40,6 +40,7 @@ import {
   SelectionRect,
   TRACKER_CELL_HEIGHT,
   TRACKER_HEADER_HEIGHT,
+  trackerFieldsToPatternCells,
 } from "./helpers";
 import renderPatternContextMenu from "components/music/contentMenus/renderPatternContextMenu";
 import renderTrackerContextMenu from "components/music/contentMenus/renderTrackerContextMenu";
@@ -51,6 +52,7 @@ import {
   cutTrackerFields,
   pasteTrackerFields,
 } from "store/features/trackerDocument/trackerDocumentState";
+import { PatternCellAddress } from "shared/lib/uge/editor/types";
 
 interface SongTrackerProps {
   sequenceId: number;
@@ -157,7 +159,8 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
     isSelectingRef.current = false;
     setSelectionOrigin(undefined);
     setSelectionRect(undefined);
-  }, [setSelectionOrigin, setSelectionRect]);
+    dispatch(trackerActions.setSelectedPatternCells([]));
+  }, [dispatch, setSelectionOrigin, setSelectionRect]);
 
   const setSingleFieldSelection = useCallback(
     (field: number) => {
@@ -182,6 +185,22 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
     () => getSelectedTrackerFields(selectionRect, selectionOrigin),
     [selectionOrigin, selectionRect],
   );
+
+  const selectedPatternCells = useMemo(
+    () =>
+      trackerFieldsToPatternCells(sequenceId, patternId, selectedTrackerFields),
+    [sequenceId, patternId, selectedTrackerFields],
+  );
+
+  useEffect(() => {
+    dispatch(trackerActions.setSelectedPatternCells(selectedPatternCells));
+  }, [dispatch, selectedPatternCells]);
+
+  const selectedPatternCellsRef = useRef<PatternCellAddress[]>([]);
+
+  useEffect(() => {
+    selectedPatternCellsRef.current = selectedPatternCells;
+  }, [selectedPatternCells]);
 
   useEffect(() => {
     selectedTrackerFieldsRef.current = selectedTrackerFields;
@@ -237,10 +256,6 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
       }),
     );
   }, [activeField, dispatch, patternId, sequenceId]);
-
-  const getCurrentSelectedTrackerFields = useCallback(() => {
-    return selectedTrackerFieldsRef.current;
-  }, []);
 
   const handleMouseDown = useCallback(
     (e: MouseEvent) => {
@@ -437,7 +452,7 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
   const handleStructureKey = useCallback(
     (e: KeyboardEvent) => {
       const currentActiveField = activeFieldValueRef.current;
-      const currentSelectedTrackerFields = getCurrentSelectedTrackerFields();
+      const currentSelectedTrackerFields = selectedTrackerFieldsRef.current;
 
       if (e.key === "Escape") {
         e.preventDefault();
@@ -451,7 +466,7 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
           dispatch(
             trackerDocumentActions.shiftTrackerFields({
               patternId,
-              selectedTrackerFields,
+              selectedTrackerFields: selectedTrackerFieldsRef.current,
               direction: "delete",
             }),
           );
@@ -463,7 +478,7 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
           dispatch(
             trackerDocumentActions.clearTrackerFields({
               patternId,
-              selectedTrackerFields,
+              selectedTrackerFields: selectedTrackerFieldsRef.current,
             }),
           );
           return true;
@@ -476,7 +491,7 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
           dispatch(
             trackerDocumentActions.shiftTrackerFields({
               patternId,
-              selectedTrackerFields,
+              selectedTrackerFields: selectedTrackerFieldsRef.current,
               direction: "insert",
             }),
           );
@@ -485,46 +500,62 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
       }
 
       if (e.code === "Equal") {
-        dispatch(
-          trackerDocumentActions.transposeTrackerFields({
-            patternId,
-            selectedTrackerFields,
-            direction: "up",
-            type: e.shiftKey ? "octave" : "all",
-          }),
-        );
+        if (e.shiftKey) {
+          dispatch(
+            trackerDocumentActions.transposeAbsoluteCells({
+              patternCells: selectedPatternCellsRef.current,
+              direction: "up",
+              size: "octave",
+            }),
+          );
+        } else {
+          dispatch(
+            trackerDocumentActions.transposeTrackerFields({
+              patternId,
+              selectedTrackerFields: selectedTrackerFieldsRef.current,
+              direction: "up",
+            }),
+          );
+        }
       }
 
       if (e.code === "Minus") {
-        dispatch(
-          trackerDocumentActions.transposeTrackerFields({
-            patternId,
-            selectedTrackerFields,
-            direction: "down",
-            type: e.shiftKey ? "octave" : "all",
-          }),
-        );
+        if (e.shiftKey) {
+          dispatch(
+            trackerDocumentActions.transposeAbsoluteCells({
+              patternCells: selectedPatternCellsRef.current,
+              direction: "down",
+              size: "octave",
+            }),
+          );
+        } else {
+          dispatch(
+            trackerDocumentActions.transposeTrackerFields({
+              patternId,
+              selectedTrackerFields: selectedTrackerFieldsRef.current,
+              direction: "down",
+            }),
+          );
+        }
       }
 
       if (e.ctrlKey && e.shiftKey) {
         if (e.code === "KeyQ") {
           dispatch(
-            trackerDocumentActions.transposeTrackerFields({
-              patternId,
-              selectedTrackerFields,
+            trackerDocumentActions.transposeAbsoluteCells({
+              patternCells: selectedPatternCellsRef.current,
               direction: "up",
-              type: "octave",
+              size: "octave",
             }),
           );
           return true;
         }
         if (e.code === "KeyA") {
           dispatch(
-            trackerDocumentActions.transposeTrackerFields({
-              patternId,
-              selectedTrackerFields,
+            trackerDocumentActions.transposeAbsoluteCells({
+              patternCells: selectedPatternCellsRef.current,
               direction: "down",
-              type: "octave",
+              size: "octave",
             }),
           );
           return true;
@@ -532,22 +563,20 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
       } else if (e.altKey && e.shiftKey) {
         if (e.code === "KeyQ") {
           dispatch(
-            trackerDocumentActions.transposeTrackerFields({
-              patternId,
-              selectedTrackerFields,
+            trackerDocumentActions.transposeAbsoluteCells({
+              patternCells: selectedPatternCellsRef.current,
               direction: "up",
-              type: "note",
+              size: "note",
             }),
           );
           return true;
         }
         if (e.code === "KeyA") {
           dispatch(
-            trackerDocumentActions.transposeTrackerFields({
-              patternId,
-              selectedTrackerFields,
+            trackerDocumentActions.transposeAbsoluteCells({
+              patternCells: selectedPatternCellsRef.current,
               direction: "down",
-              type: "note",
+              size: "note",
             }),
           );
           return true;
@@ -555,9 +584,8 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
       } else if (e.ctrlKey) {
         if (e.code === "KeyI") {
           dispatch(
-            trackerDocumentActions.changeInstrumentTrackerFields({
-              patternId,
-              selectedTrackerFields,
+            trackerDocumentActions.changeInstrumentAbsoluteCells({
+              patternCells: selectedPatternCellsRef.current,
               instrumentId: selectedInstrumentId,
             }),
           );
@@ -565,9 +593,8 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
         }
         if (e.code === "KeyK") {
           dispatch(
-            trackerDocumentActions.interpolateTrackerFields({
-              patternId,
-              selectedTrackerFields,
+            trackerDocumentActions.interpolateAbsoluteCells({
+              patternCells: selectedPatternCellsRef.current,
             }),
           );
           return true;
@@ -575,14 +602,7 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
       }
       return false;
     },
-    [
-      clearSelection,
-      dispatch,
-      getCurrentSelectedTrackerFields,
-      patternId,
-      selectedInstrumentId,
-      selectedTrackerFields,
-    ],
+    [clearSelection, dispatch, patternId, selectedInstrumentId],
   );
 
   const handleNavigationKey = useCallback(
@@ -716,22 +736,20 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
       if (e.shiftKey) {
         if (delta < 0) {
           dispatch(
-            trackerDocumentActions.transposeTrackerFields({
-              patternId,
-              selectedTrackerFields,
+            trackerDocumentActions.transposeAbsoluteCells({
+              patternCells: selectedPatternCellsRef.current,
               direction: "up",
-              type: "octave",
+              size: "octave",
             }),
           );
           return;
         }
         if (delta > 0) {
           dispatch(
-            trackerDocumentActions.transposeTrackerFields({
-              patternId,
-              selectedTrackerFields,
+            trackerDocumentActions.transposeAbsoluteCells({
+              patternCells: selectedPatternCellsRef.current,
               direction: "down",
-              type: "octave",
+              size: "octave",
             }),
           );
           return;
@@ -741,9 +759,8 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
           dispatch(
             trackerDocumentActions.transposeTrackerFields({
               patternId,
-              selectedTrackerFields,
+              selectedTrackerFields: selectedTrackerFieldsRef.current,
               direction: "up",
-              type: "all",
             }),
           );
           return;
@@ -752,16 +769,15 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
           dispatch(
             trackerDocumentActions.transposeTrackerFields({
               patternId,
-              selectedTrackerFields,
+              selectedTrackerFields: selectedTrackerFieldsRef.current,
               direction: "down",
-              type: "all",
             }),
           );
           return;
         }
       }
     },
-    [dispatch, patternId, selectedTrackerFields],
+    [dispatch, patternId],
   );
 
   const onSelectAll = useCallback(() => {
@@ -881,7 +897,7 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
       if (!(e.target instanceof HTMLElement)) return;
       if (e.target.nodeName === "INPUT") return;
 
-      const currentSelectedTrackerFields = getCurrentSelectedTrackerFields();
+      const currentSelectedTrackerFields = selectedTrackerFieldsRef.current;
 
       dispatch(
         copyTrackerFields({
@@ -890,7 +906,7 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
         }),
       );
     },
-    [dispatch, getCurrentSelectedTrackerFields, patternId],
+    [dispatch, patternId],
   );
 
   const onCut = useCallback(
@@ -898,7 +914,7 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
       if (!(e.target instanceof HTMLElement)) return;
       if (e.target.nodeName === "INPUT") return;
 
-      const currentSelectedTrackerFields = getCurrentSelectedTrackerFields();
+      const currentSelectedTrackerFields = selectedTrackerFieldsRef.current;
 
       dispatch(
         cutTrackerFields({
@@ -907,11 +923,11 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
         }),
       );
     },
-    [dispatch, getCurrentSelectedTrackerFields, patternId],
+    [dispatch, patternId],
   );
 
   const onPaste = useCallback(async () => {
-    const firstField = getCurrentSelectedTrackerFields()?.[0];
+    const firstField = selectedTrackerFieldsRef.current?.[0];
     if (firstField) {
       await dispatch(
         pasteTrackerFields({
@@ -920,7 +936,7 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
         }),
       );
     }
-  }, [dispatch, getCurrentSelectedTrackerFields, patternId]);
+  }, [dispatch, patternId]);
 
   useEffect(() => {
     if (subpatternEditorFocus) {
@@ -994,9 +1010,16 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
         dispatch,
         patternId: patternIndex,
         selectedTrackerFields,
+        selectedPatternCells,
         selectedInstrumentId,
       }),
-    [dispatch, patternIndex, selectedTrackerFields, selectedInstrumentId],
+    [
+      dispatch,
+      patternIndex,
+      selectedTrackerFields,
+      selectedPatternCells,
+      selectedInstrumentId,
+    ],
   );
 
   const {

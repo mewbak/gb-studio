@@ -1,6 +1,7 @@
 import React, { Dispatch } from "react";
 import { UnknownAction } from "redux";
 import l10n from "shared/lib/lang/l10n";
+import { PatternCellAddress } from "shared/lib/uge/editor/types";
 import { AppThunk } from "store/configureStore";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
 import {
@@ -13,6 +14,7 @@ import { MenuAccelerator, MenuDivider, MenuItem } from "ui/menu/Menu";
 interface TrackerContextMenuProps {
   dispatch: Dispatch<UnknownAction | AppThunk>;
   patternId: number;
+  selectedPatternCells: PatternCellAddress[];
   selectedTrackerFields: number[];
   selectedInstrumentId: number;
 }
@@ -20,10 +22,11 @@ interface TrackerContextMenuProps {
 const renderTrackerContextMenu = ({
   dispatch,
   patternId,
+  selectedPatternCells,
   selectedTrackerFields,
   selectedInstrumentId,
 }: TrackerContextMenuProps) => {
-  if (selectedTrackerFields.length === 0) {
+  if (selectedTrackerFields.length === 0 && selectedPatternCells.length === 0) {
     return [];
   }
   return [
@@ -31,11 +34,10 @@ const renderTrackerContextMenu = ({
       key="transpose-up-octave"
       onClick={() => {
         dispatch(
-          trackerDocumentActions.transposeTrackerFields({
-            patternId,
-            selectedTrackerFields,
+          trackerDocumentActions.transposeAbsoluteCells({
+            patternCells: selectedPatternCells,
             direction: "up",
-            type: "octave",
+            size: "octave",
           }),
         );
       }}
@@ -47,11 +49,10 @@ const renderTrackerContextMenu = ({
       key="transpose-down-octave"
       onClick={() => {
         dispatch(
-          trackerDocumentActions.transposeTrackerFields({
-            patternId,
-            selectedTrackerFields,
+          trackerDocumentActions.transposeAbsoluteCells({
+            patternCells: selectedPatternCells,
             direction: "down",
-            type: "octave",
+            size: "octave",
           }),
         );
       }}
@@ -63,11 +64,10 @@ const renderTrackerContextMenu = ({
       key="transpose-up-note"
       onClick={() => {
         dispatch(
-          trackerDocumentActions.transposeTrackerFields({
-            patternId,
-            selectedTrackerFields,
+          trackerDocumentActions.transposeAbsoluteCells({
+            patternCells: selectedPatternCells,
             direction: "up",
-            type: "note",
+            size: "note",
           }),
         );
       }}
@@ -79,11 +79,10 @@ const renderTrackerContextMenu = ({
       key="transpose-down-note"
       onClick={() => {
         dispatch(
-          trackerDocumentActions.transposeTrackerFields({
-            patternId,
-            selectedTrackerFields,
+          trackerDocumentActions.transposeAbsoluteCells({
+            patternCells: selectedPatternCells,
             direction: "down",
-            type: "note",
+            size: "note",
           }),
         );
       }}
@@ -176,9 +175,8 @@ const renderTrackerContextMenu = ({
             key="interpolate"
             onClick={() => {
               dispatch(
-                trackerDocumentActions.interpolateTrackerFields({
-                  patternId,
-                  selectedTrackerFields,
+                trackerDocumentActions.interpolateAbsoluteCells({
+                  patternCells: selectedPatternCells,
                 }),
               );
             }}
@@ -192,9 +190,8 @@ const renderTrackerContextMenu = ({
       key="change"
       onClick={() => {
         dispatch(
-          trackerDocumentActions.changeInstrumentTrackerFields({
-            patternId,
-            selectedTrackerFields,
+          trackerDocumentActions.changeInstrumentAbsoluteCells({
+            patternCells: selectedPatternCells,
             instrumentId: selectedInstrumentId,
           }),
         );

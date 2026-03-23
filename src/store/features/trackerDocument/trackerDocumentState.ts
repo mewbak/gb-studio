@@ -34,8 +34,10 @@ import {
 import {
   TRACKER_CHANNEL_FIELDS,
   TRACKER_NUM_CHANNELS,
+  TRACKER_PATTERN_LENGTH,
   TRACKER_ROW_SIZE,
 } from "consts";
+import { PatternCellAddress } from "shared/lib/uge/editor/types";
 
 interface TrackerDocumentState {
   // status: "loading" | "error" | "loaded" | "init";
@@ -105,7 +107,7 @@ const selectTrackerDocumentSong = (state: RootState) =>
   state.trackerDocument.present.song;
 
 export const copyAbsoluteCells =
-  (args: { channelId: number; absRows: number[] }): AppThunk =>
+  (args: { patternCells: PatternCellAddress[] }): AppThunk =>
   (_dispatch, getState) => {
     const state = getState();
     const song = selectTrackerDocumentSong(state);
@@ -114,7 +116,20 @@ export const copyAbsoluteCells =
       return;
     }
 
-    const { channelId, absRows } = args;
+    const { patternCells } = args;
+
+    if (patternCells.length === 0) {
+      return;
+    }
+
+    const channelId = patternCells[0]?.channelId;
+    if (channelId === undefined) {
+      return;
+    }
+
+    const absRows = patternCells
+      .filter((cell) => cell.channelId === channelId)
+      .map((cell) => cell.sequenceId * 64 + cell.rowId);
 
     if (absRows.length === 0) {
       return;
@@ -136,7 +151,7 @@ export const copyAbsoluteCells =
   };
 
 export const cutAbsoluteCells =
-  (args: { channelId: number; absRows: number[] }): AppThunk =>
+  (args: { patternCells: PatternCellAddress[] }): AppThunk =>
   (dispatch, getState) => {
     const state = getState();
     const song = selectTrackerDocumentSong(state);
@@ -145,7 +160,20 @@ export const cutAbsoluteCells =
       return;
     }
 
-    const { channelId, absRows } = args;
+    const { patternCells } = args;
+
+    if (patternCells.length === 0) {
+      return;
+    }
+
+    const channelId = patternCells[0]?.channelId;
+    if (channelId === undefined) {
+      return;
+    }
+
+    const absRows = patternCells
+      .filter((cell) => cell.channelId === channelId)
+      .map((cell) => cell.sequenceId * 64 + cell.rowId);
 
     if (absRows.length === 0) {
       return;
@@ -167,8 +195,7 @@ export const cutAbsoluteCells =
 
     dispatch(
       actions.clearAbsoluteCells({
-        channelId,
-        absRows,
+        patternCells,
       }),
     );
   };
@@ -627,92 +654,69 @@ const trackerSlice = createSlice({
         patternId: number;
         selectedTrackerFields: number[];
         direction: "up" | "down";
-        type: "note" | "octave" | "all";
       }>,
     ) => {
       if (!state.song) {
         return;
       }
 
-      const { patternId, selectedTrackerFields, direction, type } =
-        action.payload;
+      const { patternId, selectedTrackerFields, direction } = action.payload;
       const delta = direction === "up" ? 1 : -1;
 
-      if (type === "all") {
-        const resolvedFields = resolveTrackerCellFields(
-          patternId,
-          selectedTrackerFields,
-        );
-
-        for (const {
-          patternId,
-          rowIndex,
-          channelIndex,
-          fieldIndex,
-        } of resolvedFields) {
-          const pattern = state.song.patterns?.[patternId];
-          if (!pattern) {
-            continue;
-          }
-
-          const cell = pattern[rowIndex]?.[channelIndex];
-          if (!cell) {
-            continue;
-          }
-
-          if (fieldIndex === 0) {
-            if (cell.note !== null) {
-              cell.note = Math.max(0, Math.min(71, cell.note + delta));
-            }
-          } else if (fieldIndex === 1) {
-            if (cell.instrument !== null) {
-              cell.instrument = Math.max(
-                0,
-                Math.min(14, cell.instrument + delta),
-              );
-            }
-          } else if (fieldIndex === 2) {
-            if (cell.effectcode !== null) {
-              cell.effectcode = Math.max(
-                0,
-                Math.min(15, cell.effectcode + delta),
-              );
-            }
-          } else if (fieldIndex === 3) {
-            if (cell.effectparam !== null) {
-              cell.effectparam = Math.max(
-                0,
-                Math.min(255, cell.effectparam + delta),
-              );
-            }
-          }
-        }
-
-        return;
-      }
-
-      const noteDelta = getTransposeNoteDelta(direction, type);
-
-      const resolvedCells = resolveUniqueTrackerCells(
+      const resolvedFields = resolveTrackerCellFields(
         patternId,
         selectedTrackerFields,
       );
 
-      for (const { patternId, rowIndex, channelIndex } of resolvedCells) {
+      for (const {
+        patternId,
+        rowIndex,
+        channelIndex,
+        fieldIndex,
+      } of resolvedFields) {
         const pattern = state.song.patterns?.[patternId];
         if (!pattern) {
           continue;
         }
+
         const cell = pattern[rowIndex]?.[channelIndex];
-        transposePatternCellNote(cell, noteDelta);
+        if (!cell) {
+          continue;
+        }
+
+        if (fieldIndex === 0) {
+          if (cell.note !== null) {
+            cell.note = Math.max(0, Math.min(71, cell.note + delta));
+          }
+        } else if (fieldIndex === 1) {
+          if (cell.instrument !== null) {
+            cell.instrument = Math.max(
+              0,
+              Math.min(14, cell.instrument + delta),
+            );
+          }
+        } else if (fieldIndex === 2) {
+          if (cell.effectcode !== null) {
+            cell.effectcode = Math.max(
+              0,
+              Math.min(15, cell.effectcode + delta),
+            );
+          }
+        } else if (fieldIndex === 3) {
+          if (cell.effectparam !== null) {
+            cell.effectparam = Math.max(
+              0,
+              Math.min(255, cell.effectparam + delta),
+            );
+          }
+        }
       }
     },
 
     transposeAbsoluteCells: (
       state,
       action: PayloadAction<{
-        channelId: number;
-        absRows: number[];
+        patternCells: PatternCellAddress[];
         direction: "up" | "down";
         size: "note" | "octave";
       }>,
@@ -721,13 +725,12 @@ const trackerSlice = createSlice({
         return;
       }
 
-      const { channelId, absRows, direction, size } = action.payload;
+      const { patternCells, direction, size } = action.payload;
       const noteDelta = getTransposeNoteDelta(direction, size);
 
       const seen = new Set<string>();
 
-      for (const absRow of absRows) {
-        const { sequenceId, rowId } = fromAbsRow(absRow);
+      for (const { sequenceId, rowId, channelId } of patternCells) {
         const patternId = state.song.sequence[sequenceId];
 
         if (patternId === undefined) {
@@ -744,259 +747,167 @@ const trackerSlice = createSlice({
         transposePatternCellNote(cell, noteDelta);
       }
     },
-
-    interpolateTrackerFields: (
+    interpolateAbsoluteCells: (
       state,
       action: PayloadAction<{
-        patternId: number;
-        selectedTrackerFields: number[];
+        patternCells: PatternCellAddress[];
       }>,
     ) => {
       if (!state.song) {
         return;
       }
 
-      const { patternId, selectedTrackerFields } = action.payload;
+      const { patternCells } = action.payload;
 
-      if (selectedTrackerFields.length === 0) {
+      if (patternCells.length === 0) {
         return;
       }
 
-      const resolvedCells = resolveUniqueTrackerCells(
-        patternId,
-        selectedTrackerFields,
-      );
+      const patternCellsByChannel = new Map<number, PatternCellAddress[]>();
 
-      const cellsByChannel = new Map<
-        number,
-        Array<{
-          patternId: number;
-          rowIndex: number;
-          channelIndex: number;
-        }>
-      >();
-
-      for (const resolved of resolvedCells) {
-        const existing = cellsByChannel.get(resolved.channelIndex);
+      for (const patternCell of patternCells) {
+        const existing = patternCellsByChannel.get(patternCell.channelId);
         if (existing) {
-          existing.push(resolved);
+          existing.push(patternCell);
         } else {
-          cellsByChannel.set(resolved.channelIndex, [resolved]);
+          patternCellsByChannel.set(patternCell.channelId, [patternCell]);
         }
       }
 
-      for (const [channelIndex, channelCells] of cellsByChannel) {
-        const sortedChannelCells = [...channelCells].sort(
-          (a, b) => a.rowIndex - b.rowIndex,
+      for (const [channelId, channelPatternCells] of patternCellsByChannel) {
+        const uniqueResolvedCells = new Map<
+          string,
+          {
+            patternId: number;
+            rowId: number;
+            channelId: number;
+            absRow: number;
+          }
+        >();
+
+        for (const { sequenceId, rowId, channelId } of channelPatternCells) {
+          const patternId = state.song.sequence[sequenceId];
+
+          if (patternId === undefined) {
+            continue;
+          }
+
+          const key = `${patternId}:${rowId}:${channelId}`;
+          const absRow = sequenceId * TRACKER_PATTERN_LENGTH + rowId;
+          const existing = uniqueResolvedCells.get(key);
+
+          if (!existing || absRow < existing.absRow) {
+            uniqueResolvedCells.set(key, {
+              patternId,
+              rowId,
+              channelId,
+              absRow,
+            });
+          }
+        }
+
+        const sortedResolvedCells = [...uniqueResolvedCells.values()].sort(
+          (a, b) => a.absRow - b.absRow,
         );
 
-        let startRowIndex: number | null = null;
+        let startCell: {
+          patternId: number;
+          rowId: number;
+          channelId: number;
+          absRow: number;
+        } | null = null;
         let startNote: number | null = null;
         let startInstrument: number | null = null;
-        let endRowIndex: number | null = null;
+
+        let endCell: {
+          patternId: number;
+          rowId: number;
+          channelId: number;
+          absRow: number;
+        } | null = null;
         let endNote: number | null = null;
 
-        for (const resolved of sortedChannelCells) {
+        for (const resolved of sortedResolvedCells) {
           const cell =
-            state.song.patterns?.[resolved.patternId]?.[resolved.rowIndex]?.[
-              resolved.channelIndex
+            state.song.patterns?.[resolved.patternId]?.[resolved.rowId]?.[
+              resolved.channelId
             ];
 
           if (!cell || cell.note === null) {
             continue;
           }
 
-          startRowIndex = resolved.rowIndex;
+          startCell = resolved;
           startNote = cell.note;
           startInstrument = cell.instrument;
           break;
         }
 
-        for (let i = sortedChannelCells.length - 1; i >= 0; i--) {
-          const resolved = sortedChannelCells[i];
+        for (let i = sortedResolvedCells.length - 1; i >= 0; i--) {
+          const resolved = sortedResolvedCells[i];
           const cell =
-            state.song.patterns?.[resolved.patternId]?.[resolved.rowIndex]?.[
-              resolved.channelIndex
+            state.song.patterns?.[resolved.patternId]?.[resolved.rowId]?.[
+              resolved.channelId
             ];
 
           if (!cell || cell.note === null) {
             continue;
           }
 
-          endRowIndex = resolved.rowIndex;
+          endCell = resolved;
           endNote = cell.note;
           break;
         }
 
-        if (
-          startRowIndex === null ||
-          startNote === null ||
-          endRowIndex === null ||
-          endNote === null
-        ) {
+        if (!startCell || startNote === null || !endCell || endNote === null) {
           continue;
         }
 
-        if (startRowIndex >= endRowIndex - 1) {
+        if (startCell.absRow >= endCell.absRow - 1) {
           continue;
         }
 
-        const span = endRowIndex - startRowIndex;
+        const span = endCell.absRow - startCell.absRow;
         const noteDelta = endNote - startNote;
 
-        for (
-          let rowIndex = startRowIndex + 1;
-          rowIndex < endRowIndex;
-          rowIndex++
-        ) {
-          const cell =
-            state.song.patterns?.[patternId]?.[rowIndex]?.[channelIndex];
+        const modifiedKeys = new Set<string>([
+          `${startCell.patternId}:${startCell.rowId}:${startCell.channelId}`,
+          `${endCell.patternId}:${endCell.rowId}:${endCell.channelId}`,
+        ]);
 
+        for (
+          let absRow = startCell.absRow + 1;
+          absRow < endCell.absRow;
+          absRow++
+        ) {
+          const { sequenceId, rowId } = fromAbsRow(absRow);
+          const patternId = state.song.sequence[sequenceId];
+
+          if (patternId === undefined) {
+            continue;
+          }
+
+          const key = `${patternId}:${rowId}:${channelId}`;
+          if (modifiedKeys.has(key)) {
+            continue;
+          }
+          modifiedKeys.add(key);
+
+          const cell = state.song.patterns?.[patternId]?.[rowId]?.[channelId];
           if (!cell) {
             continue;
           }
 
-          const t = (rowIndex - startRowIndex) / span;
+          const t = (absRow - startCell.absRow) / span;
           cell.note = Math.round(startNote + noteDelta * t);
           cell.instrument = startInstrument;
         }
       }
     },
-
-    interpolateAbsoluteCells: (
-      state,
-      action: PayloadAction<{
-        channelId: number;
-        absRows: number[];
-      }>,
-    ) => {
-      if (!state.song) {
-        return;
-      }
-
-      const { channelId, absRows } = action.payload;
-
-      if (absRows.length === 0) {
-        return;
-      }
-
-      const sortedAbsRows = [...new Set(absRows)].sort((a, b) => a - b);
-
-      let startAbsRow: number | null = null;
-      let startNote: number | null = null;
-      let startInstrument: number | null = null;
-      let endAbsRow: number | null = null;
-      let endNote: number | null = null;
-
-      for (const absRow of sortedAbsRows) {
-        const { sequenceId, rowId } = fromAbsRow(absRow);
-        const patternId = state.song.sequence[sequenceId];
-
-        if (patternId === undefined) {
-          continue;
-        }
-
-        const cell = state.song.patterns?.[patternId]?.[rowId]?.[channelId];
-        if (!cell || cell.note === null) {
-          continue;
-        }
-
-        startAbsRow = absRow;
-        startNote = cell.note;
-        startInstrument = cell.instrument;
-        break;
-      }
-
-      for (let i = sortedAbsRows.length - 1; i >= 0; i--) {
-        const absRow = sortedAbsRows[i];
-        const { sequenceId, rowId } = fromAbsRow(absRow);
-        const patternId = state.song.sequence[sequenceId];
-
-        if (patternId === undefined) {
-          continue;
-        }
-
-        const cell = state.song.patterns?.[patternId]?.[rowId]?.[channelId];
-        if (!cell || cell.note === null) {
-          continue;
-        }
-
-        endAbsRow = absRow;
-        endNote = cell.note;
-        break;
-      }
-
-      if (
-        startAbsRow === null ||
-        startNote === null ||
-        endAbsRow === null ||
-        endNote === null
-      ) {
-        return;
-      }
-
-      if (startAbsRow >= endAbsRow - 1) {
-        return;
-      }
-
-      const span = endAbsRow - startAbsRow;
-      const noteDelta = endNote - startNote;
-
-      for (let absRow = startAbsRow + 1; absRow < endAbsRow; absRow++) {
-        const { sequenceId, rowId } = fromAbsRow(absRow);
-        const patternId = state.song.sequence[sequenceId];
-
-        if (patternId === undefined) {
-          continue;
-        }
-
-        const cell = state.song.patterns?.[patternId]?.[rowId]?.[channelId];
-        if (!cell) {
-          continue;
-        }
-
-        const t = (absRow - startAbsRow) / span;
-        cell.note = Math.round(startNote + noteDelta * t);
-        cell.instrument = startInstrument;
-      }
-    },
-
-    changeInstrumentTrackerFields: (
-      state,
-      action: PayloadAction<{
-        patternId: number;
-        selectedTrackerFields: number[];
-        instrumentId: number;
-      }>,
-    ) => {
-      if (!state.song) {
-        return;
-      }
-
-      const { patternId, selectedTrackerFields, instrumentId } = action.payload;
-
-      const resolvedCells = resolveUniqueTrackerCells(
-        patternId,
-        selectedTrackerFields,
-      );
-
-      for (const { patternId, rowIndex, channelIndex } of resolvedCells) {
-        const pattern = state.song.patterns?.[patternId];
-        if (!pattern) {
-          continue;
-        }
-        const cell = pattern[rowIndex]?.[channelIndex];
-        if (cell) {
-          cell.instrument = instrumentId;
-        }
-      }
-    },
-
     changeInstrumentAbsoluteCells: (
       state,
       action: PayloadAction<{
-        channelId: number;
-        absRows: number[];
+        patternCells: PatternCellAddress[];
         instrumentId: number;
       }>,
     ) => {
@@ -1004,12 +915,11 @@ const trackerSlice = createSlice({
         return;
       }
 
-      const { channelId, absRows, instrumentId } = action.payload;
+      const { patternCells, instrumentId } = action.payload;
 
       const seen = new Set<string>();
 
-      for (const absRow of absRows) {
-        const { sequenceId, rowId } = fromAbsRow(absRow);
+      for (const { sequenceId, rowId, channelId } of patternCells) {
         const patternId = state.song.sequence[sequenceId];
 
         if (patternId === undefined) {
@@ -1138,20 +1048,18 @@ const trackerSlice = createSlice({
     clearAbsoluteCells: (
       state,
       action: PayloadAction<{
-        channelId: number;
-        absRows: number[];
+        patternCells: PatternCellAddress[];
       }>,
     ) => {
       if (!state.song) {
         return;
       }
 
-      const { channelId, absRows } = action.payload;
+      const { patternCells } = action.payload;
 
       const seen = new Set<string>();
 
-      for (const absRow of absRows) {
-        const { sequenceId, rowId } = fromAbsRow(absRow);
+      for (const { sequenceId, rowId, channelId } of patternCells) {
         const patternId = state.song.sequence[sequenceId];
 
         if (patternId === undefined) {

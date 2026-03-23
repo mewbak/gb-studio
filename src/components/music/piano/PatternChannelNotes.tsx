@@ -1,18 +1,15 @@
 import React from "react";
 import { PatternCell } from "shared/lib/uge/types";
-import {
-  PIANO_ROLL_CELL_SIZE,
-  TOTAL_NOTES,
-  TRACKER_PATTERN_LENGTH,
-} from "consts";
+import { PIANO_ROLL_CELL_SIZE, TOTAL_NOTES } from "consts";
 import { StyledPianoRollNote, StyledPatternChannelNotes } from "./style";
+import { PatternCellAddress } from "shared/lib/uge/editor/types";
 
 interface PatternChannelNotesProps {
   channelId: number;
   isActive: boolean;
   sequenceId: number;
   pattern: PatternCell[][];
-  selectedPatternCells: number[];
+  selectedPatternCells: PatternCellAddress[];
   isDragging: boolean;
 }
 
@@ -38,10 +35,14 @@ export const PatternChannelNotes = React.memo(
           const cell = row[channelId];
           if (!cell || cell.note === null) return null;
 
-          const absRow = sequenceId * TRACKER_PATTERN_LENGTH + rowIndex;
-
           const isSelected =
-            isActive && selectedPatternCells.indexOf(absRow) !== -1;
+            isActive &&
+            selectedPatternCells.some(
+              (selectedCell) =>
+                selectedCell.sequenceId === sequenceId &&
+                selectedCell.rowId === rowIndex &&
+                selectedCell.channelId === channelId,
+            );
 
           if (cell.instrument !== null) {
             instrument = cell.instrument;
