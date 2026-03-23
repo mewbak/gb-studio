@@ -368,8 +368,30 @@ export const PianoRollCanvas = ({
         clonePatternCells.current = true;
         setIsCloneMode(true);
       }
+      if (e.code === "Equal") {
+        dispatch(
+          trackerDocumentActions.transposeAbsoluteCells({
+            channelId: selectedChannel,
+            absRows: selectedPatternCells,
+            direction: "up",
+            size: e.shiftKey ? "octave" : "note",
+          }),
+        );
+      }
+
+      if (e.code === "Minus") {
+        dispatch(
+          trackerDocumentActions.transposeAbsoluteCells({
+            channelId: selectedChannel,
+            absRows: selectedPatternCells,
+            direction: "down",
+            size: e.shiftKey ? "octave" : "note",
+          }),
+        );
+      }
+
       if (e.ctrlKey && e.shiftKey) {
-        if (e.code === "KeyQ" || e.key === "+" || e.key === "=") {
+        if (e.code === "KeyQ") {
           dispatch(
             trackerDocumentActions.transposeAbsoluteCells({
               channelId: selectedChannel,
@@ -380,7 +402,7 @@ export const PianoRollCanvas = ({
           );
           return true;
         }
-        if (e.code === "KeyA" || e.key === "_") {
+        if (e.code === "KeyA") {
           dispatch(
             trackerDocumentActions.transposeAbsoluteCells({
               channelId: selectedChannel,
@@ -392,7 +414,7 @@ export const PianoRollCanvas = ({
           return true;
         }
       } else if (e.altKey && e.shiftKey) {
-        if (e.code === "KeyQ" || e.key === "=") {
+        if (e.code === "KeyQ") {
           dispatch(
             trackerDocumentActions.transposeAbsoluteCells({
               channelId: selectedChannel,
@@ -403,7 +425,7 @@ export const PianoRollCanvas = ({
           );
           return true;
         }
-        if (e.code === "KeyA" || e.key === "-") {
+        if (e.code === "KeyA") {
           dispatch(
             trackerDocumentActions.transposeAbsoluteCells({
               channelId: selectedChannel,

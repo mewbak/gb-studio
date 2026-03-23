@@ -483,48 +483,70 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
         }
       }
 
+      if (e.code === "Equal") {
+        dispatch(
+          trackerDocumentActions.transposeTrackerFields({
+            patternId,
+            selectedTrackerFields,
+            direction: "up",
+            type: e.shiftKey ? "octave" : "all",
+          }),
+        );
+      }
+
+      if (e.code === "Minus") {
+        dispatch(
+          trackerDocumentActions.transposeTrackerFields({
+            patternId,
+            selectedTrackerFields,
+            direction: "down",
+            type: e.shiftKey ? "octave" : "all",
+          }),
+        );
+      }
+
       if (e.ctrlKey && e.shiftKey) {
-        if (e.code === "KeyQ" || e.key === "+" || e.key === "=") {
+        if (e.code === "KeyQ") {
           dispatch(
             trackerDocumentActions.transposeTrackerFields({
               patternId,
               selectedTrackerFields,
               direction: "up",
-              size: "octave",
+              type: "octave",
             }),
           );
           return true;
         }
-        if (e.code === "KeyA" || e.key === "_") {
+        if (e.code === "KeyA") {
           dispatch(
             trackerDocumentActions.transposeTrackerFields({
               patternId,
               selectedTrackerFields,
               direction: "down",
-              size: "octave",
+              type: "octave",
             }),
           );
           return true;
         }
       } else if (e.altKey && e.shiftKey) {
-        if (e.code === "KeyQ" || e.key === "=") {
+        if (e.code === "KeyQ") {
           dispatch(
             trackerDocumentActions.transposeTrackerFields({
               patternId,
               selectedTrackerFields,
               direction: "up",
-              size: "note",
+              type: "note",
             }),
           );
           return true;
         }
-        if (e.code === "KeyA" || e.key === "-") {
+        if (e.code === "KeyA") {
           dispatch(
             trackerDocumentActions.transposeTrackerFields({
               patternId,
               selectedTrackerFields,
               direction: "down",
-              size: "note",
+              type: "note",
             }),
           );
           return true;
@@ -697,7 +719,7 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
               patternId,
               selectedTrackerFields,
               direction: "up",
-              size: "octave",
+              type: "octave",
             }),
           );
           return;
@@ -708,7 +730,7 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
               patternId,
               selectedTrackerFields,
               direction: "down",
-              size: "octave",
+              type: "octave",
             }),
           );
           return;
@@ -720,7 +742,7 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
               patternId,
               selectedTrackerFields,
               direction: "up",
-              size: "note",
+              type: "all",
             }),
           );
           return;
@@ -731,7 +753,7 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
               patternId,
               selectedTrackerFields,
               direction: "down",
-              size: "note",
+              type: "all",
             }),
           );
           return;

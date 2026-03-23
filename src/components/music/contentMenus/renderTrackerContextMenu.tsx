@@ -35,7 +35,7 @@ const renderTrackerContextMenu = ({
             patternId,
             selectedTrackerFields,
             direction: "up",
-            size: "octave",
+            type: "octave",
           }),
         );
       }}
@@ -51,7 +51,7 @@ const renderTrackerContextMenu = ({
             patternId,
             selectedTrackerFields,
             direction: "down",
-            size: "octave",
+            type: "octave",
           }),
         );
       }}
@@ -67,7 +67,7 @@ const renderTrackerContextMenu = ({
             patternId,
             selectedTrackerFields,
             direction: "up",
-            size: "note",
+            type: "note",
           }),
         );
       }}
@@ -83,7 +83,7 @@ const renderTrackerContextMenu = ({
             patternId,
             selectedTrackerFields,
             direction: "down",
-            size: "note",
+            type: "note",
           }),
         );
       }}

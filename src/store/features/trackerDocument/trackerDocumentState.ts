@@ -627,16 +627,71 @@ const trackerSlice = createSlice({
         patternId: number;
         selectedTrackerFields: number[];
         direction: "up" | "down";
-        size: "note" | "octave";
+        type: "note" | "octave" | "all";
       }>,
     ) => {
       if (!state.song) {
         return;
       }
 
-      const { patternId, selectedTrackerFields, direction, size } =
+      const { patternId, selectedTrackerFields, direction, type } =
         action.payload;
-      const noteDelta = getTransposeNoteDelta(direction, size);
+      const delta = direction === "up" ? 1 : -1;
+
+      if (type === "all") {
+        const resolvedFields = resolveTrackerCellFields(
+          patternId,
+          selectedTrackerFields,
+        );
+
+        for (const {
+          patternId,
+          rowIndex,
+          channelIndex,
+          fieldIndex,
+        } of resolvedFields) {
+          const pattern = state.song.patterns?.[patternId];
+          if (!pattern) {
+            continue;
+          }
+
+          const cell = pattern[rowIndex]?.[channelIndex];
+          if (!cell) {
+            continue;
+          }
+
+          if (fieldIndex === 0) {
+            if (cell.note !== null) {
+              cell.note = Math.max(0, Math.min(71, cell.note + delta));
+            }
+          } else if (fieldIndex === 1) {
+            if (cell.instrument !== null) {
+              cell.instrument = Math.max(
+                0,
+                Math.min(14, cell.instrument + delta),
+              );
+            }
+          } else if (fieldIndex === 2) {
+            if (cell.effectcode !== null) {
+              cell.effectcode = Math.max(
+                0,
+                Math.min(15, cell.effectcode + delta),
+              );
+            }
+          } else if (fieldIndex === 3) {
+            if (cell.effectparam !== null) {
+              cell.effectparam = Math.max(
+                0,
+                Math.min(255, cell.effectparam + delta),
+              );
+            }
+          }
+        }
+
+        return;
+      }
+
+      const noteDelta = getTransposeNoteDelta(direction, type);
 
       const resolvedCells = resolveUniqueTrackerCells(
         patternId,
