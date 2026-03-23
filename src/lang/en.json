@@ -1333,6 +1333,8 @@
   "FIELD_TRANSPOSE_OCTAVE": "Transpose {n} Octave",
   "FIELD_CHANGE_INSTRUMENT": "Change Instrument",
   "FIELD_INTERPOLATE": "Interpolate",
+  "FIELD_INSERT_ROW": "Insert Row",
+  "FIELD_DELETE_ROW": "Delete Row",
 
   "// 7": "Asset Viewer ---------------------------------------------",
   "ASSET_SEARCH": "Search...",

@@ -138,7 +138,57 @@ const renderTrackerContextMenu = ({
       {l10n("MENU_PASTE")}
       <MenuAccelerator accelerator="CommandOrControl+V" />
     </MenuItem>,
+    <MenuDivider key="div-shift"></MenuDivider>,
+    <MenuItem
+      key="insert"
+      onClick={() => {
+        dispatch(
+          trackerDocumentActions.shiftTrackerFields({
+            patternId,
+            selectedTrackerFields,
+            direction: "insert",
+          }),
+        );
+      }}
+    >
+      {l10n("FIELD_INSERT_ROW")} <MenuAccelerator accelerator="Shift+Enter" />
+    </MenuItem>,
+
+    <MenuItem
+      key="delete"
+      onClick={() => {
+        dispatch(
+          trackerDocumentActions.shiftTrackerFields({
+            patternId,
+            selectedTrackerFields,
+            direction: "delete",
+          }),
+        );
+      }}
+    >
+      {l10n("FIELD_DELETE_ROW")}{" "}
+      <MenuAccelerator accelerator="Shift+Backspace" />
+    </MenuItem>,
+
     <MenuDivider key="div-change"></MenuDivider>,
+    ...(selectedTrackerFields.length > 1
+      ? [
+          <MenuItem
+            key="interpolate"
+            onClick={() => {
+              dispatch(
+                trackerDocumentActions.interpolateTrackerFields({
+                  patternId,
+                  selectedTrackerFields,
+                }),
+              );
+            }}
+          >
+            {l10n("FIELD_INTERPOLATE")}
+            <MenuAccelerator accelerator="Control+K" />
+          </MenuItem>,
+        ]
+      : []),
     <MenuItem
       key="change"
       onClick={() => {

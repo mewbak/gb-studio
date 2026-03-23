@@ -690,6 +690,124 @@ const trackerSlice = createSlice({
       }
     },
 
+    interpolateTrackerFields: (
+      state,
+      action: PayloadAction<{
+        patternId: number;
+        selectedTrackerFields: number[];
+      }>,
+    ) => {
+      if (!state.song) {
+        return;
+      }
+
+      const { patternId, selectedTrackerFields } = action.payload;
+
+      if (selectedTrackerFields.length === 0) {
+        return;
+      }
+
+      const resolvedCells = resolveUniqueTrackerCells(
+        patternId,
+        selectedTrackerFields,
+      );
+
+      const cellsByChannel = new Map<
+        number,
+        Array<{
+          patternId: number;
+          rowIndex: number;
+          channelIndex: number;
+        }>
+      >();
+
+      for (const resolved of resolvedCells) {
+        const existing = cellsByChannel.get(resolved.channelIndex);
+        if (existing) {
+          existing.push(resolved);
+        } else {
+          cellsByChannel.set(resolved.channelIndex, [resolved]);
+        }
+      }
+
+      for (const [channelIndex, channelCells] of cellsByChannel) {
+        const sortedChannelCells = [...channelCells].sort(
+          (a, b) => a.rowIndex - b.rowIndex,
+        );
+
+        let startRowIndex: number | null = null;
+        let startNote: number | null = null;
+        let startInstrument: number | null = null;
+        let endRowIndex: number | null = null;
+        let endNote: number | null = null;
+
+        for (const resolved of sortedChannelCells) {
+          const cell =
+            state.song.patterns?.[resolved.patternId]?.[resolved.rowIndex]?.[
+              resolved.channelIndex
+            ];
+
+          if (!cell || cell.note === null) {
+            continue;
+          }
+
+          startRowIndex = resolved.rowIndex;
+          startNote = cell.note;
+          startInstrument = cell.instrument;
+          break;
+        }
+
+        for (let i = sortedChannelCells.length - 1; i >= 0; i--) {
+          const resolved = sortedChannelCells[i];
+          const cell =
+            state.song.patterns?.[resolved.patternId]?.[resolved.rowIndex]?.[
+              resolved.channelIndex
+            ];
+
+          if (!cell || cell.note === null) {
+            continue;
+          }
+
+          endRowIndex = resolved.rowIndex;
+          endNote = cell.note;
+          break;
+        }
+
+        if (
+          startRowIndex === null ||
+          startNote === null ||
+          endRowIndex === null ||
+          endNote === null
+        ) {
+          continue;
+        }
+
+        if (startRowIndex >= endRowIndex - 1) {
+          continue;
+        }
+
+        const span = endRowIndex - startRowIndex;
+        const noteDelta = endNote - startNote;
+
+        for (
+          let rowIndex = startRowIndex + 1;
+          rowIndex < endRowIndex;
+          rowIndex++
+        ) {
+          const cell =
+            state.song.patterns?.[patternId]?.[rowIndex]?.[channelIndex];
+
+          if (!cell) {
+            continue;
+          }
+
+          const t = (rowIndex - startRowIndex) / span;
+          cell.note = Math.round(startNote + noteDelta * t);
+          cell.instrument = startInstrument;
+        }
+      }
+    },
+
     interpolateAbsoluteCells: (
       state,
       action: PayloadAction<{
@@ -852,6 +970,69 @@ const trackerSlice = createSlice({
         const cell = state.song.patterns?.[patternId]?.[rowId]?.[channelId];
         if (cell) {
           cell.instrument = instrumentId;
+        }
+      }
+    },
+
+    shiftTrackerFields: (
+      state,
+      action: PayloadAction<{
+        patternId: number;
+        selectedTrackerFields: number[];
+        direction: "insert" | "delete";
+      }>,
+    ) => {
+      if (!state.song) {
+        return;
+      }
+
+      const { patternId, selectedTrackerFields, direction } = action.payload;
+
+      const pattern = state.song.patterns?.[patternId];
+      if (!pattern || selectedTrackerFields.length === 0) {
+        return;
+      }
+
+      const resolvedCells = resolveUniqueTrackerCells(
+        patternId,
+        selectedTrackerFields,
+      );
+
+      if (resolvedCells.length === 0) {
+        return;
+      }
+
+      const selectedChannels = new Set<number>();
+      let startRow = Infinity;
+
+      for (const { rowIndex, channelIndex } of resolvedCells) {
+        selectedChannels.add(channelIndex);
+        if (rowIndex < startRow) {
+          startRow = rowIndex;
+        }
+      }
+
+      if (startRow < 0 || startRow >= pattern.length) {
+        return;
+      }
+
+      for (const channelIndex of selectedChannels) {
+        if (direction === "delete") {
+          for (let row = startRow; row < pattern.length - 1; row++) {
+            pattern[row][channelIndex] = {
+              ...pattern[row + 1][channelIndex],
+            };
+          }
+
+          pattern[pattern.length - 1][channelIndex] = createPatternCell();
+        } else {
+          for (let row = pattern.length - 1; row > startRow; row--) {
+            pattern[row][channelIndex] = {
+              ...pattern[row - 1][channelIndex],
+            };
+          }
+
+          pattern[startRow][channelIndex] = createPatternCell();
         }
       }
     },
