@@ -159,10 +159,12 @@ const trackerSlice = createSlice({
     setSelectedInstrumentId: (state, action: PayloadAction<number>) => {
       state.selectedInstrumentId = clamp(action.payload, 0, 15);
     },
-    setSelectedChannel: (state, _action: PayloadAction<number>) => {
-      state.selectedPatternCells = [];
-      state.selectedEffectCell = null;
-      state.selectedChannel = _action.payload;
+    setSelectedChannel: (state, action: PayloadAction<number>) => {
+      if (state.selectedChannel !== action.payload) {
+        state.selectedPatternCells = [];
+        state.selectedEffectCell = null;
+        state.selectedChannel = action.payload;
+      }
     },
     setVisibleChannels: (state, _action: PayloadAction<number[]>) => {
       state.visibleChannels = _action.payload;
@@ -197,9 +199,11 @@ const trackerSlice = createSlice({
       state.selectedEffectCell = null;
       state.selectedPatternCells = _action.payload;
     },
-    setSelectedEffectCell: (state, _action: PayloadAction<number | null>) => {
-      state.selectedPatternCells = [];
-      state.selectedEffectCell = _action.payload;
+    setSelectedEffectCell: (state, action: PayloadAction<number | null>) => {
+      if (state.selectedEffectCell !== action.payload) {
+        state.selectedPatternCells = [];
+        state.selectedEffectCell = action.payload;
+      }
     },
     setSubpatternEditorFocus: (state, _action: PayloadAction<boolean>) => {
       console.log("FOCUS:", _action.payload);
