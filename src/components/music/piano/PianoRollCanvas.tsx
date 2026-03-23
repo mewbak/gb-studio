@@ -164,6 +164,22 @@ export const PianoRollCanvas = ({
     (state) => state.tracker.selectedInstrumentId,
   );
 
+  // Piano roll only supports selecting notes from a single channel.
+  // The shared `selectedPatternCells` state can span multiple channels
+  // (used by tracker view), so when the piano view is active we clamp the
+  // selection to the currently visible channel to avoid cross-channel edits.
+  useEffect(() => {
+    const channelSelectedPatternCells = selectedPatternCells.filter(
+      (cell) => cell.channelId === selectedChannel,
+    );
+
+    if (channelSelectedPatternCells.length !== selectedPatternCells.length) {
+      dispatch(
+        trackerActions.setSelectedPatternCells(channelSelectedPatternCells),
+      );
+    }
+  }, [dispatch, selectedPatternCells, selectedChannel]);
+
   const selectCellsInRange = useCallback(
     (
       _selectedPatternCells: PatternCellAddress[],
