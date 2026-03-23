@@ -228,16 +228,14 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
     );
     dispatch(trackerActions.setSelectedChannel(newChannelId));
 
-    if (activeField % TRACKER_CHANNEL_FIELDS >= 2) {
-      dispatch(
-        trackerActions.setSelectedEffectCell({
-          sequenceId,
-          patternId,
-          rowId: Math.floor(activeField / TRACKER_ROW_SIZE),
-          channelId: newChannelId,
-        }),
-      );
-    }
+    dispatch(
+      trackerActions.setSelectedEffectCell({
+        sequenceId,
+        patternId,
+        rowId: Math.floor(activeField / TRACKER_ROW_SIZE),
+        channelId: newChannelId,
+      }),
+    );
   }, [activeField, dispatch, patternId, sequenceId]);
 
   const getCurrentSelectedTrackerFields = useCallback(() => {
