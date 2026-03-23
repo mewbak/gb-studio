@@ -895,18 +895,6 @@ export const PianoRollCanvas = ({
           if (!selectedPatternCells.includes(absRow)) {
             dispatch(trackerActions.setSelectedPatternCells([absRow]));
           }
-
-          const { sequenceId, rowId } = fromAbsRow(absRow);
-          const patternId = song.sequence[sequenceId];
-          dispatch(
-            trackerActions.setSelectedEffectCell({
-              sequenceId,
-              patternId,
-              rowId,
-              channelId: selectedChannel,
-            }),
-          );
-
           setIsMouseDown(true);
           setIsDraggingNotes(false);
           setNoteDragOrigin({ absRow: absRow, note: cell.note });
@@ -1124,6 +1112,18 @@ export const PianoRollCanvas = ({
               .map((absRow) => absRow + dragDelta.rows)
               .filter((absRow) => absRow >= 0 && absRow < totalAbsRows),
           ),
+        );
+      } else if (!isDraggingNotes && selectedPatternCells.length === 1) {
+        const absRow = selectedPatternCells[0];
+        const { sequenceId, rowId } = fromAbsRow(absRow);
+        const patternId = song.sequence[sequenceId];
+        dispatch(
+          trackerActions.setSelectedEffectCell({
+            sequenceId,
+            patternId,
+            rowId,
+            channelId: selectedChannel,
+          }),
         );
       }
 
