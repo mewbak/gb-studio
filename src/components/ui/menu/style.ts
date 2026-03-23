@@ -9,11 +9,13 @@ export const acceleratorForPlatform = (accelerator: string) => {
   if (API.platform === "darwin") {
     return accelerator
       .replace(/CommandOrControl\+/g, "⌘")
+      .replace(/Control\+/g, "⌃")
       .replace(/Shift\+/g, "⇧")
       .replace(/Alt\+/g, "⌥");
   }
   return accelerator
     .replace(/CommandOrControl\+/g, "Ctrl+")
+    .replace(/Control\+/g, "Ctrl+")
     .replace(/Shift\+/g, "Shift+")
     .replace(/Alt\+/g, "Alt+");
 };
