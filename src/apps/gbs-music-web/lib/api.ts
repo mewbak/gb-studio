@@ -211,8 +211,22 @@ export const installWebRendererApi = (store: MusicEditorStore) => {
     }
   });
 
+  type NavigatorUA = Navigator & {
+    userAgentData?: {
+      platform: string;
+    };
+  };
+
+  const isMacOS = () => {
+    const nav = navigator as NavigatorUA;
+    return (
+      nav.userAgentData?.platform === "macOS" ||
+      navigator.platform.toUpperCase().includes("MAC")
+    );
+  };
+
   const API = {
-    platform: "web",
+    platform: isMacOS() ? "darwin" : "web",
     env: "web",
     l10n: {
       getL10NStrings: () => loadLocaleData(currentLocaleId),
