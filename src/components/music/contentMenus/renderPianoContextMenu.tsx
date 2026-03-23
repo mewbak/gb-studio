@@ -132,15 +132,6 @@ const renderPianoContextMenu = ({
       <MenuAccelerator accelerator="CommandOrControl+Shift+C" />
     </MenuItem>,
     <MenuItem
-      key="paste"
-      onClick={() => {
-        dispatch(pasteAbsoluteCells());
-      }}
-    >
-      {l10n("MENU_PASTE")}
-      <MenuAccelerator accelerator="CommandOrControl+V" />
-    </MenuItem>,
-    <MenuItem
       key="copy"
       onClick={() => {
         dispatch(

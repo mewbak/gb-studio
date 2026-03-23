@@ -25,11 +25,17 @@ import {
   NO_CHANGE_ON_PASTE,
   parseClipboardOrigin,
   parseClipboardToPattern,
+  parsePatternFieldsToClipboard,
   parsePatternToClipboard,
   resolveTrackerCellFields,
   resolveUniqueTrackerCells,
   transposePatternCellNote,
 } from "./trackerDocumentHelpers";
+import {
+  TRACKER_CHANNEL_FIELDS,
+  TRACKER_NUM_CHANNELS,
+  TRACKER_ROW_SIZE,
+} from "consts";
 
 interface TrackerDocumentState {
   // status: "loading" | "error" | "loaded" | "init";
@@ -130,11 +136,7 @@ export const copyAbsoluteCells =
   };
 
 export const cutAbsoluteCells =
-  (args: {
-    channelId: number;
-    absRows: number[];
-    clipboardEvent?: ClipboardEvent;
-  }): AppThunk =>
+  (args: { channelId: number; absRows: number[] }): AppThunk =>
   (dispatch, getState) => {
     const state = getState();
     const song = selectTrackerDocumentSong(state);
@@ -143,7 +145,7 @@ export const cutAbsoluteCells =
       return;
     }
 
-    const { channelId, absRows, clipboardEvent } = args;
+    const { channelId, absRows } = args;
 
     if (absRows.length === 0) {
       return;
@@ -161,8 +163,6 @@ export const cutAbsoluteCells =
       originAbsRow,
     );
 
-    clipboardEvent?.preventDefault();
-    clipboardEvent?.clipboardData?.setData("text/plain", clipboardText);
     void API.clipboard.writeText(clipboardText);
 
     dispatch(
@@ -246,6 +246,159 @@ export const pasteInPlace =
               : existing.effectparam,
         },
       });
+    }
+
+    if (changes.length > 0) {
+      dispatch(actions.applyPatternCellChanges({ changes }));
+    }
+  };
+
+export const copyTrackerFields =
+  (args: { patternId: number; selectedTrackerFields: number[] }): AppThunk =>
+  (_dispatch, getState) => {
+    const state = getState();
+    const song = selectTrackerDocumentSong(state);
+
+    if (!song) {
+      return;
+    }
+
+    const { patternId, selectedTrackerFields } = args;
+
+    const pattern = song.patterns[patternId];
+    if (!pattern || selectedTrackerFields.length === 0) {
+      return;
+    }
+
+    const clipboardText = parsePatternFieldsToClipboard(
+      pattern,
+      selectedTrackerFields,
+    );
+
+    void API.clipboard.writeText(clipboardText);
+  };
+
+export const cutTrackerFields =
+  (args: { patternId: number; selectedTrackerFields: number[] }): AppThunk =>
+  (dispatch, getState) => {
+    const state = getState();
+    const song = selectTrackerDocumentSong(state);
+
+    if (!song) {
+      return;
+    }
+
+    const { patternId, selectedTrackerFields } = args;
+
+    const pattern = song.patterns[patternId];
+    if (!pattern || selectedTrackerFields.length === 0) {
+      return;
+    }
+
+    const clipboardText = parsePatternFieldsToClipboard(
+      pattern,
+      selectedTrackerFields,
+    );
+
+    void API.clipboard.writeText(clipboardText);
+
+    dispatch(
+      actions.clearTrackerFields({
+        patternId,
+        selectedTrackerFields,
+      }),
+    );
+  };
+
+export const pasteTrackerFields =
+  (args: { patternId: number; startField: number }): AppThunk<Promise<void>> =>
+  async (dispatch, getState) => {
+    const state = getState();
+    const song = selectTrackerDocumentSong(state);
+
+    if (!song) {
+      return;
+    }
+
+    const { patternId, startField } = args;
+    const pattern = song.patterns[patternId];
+
+    if (!pattern) {
+      return;
+    }
+
+    const clipboardText = await API.clipboard.readText();
+    const pastedPattern = parseClipboardToPattern(clipboardText);
+
+    if (!pastedPattern || pastedPattern.length === 0) {
+      return;
+    }
+
+    const startRow = Math.floor(startField / TRACKER_ROW_SIZE);
+    const startChannelId =
+      Math.floor(startField / TRACKER_CHANNEL_FIELDS) % TRACKER_NUM_CHANNELS;
+
+    const changes: Array<{
+      patternId: number;
+      rowId: number;
+      channelId: number;
+      changes: Partial<PatternCell>;
+    }> = [];
+
+    for (let rowOffset = 0; rowOffset < pastedPattern.length; rowOffset++) {
+      const pastedRow = pastedPattern[rowOffset];
+      const rowId = startRow + rowOffset;
+
+      if (!pattern[rowId]) {
+        break;
+      }
+
+      for (
+        let channelOffset = 0;
+        channelOffset < pastedRow.length && startChannelId + channelOffset < 4;
+        channelOffset++
+      ) {
+        const pastedCell = pastedRow[channelOffset];
+        if (!pastedCell) {
+          continue;
+        }
+
+        const channelId = startChannelId + channelOffset;
+        const existing = pattern[rowId]?.[channelId];
+
+        if (!existing) {
+          continue;
+        }
+
+        const cellChanges: Partial<PatternCell> = {};
+
+        if (pastedCell.note !== NO_CHANGE_ON_PASTE) {
+          cellChanges.note = pastedCell.note;
+        }
+
+        if (pastedCell.instrument !== NO_CHANGE_ON_PASTE) {
+          cellChanges.instrument = pastedCell.instrument;
+        }
+
+        if (pastedCell.effectcode !== NO_CHANGE_ON_PASTE) {
+          cellChanges.effectcode = pastedCell.effectcode;
+        }
+
+        if (pastedCell.effectparam !== NO_CHANGE_ON_PASTE) {
+          cellChanges.effectparam = pastedCell.effectparam;
+        }
+
+        if (Object.keys(cellChanges).length === 0) {
+          continue;
+        }
+
+        changes.push({
+          patternId,
+          rowId,
+          channelId,
+          changes: cellChanges,
+        });
+      }
     }
 
     if (changes.length > 0) {

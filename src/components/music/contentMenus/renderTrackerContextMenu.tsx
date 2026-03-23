@@ -1,11 +1,17 @@
 import React, { Dispatch } from "react";
 import { UnknownAction } from "redux";
 import l10n from "shared/lib/lang/l10n";
+import { AppThunk } from "store/configureStore";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
+import {
+  copyTrackerFields,
+  cutTrackerFields,
+  pasteTrackerFields,
+} from "store/features/trackerDocument/trackerDocumentState";
 import { MenuAccelerator, MenuDivider, MenuItem } from "ui/menu/Menu";
 
 interface TrackerContextMenuProps {
-  dispatch: Dispatch<UnknownAction>;
+  dispatch: Dispatch<UnknownAction | AppThunk>;
   patternId: number;
   selectedTrackerFields: number[];
   selectedInstrumentId: number;
@@ -84,6 +90,53 @@ const renderTrackerContextMenu = ({
     >
       {l10n("FIELD_TRANSPOSE_OCTAVE", { n: "-1" })}
       <MenuAccelerator accelerator="Control+Shift+A" />
+    </MenuItem>,
+
+    <MenuDivider key="clipboard"></MenuDivider>,
+    <MenuItem
+      key="cut"
+      onClick={() => {
+        dispatch(
+          cutTrackerFields({
+            patternId,
+            selectedTrackerFields,
+          }),
+        );
+      }}
+    >
+      {l10n("MENU_CUT")}
+      <MenuAccelerator accelerator="CommandOrControl+Shift+C" />
+    </MenuItem>,
+    <MenuItem
+      key="copy"
+      onClick={() => {
+        dispatch(
+          copyTrackerFields({
+            patternId,
+            selectedTrackerFields,
+          }),
+        );
+      }}
+    >
+      {l10n("MENU_COPY")}
+      <MenuAccelerator accelerator="CommandOrControl+C" />
+    </MenuItem>,
+    <MenuItem
+      key="paste"
+      onClick={() => {
+        const firstField = selectedTrackerFields[0];
+        if (firstField) {
+          dispatch(
+            pasteTrackerFields({
+              patternId,
+              startField: firstField,
+            }),
+          );
+        }
+      }}
+    >
+      {l10n("MENU_PASTE")}
+      <MenuAccelerator accelerator="CommandOrControl+V" />
     </MenuItem>,
     <MenuDivider key="div-change"></MenuDivider>,
     <MenuItem

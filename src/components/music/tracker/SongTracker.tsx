@@ -13,14 +13,9 @@ import { TrackerRow } from "./SongRow";
 import scrollIntoView from "scroll-into-view-if-needed";
 import { TrackerHeaderCell } from "./TrackerHeaderCell";
 import { patternHue, playNotePreview } from "components/music/helpers";
-import {
-  NO_CHANGE_ON_PASTE,
-  parseClipboardToPattern,
-  parsePatternFieldsToClipboard,
-} from "components/music/musicClipboardHelpers";
 import { getKeys } from "renderer/lib/keybindings/keyBindings";
 import trackerActions from "store/features/tracker/trackerActions";
-import { clamp, cloneDeep, mergeWith } from "lodash";
+import { clamp, cloneDeep } from "lodash";
 import API from "renderer/lib/api";
 import { MusicDataReceivePacket } from "shared/lib/music/types";
 import { useAppDispatch, useAppSelector } from "store/hooks";
@@ -44,7 +39,6 @@ import {
   getSelectedTrackerFields,
   normalizeFieldIndex,
   Position,
-  positionToField,
   SelectionRect,
   TRACKER_CELL_HEIGHT,
   TRACKER_HEADER_HEIGHT,
@@ -54,6 +48,11 @@ import renderTrackerContextMenu from "components/music/contentMenus/renderTracke
 import { DropdownButton } from "ui/buttons/DropdownButton";
 import { TRACKER_CHANNEL_FIELDS, TRACKER_ROW_SIZE } from "consts";
 import { useContextMenu } from "ui/hooks/use-context-menu";
+import {
+  copyTrackerFields,
+  cutTrackerFields,
+  pasteTrackerFields,
+} from "store/features/trackerDocument/trackerDocumentState";
 
 interface SongTrackerProps {
   sequenceId: number;
@@ -472,20 +471,6 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
     },
     [updateSelectionToField],
   );
-
-  const getCurrentFieldOrSelectionStart = useCallback(() => {
-    const currentActiveField = activeFieldValueRef.current;
-    if (currentActiveField !== undefined) {
-      return currentActiveField;
-    }
-
-    const currentSelectionOrigin = selectionOriginRef.current;
-    if (currentSelectionOrigin) {
-      return positionToField(currentSelectionOrigin);
-    }
-
-    return 0;
-  }, []);
 
   const editPatternCell = useCallback(
     (type: keyof PatternCell, value: number | null) => {
@@ -941,103 +926,49 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
 
   const onCopy = useCallback(
     (e: ClipboardEvent) => {
-      if (!(e.target instanceof HTMLElement)) {
-        return;
-      }
+      if (!(e.target instanceof HTMLElement)) return;
+      if (e.target.nodeName === "INPUT") return;
 
-      if (e.target.nodeName === "INPUT") {
-        return;
-      }
-
-      const currentPattern = patternRef.current;
       const currentSelectedTrackerFields = getCurrentSelectedTrackerFields();
 
-      if (!currentPattern || currentSelectedTrackerFields.length === 0) {
-        return;
-      }
-
-      const parsedSelectedPattern = parsePatternFieldsToClipboard(
-        currentPattern,
-        currentSelectedTrackerFields,
+      dispatch(
+        copyTrackerFields({
+          patternId,
+          selectedTrackerFields: currentSelectedTrackerFields,
+        }),
       );
-
-      e.preventDefault();
-      e.clipboardData?.setData("text/plain", parsedSelectedPattern);
-      void API.clipboard.writeText(parsedSelectedPattern);
     },
-    [getCurrentSelectedTrackerFields],
+    [dispatch, getCurrentSelectedTrackerFields, patternId],
   );
 
   const onCut = useCallback(
-    (e?: ClipboardEvent) => {
-      const currentPattern = patternRef.current;
+    (e: ClipboardEvent) => {
+      if (!(e.target instanceof HTMLElement)) return;
+      if (e.target.nodeName === "INPUT") return;
+
       const currentSelectedTrackerFields = getCurrentSelectedTrackerFields();
 
-      if (!currentPattern || currentSelectedTrackerFields.length === 0) {
-        return;
-      }
-
-      const parsedSelectedPattern = parsePatternFieldsToClipboard(
-        currentPattern,
-        currentSelectedTrackerFields,
+      dispatch(
+        cutTrackerFields({
+          patternId,
+          selectedTrackerFields: currentSelectedTrackerFields,
+        }),
       );
-
-      e?.preventDefault();
-      e?.clipboardData?.setData("text/plain", parsedSelectedPattern);
-      void API.clipboard.writeText(parsedSelectedPattern);
-      deleteSelectedTrackerFields();
     },
-    [deleteSelectedTrackerFields, getCurrentSelectedTrackerFields],
+    [dispatch, getCurrentSelectedTrackerFields, patternId],
   );
 
   const onPaste = useCallback(async () => {
-    const currentPattern = patternRef.current;
-    const currentPatternId = patternIdRef.current;
-    const currentChannelId = channelIdRef.current;
-
-    if (!currentPattern) {
-      return;
+    const firstField = selectedTrackerFields[0];
+    if (firstField) {
+      await dispatch(
+        pasteTrackerFields({
+          patternId,
+          startField: firstField,
+        }),
+      );
     }
-
-    const currentActiveField = activeFieldValueRef.current;
-    const tempActiveField = getCurrentFieldOrSelectionStart();
-
-    if (currentActiveField === undefined) {
-      setActiveField(tempActiveField);
-    }
-
-    const newPastedPattern = parseClipboardToPattern(
-      await API.clipboard.readText(),
-    );
-
-    if (!newPastedPattern || currentChannelId === undefined) {
-      return;
-    }
-
-    const startRow = Math.floor(tempActiveField / TRACKER_ROW_SIZE);
-    const newPattern = cloneDeep(currentPattern);
-
-    for (let i = 0; i < newPastedPattern.length; i++) {
-      const pastedPatternCellRow = newPastedPattern[i];
-
-      for (let j = 0; j < 4 - currentChannelId; j++) {
-        if (pastedPatternCellRow[j] && newPattern[startRow + i]) {
-          newPattern[startRow + i][currentChannelId + j] = mergeWith(
-            newPattern[startRow + i][currentChannelId + j],
-            pastedPatternCellRow[j],
-            (o, s) => (s === NO_CHANGE_ON_PASTE ? o : s),
-          );
-        }
-      }
-    }
-
-    dispatch(
-      trackerDocumentActions.editPattern({
-        patternId: currentPatternId,
-        pattern: newPattern,
-      }),
-    );
-  }, [dispatch, getCurrentFieldOrSelectionStart, setActiveField]);
+  }, [dispatch, patternId, selectedTrackerFields]);
 
   useEffect(() => {
     if (subpatternEditorFocus) {
