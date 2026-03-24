@@ -264,24 +264,57 @@ export const PianoRollCanvas = ({
     [selectedChannel, song.patterns, song.sequence],
   );
 
+  const lastSelectAllRef = useRef(0);
+
   const onSelectAll = useCallback(() => {
     window.getSelection()?.empty();
 
-    const allPatternCells: PatternCellAddress[] = song.sequence
-      .flatMap((patternId, sequenceId) =>
-        song.patterns[patternId].map((patternRow, rowId) =>
+    if (lastSelectAllRef.current + 100 > Date.now()) {
+      // Select all will be called multiple times
+      // added a required delay between calls to allow
+      // Pattern then Song selection
+      return;
+    }
+    lastSelectAllRef.current = Date.now();
+
+    if (selectedPatternCells.length <= 1) {
+      // Select all cells in pattern
+      const selectSequenceId =
+        selectedPatternCells.length === 1
+          ? selectedPatternCells[0].sequenceId
+          : sequenceId;
+      const patternId = song.sequence[selectSequenceId];
+      const patternPatternCells: PatternCellAddress[] = song.patterns[patternId]
+        .map((patternRow, rowId) =>
           patternRow[selectedChannel].note !== null
             ? {
-                sequenceId,
+                sequenceId: selectSequenceId,
                 rowId,
                 channelId: selectedChannel,
               }
             : undefined,
-        ),
-      )
-      .filter((addr) => addr !== undefined) as PatternCellAddress[];
+        )
+        .filter((addr) => addr !== undefined) as PatternCellAddress[];
 
-    dispatch(trackerActions.setSelectedPatternCells(allPatternCells));
+      dispatch(trackerActions.setSelectedPatternCells(patternPatternCells));
+    } else {
+      // Select all cells in song
+      const allPatternCells: PatternCellAddress[] = song.sequence
+        .flatMap((patternId, sequenceId) =>
+          song.patterns[patternId].map((patternRow, rowId) =>
+            patternRow[selectedChannel].note !== null
+              ? {
+                  sequenceId,
+                  rowId,
+                  channelId: selectedChannel,
+                }
+              : undefined,
+          ),
+        )
+        .filter((addr) => addr !== undefined) as PatternCellAddress[];
+
+      dispatch(trackerActions.setSelectedPatternCells(allPatternCells));
+    }
 
     const el = document.querySelector(":focus") as unknown as
       | BlurableDOMElement
@@ -289,7 +322,14 @@ export const PianoRollCanvas = ({
     if (el && el.blur) {
       el.blur();
     }
-  }, [dispatch, selectedChannel, song.patterns, song.sequence]);
+  }, [
+    dispatch,
+    selectedChannel,
+    selectedPatternCells,
+    sequenceId,
+    song.patterns,
+    song.sequence,
+  ]);
 
   useEffect(() => {
     if (subpatternEditorFocus) {
