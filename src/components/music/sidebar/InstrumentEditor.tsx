@@ -197,11 +197,10 @@ export const InstrumentEditor = () => {
     <>
       <FormSection>
         <FormSectionTitle>
+          {instrumentTypeLabels[resolvedInstrument.instrumentType]}
+          {" / "}
           {l10n("SIDEBAR_INSTRUMENT")}{" "}
-          {getDefaultInstrumentName(
-            resolvedInstrument.instrument,
-            resolvedInstrument.instrumentType,
-          )}
+          {String(resolvedInstrument.instrument.index + 1).padStart(2, "0")}
         </FormSectionTitle>
 
         <FormRow>
