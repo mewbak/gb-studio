@@ -34,13 +34,6 @@ export const useMusicNotePreview = () => {
       const previewEffectCode = effectCode ?? 0;
       const previewEffectParams = effectParam ?? 0;
 
-      console.log("PLAY PREVIEW", {
-        previewNote,
-        previewInstrumentId,
-        previewEffectCode,
-        previewEffectParams,
-      });
-
       if (selectedChannel === 0 || selectedChannel === 1) {
         const instrument = song.duty_instruments[previewInstrumentId];
         if (!instrument) {
