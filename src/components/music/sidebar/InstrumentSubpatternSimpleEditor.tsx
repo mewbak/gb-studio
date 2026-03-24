@@ -367,6 +367,7 @@ export const InstrumentSubpatternSimpleEditor = ({
           onSelect={() => {}}
           moveItems={moveRows}
           setDragging={setIsDragging}
+          useDragHandle
           renderItem={(_, dragState) => (
             <TickAccordionSection
               $dragging={dragState.isDragging}
@@ -379,9 +380,18 @@ export const InstrumentSubpatternSimpleEditor = ({
               }
             >
               <DraggableScriptEventHeader
-                ref={(element) => {
-                  rowHeaderRefs.current[rowIndex] = element;
-                }}
+                ref={
+                  dragState.dragHandleRef
+                    ? mergeRefs(
+                        (element: HTMLDivElement | null) => {
+                          rowHeaderRefs.current[rowIndex] = element;
+                        },
+                        dragState.dragHandleRef,
+                      )
+                    : (element: HTMLDivElement | null) => {
+                        rowHeaderRefs.current[rowIndex] = element;
+                      }
+                }
                 scriptEventId={`subpattern-${rowIndex}`}
                 nestLevel={0}
                 altBg={rowIndex % 2 === 0}

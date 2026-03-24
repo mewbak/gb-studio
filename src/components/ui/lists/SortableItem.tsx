@@ -9,11 +9,20 @@ interface SortableItemProps<T> {
   orientation: SortableListOrientation;
   renderItem: (
     item: T,
-    { isOver, isDragging }: { isOver: boolean; isDragging: boolean },
+    {
+      isOver,
+      isDragging,
+      dragHandleRef,
+    }: {
+      isOver: boolean;
+      isDragging: boolean;
+      dragHandleRef?: React.Ref<HTMLDivElement>;
+    },
   ) => JSX.Element;
   onSelect: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;
   moveItems: (dragIndex: number, hoverIndex: number) => void;
   setDragging: (isDragging: boolean) => void;
+  useDragHandle?: boolean;
 }
 
 export const SortableItem = <T,>({
@@ -25,8 +34,10 @@ export const SortableItem = <T,>({
   onSelect,
   moveItems,
   setDragging,
+  useDragHandle = false,
 }: SortableItemProps<T>) => {
   const ref = React.useRef<HTMLDivElement>(null);
+  const dragHandleRef = React.useRef<HTMLDivElement>(null);
 
   const [{ isOver }, drop] = useDrop({
     accept: itemType,
@@ -136,12 +147,21 @@ export const SortableItem = <T,>({
     end: () => setDragging(false),
   }));
 
-  drag(drop(ref));
+  if (useDragHandle) {
+    drop(ref);
+    drag(dragHandleRef);
+  } else {
+    drag(drop(ref));
+  }
 
   return (
     <div ref={dragPreview}>
       <div ref={ref} onMouseDown={onSelect}>
-        {renderItem(item, { isDragging, isOver })}
+        {renderItem(item, {
+          isDragging,
+          isOver,
+          dragHandleRef: useDragHandle ? dragHandleRef : undefined,
+        })}
       </div>
     </div>
   );
