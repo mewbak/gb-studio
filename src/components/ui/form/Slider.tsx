@@ -23,6 +23,7 @@ const RangeTrack = styled.div`
   border-radius: 4px;
   align-self: center;
   background: ${(props) => props.theme.colors.input.border};
+  border: 1px solid ${(props) => props.theme.colors.input.border};
 `;
 
 interface RangeThumbProps {
@@ -88,7 +89,7 @@ export const Slider: FC<SliderProps> = ({
                 values: [value],
                 colors: [
                   themeContext?.colors.highlight ?? "black",
-                  themeContext?.colors.input.border ?? "white",
+                  themeContext?.colors.input.background ?? "white",
                 ],
                 min,
                 max,
