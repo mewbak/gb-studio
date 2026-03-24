@@ -153,3 +153,24 @@ export const replaceSubpatternCell = (
   nextSubpattern[rowIndex] = cell;
   return nextSubpattern;
 };
+
+export const moveSubpatternRow = (
+  subpattern: SubPatternCell[],
+  fromIndex: number,
+  toIndex: number,
+) => {
+  if (fromIndex === toIndex) {
+    return subpattern;
+  }
+
+  const nextSubpattern = [...subpattern];
+  const visibleRows = getVisibleSubpatternRows(subpattern);
+  const [movedRow] = visibleRows.splice(fromIndex, 1);
+  visibleRows.splice(toIndex, 0, movedRow);
+
+  for (let index = 0; index < VISIBLE_SUBPATTERN_ROWS; index++) {
+    nextSubpattern[index] = visibleRows[index] ?? createSubPatternCell();
+  }
+
+  return nextSubpattern;
+};

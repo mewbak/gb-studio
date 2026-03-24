@@ -288,6 +288,7 @@ export const InstrumentEditor = () => {
             />
           ) : (
             <InstrumentSubpatternSimpleEditor
+              enabled={resolvedInstrument.instrument.subpattern_enabled}
               subpattern={resolvedInstrument.instrument.subpattern}
               instrumentId={resolvedInstrument.instrument.index}
               instrumentType={resolvedInstrument.instrumentType}

@@ -4,6 +4,7 @@ import {
   formatSubpatternFlow,
   formatSubpatternPitch,
   getSubpatternFlowType,
+  moveSubpatternRow,
 } from "../../../../src/components/music/sidebar/subpatternHelpers";
 
 test("Should format null and positive subpattern pitch values", () => {
@@ -26,4 +27,15 @@ test("Should initialize effect param when setting effect code zero", () => {
 
   expect(nextSubpattern[0].effectcode).toBe(0);
   expect(nextSubpattern[0].effectparam).toBe(0);
+});
+
+test("Should move a visible subpattern row without dropping data", () => {
+  const subpattern = [createSubPatternCell(), createSubPatternCell()];
+  subpattern[0].note = 40;
+  subpattern[1].note = 45;
+
+  const nextSubpattern = moveSubpatternRow(subpattern, 0, 1);
+
+  expect(nextSubpattern[0].note).toBe(45);
+  expect(nextSubpattern[1].note).toBe(40);
 });
