@@ -148,20 +148,15 @@ export const InstrumentSubpatternSimpleEditor = ({
     [subpattern],
   );
 
-  const [selectedRow, setSelectedRow] = useState(() => {
-    const firstConfiguredRow = visibleRows.findIndex(
-      (row) => !isSubpatternRowEmpty(row),
-    );
-    return firstConfiguredRow >= 0 ? firstConfiguredRow : 0;
-  });
-
-  const selectedCell = visibleRows[selectedRow] ?? createSubPatternCell();
+  const [selectedRow, setSelectedRow] = useState<number | null>(null);
+  const activeRow = selectedRow ?? 0;
+  const selectedCell = visibleRows[activeRow] ?? createSubPatternCell();
   const selectedJumpTarget = getSubpatternJumpTarget(selectedCell.jump) ?? 0;
   const selectedPitchOffset =
     selectedCell.note === null ? 0 : selectedCell.note - 36;
   const selectedFlowType = getSubpatternFlowType(
     selectedCell.jump,
-    selectedRow,
+    activeRow,
   );
   const selectedEffectIsAdvancedOnly =
     selectedCell.effectcode !== null &&
@@ -202,6 +197,9 @@ export const InstrumentSubpatternSimpleEditor = ({
 
   const onChangePitch = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (selectedRow === null) {
+        return;
+      }
       const nextOffset =
         e.currentTarget.value.length > 0
           ? parseInt(e.currentTarget.value, 10)
@@ -215,6 +213,9 @@ export const InstrumentSubpatternSimpleEditor = ({
 
   const onChangeFlowType = useCallback(
     (nextFlow: "continue" | "jump") => {
+      if (selectedRow === null) {
+        return;
+      }
       if (nextFlow === "continue") {
         updateRow(selectedRow, { jump: null });
         return;
@@ -226,6 +227,9 @@ export const InstrumentSubpatternSimpleEditor = ({
 
   const onChangeJumpTarget = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (selectedRow === null) {
+        return;
+      }
       const nextTarget =
         e.currentTarget.value.length > 0
           ? parseInt(e.currentTarget.value, 10)
@@ -239,6 +243,9 @@ export const InstrumentSubpatternSimpleEditor = ({
 
   const onChangeEffectCode = useCallback(
     (effectcode: number | null) => {
+      if (selectedRow === null) {
+        return;
+      }
       updateRow(selectedRow, {
         effectcode,
         effectparam:
@@ -250,6 +257,9 @@ export const InstrumentSubpatternSimpleEditor = ({
 
   const onChangeEffectParam = useCallback(
     (effectparam: number | null) => {
+      if (selectedRow === null) {
+        return;
+      }
       updateRow(selectedRow, { effectparam });
     },
     [selectedRow, updateRow],
@@ -257,7 +267,7 @@ export const InstrumentSubpatternSimpleEditor = ({
 
   useEffect(() => {
     const renderJumpArrow = () => {
-      if (selectedFlowType !== "jump") {
+      if (selectedRow === null || selectedFlowType !== "jump") {
         setJumpArrow(null);
         return;
       }
@@ -320,7 +330,7 @@ export const InstrumentSubpatternSimpleEditor = ({
       window.cancelAnimationFrame(frame);
       window.removeEventListener("resize", renderJumpArrow);
     };
-  }, [selectedCell, selectedFlowType, selectedJumpTarget, selectedRow]);
+  }, [activeRow, selectedCell, selectedFlowType, selectedJumpTarget, selectedRow]);
 
   return (
     <Wrapper>
@@ -385,7 +395,11 @@ export const InstrumentSubpatternSimpleEditor = ({
                   Clear Row
                 </MenuItem>
               }
-              onToggle={() => setSelectedRow(rowIndex)}
+              onToggle={() =>
+                setSelectedRow((currentRow) =>
+                  currentRow === rowIndex ? null : rowIndex,
+                )
+              }
             >
               <HeaderGrid>
                 <TickCell>{String(rowIndex).padStart(2, "0")}</TickCell>
