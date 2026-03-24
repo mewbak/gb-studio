@@ -44,27 +44,6 @@ const Wrapper = styled.div`
   padding: 0 10px 10px;
 `;
 
-const Intro = styled.div`
-  margin-bottom: 12px;
-  padding: 10px 12px;
-  border-radius: 4px;
-  background: ${(props) => props.theme.colors.card.background};
-  border: 1px solid ${(props) => props.theme.colors.card.border};
-  color: ${(props) => props.theme.colors.card.text};
-  font-size: 12px;
-  line-height: 1.5;
-`;
-
-const IntroTitle = styled.div`
-  font-weight: bold;
-  margin-bottom: 4px;
-`;
-
-const DisabledNote = styled.div`
-  margin-top: 6px;
-  opacity: 0.8;
-`;
-
 const RowHeader = styled.div`
   display: grid;
   grid-template-columns: 52px minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.2fr);
@@ -168,14 +147,12 @@ const AdvancedOnlyNotice = styled.div`
 `;
 
 interface InstrumentSubpatternSimpleEditorProps {
-  enabled: boolean;
   instrumentId: number;
   instrumentType: "duty" | "wave" | "noise";
   subpattern: SubPatternCell[];
 }
 
 export const InstrumentSubpatternSimpleEditor = ({
-  enabled,
   instrumentId,
   instrumentType,
   subpattern,
@@ -201,10 +178,7 @@ export const InstrumentSubpatternSimpleEditor = ({
   const selectedJumpTarget = getSubpatternJumpTarget(selectedCell.jump) ?? 0;
   const selectedPitchOffset =
     selectedCell.note === null ? 0 : selectedCell.note - 36;
-  const selectedFlowType = getSubpatternFlowType(
-    selectedCell.jump,
-    activeRow,
-  );
+  const selectedFlowType = getSubpatternFlowType(selectedCell.jump, activeRow);
   const selectedEffectIsAdvancedOnly =
     selectedCell.effectcode !== null &&
     !isValidSubpatternEffectCode(selectedCell.effectcode);
@@ -409,23 +383,16 @@ export const InstrumentSubpatternSimpleEditor = ({
       window.cancelAnimationFrame(frame);
       window.removeEventListener("resize", renderJumpArrow);
     };
-  }, [activeRow, selectedCell, selectedFlowType, selectedJumpTarget, selectedRow]);
+  }, [
+    activeRow,
+    selectedCell,
+    selectedFlowType,
+    selectedJumpTarget,
+    selectedRow,
+  ]);
 
   return (
     <Wrapper>
-      <Intro>
-        <IntroTitle>Subpattern</IntroTitle>
-        Runs once per tick while this instrument plays. Rows loop back to 00
-        unless a jump changes the flow, and subpattern effects override tracker
-        effects on the same tick.
-        {!enabled ? (
-          <DisabledNote>
-            This instrument&apos;s subpattern is currently disabled, but you can
-            still edit it here.
-          </DisabledNote>
-        ) : null}
-      </Intro>
-
       <RowHeader>
         <span>Tick</span>
         <span>Pitch</span>
