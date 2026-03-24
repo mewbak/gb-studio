@@ -206,6 +206,7 @@ const trackerSlice = createSlice({
       action: PayloadAction<SelectedInstrument>,
     ) => {
       state.selectedInstrument = action.payload;
+      state.sidebarView = "instrument";
     },
 
     setSelectedSequence: (state, action: PayloadAction<number>) => {
