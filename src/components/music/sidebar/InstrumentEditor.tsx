@@ -240,14 +240,16 @@ export const InstrumentEditor = () => {
                   onChangeInstrumentSubpatternEnabled(e.target.checked)
                 }
               />
-              <Button
-                variant={
-                  subpatternEditorMode === "tracker" ? "primary" : "normal"
-                }
-                onClick={onToggleSubpatternEditorMode}
-              >
-                <TrackerIcon />
-              </Button>
+              {resolvedInstrument.instrument.subpattern_enabled && (
+                <Button
+                  variant={
+                    subpatternEditorMode === "tracker" ? "primary" : "normal"
+                  }
+                  onClick={onToggleSubpatternEditorMode}
+                >
+                  <TrackerIcon />
+                </Button>
+              )}
             </SubpatternSettings>
           </TabSettings>
         ) : null}
