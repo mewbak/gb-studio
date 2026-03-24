@@ -111,11 +111,11 @@ export const InstrumentEditor = () => {
   const instrumentEditorTabs = useMemo<InstrumentEditorTabs>(
     () => ({
       main: l10n("MENU_SETTINGS"),
-      subpattern: resolvedInstrument?.instrument.subpattern_enabled
+      subpattern: resolvedInstrument?.instrument?.subpattern_enabled
         ? `${l10n("SIDEBAR_SUBPATTERN")}*`
         : l10n("SIDEBAR_SUBPATTERN"),
     }),
-    [resolvedInstrument?.instrument.subpattern_enabled],
+    [resolvedInstrument?.instrument?.subpattern_enabled],
   );
 
   const editInstrument = useMemo(() => {

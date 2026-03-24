@@ -26,19 +26,19 @@ import { createSubPatternCell } from "shared/lib/uge/song";
 import { SubPatternCell } from "shared/lib/uge/types";
 import {
   applySubpatternCellChanges,
-  formatSubpatternEffect,
-  formatSubpatternFlow,
-  formatSubpatternPitch,
   getSubpatternFlowType,
   getSubpatternJumpTarget,
   getVisibleSubpatternRows,
   isSubpatternRowEmpty,
   isValidSubpatternEffectCode,
   moveSubpatternRow,
+  subPatternRowLabel,
   toSubpatternJump,
   toSubpatternNote,
   validSubpatternEffectCodes,
 } from "./subpatternHelpers";
+import { Label } from "ui/form/Label";
+import { SliderField } from "ui/form/SliderField";
 
 const RowsList = styled.div`
   position: relative;
@@ -52,6 +52,8 @@ const JumpOverlay = styled.svg`
   pointer-events: none;
   overflow: visible;
   z-index: 2;
+  fill: red;
+  stroke: blue;
 `;
 
 const TickAccordionSection = styled(ScriptEventWrapper)<{
@@ -77,26 +79,6 @@ const TickAccordionSection = styled(ScriptEventWrapper)<{
       : ""}
 `;
 
-const HeaderGrid = styled.div`
-  display: grid;
-  grid-template-columns: 52px minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.2fr);
-  gap: 8px;
-  width: 100%;
-  min-width: 0;
-`;
-
-const TickCell = styled.span`
-  font-family: monospace;
-  font-weight: bold;
-`;
-
-const HeaderCell = styled.span`
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-`;
-
 const StyledScriptEventFormWrapper = styled(ScriptEventFormWrapper)`
   margin-left: 20px;
   margin-right: 8px;
@@ -106,27 +88,6 @@ const DraggableScriptEventHeader = styled(ScriptEventHeader)`
   ${CheckboxContainer} {
     display: none;
   }
-`;
-
-const FieldLabel = styled.label`
-  display: block;
-  margin-bottom: 6px;
-  font-weight: bold;
-`;
-
-const HelpText = styled.div`
-  margin-top: 6px;
-  font-size: 11px;
-  opacity: 0.8;
-`;
-
-const AdvancedOnlyNotice = styled.div`
-  margin-top: 10px;
-  padding: 10px 12px;
-  border-radius: 4px;
-  border: 1px solid ${(props) => props.theme.colors.highlight};
-  background: ${(props) => props.theme.colors.card.background};
-  color: ${(props) => props.theme.colors.card.text};
 `;
 
 interface InstrumentSubpatternSimpleEditorProps {
@@ -232,14 +193,11 @@ export const InstrumentSubpatternSimpleEditor = ({
   );
 
   const onChangePitch = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
+    (e: number | undefined) => {
       if (selectedRow === null) {
         return;
       }
-      const nextOffset =
-        e.currentTarget.value.length > 0
-          ? parseInt(e.currentTarget.value, 10)
-          : 0;
+      const nextOffset = typeof e === "number" ? e : 0;
       updateRow(selectedRow, {
         note: toSubpatternNote(Number.isNaN(nextOffset) ? 0 : nextOffset),
       });
@@ -256,9 +214,9 @@ export const InstrumentSubpatternSimpleEditor = ({
         updateRow(selectedRow, { jump: null });
         return;
       }
-      updateRow(selectedRow, { jump: toSubpatternJump(selectedJumpTarget) });
+      updateRow(selectedRow, { jump: toSubpatternJump(selectedRow + 1) });
     },
-    [selectedJumpTarget, selectedRow, updateRow],
+    [selectedRow, updateRow],
   );
 
   const onChangeJumpTarget = useCallback(
@@ -390,13 +348,11 @@ export const InstrumentSubpatternSimpleEditor = ({
               refY="3"
               orient="auto"
             >
-              <path d="M 0 0 L 6 3 L 0 6 z" fill="currentColor" />
+              <path d="M 0 0 L 6 3 L 0 6 z" />
             </marker>
           </defs>
           <path
             d={jumpArrow.path}
-            fill="none"
-            stroke="currentColor"
             strokeWidth="2"
             markerEnd="url(#subpattern-jump-arrowhead)"
             opacity="0.75"
@@ -450,7 +406,8 @@ export const InstrumentSubpatternSimpleEditor = ({
                   )
                 }
               >
-                <HeaderGrid>
+                {subPatternRowLabel(rowIndex, row)}
+                {/* <HeaderGrid>
                   <TickCell>{String(rowIndex).padStart(2, "0")}</TickCell>
                   <HeaderCell>{formatSubpatternPitch(row.note)}</HeaderCell>
                   <HeaderCell>
@@ -459,62 +416,58 @@ export const InstrumentSubpatternSimpleEditor = ({
                   <HeaderCell>
                     {formatSubpatternEffect(row.effectcode, row.effectparam)}
                   </HeaderCell>
-                </HeaderGrid>
+                </HeaderGrid> */}
               </DraggableScriptEventHeader>
 
               {selectedRow === rowIndex ? (
                 <StyledScriptEventFormWrapper>
                   <ScriptEventFields>
-                    <ScriptEventField halfWidth>
-                      <FieldLabel htmlFor="subpattern_pitch_offset">
-                        Pitch
-                      </FieldLabel>
-                      <Input
-                        id="subpattern_pitch_offset"
-                        type="number"
+                    <ScriptEventField>
+                      {/* <Label htmlFor="subpattern_pitch_offset">
+                        Pitch Offset
+                      </Label> */}
+                      <SliderField
+                        name="pitch"
+                        label="Pitch Shift"
                         min={-36}
                         max={35}
                         value={selectedPitchOffset}
                         onChange={onChangePitch}
                       />
-                      <HelpText>
-                        Semitone offset from the played note. 0 means Base.
-                      </HelpText>
                     </ScriptEventField>
 
                     <ScriptEventField halfWidth>
-                      <FieldLabel>Flow</FieldLabel>
+                      <Label>Flow</Label>
                       <ToggleButtonGroup<"continue" | "jump">
                         name="subpattern_flow"
                         value={selectedFlowType}
                         options={[
                           { value: "continue", label: "Continue" },
-                          { value: "jump", label: "Jump" },
+                          { value: "jump", label: "Jump To" },
                         ]}
                         onChange={onChangeFlowType}
                       />
-                      {selectedFlowType === "jump" ? (
-                        <>
-                          <HelpText>
-                            Choose which tick to jump to next. The arrow shows
-                            the current target in the list.
-                          </HelpText>
-                          <Input
-                            type="number"
-                            min={0}
-                            max={31}
-                            value={selectedJumpTarget}
-                            onChange={onChangeJumpTarget}
-                          />
-                        </>
-                      ) : null}
+                    </ScriptEventField>
+
+                    <ScriptEventField halfWidth>
+                      <Input
+                        type="number"
+                        min={0}
+                        max={31}
+                        value={selectedJumpTarget}
+                        onChange={onChangeJumpTarget}
+                      />
                     </ScriptEventField>
 
                     <ScriptEventField flexBasis="100%">
-                      <FieldLabel>Effect</FieldLabel>
+                      <Label>Effect Override</Label>
                       <EffectCodeSelect
                         name="subpattern_effect"
-                        value={selectedCell.effectcode}
+                        value={
+                          selectedEffectIsAdvancedOnly
+                            ? undefined
+                            : selectedCell.effectcode
+                        }
                         effectParam={selectedCell.effectparam ?? 0}
                         note={selectedCell.note ?? undefined}
                         instrumentId={instrumentId}
@@ -522,28 +475,19 @@ export const InstrumentSubpatternSimpleEditor = ({
                         onChange={onChangeEffectCode}
                         noneLabel="None"
                       />
-                      <HelpText>
-                        Only effects that are valid inside subpatterns can be
-                        selected in this view.
-                      </HelpText>
                     </ScriptEventField>
                   </ScriptEventFields>
 
-                  {selectedEffectIsAdvancedOnly ? (
-                    <AdvancedOnlyNotice>
-                      This row uses an advanced-only effect. Switch to the
-                      tracker view to edit it directly, or choose a supported
-                      effect here.
-                    </AdvancedOnlyNotice>
-                  ) : selectedCell.effectcode !== null ? (
-                    <EffectParamsForm
-                      effectCode={selectedCell.effectcode}
-                      value={selectedCell.effectparam}
-                      note={selectedCell.note ?? undefined}
-                      instrumentId={instrumentId}
-                      onChange={onChangeEffectParam}
-                    />
-                  ) : null}
+                  {!selectedEffectIsAdvancedOnly &&
+                    selectedCell.effectcode !== null && (
+                      <EffectParamsForm
+                        effectCode={selectedCell.effectcode}
+                        value={selectedCell.effectparam}
+                        note={selectedCell.note ?? undefined}
+                        instrumentId={instrumentId}
+                        onChange={onChangeEffectParam}
+                      />
+                    )}
                 </StyledScriptEventFormWrapper>
               ) : null}
             </TickAccordionSection>
