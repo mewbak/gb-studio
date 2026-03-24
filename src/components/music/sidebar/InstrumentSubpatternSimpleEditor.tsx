@@ -34,27 +34,6 @@ const Wrapper = styled.div`
   padding: 0 10px 10px;
 `;
 
-const Intro = styled.div`
-  margin-bottom: 12px;
-  padding: 10px 12px;
-  border-radius: 4px;
-  background: ${(props) => props.theme.colors.card.background};
-  border: 1px solid ${(props) => props.theme.colors.card.border};
-  color: ${(props) => props.theme.colors.card.text};
-  font-size: 12px;
-  line-height: 1.5;
-`;
-
-const IntroTitle = styled.div`
-  font-weight: bold;
-  margin-bottom: 4px;
-`;
-
-const DisabledNote = styled.div`
-  margin-top: 6px;
-  opacity: 0.8;
-`;
-
 const RowHeader = styled.div`
   display: grid;
   grid-template-columns: 52px minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.2fr);
@@ -191,14 +170,12 @@ const AdvancedOnlyNotice = styled.div`
 `;
 
 interface InstrumentSubpatternSimpleEditorProps {
-  enabled: boolean;
   instrumentId: number;
   instrumentType: "duty" | "wave" | "noise";
   subpattern: SubPatternCell[];
 }
 
 export const InstrumentSubpatternSimpleEditor = ({
-  enabled,
   instrumentId,
   instrumentType,
   subpattern,
@@ -206,7 +183,10 @@ export const InstrumentSubpatternSimpleEditor = ({
   const dispatch = useAppDispatch();
   const rowsListRef = useRef<HTMLDivElement | null>(null);
   const rowButtonRefs = useRef<Array<HTMLButtonElement | null>>([]);
-  const visibleRows = useMemo(() => getVisibleSubpatternRows(subpattern), [subpattern]);
+  const visibleRows = useMemo(
+    () => getVisibleSubpatternRows(subpattern),
+    [subpattern],
+  );
 
   const [selectedRow, setSelectedRow] = useState(() => {
     const firstConfiguredRow = visibleRows.findIndex(
@@ -219,7 +199,10 @@ export const InstrumentSubpatternSimpleEditor = ({
   const selectedJumpTarget = getSubpatternJumpTarget(selectedCell.jump) ?? 0;
   const selectedPitchOffset =
     selectedCell.note === null ? 0 : selectedCell.note - 36;
-  const selectedFlowType = getSubpatternFlowType(selectedCell.jump, selectedRow);
+  const selectedFlowType = getSubpatternFlowType(
+    selectedCell.jump,
+    selectedRow,
+  );
   const selectedEffectIsAdvancedOnly =
     selectedCell.effectcode !== null &&
     !isValidSubpatternEffectCode(selectedCell.effectcode);
@@ -235,7 +218,11 @@ export const InstrumentSubpatternSimpleEditor = ({
         trackerDocumentActions.editSubPattern({
           instrumentId,
           instrumentType,
-          subpattern: applySubpatternCellChanges(subpattern, selectedRow, changes),
+          subpattern: applySubpatternCellChanges(
+            subpattern,
+            selectedRow,
+            changes,
+          ),
         }),
       );
     },
@@ -245,7 +232,9 @@ export const InstrumentSubpatternSimpleEditor = ({
   const onChangePitch = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const nextOffset =
-        e.currentTarget.value.length > 0 ? parseInt(e.currentTarget.value, 10) : 0;
+        e.currentTarget.value.length > 0
+          ? parseInt(e.currentTarget.value, 10)
+          : 0;
       updateSelectedRow({
         note: toSubpatternNote(Number.isNaN(nextOffset) ? 0 : nextOffset),
       });
@@ -267,7 +256,9 @@ export const InstrumentSubpatternSimpleEditor = ({
   const onChangeJumpTarget = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const nextTarget =
-        e.currentTarget.value.length > 0 ? parseInt(e.currentTarget.value, 10) : 0;
+        e.currentTarget.value.length > 0
+          ? parseInt(e.currentTarget.value, 10)
+          : 0;
       updateSelectedRow({
         jump: toSubpatternJump(Number.isNaN(nextTarget) ? 0 : nextTarget),
       });
@@ -279,7 +270,8 @@ export const InstrumentSubpatternSimpleEditor = ({
     (effectcode: number | null) => {
       updateSelectedRow({
         effectcode,
-        effectparam: effectcode === null ? null : selectedCell.effectparam ?? 0,
+        effectparam:
+          effectcode === null ? null : (selectedCell.effectparam ?? 0),
       });
     },
     [selectedCell.effectparam, updateSelectedRow],
@@ -327,7 +319,8 @@ export const InstrumentSubpatternSimpleEditor = ({
       const startX = startRect.left - containerRect.left + 26;
       const startY = startRect.top - containerRect.top + startRect.height / 2;
       const targetX = targetRect.left - containerRect.left + 26;
-      const targetY = targetRect.top - containerRect.top + targetRect.height / 2;
+      const targetY =
+        targetRect.top - containerRect.top + targetRect.height / 2;
       const width = container.scrollWidth;
       const height = container.scrollHeight;
 
@@ -372,19 +365,6 @@ export const InstrumentSubpatternSimpleEditor = ({
 
   return (
     <Wrapper>
-      <Intro>
-        <IntroTitle>Subpattern</IntroTitle>
-        Runs once per tick while this instrument plays. Rows loop back to 00
-        unless a jump changes the flow, and subpattern effects override tracker
-        effects on the same tick.
-        {!enabled ? (
-          <DisabledNote>
-            This instrument&apos;s subpattern is currently disabled, but you can
-            still edit it here.
-          </DisabledNote>
-        ) : null}
-      </Intro>
-
       <RowHeader>
         <span>Tick</span>
         <span>Pitch</span>
@@ -435,7 +415,9 @@ export const InstrumentSubpatternSimpleEditor = ({
               <RowTick>{String(rowIndex).padStart(2, "0")}</RowTick>
               <RowCell>{formatSubpatternPitch(row.note)}</RowCell>
               <RowCell>{formatSubpatternFlow(row.jump, rowIndex)}</RowCell>
-              <RowCell>{formatSubpatternEffect(row.effectcode, row.effectparam)}</RowCell>
+              <RowCell>
+                {formatSubpatternEffect(row.effectcode, row.effectparam)}
+              </RowCell>
             </RowButton>
 
             {selectedRow === rowIndex ? (

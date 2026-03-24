@@ -79,14 +79,6 @@ export const InstrumentEditor = () => {
   const instrumentType = selectedInstrument.type as InstrumentType;
   const selectedInstrumentId = Number.parseInt(selectedInstrument.id, 10);
 
-  const instrumentEditorTabs = useMemo<InstrumentEditorTabs>(
-    () => ({
-      main: l10n("MENU_SETTINGS"),
-      subpattern: l10n("SIDEBAR_SUBPATTERN"),
-    }),
-    [],
-  );
-
   const onInstrumentEditorChange = useCallback((tab: InstrumentEditorTab) => {
     setInstrumentEditorTab(tab);
   }, []);
@@ -115,6 +107,16 @@ export const InstrumentEditor = () => {
       instrument: song.wave_instruments[selectedInstrumentId] ?? null,
     };
   }, [song, instrumentType, selectedInstrumentId]);
+
+  const instrumentEditorTabs = useMemo<InstrumentEditorTabs>(
+    () => ({
+      main: l10n("MENU_SETTINGS"),
+      subpattern: resolvedInstrument?.instrument.subpattern_enabled
+        ? `${l10n("SIDEBAR_SUBPATTERN")}*`
+        : l10n("SIDEBAR_SUBPATTERN"),
+    }),
+    [resolvedInstrument?.instrument.subpattern_enabled],
+  );
 
   const editInstrument = useMemo(() => {
     if (instrumentType === "duty") {
@@ -286,7 +288,6 @@ export const InstrumentEditor = () => {
             />
           ) : (
             <InstrumentSubpatternSimpleEditor
-              enabled={resolvedInstrument.instrument.subpattern_enabled}
               subpattern={resolvedInstrument.instrument.subpattern}
               instrumentId={resolvedInstrument.instrument.index}
               instrumentType={resolvedInstrument.instrumentType}
