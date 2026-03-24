@@ -39,6 +39,8 @@ import {
 } from "./subpatternHelpers";
 import { Label } from "ui/form/Label";
 import { SliderField } from "ui/form/SliderField";
+import useResizeObserver from "ui/hooks/use-resize-observer";
+import { mergeRefs } from "ui/hooks/merge-refs";
 
 const RowsList = styled.div`
   position: relative;
@@ -52,8 +54,7 @@ const JumpOverlay = styled.svg`
   pointer-events: none;
   overflow: visible;
   z-index: 2;
-  fill: red;
-  stroke: blue;
+  stroke: ${(props) => props.theme.colors.scripting.header.text};
 `;
 
 const TickAccordionSection = styled(ScriptEventWrapper)<{
@@ -63,13 +64,6 @@ const TickAccordionSection = styled(ScriptEventWrapper)<{
 }>`
   position: relative;
   z-index: 1;
-
-  ${(props) =>
-    props.$empty && !props.$open
-      ? css`
-          opacity: 0.55;
-        `
-      : ""}
 
   ${(props) =>
     props.$dragging
@@ -259,6 +253,8 @@ export const InstrumentSubpatternSimpleEditor = ({
     [selectedRow, updateRow],
   );
 
+  const [wrapperEl, wrapperSize] = useResizeObserver<HTMLDivElement>();
+
   useEffect(() => {
     const renderJumpArrow = () => {
       if (selectedRow === null || selectedFlowType !== "jump") {
@@ -279,27 +275,32 @@ export const InstrumentSubpatternSimpleEditor = ({
       const startRect = startHeader.getBoundingClientRect();
       const targetRect = targetHeader.getBoundingClientRect();
 
-      const startX = startRect.left - containerRect.left + 26;
+      const startX = startRect.left - containerRect.left + 8;
       const startY = startRect.top - containerRect.top + startRect.height / 2;
-      const targetX = targetRect.left - containerRect.left + 26;
+      const targetX = targetRect.left - containerRect.left + 15;
       const targetY =
         targetRect.top - containerRect.top + targetRect.height / 2;
       const width = container.scrollWidth;
       const height = container.scrollHeight;
 
       if (selectedJumpTarget === selectedRow) {
+        const startX = startRect.left - containerRect.left + 14;
+        const startY = startRect.top - containerRect.top + 17;
         setJumpArrow({
           width,
           height,
           path: `M ${startX} ${startY}
-            C ${startX + 72} ${startY - 30},
-              ${startX + 72} ${startY + 30},
-              ${startX + 4} ${startY + 2}`,
+            L ${startX} ${startY}
+            Q ${startX} ${startY + 5}, ${startX - 5} ${startY + 5}
+            Q ${startX - 10} ${startY + 5}, ${startX - 10} ${startY}
+            L ${startX - 10} ${startY - 7}
+            Q ${startX - 10} ${startY - 13}, ${startX - 5} ${startY - 13}
+            Q ${startX} ${startY - 13}, ${startX} ${startY - 6}`,
         });
         return;
       }
 
-      const laneX = 10;
+      const laneX = 2;
       const direction = targetY > startY ? 1 : -1;
       const bendOffset = 12 * direction;
 
@@ -330,33 +331,17 @@ export const InstrumentSubpatternSimpleEditor = ({
     selectedFlowType,
     selectedJumpTarget,
     selectedRow,
+    wrapperSize,
   ]);
 
   return (
-    <RowsList ref={rowsListRef}>
+    <RowsList ref={mergeRefs(rowsListRef, wrapperEl)}>
       {jumpArrow ? (
         <JumpOverlay
           viewBox={`0 0 ${jumpArrow.width} ${jumpArrow.height}`}
           aria-hidden="true"
         >
-          <defs>
-            <marker
-              id="subpattern-jump-arrowhead"
-              markerWidth="8"
-              markerHeight="8"
-              refX="6"
-              refY="3"
-              orient="auto"
-            >
-              <path d="M 0 0 L 6 3 L 0 6 z" />
-            </marker>
-          </defs>
-          <path
-            d={jumpArrow.path}
-            strokeWidth="2"
-            markerEnd="url(#subpattern-jump-arrowhead)"
-            opacity="0.75"
-          />
+          <path d={jumpArrow.path} fill="none" strokeWidth="2" />
         </JumpOverlay>
       ) : null}
 

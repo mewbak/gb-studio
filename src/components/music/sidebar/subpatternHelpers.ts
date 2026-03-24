@@ -179,17 +179,21 @@ export const subPatternRowLabel = (
   tick: number,
   cell: SubPatternCell,
 ): string => {
-  const labelParts: string[] = [`${String(tick).padStart(2, "0")}:`];
+  const labelParts: string[] = [];
   if (cell.note !== null && cell.note !== 36) {
     labelParts.push(`Pitch: ${cell.note > 36 ? "+" : ""}${cell.note - 36}`);
   }
   if (cell.jump !== null && cell.jump !== 0) {
-    labelParts.push(`Jump To: ${String(cell.jump - 1).padStart(2, "0")}`);
+    if (cell.jump - 1 === tick) {
+      labelParts.push(`Loop`);
+    } else {
+      labelParts.push(`Jump To: ${String(cell.jump - 1).padStart(2, "0")}`);
+    }
   }
   if (cell.effectcode !== null) {
     labelParts.push(
-      `Effect: ${cell.effectcode.toString(16).toUpperCase()}${(cell.effectparam ?? 0).toString(16).padStart(2, "0").toUpperCase()}`,
+      `Effect: ${(cell.effectcode ?? 0).toString(16).toUpperCase()}${(cell.effectparam ?? 0).toString(16).padStart(2, "0").toUpperCase()}`,
     );
   }
-  return labelParts.join(" ");
+  return `Tick ${String(tick).padStart(2, "0")}${labelParts.length > 0 ? ":" : ""} ${labelParts.join(", ")}`;
 };
