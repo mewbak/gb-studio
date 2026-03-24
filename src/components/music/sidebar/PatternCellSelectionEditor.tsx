@@ -84,6 +84,8 @@ export const PatternCellSelectionEditor = () => {
             sharedNote.type === "multiple" ? "Multiple Values" : "None"
           }
           instrumentId={sharedInstrumentId.value ?? undefined}
+          effectCode={sharedEffectCode.value ?? undefined}
+          effectParam={sharedEffectParam.value ?? undefined}
         />
       </FormRow>
 
@@ -106,6 +108,8 @@ export const PatternCellSelectionEditor = () => {
             sharedInstrumentId.type === "multiple" ? "Multiple Values" : "None"
           }
           note={sharedNote.value ?? undefined}
+          effectCode={sharedEffectCode.value ?? undefined}
+          effectParam={sharedEffectParam.value ?? undefined}
         />
       </FormRow>
 
@@ -130,6 +134,9 @@ export const PatternCellSelectionEditor = () => {
             sharedEffectCode.type === "multiple" ? "Multiple Values" : "None"
           }
           // note={sharedNote !== null ? sharedNote : undefined}
+          note={sharedNote.value ?? undefined}
+          instrumentId={sharedInstrumentId.value ?? undefined}
+          effectParam={sharedEffectParam.value ?? undefined}
         />
       </FormRow>
 
@@ -158,6 +165,7 @@ export const PatternCellSelectionEditor = () => {
               }),
             );
           }}
+          instrumentId={sharedInstrumentId.value ?? undefined}
         />
       )}
       <FormDivider />

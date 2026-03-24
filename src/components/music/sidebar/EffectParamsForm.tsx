@@ -11,6 +11,7 @@ import clamp from "shared/lib/helpers/clamp";
 import styled from "styled-components";
 import { renderNote } from "components/music/helpers";
 import { VibratoWaveformPreview } from "./VibratoWaveformPreview";
+import { useMusicNotePreview } from "components/music/hooks/useMusicNotePreview";
 
 type SelectOption = {
   value: number;
@@ -21,8 +22,9 @@ interface EffectParamsFormProps {
   effectCode?: number | null;
   value?: number | null;
   onChange?: (effectParam: number | null) => void;
-  note?: number | null;
   onChangeNote?: (note: number | null) => void;
+  note?: number;
+  instrumentId?: number;
 }
 
 const dutyOptions: SelectOption[] = [
@@ -75,8 +77,11 @@ export const EffectParamsForm: FC<EffectParamsFormProps> = ({
   value,
   onChange,
   note,
+  instrumentId,
   onChangeNote,
 }) => {
+  const playPreview = useMusicNotePreview();
+
   const effectParam = value ?? 0;
 
   const effectParams = useMemo(
@@ -94,10 +99,22 @@ export const EffectParamsForm: FC<EffectParamsFormProps> = ({
         : ((effectParams.x & 0xf) << 4) | (fieldValue & 0xf);
 
     onChange?.(nextValue);
+    playPreview({
+      note,
+      instrumentId,
+      effectCode,
+      effectParam: nextValue,
+    });
   };
 
   const onChangeFullValue = (nextValue: number | null) => {
     onChange?.(nextValue);
+    playPreview({
+      note,
+      instrumentId,
+      effectCode,
+      effectParam: nextValue,
+    });
   };
 
   if (effectCode === null || effectCode === undefined) {

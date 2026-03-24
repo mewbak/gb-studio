@@ -7,6 +7,7 @@ import {
   SelectCommonProps,
 } from "ui/form/Select";
 import l10n from "shared/lib/lang/l10n";
+import { useMusicNotePreview } from "components/music/hooks/useMusicNotePreview";
 
 export interface EffectCodeOption {
   value: number | null;
@@ -21,6 +22,9 @@ interface EffectCodeSelectProps extends SelectCommonProps {
   value?: number | null;
   onChange?: (newEffectCode: number | null) => void;
   noneLabel?: string;
+  note?: number;
+  instrumentId?: number;
+  effectParam?: number;
 }
 
 const buildEffectCodeOptions = (): EffectCodeOptionGroup[] => [
@@ -144,8 +148,13 @@ export const EffectCodeSelect: FC<EffectCodeSelectProps> = ({
   value,
   onChange,
   noneLabel,
+  note,
+  instrumentId,
+  effectParam,
   ...selectProps
 }) => {
+  const playPreview = useMusicNotePreview();
+
   const groupedOptions = useMemo(() => buildEffectCodeOptions(), []);
   const flatOptions = useMemo(
     () => groupedOptions.flatMap((group) => group.options),
@@ -170,6 +179,12 @@ export const EffectCodeSelect: FC<EffectCodeSelectProps> = ({
       return;
     }
     onChange?.(newValue.value);
+    playPreview({
+      note,
+      instrumentId,
+      effectCode: newValue.value,
+      effectParam,
+    });
   };
 
   return (
