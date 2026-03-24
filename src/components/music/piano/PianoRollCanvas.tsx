@@ -58,7 +58,7 @@ import {
   toAbsRow,
   fromAbsRow,
 } from "store/features/trackerDocument/trackerDocumentHelpers";
-import renderPianoContextMenu from "components/music/contentMenus/renderPianoContextMenu";
+import renderPianoContextMenu from "components/music/contextMenus/renderPianoContextMenu";
 import { useContextMenu } from "ui/hooks/use-context-menu";
 import {
   copyAbsoluteCells,

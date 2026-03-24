@@ -14,7 +14,7 @@ import { SingleValue } from "react-select";
 import { SortableList } from "ui/lists/SortableList";
 import { patternHue } from "components/music/helpers";
 import l10n from "shared/lib/lang/l10n";
-import renderPatternContextMenu from "components/music/contentMenus/renderPatternContextMenu";
+import renderPatternContextMenu from "components/music/contextMenus/renderPatternContextMenu";
 import { useContextMenu } from "ui/hooks/use-context-menu";
 import {
   StyledAddSequenceButton,

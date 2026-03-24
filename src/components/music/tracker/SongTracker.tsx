@@ -42,8 +42,8 @@ import {
   TRACKER_HEADER_HEIGHT,
   trackerFieldsToPatternCells,
 } from "./helpers";
-import renderPatternContextMenu from "components/music/contentMenus/renderPatternContextMenu";
-import renderTrackerContextMenu from "components/music/contentMenus/renderTrackerContextMenu";
+import renderPatternContextMenu from "components/music/contextMenus/renderPatternContextMenu";
+import renderTrackerContextMenu from "components/music/contextMenus/renderTrackerContextMenu";
 import { DropdownButton } from "ui/buttons/DropdownButton";
 import { NOTE_C5, TRACKER_CHANNEL_FIELDS, TRACKER_ROW_SIZE } from "consts";
 import { useContextMenu } from "ui/hooks/use-context-menu";

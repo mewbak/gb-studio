@@ -24,7 +24,7 @@ import {
 import API from "renderer/lib/api";
 import l10n from "shared/lib/lang/l10n";
 import { useContextMenu } from "ui/hooks/use-context-menu";
-import renderPatternContextMenu from "components/music/contentMenus/renderPatternContextMenu";
+import renderPatternContextMenu from "components/music/contextMenus/renderPatternContextMenu";
 import { DropdownButton } from "ui/buttons/DropdownButton";
 import { fromAbsRow } from "store/features/trackerDocument/trackerDocumentHelpers";
 
