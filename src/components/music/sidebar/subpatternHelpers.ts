@@ -190,7 +190,10 @@ export const subPatternRowLabel = (
       labelParts.push(`Jump To: ${String(cell.jump - 1).padStart(2, "0")}`);
     }
   }
-  if (cell.effectcode !== null) {
+  if (
+    cell.effectcode !== null &&
+    isValidSubpatternEffectCode(cell.effectcode)
+  ) {
     labelParts.push(
       `Effect: ${(cell.effectcode ?? 0).toString(16).toUpperCase()}${(cell.effectparam ?? 0).toString(16).padStart(2, "0").toUpperCase()}`,
     );

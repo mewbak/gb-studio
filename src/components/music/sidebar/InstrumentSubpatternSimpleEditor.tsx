@@ -57,6 +57,18 @@ const JumpOverlay = styled.svg`
   stroke: ${(props) => props.theme.colors.scripting.header.text};
 `;
 
+const SubpatternLabel = styled.span<{
+  $empty: boolean;
+  $open: boolean;
+}>`
+  ${(props) =>
+    props.$empty && !props.$open
+      ? css`
+          opacity: 0.4;
+        `
+      : ""}
+`;
+
 const TickAccordionSection = styled(ScriptEventWrapper)<{
   $dragging: boolean;
   $empty: boolean;
@@ -376,14 +388,16 @@ export const InstrumentSubpatternSimpleEditor = ({
                 isOpen={selectedRow === rowIndex}
                 isMoveable
                 menuItems={
-                  <MenuItem
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      clearRow(rowIndex);
-                    }}
-                  >
-                    Clear Row
-                  </MenuItem>
+                  !isSubpatternRowEmpty(row) ? (
+                    <MenuItem
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        clearRow(rowIndex);
+                      }}
+                    >
+                      Clear Row
+                    </MenuItem>
+                  ) : undefined
                 }
                 onToggle={() =>
                   setSelectedRow((currentRow) =>
@@ -391,26 +405,18 @@ export const InstrumentSubpatternSimpleEditor = ({
                   )
                 }
               >
-                {subPatternRowLabel(rowIndex, row)}
-                {/* <HeaderGrid>
-                  <TickCell>{String(rowIndex).padStart(2, "0")}</TickCell>
-                  <HeaderCell>{formatSubpatternPitch(row.note)}</HeaderCell>
-                  <HeaderCell>
-                    {formatSubpatternFlow(row.jump, rowIndex)}
-                  </HeaderCell>
-                  <HeaderCell>
-                    {formatSubpatternEffect(row.effectcode, row.effectparam)}
-                  </HeaderCell>
-                </HeaderGrid> */}
+                <SubpatternLabel
+                  $empty={isSubpatternRowEmpty(row)}
+                  $open={selectedRow === rowIndex || dragState.isDragging}
+                >
+                  {subPatternRowLabel(rowIndex, row)}
+                </SubpatternLabel>
               </DraggableScriptEventHeader>
 
               {selectedRow === rowIndex ? (
                 <StyledScriptEventFormWrapper>
                   <ScriptEventFields>
                     <ScriptEventField>
-                      {/* <Label htmlFor="subpattern_pitch_offset">
-                        Pitch Offset
-                      </Label> */}
                       <SliderField
                         name="pitch"
                         label="Pitch Shift"
