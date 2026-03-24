@@ -252,49 +252,54 @@ export const InstrumentEditor = () => {
           </TabSettings>
         ) : null}
       </StickyTabs>
-      <InstrumentEditorWrapper>
-        {instrumentEditorTab === "main" &&
-        resolvedInstrument.instrumentType === "duty" ? (
+
+      {instrumentEditorTab === "main" &&
+      resolvedInstrument.instrumentType === "duty" ? (
+        <InstrumentEditorWrapper>
           <InstrumentDutyEditor
             id={`instrument_${resolvedInstrument.instrument.index}`}
             instrument={resolvedInstrument.instrument}
           />
-        ) : null}
+        </InstrumentEditorWrapper>
+      ) : null}
 
-        {instrumentEditorTab === "main" &&
-        resolvedInstrument.instrumentType === "noise" ? (
+      {instrumentEditorTab === "main" &&
+      resolvedInstrument.instrumentType === "noise" ? (
+        <InstrumentEditorWrapper>
           <InstrumentNoiseEditor
             id={`instrument_${resolvedInstrument.instrument.index}`}
             instrument={resolvedInstrument.instrument}
           />
-        ) : null}
+        </InstrumentEditorWrapper>
+      ) : null}
 
-        {instrumentEditorTab === "main" &&
-        resolvedInstrument.instrumentType === "wave" ? (
+      {instrumentEditorTab === "main" &&
+      resolvedInstrument.instrumentType === "wave" ? (
+        <InstrumentEditorWrapper>
           <InstrumentWaveEditor
             id={`instrument_${resolvedInstrument.instrument.index}`}
             instrument={resolvedInstrument.instrument}
             waveForms={song.waves}
           />
-        ) : null}
+        </InstrumentEditorWrapper>
+      ) : null}
 
-        {instrumentEditorTab === "subpattern" &&
-        resolvedInstrument.instrument.subpattern_enabled ? (
-          subpatternEditorMode === "tracker" ? (
-            <InstrumentSubpatternEditor
-              subpattern={resolvedInstrument.instrument.subpattern}
-              instrumentId={resolvedInstrument.instrument.index}
-              instrumentType={resolvedInstrument.instrumentType}
-            />
-          ) : (
-            <InstrumentSubpatternSimpleEditor
-              subpattern={resolvedInstrument.instrument.subpattern}
-              instrumentId={resolvedInstrument.instrument.index}
-              instrumentType={resolvedInstrument.instrumentType}
-            />
-          )
-        ) : null}
-      </InstrumentEditorWrapper>
+      {instrumentEditorTab === "subpattern" &&
+      resolvedInstrument.instrument.subpattern_enabled ? (
+        subpatternEditorMode === "tracker" ? (
+          <InstrumentSubpatternEditor
+            subpattern={resolvedInstrument.instrument.subpattern}
+            instrumentId={resolvedInstrument.instrument.index}
+            instrumentType={resolvedInstrument.instrumentType}
+          />
+        ) : (
+          <InstrumentSubpatternSimpleEditor
+            subpattern={resolvedInstrument.instrument.subpattern}
+            instrumentId={resolvedInstrument.instrument.index}
+            instrumentType={resolvedInstrument.instrumentType}
+          />
+        )
+      ) : null}
     </>
   );
 };

@@ -40,22 +40,6 @@ import {
   validSubpatternEffectCodes,
 } from "./subpatternHelpers";
 
-const Wrapper = styled.div`
-  padding: 0 10px 10px;
-`;
-
-const RowHeader = styled.div`
-  display: grid;
-  grid-template-columns: 52px minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.2fr);
-  gap: 8px;
-  padding: 0 12px 6px 28px;
-  font-size: 11px;
-  font-weight: bold;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  opacity: 0.8;
-`;
-
 const RowsList = styled.div`
   position: relative;
 `;
@@ -77,7 +61,6 @@ const TickAccordionSection = styled(ScriptEventWrapper)<{
 }>`
   position: relative;
   z-index: 1;
-  margin-bottom: 6px;
 
   ${(props) =>
     props.$empty && !props.$open
@@ -392,190 +375,181 @@ export const InstrumentSubpatternSimpleEditor = ({
   ]);
 
   return (
-    <Wrapper>
-      <RowHeader>
-        <span>Tick</span>
-        <span>Pitch</span>
-        <span>Flow</span>
-        <span>Effect</span>
-      </RowHeader>
+    <RowsList ref={rowsListRef}>
+      {jumpArrow ? (
+        <JumpOverlay
+          viewBox={`0 0 ${jumpArrow.width} ${jumpArrow.height}`}
+          aria-hidden="true"
+        >
+          <defs>
+            <marker
+              id="subpattern-jump-arrowhead"
+              markerWidth="8"
+              markerHeight="8"
+              refX="6"
+              refY="3"
+              orient="auto"
+            >
+              <path d="M 0 0 L 6 3 L 0 6 z" fill="currentColor" />
+            </marker>
+          </defs>
+          <path
+            d={jumpArrow.path}
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            markerEnd="url(#subpattern-jump-arrowhead)"
+            opacity="0.75"
+          />
+        </JumpOverlay>
+      ) : null}
 
-      <RowsList ref={rowsListRef}>
-        {jumpArrow ? (
-          <JumpOverlay
-            viewBox={`0 0 ${jumpArrow.width} ${jumpArrow.height}`}
-            aria-hidden="true"
-          >
-            <defs>
-              <marker
-                id="subpattern-jump-arrowhead"
-                markerWidth="8"
-                markerHeight="8"
-                refX="6"
-                refY="3"
-                orient="auto"
-              >
-                <path d="M 0 0 L 6 3 L 0 6 z" fill="currentColor" />
-              </marker>
-            </defs>
-            <path
-              d={jumpArrow.path}
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              markerEnd="url(#subpattern-jump-arrowhead)"
-              opacity="0.75"
-            />
-          </JumpOverlay>
-        ) : null}
-
-        {visibleRows.map((row, rowIndex) => (
-          <SortableItem
-            key={`subpattern-row-${rowIndex}`}
-            itemType="subpattern-row"
-            item={row}
-            index={rowIndex}
-            orientation="vertical"
-            onSelect={() => {}}
-            moveItems={moveRows}
-            setDragging={setIsDragging}
-            renderItem={(_, dragState) => (
-              <TickAccordionSection
-                $dragging={dragState.isDragging}
-                $empty={isSubpatternRowEmpty(row)}
-                $open={selectedRow === rowIndex || dragState.isDragging}
-                style={
-                  dragState.isOver && isDragging
-                    ? { boxShadow: "0 0 0 1px currentColor inset" }
-                    : undefined
+      {visibleRows.map((row, rowIndex) => (
+        <SortableItem
+          key={`subpattern-row-${rowIndex}`}
+          itemType="subpattern-row"
+          item={row}
+          index={rowIndex}
+          orientation="vertical"
+          onSelect={() => {}}
+          moveItems={moveRows}
+          setDragging={setIsDragging}
+          renderItem={(_, dragState) => (
+            <TickAccordionSection
+              $dragging={dragState.isDragging}
+              $empty={isSubpatternRowEmpty(row)}
+              $open={selectedRow === rowIndex || dragState.isDragging}
+              style={
+                dragState.isOver && isDragging
+                  ? { boxShadow: "0 0 0 1px currentColor inset" }
+                  : undefined
+              }
+            >
+              <DraggableScriptEventHeader
+                ref={(element) => {
+                  rowHeaderRefs.current[rowIndex] = element;
+                }}
+                scriptEventId={`subpattern-${rowIndex}`}
+                nestLevel={0}
+                altBg={rowIndex % 2 === 0}
+                isOpen={selectedRow === rowIndex}
+                isMoveable
+                menuItems={
+                  <MenuItem
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      clearRow(rowIndex);
+                    }}
+                  >
+                    Clear Row
+                  </MenuItem>
+                }
+                onToggle={() =>
+                  setSelectedRow((currentRow) =>
+                    currentRow === rowIndex ? null : rowIndex,
+                  )
                 }
               >
-                <DraggableScriptEventHeader
-                  ref={(element) => {
-                    rowHeaderRefs.current[rowIndex] = element;
-                  }}
-                  scriptEventId={`subpattern-${rowIndex}`}
-                  nestLevel={0}
-                  altBg={rowIndex % 2 === 0}
-                  isOpen={selectedRow === rowIndex}
-                  isMoveable
-                  menuItems={
-                    <MenuItem
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        clearRow(rowIndex);
-                      }}
-                    >
-                      Clear Row
-                    </MenuItem>
-                  }
-                  onToggle={() =>
-                    setSelectedRow((currentRow) =>
-                      currentRow === rowIndex ? null : rowIndex,
-                    )
-                  }
-                >
-                  <HeaderGrid>
-                    <TickCell>{String(rowIndex).padStart(2, "0")}</TickCell>
-                    <HeaderCell>{formatSubpatternPitch(row.note)}</HeaderCell>
-                    <HeaderCell>
-                      {formatSubpatternFlow(row.jump, rowIndex)}
-                    </HeaderCell>
-                    <HeaderCell>
-                      {formatSubpatternEffect(row.effectcode, row.effectparam)}
-                    </HeaderCell>
-                  </HeaderGrid>
-                </DraggableScriptEventHeader>
+                <HeaderGrid>
+                  <TickCell>{String(rowIndex).padStart(2, "0")}</TickCell>
+                  <HeaderCell>{formatSubpatternPitch(row.note)}</HeaderCell>
+                  <HeaderCell>
+                    {formatSubpatternFlow(row.jump, rowIndex)}
+                  </HeaderCell>
+                  <HeaderCell>
+                    {formatSubpatternEffect(row.effectcode, row.effectparam)}
+                  </HeaderCell>
+                </HeaderGrid>
+              </DraggableScriptEventHeader>
 
-                {selectedRow === rowIndex ? (
-                  <StyledScriptEventFormWrapper>
-                    <ScriptEventFields>
-                      <ScriptEventField halfWidth>
-                        <FieldLabel htmlFor="subpattern_pitch_offset">
-                          Pitch
-                        </FieldLabel>
-                        <Input
-                          id="subpattern_pitch_offset"
-                          type="number"
-                          min={-36}
-                          max={35}
-                          value={selectedPitchOffset}
-                          onChange={onChangePitch}
-                        />
-                        <HelpText>
-                          Semitone offset from the played note. 0 means Base.
-                        </HelpText>
-                      </ScriptEventField>
+              {selectedRow === rowIndex ? (
+                <StyledScriptEventFormWrapper>
+                  <ScriptEventFields>
+                    <ScriptEventField halfWidth>
+                      <FieldLabel htmlFor="subpattern_pitch_offset">
+                        Pitch
+                      </FieldLabel>
+                      <Input
+                        id="subpattern_pitch_offset"
+                        type="number"
+                        min={-36}
+                        max={35}
+                        value={selectedPitchOffset}
+                        onChange={onChangePitch}
+                      />
+                      <HelpText>
+                        Semitone offset from the played note. 0 means Base.
+                      </HelpText>
+                    </ScriptEventField>
 
-                      <ScriptEventField halfWidth>
-                        <FieldLabel>Flow</FieldLabel>
-                        <ToggleButtonGroup<"continue" | "jump">
-                          name="subpattern_flow"
-                          value={selectedFlowType}
-                          options={[
-                            { value: "continue", label: "Continue" },
-                            { value: "jump", label: "Jump" },
-                          ]}
-                          onChange={onChangeFlowType}
-                        />
-                        {selectedFlowType === "jump" ? (
-                          <>
-                            <HelpText>
-                              Choose which tick to jump to next. The arrow shows
-                              the current target in the list.
-                            </HelpText>
-                            <Input
-                              type="number"
-                              min={0}
-                              max={31}
-                              value={selectedJumpTarget}
-                              onChange={onChangeJumpTarget}
-                            />
-                          </>
-                        ) : null}
-                      </ScriptEventField>
+                    <ScriptEventField halfWidth>
+                      <FieldLabel>Flow</FieldLabel>
+                      <ToggleButtonGroup<"continue" | "jump">
+                        name="subpattern_flow"
+                        value={selectedFlowType}
+                        options={[
+                          { value: "continue", label: "Continue" },
+                          { value: "jump", label: "Jump" },
+                        ]}
+                        onChange={onChangeFlowType}
+                      />
+                      {selectedFlowType === "jump" ? (
+                        <>
+                          <HelpText>
+                            Choose which tick to jump to next. The arrow shows
+                            the current target in the list.
+                          </HelpText>
+                          <Input
+                            type="number"
+                            min={0}
+                            max={31}
+                            value={selectedJumpTarget}
+                            onChange={onChangeJumpTarget}
+                          />
+                        </>
+                      ) : null}
+                    </ScriptEventField>
 
-                      <ScriptEventField flexBasis="100%">
-                        <FieldLabel>Effect</FieldLabel>
-                        <EffectCodeSelect
-                          name="subpattern_effect"
-                          value={selectedCell.effectcode}
-                          effectParam={selectedCell.effectparam ?? 0}
-                          note={selectedCell.note ?? undefined}
-                          instrumentId={instrumentId}
-                          allowedEffectCodes={[...validSubpatternEffectCodes]}
-                          onChange={onChangeEffectCode}
-                          noneLabel="None"
-                        />
-                        <HelpText>
-                          Only effects that are valid inside subpatterns can be
-                          selected in this view.
-                        </HelpText>
-                      </ScriptEventField>
-                    </ScriptEventFields>
-
-                    {selectedEffectIsAdvancedOnly ? (
-                      <AdvancedOnlyNotice>
-                        This row uses an advanced-only effect. Switch to the
-                        tracker view to edit it directly, or choose a supported
-                        effect here.
-                      </AdvancedOnlyNotice>
-                    ) : selectedCell.effectcode !== null ? (
-                      <EffectParamsForm
-                        effectCode={selectedCell.effectcode}
-                        value={selectedCell.effectparam}
+                    <ScriptEventField flexBasis="100%">
+                      <FieldLabel>Effect</FieldLabel>
+                      <EffectCodeSelect
+                        name="subpattern_effect"
+                        value={selectedCell.effectcode}
+                        effectParam={selectedCell.effectparam ?? 0}
                         note={selectedCell.note ?? undefined}
                         instrumentId={instrumentId}
-                        onChange={onChangeEffectParam}
+                        allowedEffectCodes={[...validSubpatternEffectCodes]}
+                        onChange={onChangeEffectCode}
+                        noneLabel="None"
                       />
-                    ) : null}
-                  </StyledScriptEventFormWrapper>
-                ) : null}
-              </TickAccordionSection>
-            )}
-          />
-        ))}
-      </RowsList>
-    </Wrapper>
+                      <HelpText>
+                        Only effects that are valid inside subpatterns can be
+                        selected in this view.
+                      </HelpText>
+                    </ScriptEventField>
+                  </ScriptEventFields>
+
+                  {selectedEffectIsAdvancedOnly ? (
+                    <AdvancedOnlyNotice>
+                      This row uses an advanced-only effect. Switch to the
+                      tracker view to edit it directly, or choose a supported
+                      effect here.
+                    </AdvancedOnlyNotice>
+                  ) : selectedCell.effectcode !== null ? (
+                    <EffectParamsForm
+                      effectCode={selectedCell.effectcode}
+                      value={selectedCell.effectparam}
+                      note={selectedCell.note ?? undefined}
+                      instrumentId={instrumentId}
+                      onChange={onChangeEffectParam}
+                    />
+                  ) : null}
+                </StyledScriptEventFormWrapper>
+              ) : null}
+            </TickAccordionSection>
+          )}
+        />
+      ))}
+    </RowsList>
   );
 };
