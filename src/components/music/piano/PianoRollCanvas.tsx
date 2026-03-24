@@ -636,9 +636,18 @@ export const PianoRollCanvas = ({
           const originPattern = song.patterns[originPatternIndex];
           const selectedCell = originPattern?.[originRowId]?.[selectedChannel];
           const instrument = selectedCell?.instrument ?? 0;
+          const effectCode = selectedCell?.effectcode ?? 0;
+          const effectParam = selectedCell?.effectparam ?? 0;
 
           if (lastDragPreviewCellRef.current !== previewCellId) {
-            playNotePreview(song, selectedChannel, noteIndex, instrument);
+            playNotePreview(
+              song,
+              selectedChannel,
+              noteIndex,
+              instrument,
+              effectCode,
+              effectParam,
+            );
             lastDragPreviewCellRef.current = previewCellId;
           }
         }
@@ -711,6 +720,8 @@ export const PianoRollCanvas = ({
               selectedChannel,
               lastPainted.note,
               selectedInstrumentId,
+              0,
+              0,
             );
           }
         }
@@ -957,6 +968,8 @@ export const PianoRollCanvas = ({
               selectedChannel,
               noteIndex,
               selectedInstrumentId,
+              0,
+              0,
             );
           }
 
@@ -1417,7 +1430,14 @@ export const PianoRollCanvas = ({
 
   const onPlayNote = useCallback(
     (noteIndex: number) => {
-      playNotePreview(song, selectedChannel, noteIndex, selectedInstrumentId);
+      playNotePreview(
+        song,
+        selectedChannel,
+        noteIndex,
+        selectedInstrumentId,
+        0,
+        0,
+      );
     },
     [selectedInstrumentId, selectedChannel, song],
   );

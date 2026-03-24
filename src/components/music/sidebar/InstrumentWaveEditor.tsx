@@ -49,7 +49,7 @@ export const InstrumentWaveEditor = ({
   const throttledTestInstrument = useRef(
     throttle(
       (instrument: WaveInstrument, waveForm: Uint8Array) => {
-        playWaveNotePreview(NOTE_C5, instrument, waveForm);
+        playWaveNotePreview(NOTE_C5, instrument, waveForm, 0, 0);
       },
       250,
       { leading: true, trailing: true },
@@ -104,7 +104,13 @@ export const InstrumentWaveEditor = ({
   };
 
   const onTestInstrument = (note: number) => () => {
-    playWaveNotePreview(note, instrument, waveForms[instrument.wave_index]);
+    playWaveNotePreview(
+      note,
+      instrument,
+      waveForms[instrument.wave_index],
+      0,
+      0,
+    );
   };
 
   return (

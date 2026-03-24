@@ -87,7 +87,7 @@ export const InstrumentDutyEditor = ({
   const throttledTestInstrument = useRef(
     throttle(
       (instrument: DutyInstrument, channel: number) => {
-        playDutyNotePreview(NOTE_C5, instrument, channel === 1 ? 1 : 0);
+        playDutyNotePreview(NOTE_C5, instrument, channel === 1 ? 1 : 0, 0, 0);
       },
       250,
       { leading: true, trailing: true },
@@ -144,7 +144,7 @@ export const InstrumentDutyEditor = ({
     };
 
   const onTestInstrument = (note: number) => () => {
-    playDutyNotePreview(note, instrument, selectedChannel === 1 ? 1 : 0);
+    playDutyNotePreview(note, instrument, selectedChannel === 1 ? 1 : 0, 0, 0);
   };
 
   return (

@@ -53,6 +53,8 @@ export const playDutyNotePreview = (
   note: number,
   instrument: DutyInstrument,
   channel: 0 | 1,
+  effectCode: number,
+  effectParam: number,
 ) => {
   API.music.sendToMusicWindow({
     action: "preview",
@@ -60,6 +62,8 @@ export const playDutyNotePreview = (
     note,
     instrument,
     channel,
+    effectCode,
+    effectParam,
   });
 };
 
@@ -67,6 +71,8 @@ export const playWaveNotePreview = (
   note: number,
   instrument: WaveInstrument,
   waveForm: Uint8Array,
+  effectCode: number,
+  effectParam: number,
 ) => {
   API.music.sendToMusicWindow({
     action: "preview",
@@ -74,18 +80,24 @@ export const playWaveNotePreview = (
     note: note,
     instrument,
     waveForm,
+    effectCode,
+    effectParam,
   });
 };
 
 export const playNoiseNotePreview = (
   note: number,
   instrument: NoiseInstrument,
+  effectCode: number,
+  effectParam: number,
 ) => {
   API.music.sendToMusicWindow({
     action: "preview",
     type: "noise",
     note: note,
     instrument,
+    effectCode,
+    effectParam,
   });
 };
 
@@ -94,18 +106,20 @@ export const playNotePreview = (
   channel: number,
   note: number,
   instrumentIndex: number,
+  effectCode: number,
+  effectParam: number,
 ) => {
   if (channel === 0 || channel === 1) {
     // Duty
     const instrument = song.duty_instruments[instrumentIndex];
-    playDutyNotePreview(note, instrument, channel);
+    playDutyNotePreview(note, instrument, channel, effectCode, effectParam);
   } else if (channel === 2) {
     // Wave
     const instrument = song.wave_instruments[instrumentIndex];
     const waveForm = song.waves[instrument.wave_index];
-    playWaveNotePreview(note, instrument, waveForm);
+    playWaveNotePreview(note, instrument, waveForm, effectCode, effectParam);
   } else if (channel === 3) {
     const instrument = song.noise_instruments[instrumentIndex];
-    playNoiseNotePreview(note, instrument);
+    playNoiseNotePreview(note, instrument, effectCode, effectParam);
   }
 };

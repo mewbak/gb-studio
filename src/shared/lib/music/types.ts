@@ -37,6 +37,8 @@ export type MusicDataPacket =
       note: number;
       instrument: DutyInstrument;
       channel: 0 | 1;
+      effectCode: number;
+      effectParam: number;
     }
   | {
       action: "preview";
@@ -44,12 +46,16 @@ export type MusicDataPacket =
       note: number;
       instrument: WaveInstrument;
       waveForm: Uint8Array;
+      effectCode: number;
+      effectParam: number;
     }
   | {
       action: "preview";
       type: "noise";
       note: number;
       instrument: NoiseInstrument;
+      effectCode: number;
+      effectParam: number;
     }
   | {
       action: "export-song";

@@ -50,6 +50,8 @@ interface InstrumentSelectProps extends SelectCommonProps {
   onChange?: (newId: number) => void;
   noneLabel?: string;
   note?: number;
+  effectCode?: number;
+  effectParam?: number;
 }
 
 export const InstrumentSelect: FC<InstrumentSelectProps> = ({
@@ -57,6 +59,8 @@ export const InstrumentSelect: FC<InstrumentSelectProps> = ({
   onChange,
   noneLabel,
   note,
+  effectCode,
+  effectParam,
   ...selectProps
 }) => {
   const [options, setOptions] = useState<InstrumentOption[]>([]);
@@ -70,6 +74,8 @@ export const InstrumentSelect: FC<InstrumentSelectProps> = ({
   );
 
   const previewNote = note ?? NOTE_C5;
+  const previewEffectCode = effectCode ?? 0;
+  const previewEffectParam = effectParam ?? 0;
 
   useEffect(() => {
     let instruments = defaultInstrumentOptions;
@@ -126,6 +132,8 @@ export const InstrumentSelect: FC<InstrumentSelectProps> = ({
             previewNote,
             instrument,
             selectedChannel === 1 ? 1 : 0,
+            previewEffectCode,
+            previewEffectParam,
           );
         }
       } else if (selectedChannel === 2) {
@@ -135,12 +143,19 @@ export const InstrumentSelect: FC<InstrumentSelectProps> = ({
             previewNote,
             instrument,
             song.waves[instrument.wave_index],
+            previewEffectCode,
+            previewEffectParam,
           );
         }
       } else if (selectedChannel === 3) {
         const instrument = song?.noise_instruments[Number(newValue.value)];
         if (instrument) {
-          playNoiseNotePreview(previewNote, instrument);
+          playNoiseNotePreview(
+            previewNote,
+            instrument,
+            previewEffectCode,
+            previewEffectParam,
+          );
         }
       }
     }

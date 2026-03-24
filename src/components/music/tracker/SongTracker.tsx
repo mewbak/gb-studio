@@ -45,7 +45,7 @@ import {
 import renderPatternContextMenu from "components/music/contentMenus/renderPatternContextMenu";
 import renderTrackerContextMenu from "components/music/contentMenus/renderTrackerContextMenu";
 import { DropdownButton } from "ui/buttons/DropdownButton";
-import { TRACKER_CHANNEL_FIELDS, TRACKER_ROW_SIZE } from "consts";
+import { NOTE_C5, TRACKER_CHANNEL_FIELDS, TRACKER_ROW_SIZE } from "consts";
 import { useContextMenu } from "ui/hooks/use-context-menu";
 import {
   copyTrackerFields,
@@ -246,7 +246,6 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
       (activeField % TRACKER_ROW_SIZE) / TRACKER_CHANNEL_FIELDS,
     );
     dispatch(trackerActions.setSelectedChannel(newChannelId));
-
   }, [activeField, dispatch, patternId, sequenceId]);
 
   const handleMouseDown = useCallback(
@@ -356,6 +355,25 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
           },
         }),
       );
+
+      const rowId = Math.floor(editingField / 16);
+      const channelId = Math.floor(editingField / 4) % 4;
+      const currentCell = patternRef.current?.[rowId]?.[channelId];
+
+      if (currentCell && songRef.current) {
+        const newCell = {
+          ...currentCell,
+          [type]: value,
+        };
+        playNotePreview(
+          songRef.current,
+          channelId,
+          newCell.note ?? NOTE_C5,
+          newCell.instrument ?? 0,
+          newCell.effectcode ?? 0,
+          newCell.effectparam ?? 0,
+        );
+      }
     },
     [dispatch],
   );
@@ -365,13 +383,11 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
       const editingField = activeFieldValueRef.current;
       const currentOctaveOffset = octaveOffsetRef.current;
       const currentEditStep = editStepRef.current;
-      const currentSong = songRef.current;
 
       if (editingField === undefined) {
         return;
       }
 
-      const channel = Math.floor(editingField / 4) % 4;
       const instrument = selectedInstrumentIdRef.current;
 
       editPatternCell(
@@ -381,16 +397,6 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
 
       if (value !== null) {
         editPatternCell("instrument", instrument);
-
-        if (currentSong) {
-          playNotePreview(
-            currentSong,
-            channel,
-            value + currentOctaveOffset * 12,
-            instrument,
-          );
-        }
-
         setActiveField(editingField + TRACKER_ROW_SIZE * currentEditStep);
       }
     },

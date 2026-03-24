@@ -29,7 +29,7 @@ export const InstrumentNoiseEditor = ({
   const throttledTestInstrument = useRef(
     throttle(
       (instrument: NoiseInstrument) => {
-        playNoiseNotePreview(NOTE_C5, instrument);
+        playNoiseNotePreview(NOTE_C5, instrument, 0, 0);
       },
       250,
       { leading: true, trailing: true },
@@ -75,7 +75,7 @@ export const InstrumentNoiseEditor = ({
   };
 
   const onTestInstrument = (note: number) => () => {
-    playNoiseNotePreview(note, instrument);
+    playNoiseNotePreview(note, instrument, 0, 0);
   };
 
   const noiseMacros = !instrument.subpattern_enabled

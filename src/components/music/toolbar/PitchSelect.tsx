@@ -29,6 +29,8 @@ interface PitchSelectProps extends SelectCommonProps {
   onChange?: (newNote: number) => void;
   noneLabel?: string;
   instrumentId?: number;
+  effectCode?: number;
+  effectParam?: number;
 }
 
 const NOTE_NAMES = [
@@ -119,6 +121,8 @@ export const PitchSelect: FC<PitchSelectProps> = ({
   onChange,
   noneLabel,
   instrumentId,
+  effectCode,
+  effectParam,
   ...selectProps
 }) => {
   const groupedOptions = useMemo(() => buildGroupedOptions(), []);
@@ -148,14 +152,16 @@ export const PitchSelect: FC<PitchSelectProps> = ({
     (state) => state.tracker.selectedInstrumentId,
   );
 
-  const playInstrumentId = instrumentId ?? selectedInstrumentId;
+  const previewInstrumentId = instrumentId ?? selectedInstrumentId;
+  const previewEffectCode = effectCode ?? 0;
+  const previewEffectParam = effectParam ?? 0;
 
-  const dutyInstrument = dutyInstruments?.[playInstrumentId];
-  const waveInstrument = waveInstruments?.[playInstrumentId];
+  const dutyInstrument = dutyInstruments?.[previewInstrumentId];
+  const waveInstrument = waveInstruments?.[previewInstrumentId];
   const waveForm = waveInstrument
     ? waveForms?.[waveInstrument?.wave_index]
     : undefined;
-  const noiseInstrument = noiseInstruments?.[playInstrumentId];
+  const noiseInstrument = noiseInstruments?.[previewInstrumentId];
 
   const currentValue = useMemo(() => {
     const selected = flatOptions.find((option) => option.value === value);
@@ -182,11 +188,24 @@ export const PitchSelect: FC<PitchSelectProps> = ({
           newValue.value,
           dutyInstrument,
           selectedChannel === 1 ? 1 : 0,
+          previewEffectCode,
+          previewEffectParam,
         );
       } else if (selectedChannel === 2 && waveInstrument && waveForm) {
-        playWaveNotePreview(newValue.value, waveInstrument, waveForm);
+        playWaveNotePreview(
+          newValue.value,
+          waveInstrument,
+          waveForm,
+          previewEffectCode,
+          previewEffectParam,
+        );
       } else if (selectedChannel === 3 && noiseInstrument) {
-        playNoiseNotePreview(newValue.value, noiseInstrument);
+        playNoiseNotePreview(
+          newValue.value,
+          noiseInstrument,
+          previewEffectCode,
+          previewEffectParam,
+        );
       }
     }
   };

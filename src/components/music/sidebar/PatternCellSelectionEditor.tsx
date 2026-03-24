@@ -10,9 +10,28 @@ import { Button } from "ui/buttons/Button";
 import { ButtonGroup } from "ui/buttons/ButtonGroup";
 import { Label } from "ui/form/Label";
 import l10n from "shared/lib/lang/l10n";
-import { getSharedPatternCellValue } from "shared/lib/uge/editor/helpers";
+import { getPatternCellSelectionValue } from "shared/lib/uge/editor/helpers";
 import { InstrumentSelect } from "components/music/toolbar/InstrumentSelect";
 import { PitchSelect } from "components/music/toolbar/PitchSelect";
+import { EffectCodeSelect } from "components/music/toolbar/EffectCodeSelect";
+import { PatternCellAddress } from "shared/lib/uge/editor/types";
+import { PatternCell, Song } from "shared/lib/uge/types";
+import { EffectParamsForm } from "./EffectParamsForm";
+
+const getSharedValue = <T extends keyof PatternCell>(
+  song: Song | undefined,
+  selectedPatternCells: PatternCellAddress[],
+  field: T,
+) => {
+  if (!song || selectedPatternCells.length === 0) {
+    return { type: "none", value: null } as const;
+  }
+  return getPatternCellSelectionValue(
+    song,
+    selectedPatternCells,
+    (cell) => cell[field],
+  );
+};
 
 export const PatternCellSelectionEditor = () => {
   const dispatch = useAppDispatch();
@@ -23,39 +42,36 @@ export const PatternCellSelectionEditor = () => {
     (state) => state.tracker.selectedPatternCells,
   );
 
-  const sharedNote = useMemo(() => {
-    if (!song || selectedPatternCells.length === 0) {
-      return null;
-    }
-    return getSharedPatternCellValue(
-      song,
-      selectedPatternCells,
-      (cell) => cell.note,
-    );
-  }, [selectedPatternCells, song]);
+  const sharedNote = useMemo(
+    () => getSharedValue(song, selectedPatternCells, "note"),
+    [selectedPatternCells, song],
+  );
 
-  const sharedInstrumentId = useMemo(() => {
-    if (!song || selectedPatternCells.length === 0) {
-      return null;
-    }
-    return getSharedPatternCellValue(
-      song,
-      selectedPatternCells,
-      (cell) => cell.instrument,
-    );
-  }, [selectedPatternCells, song]);
+  const sharedInstrumentId = useMemo(
+    () => getSharedValue(song, selectedPatternCells, "instrument"),
+    [selectedPatternCells, song],
+  );
+
+  const sharedEffectCode = useMemo(
+    () => getSharedValue(song, selectedPatternCells, "effectcode"),
+    [selectedPatternCells, song],
+  );
+
+  const sharedEffectParam = useMemo(
+    () => getSharedValue(song, selectedPatternCells, "effectparam"),
+    [selectedPatternCells, song],
+  );
 
   return (
     <>
       <FormSectionTitle>NOTES</FormSectionTitle>
-
       <FormRow>
         <Label>Pitch</Label>
       </FormRow>
       <FormRow>
         <PitchSelect
           name="note"
-          value={sharedNote !== null ? sharedNote : undefined}
+          value={sharedNote.value ?? undefined}
           onChange={(note) => {
             dispatch(
               trackerDocumentActions.changeNoteAbsoluteCells({
@@ -65,11 +81,9 @@ export const PatternCellSelectionEditor = () => {
             );
           }}
           noneLabel={
-            selectedPatternCells.length > 1 ? "Multiple Values" : "None"
+            sharedNote.type === "multiple" ? "Multiple Values" : "None"
           }
-          instrumentId={
-            sharedInstrumentId !== null ? sharedInstrumentId : undefined
-          }
+          instrumentId={sharedInstrumentId.value ?? undefined}
         />
       </FormRow>
 
@@ -79,7 +93,7 @@ export const PatternCellSelectionEditor = () => {
       <FormRow>
         <InstrumentSelect
           name="instrument"
-          value={sharedInstrumentId !== null ? sharedInstrumentId : undefined}
+          value={sharedInstrumentId.value ?? undefined}
           onChange={(instrumentId) => {
             dispatch(
               trackerDocumentActions.changeInstrumentAbsoluteCells({
@@ -89,12 +103,63 @@ export const PatternCellSelectionEditor = () => {
             );
           }}
           noneLabel={
-            selectedPatternCells.length > 1 ? "Multiple Values" : "None"
+            sharedInstrumentId.type === "multiple" ? "Multiple Values" : "None"
           }
-          note={sharedNote !== null ? sharedNote : undefined}
+          note={sharedNote.value ?? undefined}
         />
       </FormRow>
 
+      <FormRow>
+        <Label>{l10n("FIELD_EFFECT")}</Label>
+      </FormRow>
+      <FormRow>
+        <EffectCodeSelect
+          name="effectCode"
+          value={sharedEffectCode.value ?? undefined}
+          onChange={(effectCode) => {
+            dispatch(
+              trackerDocumentActions.editPatternCells({
+                patternCells: selectedPatternCells,
+                changes: {
+                  effectcode: effectCode,
+                },
+              }),
+            );
+          }}
+          noneLabel={
+            sharedEffectCode.type === "multiple" ? "Multiple Values" : "None"
+          }
+          // note={sharedNote !== null ? sharedNote : undefined}
+        />
+      </FormRow>
+
+      {sharedEffectCode.type === "shared" && (
+        <EffectParamsForm
+          effectCode={sharedEffectCode.value ?? undefined}
+          value={sharedEffectParam.value ?? undefined}
+          note={sharedNote.value ?? undefined}
+          onChange={(newEffectParam) => {
+            dispatch(
+              trackerDocumentActions.editPatternCells({
+                patternCells: selectedPatternCells,
+                changes: {
+                  effectparam: newEffectParam,
+                },
+              }),
+            );
+          }}
+          onChangeNote={(newNote) => {
+            dispatch(
+              trackerDocumentActions.editPatternCells({
+                patternCells: selectedPatternCells,
+                changes: {
+                  note: newNote,
+                },
+              }),
+            );
+          }}
+        />
+      )}
       <FormDivider />
       <FormRow>
         <div>
@@ -163,21 +228,22 @@ export const PatternCellSelectionEditor = () => {
             </Button>
           </ButtonGroup>
         </div>
-        <div style={{ display: "flex", alignItems: "flex-end" }}>
-          <Label></Label>
-          <Button
-            onClick={(e) => {
-              e.preventDefault();
-              dispatch(
-                trackerDocumentActions.interpolateAbsoluteCells({
-                  patternCells: selectedPatternCells,
-                }),
-              );
-            }}
-          >
-            {l10n("FIELD_INTERPOLATE")}
-          </Button>
-        </div>
+        {selectedPatternCells.length > 1 && (
+          <div style={{ display: "flex", alignItems: "flex-end" }}>
+            <Button
+              onClick={(e) => {
+                e.preventDefault();
+                dispatch(
+                  trackerDocumentActions.interpolateAbsoluteCells({
+                    patternCells: selectedPatternCells,
+                  }),
+                );
+              }}
+            >
+              {l10n("FIELD_INTERPOLATE")}
+            </Button>
+          </div>
+        )}
       </FormRow>
     </>
   );
