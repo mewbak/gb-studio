@@ -10,7 +10,6 @@ import { Label } from "ui/form/Label";
 import { Input } from "ui/form/Input";
 import { CheckboxField } from "ui/form/CheckboxField";
 import { StickyTabs, TabBar, TabSettings } from "ui/tabs/Tabs";
-import { ToggleButtonGroup } from "ui/form/ToggleButtonGroup";
 
 import { InstrumentDutyEditor } from "./InstrumentDutyEditor";
 import { InstrumentWaveEditor } from "./InstrumentWaveEditor";
@@ -27,6 +26,8 @@ import l10n from "shared/lib/lang/l10n";
 import trackerActions from "store/features/tracker/trackerActions";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
 import { useAppDispatch, useAppSelector } from "store/hooks";
+import { TrackerIcon } from "ui/icons/Icons";
+import { Button } from "ui/buttons/Button";
 
 type Instrument = DutyInstrument | NoiseInstrument | WaveInstrument;
 type InstrumentType = "duty" | "wave" | "noise";
@@ -40,22 +41,8 @@ const InstrumentEditorWrapper = styled.div`
 
 const SubpatternSettings = styled.div`
   display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
+  gap: 10px;
   align-items: flex-start;
-`;
-
-const SubpatternSettingsGroup = styled.div`
-  min-width: 180px;
-`;
-
-const SubpatternSettingsLabel = styled.div`
-  margin-bottom: 6px;
-  font-size: 11px;
-  font-weight: bold;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  opacity: 0.8;
 `;
 
 const instrumentTypeLabels: Record<InstrumentType, string> = {
@@ -88,7 +75,6 @@ export const InstrumentEditor = () => {
 
   const [instrumentEditorTab, setInstrumentEditorTab] =
     useState<InstrumentEditorTab>("main");
-
 
   const instrumentType = selectedInstrument.type as InstrumentType;
   const selectedInstrumentId = Number.parseInt(selectedInstrument.id, 10);
@@ -179,12 +165,27 @@ export const InstrumentEditor = () => {
     [dispatch, editInstrument, resolvedInstrument],
   );
 
-  const onChangeSubpatternEditorMode = useCallback(
-    (mode: "simple" | "tracker") => {
-      dispatch(trackerActions.setSubpatternEditorModeAndSave(mode));
-    },
-    [dispatch],
-  );
+  const onToggleSubpatternEditorMode = useCallback(() => {
+    if (subpatternEditorMode === "tracker") {
+      dispatch(trackerActions.setSubpatternEditorModeAndSave("simple"));
+    } else {
+      dispatch(trackerActions.setSubpatternEditorModeAndSave("tracker"));
+    }
+    if (
+      resolvedInstrument &&
+      !resolvedInstrument.instrument.subpattern_enabled
+    ) {
+      dispatch(
+        editInstrument({
+          instrumentId: resolvedInstrument.instrument.index,
+          changes: {
+            // eslint-disable-next-line camelcase
+            subpattern_enabled: true,
+          },
+        }),
+      );
+    }
+  }, [dispatch, editInstrument, resolvedInstrument, subpatternEditorMode]);
 
   if (!song || !resolvedInstrument || !resolvedInstrument.instrument) {
     return null;
@@ -237,18 +238,14 @@ export const InstrumentEditor = () => {
                   onChangeInstrumentSubpatternEnabled(e.target.checked)
                 }
               />
-              <SubpatternSettingsGroup>
-                <SubpatternSettingsLabel>View</SubpatternSettingsLabel>
-                <ToggleButtonGroup<"simple" | "tracker">
-                  name="subpatternEditorMode"
-                  value={subpatternEditorMode}
-                  options={[
-                    { value: "simple", label: "Simple" },
-                    { value: "tracker", label: l10n("MENU_ADVANCED") },
-                  ]}
-                  onChange={onChangeSubpatternEditorMode}
-                />
-              </SubpatternSettingsGroup>
+              <Button
+                variant={
+                  subpatternEditorMode === "tracker" ? "primary" : "normal"
+                }
+                onClick={onToggleSubpatternEditorMode}
+              >
+                <TrackerIcon />
+              </Button>
             </SubpatternSettings>
           </TabSettings>
         ) : null}
@@ -279,7 +276,8 @@ export const InstrumentEditor = () => {
           />
         ) : null}
 
-        {instrumentEditorTab === "subpattern" ? (
+        {instrumentEditorTab === "subpattern" &&
+        resolvedInstrument.instrument.subpattern_enabled ? (
           subpatternEditorMode === "tracker" ? (
             <InstrumentSubpatternEditor
               subpattern={resolvedInstrument.instrument.subpattern}
