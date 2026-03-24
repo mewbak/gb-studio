@@ -61,6 +61,15 @@ const Wrapper = styled.div`
   box-sizing: border-box;
 `;
 
+const StyledVisiblityIcon = styled.div`
+  svg {
+    width: 14px;
+    height: 14px;
+    max-width: 14px;
+    max-height: 14px;
+  }
+`;
+
 const StyledChannelIcon = styled.div<{ channel: number }>`
   svg {
     fill: ${(props) => props.theme.colors.highlight};
@@ -215,11 +224,13 @@ const Row = ({ index, style, data }: ChannelNavigatorRowProps) => {
           size="small"
           onClick={toggleVisibleChannel(index)}
         >
-          {visibleChannels.indexOf(index) > -1 ? (
-            <EyeOpenIcon />
-          ) : (
-            <EyeClosedIcon />
-          )}
+          <StyledVisiblityIcon>
+            {visibleChannels.indexOf(index) > -1 ? (
+              <EyeOpenIcon />
+            ) : (
+              <EyeClosedIcon />
+            )}
+          </StyledVisiblityIcon>
         </Button>
         <FixedSpacer width={5} />
         <ButtonGroup>
