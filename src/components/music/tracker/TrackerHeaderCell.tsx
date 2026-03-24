@@ -12,7 +12,7 @@ import l10n from "shared/lib/lang/l10n";
 import { ChannelMuteIcon, ChannelSoloIcon } from "ui/icons/Icons";
 
 interface TrackerHeaderCellProps {
-  channel?: number;
+  channel?: 0 | 1 | 2 | 3;
   type: "channel" | "patternIndex";
   children?: React.ReactNode;
   muted?: boolean;

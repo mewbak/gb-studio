@@ -1,5 +1,6 @@
 import { Song, PatternCell } from "shared/lib/uge/types";
 import { PatternCellAddress } from "./types";
+import clamp from "shared/lib/helpers/clamp";
 
 type SharedSelectionValue<T> =
   | { type: "none"; value: null }
@@ -40,4 +41,8 @@ export const getPatternCellSelectionValue = <T>(
   }
 
   return { type: "shared", value: sharedValue };
+};
+
+export const toValidChannelId = (index: number): 0 | 1 | 2 | 3 => {
+  return clamp(index, 0, 3) as 0 | 1 | 2 | 3;
 };

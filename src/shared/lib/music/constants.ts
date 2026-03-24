@@ -33,7 +33,13 @@ export const channels = [
     shortName: "N",
     type: "noise",
   },
-];
+] as {
+  id: string;
+  index: 0 | 1 | 2 | 3;
+  name: string;
+  shortName: string;
+  type: "duty" | "wave" | "noise";
+}[];
 
 // prettier-ignore
 export const noteGBDKDefines = [

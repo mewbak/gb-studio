@@ -8,13 +8,8 @@ import {
   SelectCommonProps,
 } from "ui/form/Select";
 import { SingleValue } from "react-select";
-import {
-  playDutyNotePreview,
-  playNoiseNotePreview,
-  playWaveNotePreview,
-} from "components/music/helpers";
-import { NOTE_C5 } from "consts";
 import l10n from "shared/lib/lang/l10n";
+import { useMusicNotePreview } from "components/music/hooks/useMusicNotePreview";
 
 type InstrumentOption = {
   value: number;
@@ -63,6 +58,8 @@ export const InstrumentSelect: FC<InstrumentSelectProps> = ({
   effectParam,
   ...selectProps
 }) => {
+  const playPreview = useMusicNotePreview();
+
   const [options, setOptions] = useState<InstrumentOption[]>([]);
   const [currentInstrument, setCurrentInstrument] =
     useState<InstrumentOption>();
@@ -72,10 +69,6 @@ export const InstrumentSelect: FC<InstrumentSelectProps> = ({
   const selectedChannel = useAppSelector(
     (state) => state.tracker.selectedChannel,
   );
-
-  const previewNote = note ?? NOTE_C5;
-  const previewEffectCode = effectCode ?? 0;
-  const previewEffectParam = effectParam ?? 0;
 
   useEffect(() => {
     let instruments = defaultInstrumentOptions;
@@ -125,39 +118,12 @@ export const InstrumentSelect: FC<InstrumentSelectProps> = ({
   const onSelectChange = (newValue: SingleValue<InstrumentOption>) => {
     if (newValue) {
       onChange?.(newValue.value);
-      if (selectedChannel === 0 || selectedChannel === 1) {
-        const instrument = song?.duty_instruments[Number(newValue.value)];
-        if (instrument) {
-          playDutyNotePreview(
-            previewNote,
-            instrument,
-            selectedChannel === 1 ? 1 : 0,
-            previewEffectCode,
-            previewEffectParam,
-          );
-        }
-      } else if (selectedChannel === 2) {
-        const instrument = song?.wave_instruments[Number(newValue.value)];
-        if (instrument) {
-          playWaveNotePreview(
-            previewNote,
-            instrument,
-            song.waves[instrument.wave_index],
-            previewEffectCode,
-            previewEffectParam,
-          );
-        }
-      } else if (selectedChannel === 3) {
-        const instrument = song?.noise_instruments[Number(newValue.value)];
-        if (instrument) {
-          playNoiseNotePreview(
-            previewNote,
-            instrument,
-            previewEffectCode,
-            previewEffectParam,
-          );
-        }
-      }
+      playPreview({
+        note,
+        instrumentId: newValue.value,
+        effectCode,
+        effectParam,
+      });
     }
   };
 

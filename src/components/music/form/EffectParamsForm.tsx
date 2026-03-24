@@ -113,7 +113,7 @@ export const EffectParamsForm: FC<EffectParamsFormProps> = ({
       note,
       instrumentId,
       effectCode,
-      effectParam: nextValue,
+      effectParam: nextValue ?? 0,
     });
   };
 

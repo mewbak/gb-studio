@@ -53,6 +53,7 @@ import {
   pasteTrackerFields,
 } from "store/features/trackerDocument/trackerDocumentState";
 import { PatternCellAddress } from "shared/lib/uge/editor/types";
+import { toValidChannelId } from "shared/lib/uge/editor/helpers";
 
 interface SongTrackerProps {
   sequenceId: number;
@@ -242,8 +243,8 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
       return;
     }
 
-    const newChannelId = Math.floor(
-      (activeField % TRACKER_ROW_SIZE) / TRACKER_CHANNEL_FIELDS,
+    const newChannelId = toValidChannelId(
+      Math.floor((activeField % TRACKER_ROW_SIZE) / TRACKER_CHANNEL_FIELDS),
     );
     dispatch(trackerActions.setSelectedChannel(newChannelId));
   }, [activeField, dispatch, patternId, sequenceId]);

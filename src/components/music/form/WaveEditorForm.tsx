@@ -5,7 +5,7 @@ import l10n from "shared/lib/lang/l10n";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
 import { FormRow, FormField } from "ui/form/layout/FormLayout";
 import { ThemeContext } from "styled-components";
-import { WaveEditorInput } from "components/music/sidebar/WaveEditorInput";
+import { WaveEditorInput } from "./WaveEditorInput";
 import clamp from "shared/lib/helpers/clamp";
 
 interface WaveEditorFormProps {

@@ -31,12 +31,13 @@ import {
 } from "ui/icons/Icons";
 import { ButtonGroup } from "ui/buttons/ButtonGroup";
 import { FixedSpacer } from "ui/spacing/Spacing";
+import { toValidChannelId } from "shared/lib/uge/editor/helpers";
 
 const COLLAPSED_SIZE = 30;
 
 interface ChannelNavigatorItem {
   id: string;
-  index: number;
+  index: 0 | 1 | 2 | 3;
   name: string;
   shortName: string;
   type: string;
@@ -152,7 +153,7 @@ const Row = ({ index, style, data }: ChannelNavigatorRowProps) => {
     (e: React.MouseEvent<HTMLButtonElement>) => {
       e.preventDefault();
       e.stopPropagation();
-      dispatch(trackerActions.setSelectedChannel(index));
+      dispatch(trackerActions.setSelectedChannel(toValidChannelId(index)));
       API.music.sendToMusicWindow({
         action: "set-solo",
         channel: index,

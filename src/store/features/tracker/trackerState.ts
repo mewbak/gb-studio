@@ -65,7 +65,7 @@ interface TrackerState {
   view: TrackerViewType;
   tool: PianoRollToolType;
   selectedInstrumentId: number;
-  selectedChannel: number;
+  selectedChannel: 0 | 1 | 2 | 3;
   visibleChannels: number[];
   hoverNote: number | null;
   hoverColumn: number | null;
@@ -172,7 +172,7 @@ const trackerSlice = createSlice({
       state.selectedInstrumentId = clamp(action.payload, 0, 15);
       state.sidebarView = "instrument";
     },
-    setSelectedChannel: (state, action: PayloadAction<number>) => {
+    setSelectedChannel: (state, action: PayloadAction<0 | 1 | 2 | 3>) => {
       if (state.selectedChannel !== action.payload) {
         state.selectedEffectCell = null;
         state.selectedChannel = action.payload;

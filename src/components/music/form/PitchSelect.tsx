@@ -8,13 +8,8 @@ import {
   SelectCommonProps,
 } from "ui/form/Select";
 import l10n from "shared/lib/lang/l10n";
-import { useAppSelector } from "store/hooks";
-import {
-  playDutyNotePreview,
-  playNoiseNotePreview,
-  playWaveNotePreview,
-} from "components/music/helpers";
 import { MAX_OCTAVE, OCTAVE_SIZE, TOTAL_OCTAVES } from "consts";
+import { useMusicNotePreview } from "components/music/hooks/useMusicNotePreview";
 
 type PitchOption = {
   value: number;
@@ -125,43 +120,13 @@ export const PitchSelect: FC<PitchSelectProps> = ({
   effectParam,
   ...selectProps
 }) => {
+  const playPreview = useMusicNotePreview();
+
   const groupedOptions = useMemo(() => buildGroupedOptions(), []);
   const flatOptions = useMemo(
     () => groupedOptions.flatMap((group) => group.options),
     [groupedOptions],
   );
-
-  const dutyInstruments = useAppSelector(
-    (state) => state.trackerDocument.present.song?.duty_instruments,
-  );
-  const waveInstruments = useAppSelector(
-    (state) => state.trackerDocument.present.song?.wave_instruments,
-  );
-  const waveForms = useAppSelector(
-    (state) => state.trackerDocument.present.song?.waves,
-  );
-  const noiseInstruments = useAppSelector(
-    (state) => state.trackerDocument.present.song?.noise_instruments,
-  );
-
-  const selectedChannel = useAppSelector(
-    (state) => state.tracker.selectedChannel,
-  );
-
-  const selectedInstrumentId = useAppSelector(
-    (state) => state.tracker.selectedInstrumentId,
-  );
-
-  const previewInstrumentId = instrumentId ?? selectedInstrumentId;
-  const previewEffectCode = effectCode ?? 0;
-  const previewEffectParam = effectParam ?? 0;
-
-  const dutyInstrument = dutyInstruments?.[previewInstrumentId];
-  const waveInstrument = waveInstruments?.[previewInstrumentId];
-  const waveForm = waveInstrument
-    ? waveForms?.[waveInstrument?.wave_index]
-    : undefined;
-  const noiseInstrument = noiseInstruments?.[previewInstrumentId];
 
   const currentValue = useMemo(() => {
     const selected = flatOptions.find((option) => option.value === value);
@@ -182,31 +147,12 @@ export const PitchSelect: FC<PitchSelectProps> = ({
   const onSelectChange = (newValue: SingleValue<PitchOption>) => {
     if (newValue && newValue.value >= 0) {
       onChange?.(newValue.value);
-
-      if ((selectedChannel === 0 || selectedChannel === 1) && dutyInstrument) {
-        playDutyNotePreview(
-          newValue.value,
-          dutyInstrument,
-          selectedChannel === 1 ? 1 : 0,
-          previewEffectCode,
-          previewEffectParam,
-        );
-      } else if (selectedChannel === 2 && waveInstrument && waveForm) {
-        playWaveNotePreview(
-          newValue.value,
-          waveInstrument,
-          waveForm,
-          previewEffectCode,
-          previewEffectParam,
-        );
-      } else if (selectedChannel === 3 && noiseInstrument) {
-        playNoiseNotePreview(
-          newValue.value,
-          noiseInstrument,
-          previewEffectCode,
-          previewEffectParam,
-        );
-      }
+      playPreview({
+        note: newValue.value,
+        instrumentId,
+        effectCode,
+        effectParam,
+      });
     }
   };
 

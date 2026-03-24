@@ -24,13 +24,9 @@ import { assertUnreachable } from "shared/lib/helpers/assert";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
 import { SplitPaneChildProps } from "ui/splitpane/SplitPaneVerticalContainer";
 import { SplitPane } from "ui/splitpane/SplitPane";
-import {
-  playDutyNotePreview,
-  playNoiseNotePreview,
-  playWaveNotePreview,
-} from "components/music/helpers";
 import { NOTE_C5 } from "consts";
 import { InstrumentType } from "shared/lib/music/types";
+import { useMusicNotePreview } from "components/music/hooks/useMusicNotePreview";
 
 const COLLAPSED_SIZE = 30;
 
@@ -81,13 +77,13 @@ const sortByIndex = (a: NavigatorItem, b: NavigatorItem) => {
 const emptyDutyInstruments: DutyInstrument[] = [];
 const emptyWaveInstruments: WaveInstrument[] = [];
 const emptyNoiseInstruments: NoiseInstrument[] = [];
-const emptyWaves: Uint8Array[] = [];
 
 export const NavigatorInstrumentsPane = ({
   height,
   onToggle,
 }: SplitPaneChildProps) => {
   const dispatch = useAppDispatch();
+  const playPreview = useMusicNotePreview();
 
   const dutyInstruments = useAppSelector(
     (state) =>
@@ -105,10 +101,6 @@ export const NavigatorInstrumentsPane = ({
     (state) =>
       state.trackerDocument.present.song?.noise_instruments ??
       emptyNoiseInstruments,
-  );
-
-  const waveForms = useAppSelector(
-    (state) => state.trackerDocument.present.song?.waves ?? emptyWaves,
   );
 
   const selectedInstrument = useAppSelector(
@@ -246,23 +238,16 @@ export const NavigatorInstrumentsPane = ({
       );
 
       if (!item.isGroup) {
-        const instrumentId = parseInt(item.instrumentId);
-        if (item.type === "duty") {
-          const instrument = dutyInstruments[instrumentId];
-          const channel = selectedChannel === 1 ? 1 : 0;
-          playDutyNotePreview(NOTE_C5, instrument, channel, 0, 0);
-        } else if (item.type === "wave") {
-          const instrument = waveInstruments[instrumentId];
-          const wave = waveForms?.[instrument?.wave_index];
-          playWaveNotePreview(NOTE_C5, instrument, wave, 0, 0);
-        } else if (item.type === "noise") {
-          const instrument = noiseInstruments[instrumentId];
-          playNoiseNotePreview(NOTE_C5, instrument, 0, 0);
-        }
+        const instrumentId = parseInt(item.instrumentId, 10);
+        playPreview({
+          channelId: selectedChannel,
+          note: NOTE_C5,
+          instrumentId,
+        });
       }
 
       if (!item.isGroup && syncInstruments) {
-        let newSelectedChannel = 0;
+        let newSelectedChannel: 0 | 1 | 2 | 3 = 0;
         switch (item.type) {
           case "duty":
             newSelectedChannel = selectedChannel === 1 ? 1 : 0;
@@ -279,15 +264,7 @@ export const NavigatorInstrumentsPane = ({
         dispatch(trackerActions.setSelectedInstrumentId(newDefaultInstrument));
       }
     },
-    [
-      dispatch,
-      dutyInstruments,
-      noiseInstruments,
-      selectedChannel,
-      syncInstruments,
-      waveForms,
-      waveInstruments,
-    ],
+    [dispatch, playPreview, selectedChannel, syncInstruments],
   );
 
   const [renameId, setRenameId] = useState("");

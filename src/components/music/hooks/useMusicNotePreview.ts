@@ -8,10 +8,11 @@ import {
 import { NOTE_C5 } from "consts";
 
 type PreviewArgs = {
-  note?: number | null;
-  instrumentId?: number | null;
+  note?: number;
+  instrumentId?: number;
+  channelId?: 0 | 1 | 2 | 3;
   effectCode?: number | null;
-  effectParam?: number | null;
+  effectParam?: number;
 };
 
 export const useMusicNotePreview = () => {
@@ -24,17 +25,24 @@ export const useMusicNotePreview = () => {
   );
 
   return useCallback(
-    ({ note, instrumentId, effectCode, effectParam }: PreviewArgs) => {
+    ({
+      channelId,
+      note,
+      instrumentId,
+      effectCode,
+      effectParam,
+    }: PreviewArgs) => {
       if (!song) {
         return;
       }
 
+      const previewChannel = channelId ?? selectedChannel;
       const previewNote = note ?? NOTE_C5;
       const previewInstrumentId = instrumentId ?? selectedInstrumentId ?? 0;
       const previewEffectCode = effectCode ?? 0;
       const previewEffectParams = effectParam ?? 0;
 
-      if (selectedChannel === 0 || selectedChannel === 1) {
+      if (previewChannel === 0 || previewChannel === 1) {
         const instrument = song.duty_instruments[previewInstrumentId];
         if (!instrument) {
           return;
@@ -43,14 +51,14 @@ export const useMusicNotePreview = () => {
         playDutyNotePreview(
           previewNote,
           instrument,
-          selectedChannel === 1 ? 1 : 0,
+          previewChannel === 1 ? 1 : 0,
           previewEffectCode,
           previewEffectParams,
         );
         return;
       }
 
-      if (selectedChannel === 2) {
+      if (previewChannel === 2) {
         const instrument = song.wave_instruments[previewInstrumentId];
         if (!instrument) {
           return;
@@ -71,7 +79,7 @@ export const useMusicNotePreview = () => {
         return;
       }
 
-      if (selectedChannel === 3) {
+      if (previewChannel === 3) {
         const instrument = song.noise_instruments[previewInstrumentId];
         if (!instrument) {
           return;
