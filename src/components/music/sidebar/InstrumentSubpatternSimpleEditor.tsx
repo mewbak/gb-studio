@@ -115,7 +115,7 @@ export const InstrumentSubpatternSimpleEditor = ({
     [subpattern],
   );
 
-  const [selectedRow, setSelectedRow] = useState<number | null>(null);
+  const [selectedRow, setSelectedRow] = useState<number | null>(0);
   const [isDragging, setIsDragging] = useState(false);
   const [jumpArrow, setJumpArrow] = useState<{
     height: number;
@@ -382,12 +382,9 @@ export const InstrumentSubpatternSimpleEditor = ({
               <DraggableScriptEventHeader
                 ref={
                   dragState.dragHandleRef
-                    ? mergeRefs(
-                        (element: HTMLDivElement | null) => {
-                          rowHeaderRefs.current[rowIndex] = element;
-                        },
-                        dragState.dragHandleRef,
-                      )
+                    ? mergeRefs((element: HTMLDivElement | null) => {
+                        rowHeaderRefs.current[rowIndex] = element;
+                      }, dragState.dragHandleRef)
                     : (element: HTMLDivElement | null) => {
                         rowHeaderRefs.current[rowIndex] = element;
                       }
