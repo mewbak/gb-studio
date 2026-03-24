@@ -11,12 +11,12 @@ import { ButtonGroup } from "ui/buttons/ButtonGroup";
 import { Label } from "ui/form/Label";
 import l10n from "shared/lib/lang/l10n";
 import { getPatternCellSelectionValue } from "shared/lib/uge/editor/helpers";
-import { InstrumentSelect } from "components/music/toolbar/InstrumentSelect";
-import { PitchSelect } from "components/music/toolbar/PitchSelect";
-import { EffectCodeSelect } from "components/music/toolbar/EffectCodeSelect";
+import { InstrumentSelect } from "components/music/form/InstrumentSelect";
+import { PitchSelect } from "components/music/form/PitchSelect";
+import { EffectCodeSelect } from "components/music/form/EffectCodeSelect";
 import { PatternCellAddress } from "shared/lib/uge/editor/types";
 import { PatternCell, Song } from "shared/lib/uge/types";
-import { EffectParamsForm } from "./EffectParamsForm";
+import { EffectParamsForm } from "components/music/form/EffectParamsForm";
 
 const getSharedValue = <T extends keyof PatternCell>(
   song: Song | undefined,

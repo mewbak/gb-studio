@@ -4,8 +4,8 @@ import trackerDocumentActions from "store/features/trackerDocument/trackerDocume
 import { WaveInstrument } from "shared/lib/uge/types";
 import { FormDivider, FormField, FormRow } from "ui/form/layout/FormLayout";
 import { Option, Select } from "ui/form/Select";
-import { InstrumentLengthForm } from "./InstrumentLengthForm";
-import { WaveEditorForm } from "./WaveEditorForm";
+import { InstrumentLengthForm } from "components/music/form/InstrumentLengthForm";
+import { WaveEditorForm } from "components/music/form/WaveEditorForm";
 import { Button } from "ui/buttons/Button";
 import { useAppDispatch } from "store/hooks";
 import { SingleValue } from "react-select";

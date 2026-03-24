@@ -18,7 +18,7 @@ import trackerActions from "store/features/tracker/trackerActions";
 import { Button } from "ui/buttons/Button";
 import { MenuOverlay } from "ui/menu/Menu";
 import { saveSongFile } from "store/features/trackerDocument/trackerDocumentState";
-import { InstrumentSelect } from "./InstrumentSelect";
+import { InstrumentSelect } from "components/music/form/InstrumentSelect";
 import { Select } from "ui/form/Select";
 import { RelativePortal } from "ui/layout/RelativePortal";
 import { PianoRollToolType } from "store/features/tracker/trackerState";
@@ -26,7 +26,7 @@ import API from "renderer/lib/api";
 import { useAppDispatch, useAppSelector } from "store/hooks";
 import { SingleValue } from "react-select";
 import { MusicAsset } from "shared/lib/resources/types";
-import SongExportForm from "./SongExportForm";
+import SongExportForm from "components/music/form/SongExportForm";
 import l10n from "shared/lib/lang/l10n";
 
 interface OctaveOffsetOptions {

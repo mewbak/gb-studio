@@ -5,9 +5,9 @@ import trackerDocumentActions from "store/features/trackerDocument/trackerDocume
 import { SubPatternCell, NoiseInstrument } from "shared/lib/uge/types";
 import { CheckboxField } from "ui/form/CheckboxField";
 import { FormDivider, FormField, FormRow } from "ui/form/layout/FormLayout";
-import { InstrumentLengthForm } from "./InstrumentLengthForm";
+import { InstrumentLengthForm } from "components/music/form/InstrumentLengthForm";
 import { InstrumentVolumeEditor } from "./InstrumentVolumeEditor";
-import { NoiseMacroEditorForm } from "./NoiseMacroEditorForm";
+import { NoiseMacroEditorForm } from "components/music/form/NoiseMacroEditorForm";
 import { Button } from "ui/buttons/Button";
 import { cloneDeep, throttle } from "lodash";
 import { useAppDispatch } from "store/hooks";

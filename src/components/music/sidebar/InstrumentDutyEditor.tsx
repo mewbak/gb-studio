@@ -4,7 +4,7 @@ import { DutyInstrument } from "shared/lib/uge/types";
 import { FormDivider, FormField, FormRow } from "ui/form/layout/FormLayout";
 import { Select } from "ui/form/Select";
 import { SliderField } from "ui/form/SliderField";
-import { InstrumentLengthForm } from "./InstrumentLengthForm";
+import { InstrumentLengthForm } from "components/music/form/InstrumentLengthForm";
 import { InstrumentVolumeEditor } from "./InstrumentVolumeEditor";
 import { Button } from "ui/buttons/Button";
 import l10n from "shared/lib/lang/l10n";
