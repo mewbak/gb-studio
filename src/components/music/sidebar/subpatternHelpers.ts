@@ -27,11 +27,14 @@ const subpatternEffectLabels: Record<number, string> = {
   15: "Set Tempo",
 };
 
-export const isSubpatternRowEmpty = (cell: SubPatternCell) =>
-  cell.note === null &&
-  cell.jump === null &&
-  cell.effectcode === null &&
-  cell.effectparam === null;
+export const isSubpatternRowEmpty = (cell: SubPatternCell) => {
+  return (
+    (cell.note === null || cell.note === 0) &&
+    (cell.jump === null || cell.jump === 0) &&
+    (cell.effectcode === null || cell.effectcode === 0) &&
+    (cell.effectparam === null || cell.effectparam === 0)
+  );
+};
 
 export const getSubpatternPitchOffset = (note: number | null) =>
   note === null ? null : note - SUBPATTERN_BASE_NOTE;
@@ -62,12 +65,9 @@ export const toSubpatternJump = (targetRow: number | null) =>
 
 export const getSubpatternFlowType = (
   jump: number | null,
-  rowIndex: number,
-): "continue" | "jump" | "hold" => {
+  _rowIndex: number,
+): "continue" | "jump" => {
   const targetRow = getSubpatternJumpTarget(jump);
-  if (targetRow === rowIndex) {
-    return "hold";
-  }
   if (targetRow === null) {
     return "continue";
   }
@@ -76,9 +76,6 @@ export const getSubpatternFlowType = (
 
 export const formatSubpatternFlow = (jump: number | null, rowIndex: number) => {
   const flowType = getSubpatternFlowType(jump, rowIndex);
-  if (flowType === "hold") {
-    return "Hold here";
-  }
   if (flowType === "jump") {
     return `Jump to ${String(getSubpatternJumpTarget(jump) ?? 0).padStart(2, "0")}`;
   }
@@ -100,7 +97,10 @@ export const getSubpatternEffectLabel = (
   if (effectCode === null || effectCode === undefined) {
     return "None";
   }
-  return subpatternEffectLabels[effectCode] ?? `Effect ${effectCode.toString(16).toUpperCase()}`;
+  return (
+    subpatternEffectLabels[effectCode] ??
+    `Effect ${effectCode.toString(16).toUpperCase()}`
+  );
 };
 
 export const formatSubpatternEffect = (
@@ -112,7 +112,9 @@ export const formatSubpatternEffect = (
   }
   const label = getSubpatternEffectLabel(effectCode);
   const param =
-    effectParam === null ? "" : ` ${renderEffectParam(effectParam).padStart(2, "0")}`;
+    effectParam === null
+      ? ""
+      : ` ${renderEffectParam(effectParam).padStart(2, "0")}`;
   return `${label}${param}`;
 };
 

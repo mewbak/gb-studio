@@ -11,11 +11,11 @@ test("Should format null and positive subpattern pitch values", () => {
   expect(formatSubpatternPitch(43)).toBe("+7 st");
 });
 
-test("Should map stored jump values to continue, jump and hold states", () => {
+test("Should map stored jump values to continue and jump states", () => {
   expect(getSubpatternFlowType(null, 5)).toBe("continue");
   expect(formatSubpatternFlow(1, 5)).toBe("Jump to 00");
-  expect(getSubpatternFlowType(6, 5)).toBe("hold");
-  expect(formatSubpatternFlow(6, 5)).toBe("Hold here");
+  expect(getSubpatternFlowType(6, 5)).toBe("jump");
+  expect(formatSubpatternFlow(6, 5)).toBe("Jump to 05");
 });
 
 test("Should initialize effect param when setting effect code zero", () => {

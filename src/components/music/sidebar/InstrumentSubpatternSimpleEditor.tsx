@@ -61,12 +61,16 @@ const RowHeader = styled.div`
   opacity: 0.8;
 `;
 
+const RowItem = styled.div`
+  margin-bottom: 6px;
+`;
+
 const RowButton = styled.button<{ $active: boolean; $empty: boolean }>`
   display: grid;
   grid-template-columns: 52px minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.2fr);
   gap: 8px;
   width: 100%;
-  margin: 0 0 6px;
+  margin: 0;
   padding: 10px 12px;
   border-radius: 4px;
   border: 1px solid ${(props) => props.theme.colors.card.border};
@@ -89,7 +93,7 @@ const RowButton = styled.button<{ $active: boolean; $empty: boolean }>`
   ${(props) =>
     props.$empty
       ? css`
-          opacity: 0.8;
+          opacity: 0.55;
         `
       : ""}
 `;
@@ -107,7 +111,9 @@ const RowCell = styled.span`
 `;
 
 const EditorPanel = styled.div`
-  margin-top: 12px;
+  margin-top: 0;
+  margin-left: 20px;
+  margin-right: 8px;
   padding: 12px;
   border-radius: 4px;
   border: 1px solid ${(props) => props.theme.colors.card.border};
@@ -219,18 +225,14 @@ export const InstrumentSubpatternSimpleEditor = ({
   );
 
   const onChangeFlowType = useCallback(
-    (nextFlow: "continue" | "jump" | "hold") => {
+    (nextFlow: "continue" | "jump") => {
       if (nextFlow === "continue") {
         updateSelectedRow({ jump: null });
         return;
       }
-      if (nextFlow === "hold") {
-        updateSelectedRow({ jump: toSubpatternJump(selectedRow) });
-        return;
-      }
       updateSelectedRow({ jump: toSubpatternJump(selectedJumpTarget) });
     },
-    [selectedJumpTarget, selectedRow, updateSelectedRow],
+    [selectedJumpTarget, updateSelectedRow],
   );
 
   const onChangeJumpTarget = useCallback(
@@ -296,104 +298,110 @@ export const InstrumentSubpatternSimpleEditor = ({
       </RowHeader>
 
       {visibleRows.map((row, rowIndex) => (
-        <RowButton
-          key={`subpattern-row-${rowIndex}`}
-          type="button"
-          $active={selectedRow === rowIndex}
-          $empty={isSubpatternRowEmpty(row)}
-          onClick={() => setSelectedRow(rowIndex)}
-        >
-          <RowTick>{String(rowIndex).padStart(2, "0")}</RowTick>
-          <RowCell>{formatSubpatternPitch(row.note)}</RowCell>
-          <RowCell>{formatSubpatternFlow(row.jump, rowIndex)}</RowCell>
-          <RowCell>{formatSubpatternEffect(row.effectcode, row.effectparam)}</RowCell>
-        </RowButton>
-      ))}
+        <RowItem key={`subpattern-row-${rowIndex}`}>
+          <RowButton
+            type="button"
+            $active={selectedRow === rowIndex}
+            $empty={isSubpatternRowEmpty(row)}
+            onClick={() => setSelectedRow(rowIndex)}
+          >
+            <RowTick>{String(rowIndex).padStart(2, "0")}</RowTick>
+            <RowCell>{formatSubpatternPitch(row.note)}</RowCell>
+            <RowCell>{formatSubpatternFlow(row.jump, rowIndex)}</RowCell>
+            <RowCell>{formatSubpatternEffect(row.effectcode, row.effectparam)}</RowCell>
+          </RowButton>
 
-      <EditorPanel>
-        <EditorHeading>
-          <EditorTitle>
-            Edit Tick {String(selectedRow).padStart(2, "0")}
-          </EditorTitle>
-          <Button type="button" size="small" onClick={onClearRow}>
-            Clear Row
-          </Button>
-        </EditorHeading>
+          {selectedRow === rowIndex ? (
+            <EditorPanel>
+              <EditorHeading>
+                <EditorTitle>
+                  Edit Tick {String(selectedRow).padStart(2, "0")}
+                </EditorTitle>
+                <Button type="button" size="small" onClick={onClearRow}>
+                  Clear Row
+                </Button>
+              </EditorHeading>
 
-        <FieldGrid>
-          <FieldBlock>
-            <FieldLabel htmlFor="subpattern_pitch_offset">Pitch</FieldLabel>
-            <Input
-              id="subpattern_pitch_offset"
-              type="number"
-              min={-36}
-              max={35}
-              value={selectedPitchOffset}
-              onChange={onChangePitch}
-            />
-            <HelpText>Semitone offset from the played note. 0 means Base.</HelpText>
-          </FieldBlock>
+              <FieldGrid>
+                <FieldBlock>
+                  <FieldLabel htmlFor="subpattern_pitch_offset">
+                    Pitch
+                  </FieldLabel>
+                  <Input
+                    id="subpattern_pitch_offset"
+                    type="number"
+                    min={-36}
+                    max={35}
+                    value={selectedPitchOffset}
+                    onChange={onChangePitch}
+                  />
+                  <HelpText>
+                    Semitone offset from the played note. 0 means Base.
+                  </HelpText>
+                </FieldBlock>
 
-          <FieldBlock>
-            <FieldLabel>Flow</FieldLabel>
-            <ToggleButtonGroup<"continue" | "jump" | "hold">
-              name="subpattern_flow"
-              value={selectedFlowType}
-              options={[
-                { value: "continue", label: "Continue" },
-                { value: "jump", label: "Jump" },
-                { value: "hold", label: "Hold here" },
-              ]}
-              onChange={onChangeFlowType}
-            />
-            {selectedFlowType === "jump" ? (
-              <>
-                <HelpText>Choose which tick to jump to next.</HelpText>
-                <Input
-                  type="number"
-                  min={0}
-                  max={31}
-                  value={selectedJumpTarget}
-                  onChange={onChangeJumpTarget}
+                <FieldBlock>
+                  <FieldLabel>Flow</FieldLabel>
+                  <ToggleButtonGroup<"continue" | "jump">
+                    name="subpattern_flow"
+                    value={selectedFlowType}
+                    options={[
+                      { value: "continue", label: "Continue" },
+                      { value: "jump", label: "Jump" },
+                    ]}
+                    onChange={onChangeFlowType}
+                  />
+                  {selectedFlowType === "jump" ? (
+                    <>
+                      <HelpText>Choose which tick to jump to next.</HelpText>
+                      <Input
+                        type="number"
+                        min={0}
+                        max={31}
+                        value={selectedJumpTarget}
+                        onChange={onChangeJumpTarget}
+                      />
+                    </>
+                  ) : null}
+                </FieldBlock>
+
+                <FieldBlock>
+                  <FieldLabel>Effect</FieldLabel>
+                  <EffectCodeSelect
+                    name="subpattern_effect"
+                    value={selectedCell.effectcode}
+                    effectParam={selectedCell.effectparam ?? 0}
+                    note={selectedCell.note ?? undefined}
+                    instrumentId={instrumentId}
+                    allowedEffectCodes={[...validSubpatternEffectCodes]}
+                    onChange={onChangeEffectCode}
+                    noneLabel="None"
+                  />
+                  <HelpText>
+                    Only effects that are valid inside subpatterns can be
+                    selected in this view.
+                  </HelpText>
+                </FieldBlock>
+              </FieldGrid>
+
+              {selectedEffectIsAdvancedOnly ? (
+                <AdvancedOnlyNotice>
+                  This row uses an advanced-only effect. Switch to the tracker
+                  view to edit it directly, or choose a supported effect here.
+                </AdvancedOnlyNotice>
+              ) : selectedCell.effectcode !== null ? (
+                <EffectParamsForm
+                  effectCode={selectedCell.effectcode}
+                  value={selectedCell.effectparam}
+                  note={selectedCell.note ?? undefined}
+                  instrumentId={instrumentId}
+                  onChange={onChangeEffectParam}
                 />
-              </>
-            ) : null}
-          </FieldBlock>
-
-          <FieldBlock>
-            <FieldLabel>Effect</FieldLabel>
-            <EffectCodeSelect
-              name="subpattern_effect"
-              value={selectedCell.effectcode}
-              effectParam={selectedCell.effectparam ?? 0}
-              note={selectedCell.note ?? undefined}
-              instrumentId={instrumentId}
-              allowedEffectCodes={[...validSubpatternEffectCodes]}
-              onChange={onChangeEffectCode}
-              noneLabel="None"
-            />
-            <HelpText>
-              Only effects that are valid inside subpatterns can be selected in
-              this view.
-            </HelpText>
-          </FieldBlock>
-        </FieldGrid>
-
-        {selectedEffectIsAdvancedOnly ? (
-          <AdvancedOnlyNotice>
-            This row uses an advanced-only effect. Switch to the tracker view to
-            edit it directly, or choose a supported effect here.
-          </AdvancedOnlyNotice>
-        ) : selectedCell.effectcode !== null ? (
-          <EffectParamsForm
-            effectCode={selectedCell.effectcode}
-            value={selectedCell.effectparam}
-            note={selectedCell.note ?? undefined}
-            instrumentId={instrumentId}
-            onChange={onChangeEffectParam}
-          />
-        ) : null}
-      </EditorPanel>
+              ) : null}
+            </EditorPanel>
+          ) : null}
+        </RowItem>
+      ))}
     </Wrapper>
   );
 };
