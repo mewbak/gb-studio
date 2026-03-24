@@ -6,9 +6,16 @@ import React, {
   useState,
 } from "react";
 import styled, { css } from "styled-components";
-import { Button } from "ui/buttons/Button";
 import { Input } from "ui/form/Input";
 import { ToggleButtonGroup } from "ui/form/ToggleButtonGroup";
+import { MenuItem } from "ui/menu/Menu";
+import {
+  ScriptEventField,
+  ScriptEventFields,
+  ScriptEventFormWrapper,
+  ScriptEventHeader,
+  ScriptEventWrapper,
+} from "ui/scripting/ScriptEvents";
 import { EffectCodeSelect } from "components/music/form/EffectCodeSelect";
 import { EffectParamsForm } from "components/music/form/EffectParamsForm";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
@@ -38,7 +45,7 @@ const RowHeader = styled.div`
   display: grid;
   grid-template-columns: 52px minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.2fr);
   gap: 8px;
-  padding: 0 12px 6px;
+  padding: 0 12px 6px 28px;
   font-size: 11px;
   font-weight: bold;
   text-transform: uppercase;
@@ -60,92 +67,45 @@ const JumpOverlay = styled.svg`
   z-index: 2;
 `;
 
-const RowItem = styled.div`
+const TickAccordionSection = styled(ScriptEventWrapper)<{
+  $empty: boolean;
+  $open: boolean;
+}>`
   position: relative;
   z-index: 1;
   margin-bottom: 6px;
-`;
-
-const RowButton = styled.button<{ $active: boolean; $empty: boolean }>`
-  display: grid;
-  grid-template-columns: 52px minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.2fr);
-  gap: 8px;
-  width: 100%;
-  margin: 0;
-  padding: 10px 12px;
-  border-radius: 4px;
-  border: 1px solid ${(props) => props.theme.colors.card.border};
-  background: ${(props) => props.theme.colors.card.background};
-  color: ${(props) => props.theme.colors.card.text};
-  text-align: left;
-
-  &:hover {
-    background: ${(props) => props.theme.colors.input.hoverBackground};
-  }
 
   ${(props) =>
-    props.$active
-      ? css`
-          border-color: ${props.theme.colors.highlight};
-          box-shadow: 0 0 0 1px ${props.theme.colors.highlight};
-        `
-      : ""}
-
-  ${(props) =>
-    props.$empty
+    props.$empty && !props.$open
       ? css`
           opacity: 0.55;
         `
       : ""}
 `;
 
-const RowTick = styled.span`
+const HeaderGrid = styled.div`
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+`;
+
+const TickCell = styled.span`
   font-family: monospace;
   font-weight: bold;
 `;
 
-const RowCell = styled.span`
+const HeaderCell = styled.span`
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 `;
 
-const EditorPanel = styled.div`
-  margin-top: 0;
+const StyledScriptEventFormWrapper = styled(ScriptEventFormWrapper)`
   margin-left: 20px;
   margin-right: 8px;
-  padding: 12px;
-  border-radius: 4px;
-  border: 1px solid ${(props) => props.theme.colors.card.border};
-  background: ${(props) => props.theme.colors.card.background};
-  color: ${(props) => props.theme.colors.card.text};
-`;
-
-const EditorHeading = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
-`;
-
-const EditorTitle = styled.div`
-  font-weight: bold;
-`;
-
-const FieldGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-
-  @media (max-width: 720px) {
-    grid-template-columns: minmax(0, 1fr);
-  }
-`;
-
-const FieldBlock = styled.div`
-  min-width: 0;
 `;
 
 const FieldLabel = styled.label`
@@ -182,7 +142,7 @@ export const InstrumentSubpatternSimpleEditor = ({
 }: InstrumentSubpatternSimpleEditorProps) => {
   const dispatch = useAppDispatch();
   const rowsListRef = useRef<HTMLDivElement | null>(null);
-  const rowButtonRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const rowHeaderRefs = useRef<Array<HTMLDivElement | null>>([]);
   const visibleRows = useMemo(
     () => getVisibleSubpatternRows(subpattern),
     [subpattern],
@@ -212,21 +172,32 @@ export const InstrumentSubpatternSimpleEditor = ({
     width: number;
   } | null>(null);
 
-  const updateSelectedRow = useCallback(
-    (changes: Partial<SubPatternCell>) => {
+  const updateRow = useCallback(
+    (rowIndex: number, changes: Partial<SubPatternCell>) => {
       dispatch(
         trackerDocumentActions.editSubPattern({
           instrumentId,
           instrumentType,
-          subpattern: applySubpatternCellChanges(
-            subpattern,
-            selectedRow,
-            changes,
-          ),
+          subpattern: applySubpatternCellChanges(subpattern, rowIndex, changes),
         }),
       );
     },
-    [dispatch, instrumentId, instrumentType, selectedRow, subpattern],
+    [dispatch, instrumentId, instrumentType, subpattern],
+  );
+
+  const clearRow = useCallback(
+    (rowIndex: number) => {
+      dispatch(
+        trackerDocumentActions.editSubPattern({
+          instrumentId,
+          instrumentType,
+          subpattern: applySubpatternCellChanges(subpattern, rowIndex, {
+            ...createSubPatternCell(),
+          }),
+        }),
+      );
+    },
+    [dispatch, instrumentId, instrumentType, subpattern],
   );
 
   const onChangePitch = useCallback(
@@ -235,22 +206,22 @@ export const InstrumentSubpatternSimpleEditor = ({
         e.currentTarget.value.length > 0
           ? parseInt(e.currentTarget.value, 10)
           : 0;
-      updateSelectedRow({
+      updateRow(selectedRow, {
         note: toSubpatternNote(Number.isNaN(nextOffset) ? 0 : nextOffset),
       });
     },
-    [updateSelectedRow],
+    [selectedRow, updateRow],
   );
 
   const onChangeFlowType = useCallback(
     (nextFlow: "continue" | "jump") => {
       if (nextFlow === "continue") {
-        updateSelectedRow({ jump: null });
+        updateRow(selectedRow, { jump: null });
         return;
       }
-      updateSelectedRow({ jump: toSubpatternJump(selectedJumpTarget) });
+      updateRow(selectedRow, { jump: toSubpatternJump(selectedJumpTarget) });
     },
-    [selectedJumpTarget, updateSelectedRow],
+    [selectedJumpTarget, selectedRow, updateRow],
   );
 
   const onChangeJumpTarget = useCallback(
@@ -259,42 +230,30 @@ export const InstrumentSubpatternSimpleEditor = ({
         e.currentTarget.value.length > 0
           ? parseInt(e.currentTarget.value, 10)
           : 0;
-      updateSelectedRow({
+      updateRow(selectedRow, {
         jump: toSubpatternJump(Number.isNaN(nextTarget) ? 0 : nextTarget),
       });
     },
-    [updateSelectedRow],
+    [selectedRow, updateRow],
   );
 
   const onChangeEffectCode = useCallback(
     (effectcode: number | null) => {
-      updateSelectedRow({
+      updateRow(selectedRow, {
         effectcode,
         effectparam:
           effectcode === null ? null : (selectedCell.effectparam ?? 0),
       });
     },
-    [selectedCell.effectparam, updateSelectedRow],
+    [selectedCell.effectparam, selectedRow, updateRow],
   );
 
   const onChangeEffectParam = useCallback(
     (effectparam: number | null) => {
-      updateSelectedRow({ effectparam });
+      updateRow(selectedRow, { effectparam });
     },
-    [updateSelectedRow],
+    [selectedRow, updateRow],
   );
-
-  const onClearRow = useCallback(() => {
-    dispatch(
-      trackerDocumentActions.editSubPattern({
-        instrumentId,
-        instrumentType,
-        subpattern: applySubpatternCellChanges(subpattern, selectedRow, {
-          ...createSubPatternCell(),
-        }),
-      }),
-    );
-  }, [dispatch, instrumentId, instrumentType, selectedRow, subpattern]);
 
   useEffect(() => {
     const renderJumpArrow = () => {
@@ -304,17 +263,17 @@ export const InstrumentSubpatternSimpleEditor = ({
       }
 
       const container = rowsListRef.current;
-      const startButton = rowButtonRefs.current[selectedRow];
-      const targetButton = rowButtonRefs.current[selectedJumpTarget];
+      const startHeader = rowHeaderRefs.current[selectedRow];
+      const targetHeader = rowHeaderRefs.current[selectedJumpTarget];
 
-      if (!container || !startButton || !targetButton) {
+      if (!container || !startHeader || !targetHeader) {
         setJumpArrow(null);
         return;
       }
 
       const containerRect = container.getBoundingClientRect();
-      const startRect = startButton.getBoundingClientRect();
-      const targetRect = targetButton.getBoundingClientRect();
+      const startRect = startHeader.getBoundingClientRect();
+      const targetRect = targetHeader.getBoundingClientRect();
 
       const startX = startRect.left - containerRect.left + 26;
       const startY = startRect.top - containerRect.top + startRect.height / 2;
@@ -361,7 +320,7 @@ export const InstrumentSubpatternSimpleEditor = ({
       window.cancelAnimationFrame(frame);
       window.removeEventListener("resize", renderJumpArrow);
     };
-  }, [selectedFlowType, selectedJumpTarget, selectedRow, selectedCell]);
+  }, [selectedCell, selectedFlowType, selectedJumpTarget, selectedRow]);
 
   return (
     <Wrapper>
@@ -402,37 +361,48 @@ export const InstrumentSubpatternSimpleEditor = ({
         ) : null}
 
         {visibleRows.map((row, rowIndex) => (
-          <RowItem key={`subpattern-row-${rowIndex}`}>
-            <RowButton
+          <TickAccordionSection
+            key={`subpattern-row-${rowIndex}`}
+            $empty={isSubpatternRowEmpty(row)}
+            $open={selectedRow === rowIndex}
+          >
+            <ScriptEventHeader
               ref={(element) => {
-                rowButtonRefs.current[rowIndex] = element;
+                rowHeaderRefs.current[rowIndex] = element;
               }}
-              type="button"
-              $active={selectedRow === rowIndex}
-              $empty={isSubpatternRowEmpty(row)}
-              onClick={() => setSelectedRow(rowIndex)}
+              scriptEventId={`subpattern-${rowIndex}`}
+              nestLevel={0}
+              altBg={rowIndex % 2 === 0}
+              isOpen={selectedRow === rowIndex}
+              isMoveable={false}
+              menuItems={
+                <MenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    clearRow(rowIndex);
+                  }}
+                >
+                  Clear Row
+                </MenuItem>
+              }
+              onToggle={() => setSelectedRow(rowIndex)}
             >
-              <RowTick>{String(rowIndex).padStart(2, "0")}</RowTick>
-              <RowCell>{formatSubpatternPitch(row.note)}</RowCell>
-              <RowCell>{formatSubpatternFlow(row.jump, rowIndex)}</RowCell>
-              <RowCell>
-                {formatSubpatternEffect(row.effectcode, row.effectparam)}
-              </RowCell>
-            </RowButton>
+              <HeaderGrid>
+                <TickCell>{String(rowIndex).padStart(2, "0")}</TickCell>
+                <HeaderCell>{formatSubpatternPitch(row.note)}</HeaderCell>
+                <HeaderCell>
+                  {formatSubpatternFlow(row.jump, rowIndex)}
+                </HeaderCell>
+                <HeaderCell>
+                  {formatSubpatternEffect(row.effectcode, row.effectparam)}
+                </HeaderCell>
+              </HeaderGrid>
+            </ScriptEventHeader>
 
             {selectedRow === rowIndex ? (
-              <EditorPanel>
-                <EditorHeading>
-                  <EditorTitle>
-                    Edit Tick {String(selectedRow).padStart(2, "0")}
-                  </EditorTitle>
-                  <Button type="button" size="small" onClick={onClearRow}>
-                    Clear Row
-                  </Button>
-                </EditorHeading>
-
-                <FieldGrid>
-                  <FieldBlock>
+              <StyledScriptEventFormWrapper>
+                <ScriptEventFields>
+                  <ScriptEventField halfWidth>
                     <FieldLabel htmlFor="subpattern_pitch_offset">
                       Pitch
                     </FieldLabel>
@@ -447,9 +417,9 @@ export const InstrumentSubpatternSimpleEditor = ({
                     <HelpText>
                       Semitone offset from the played note. 0 means Base.
                     </HelpText>
-                  </FieldBlock>
+                  </ScriptEventField>
 
-                  <FieldBlock>
+                  <ScriptEventField halfWidth>
                     <FieldLabel>Flow</FieldLabel>
                     <ToggleButtonGroup<"continue" | "jump">
                       name="subpattern_flow"
@@ -475,9 +445,9 @@ export const InstrumentSubpatternSimpleEditor = ({
                         />
                       </>
                     ) : null}
-                  </FieldBlock>
+                  </ScriptEventField>
 
-                  <FieldBlock>
+                  <ScriptEventField flexBasis="100%">
                     <FieldLabel>Effect</FieldLabel>
                     <EffectCodeSelect
                       name="subpattern_effect"
@@ -493,8 +463,8 @@ export const InstrumentSubpatternSimpleEditor = ({
                       Only effects that are valid inside subpatterns can be
                       selected in this view.
                     </HelpText>
-                  </FieldBlock>
-                </FieldGrid>
+                  </ScriptEventField>
+                </ScriptEventFields>
 
                 {selectedEffectIsAdvancedOnly ? (
                   <AdvancedOnlyNotice>
@@ -510,9 +480,9 @@ export const InstrumentSubpatternSimpleEditor = ({
                     onChange={onChangeEffectParam}
                   />
                 ) : null}
-              </EditorPanel>
+              </StyledScriptEventFormWrapper>
             ) : null}
-          </RowItem>
+          </TickAccordionSection>
         ))}
       </RowsList>
     </Wrapper>
