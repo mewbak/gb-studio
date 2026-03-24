@@ -1088,6 +1088,10 @@ export const PianoRollCanvas = ({
 
   const handleMouseUp = useCallback(
     (_e: MouseEvent) => {
+      if (!isMouseDown && !isDraggingNotes && !draggingSelection) {
+        return;
+      }
+
       if (isDraggingNotes && selectedPatternCells.length > 0) {
         const selectedPatternCellKeys = new Set(
           selectedPatternCells.map(
@@ -1215,13 +1219,15 @@ export const PianoRollCanvas = ({
       setIsMouseDown(false);
     },
     [
-      dispatch,
-      dragDelta.rows,
-      dragDelta.notes,
+      isMouseDown,
       isDraggingNotes,
+      draggingSelection,
       selectedPatternCells,
       song.patterns,
       song.sequence,
+      dispatch,
+      dragDelta.rows,
+      dragDelta.notes,
       totalAbsRows,
     ],
   );
