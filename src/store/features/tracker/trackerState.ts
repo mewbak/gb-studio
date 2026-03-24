@@ -21,6 +21,8 @@ export type TrackerViewType = "tracker" | "roll";
 
 export type TrackerSidebarViewType = "instrument" | "cell";
 
+export type SubpatternEditorMode = "simple" | "tracker";
+
 interface SelectedInstrument {
   id: string;
   type: InstrumentType;
@@ -50,7 +52,7 @@ export const pasteAbsoluteCells =
     dispatch(actions.setSelectedPatternCells([]));
   };
 
-interface TrackerState {
+export interface TrackerState {
   status: "loading" | "error" | "loaded" | "init";
   error?: string;
   modified: boolean;
@@ -79,6 +81,7 @@ interface TrackerState {
   selection: [number, number, number, number];
   selectedEffectCell: CellAddress | null;
   subpatternEditorFocus: boolean;
+  subpatternEditorMode: SubpatternEditorMode;
   exportFormat: MusicExportFormat;
   exportLoopCount: number;
   channelStatus: [boolean, boolean, boolean, boolean];
@@ -119,6 +122,7 @@ export const initialState: TrackerState = {
   selection: [-1, -1, -1, -1],
   selectedEffectCell: null,
   subpatternEditorFocus: false,
+  subpatternEditorMode: "simple",
   exportFormat: "mp3",
   exportLoopCount: 1,
   channelStatus: [false, false, false, false],
@@ -228,6 +232,12 @@ const trackerSlice = createSlice({
       console.log("FOCUS:", _action.payload);
       state.subpatternEditorFocus = _action.payload;
     },
+    setSubpatternEditorMode: (
+      state,
+      action: PayloadAction<SubpatternEditorMode>,
+    ) => {
+      state.subpatternEditorMode = action.payload;
+    },
     setExportSettings: (
       state,
       action: PayloadAction<{
@@ -279,6 +289,7 @@ const trackerSlice = createSlice({
           ...initialState,
           selectedSongId: state.selectedSongId,
           view: state.view,
+          subpatternEditorMode: state.subpatternEditorMode,
           status: "loaded",
           modified: false,
         };

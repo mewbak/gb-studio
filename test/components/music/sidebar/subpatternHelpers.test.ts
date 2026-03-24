@@ -1,0 +1,29 @@
+import { createSubPatternCell } from "../../../../src/shared/lib/uge/song";
+import {
+  applySubpatternCellChanges,
+  formatSubpatternFlow,
+  formatSubpatternPitch,
+  getSubpatternFlowType,
+} from "../../../../src/components/music/sidebar/subpatternHelpers";
+
+test("Should format null and positive subpattern pitch values", () => {
+  expect(formatSubpatternPitch(null)).toBe("Base");
+  expect(formatSubpatternPitch(43)).toBe("+7 st");
+});
+
+test("Should map stored jump values to continue, jump and hold states", () => {
+  expect(getSubpatternFlowType(null, 5)).toBe("continue");
+  expect(formatSubpatternFlow(1, 5)).toBe("Jump to 00");
+  expect(getSubpatternFlowType(6, 5)).toBe("hold");
+  expect(formatSubpatternFlow(6, 5)).toBe("Hold here");
+});
+
+test("Should initialize effect param when setting effect code zero", () => {
+  const subpattern = [createSubPatternCell()];
+  const nextSubpattern = applySubpatternCellChanges(subpattern, 0, {
+    effectcode: 0,
+  });
+
+  expect(nextSubpattern[0].effectcode).toBe(0);
+  expect(nextSubpattern[0].effectparam).toBe(0);
+});

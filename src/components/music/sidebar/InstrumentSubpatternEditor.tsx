@@ -23,6 +23,7 @@ import { Position } from "components/music/tracker/helpers";
 import API from "renderer/lib/api";
 import { useAppDispatch, useAppSelector } from "store/hooks";
 import { createSubPatternCell } from "shared/lib/uge/song";
+import { VISIBLE_SUBPATTERN_ROWS } from "./subpatternHelpers";
 
 const CHANNEL_FIELDS = 4;
 const ROW_SIZE = CHANNEL_FIELDS * 1;
@@ -171,7 +172,6 @@ const EffectParamField = styled(Field)`
 `;
 
 interface InstrumentSubpatternEditorProps {
-  enabled: boolean;
   instrumentId: number;
   instrumentType: "duty" | "wave" | "noise";
   subpattern: SubPatternCell[];
@@ -195,7 +195,6 @@ const renderOffset = (n: number | null): string => {
 };
 
 export const InstrumentSubpatternEditor = ({
-  enabled,
   instrumentId,
   instrumentType,
   subpattern,
@@ -865,36 +864,7 @@ export const InstrumentSubpatternEditor = ({
     }
   }, [onCopy, onCut, onPaste, subpatternEditorFocus]);
 
-  const onChangeField = useCallback(
-    (editValue: boolean) => {
-      const payload = {
-        instrumentId: instrumentId,
-        changes: {
-          // eslint-disable-next-line camelcase
-          subpattern_enabled: editValue,
-        },
-      };
-      switch (instrumentType) {
-        case "duty": {
-          dispatch(trackerDocumentActions.editDutyInstrument(payload));
-          break;
-        }
-        case "wave": {
-          dispatch(trackerDocumentActions.editWaveInstrument(payload));
-          break;
-        }
-        case "noise": {
-          dispatch(trackerDocumentActions.editNoiseInstrument(payload));
-          break;
-        }
-      }
-    },
-    [dispatch, instrumentId, instrumentType],
-  );
-
-  const renderSubpattern = [...subpattern].slice(0, 32);
-
-  console.log({ subpattern });
+  const renderSubpattern = [...subpattern].slice(0, VISIBLE_SUBPATTERN_ROWS);
 
   return (
     <>

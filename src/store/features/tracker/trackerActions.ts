@@ -1,5 +1,9 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { actions as reducerActions, TrackerViewType } from "./trackerState";
+import {
+  actions as reducerActions,
+  SubpatternEditorMode,
+  TrackerViewType,
+} from "./trackerState";
 import API from "renderer/lib/api";
 
 export const initViewFromSaved = createAsyncThunk(
@@ -8,6 +12,14 @@ export const initViewFromSaved = createAsyncThunk(
     const view = await API.settings.getString("trackerView", "roll");
     if (view === "tracker" || view === "roll") {
       thunkApi.dispatch(actions.setView(view));
+    }
+
+    const subpatternEditorMode = await API.settings.getString(
+      "subpatternEditorMode",
+      "simple",
+    );
+    if (subpatternEditorMode === "simple" || subpatternEditorMode === "tracker") {
+      thunkApi.dispatch(actions.setSubpatternEditorMode(subpatternEditorMode));
     }
   },
 );
@@ -20,10 +32,19 @@ export const setViewAndSave = createAsyncThunk<void, TrackerViewType>(
   },
 );
 
+export const setSubpatternEditorModeAndSave = createAsyncThunk<
+  void,
+  SubpatternEditorMode
+>("tracker/setSubpatternEditorModeAndSave", async (payload, thunkApi) => {
+  thunkApi.dispatch(actions.setSubpatternEditorMode(payload));
+  await API.settings.set("subpatternEditorMode", payload);
+});
+
 const actions = {
   ...reducerActions,
   initViewFromSaved,
   setViewAndSave,
+  setSubpatternEditorModeAndSave,
 };
 
 export default actions;

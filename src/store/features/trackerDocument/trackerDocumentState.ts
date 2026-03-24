@@ -1179,11 +1179,10 @@ const trackerSlice = createSlice({
       const [row, _col] = _action.payload.cell;
 
       const newSubPattern = [...instruments[instrumentId].subpattern];
-      console.log(newSubPattern);
       const newSubPatternCell = { ...newSubPattern[row] };
       let patch = { ..._action.payload.changes };
       if (
-        patch.effectcode &&
+        patch.effectcode !== undefined &&
         patch.effectcode !== null &&
         newSubPatternCell.effectparam === null
       ) {

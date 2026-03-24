@@ -25,6 +25,7 @@ interface EffectCodeSelectProps extends SelectCommonProps {
   note?: number;
   instrumentId?: number;
   effectParam?: number;
+  allowedEffectCodes?: number[];
 }
 
 const buildEffectCodeOptions = (): EffectCodeOptionGroup[] => [
@@ -151,28 +152,47 @@ export const EffectCodeSelect: FC<EffectCodeSelectProps> = ({
   note,
   instrumentId,
   effectParam,
+  allowedEffectCodes,
   ...selectProps
 }) => {
   const playPreview = useMusicNotePreview();
 
-  const groupedOptions = useMemo(() => buildEffectCodeOptions(), []);
-  const flatOptions = useMemo(
-    () => groupedOptions.flatMap((group) => group.options),
-    [groupedOptions],
+  const allGroupedOptions = useMemo(() => buildEffectCodeOptions(), []);
+  const groupedOptions = useMemo(
+    () =>
+      allGroupedOptions
+        .map((group) => ({
+          ...group,
+          options: group.options.filter(
+            (option) =>
+              option.value === null ||
+              !allowedEffectCodes ||
+              allowedEffectCodes.includes(option.value),
+          ),
+        }))
+        .filter((group) => group.options.length > 0),
+    [allGroupedOptions, allowedEffectCodes],
+  );
+  const allFlatOptions = useMemo(
+    () => allGroupedOptions.flatMap((group) => group.options),
+    [allGroupedOptions],
   );
 
   const currentValue = useMemo<EffectCodeOption>(() => {
-    const selected = flatOptions.find((option) => option.value === value);
+    const selected = allFlatOptions.find((option) => option.value === value);
 
     if (selected) {
       return selected;
     }
 
     return {
-      value: null,
-      label: noneLabel ?? l10n("FIELD_NO_EFFECT"),
+      value: value ?? null,
+      label:
+        value === null || value === undefined
+          ? noneLabel ?? l10n("FIELD_NO_EFFECT")
+          : `Effect ${value.toString(16).toUpperCase()}`,
     };
-  }, [flatOptions, noneLabel, value]);
+  }, [allFlatOptions, noneLabel, value]);
 
   const onSelectChange = (newValue: SingleValue<EffectCodeOption>) => {
     if (!newValue) {
