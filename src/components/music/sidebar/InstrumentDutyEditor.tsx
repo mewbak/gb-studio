@@ -19,54 +19,54 @@ import { Alert, AlertItem } from "ui/alerts/Alert";
 
 const dutyOptions = [
   {
-    value: "0",
+    value: 0,
     label: "12.5%",
   },
   {
-    value: "1",
+    value: 1,
     label: "25%",
   },
   {
-    value: "2",
+    value: 2,
     label: "50%",
   },
   {
-    value: "3",
+    value: 3,
     label: "75%",
   },
 ];
 
 const sweepTimeOptions = [
   {
-    value: "0",
+    value: 0,
     label: "Off",
   },
   {
-    value: "1",
+    value: 1,
     label: "1/128Hz",
   },
   {
-    value: "2",
+    value: 2,
     label: "2/128Hz",
   },
   {
-    value: "3",
+    value: 3,
     label: "3/128Hz",
   },
   {
-    value: "4",
+    value: 4,
     label: "4/128Hz",
   },
   {
-    value: "5",
+    value: 5,
     label: "5/128Hz",
   },
   {
-    value: "6",
+    value: 6,
     label: "6/128Hz",
   },
   {
-    value: "7",
+    value: 7,
     label: "7/128Hz",
   },
 ];
@@ -103,11 +103,11 @@ export const InstrumentDutyEditor = ({
   if (!instrument) return <></>;
 
   const selectedDuty = dutyOptions.find(
-    (i) => parseInt(i.value, 10) === instrument.duty_cycle,
+    (i) => i.value === instrument.duty_cycle,
   );
 
   const selectedSweepTime = sweepTimeOptions.find(
-    (i) => parseInt(i.value, 10) === instrument.frequency_sweep_time,
+    (i) => i.value === instrument.frequency_sweep_time,
   );
 
   const onChangeField =
@@ -127,7 +127,7 @@ export const InstrumentDutyEditor = ({
 
   const onChangeFieldSelect =
     <T extends keyof DutyInstrument>(key: T) =>
-    (e: SingleValue<{ value: string; label: string }>) => {
+    (e: SingleValue<{ value: DutyInstrument[T]; label: string }>) => {
       if (e) {
         const editValue = e.value;
         dispatch(
