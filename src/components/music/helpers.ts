@@ -2,7 +2,6 @@ import API from "renderer/lib/api";
 import {
   DutyInstrument,
   NoiseInstrument,
-  Song,
   WaveInstrument,
 } from "shared/lib/uge/types";
 
@@ -99,27 +98,4 @@ export const playNoiseNotePreview = (
     effectCode,
     effectParam,
   });
-};
-
-export const playNotePreview = (
-  song: Song,
-  channel: number,
-  note: number,
-  instrumentIndex: number,
-  effectCode: number,
-  effectParam: number,
-) => {
-  if (channel === 0 || channel === 1) {
-    // Duty
-    const instrument = song.duty_instruments[instrumentIndex];
-    playDutyNotePreview(note, instrument, channel, effectCode, effectParam);
-  } else if (channel === 2) {
-    // Wave
-    const instrument = song.wave_instruments[instrumentIndex];
-    const waveForm = song.waves[instrument.wave_index];
-    playWaveNotePreview(note, instrument, waveForm, effectCode, effectParam);
-  } else if (channel === 3) {
-    const instrument = song.noise_instruments[instrumentIndex];
-    playNoiseNotePreview(note, instrument, effectCode, effectParam);
-  }
 };

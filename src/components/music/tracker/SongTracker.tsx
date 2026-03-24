@@ -12,7 +12,7 @@ import { SequenceEditor } from "components/music/sequence/SequenceEditor";
 import { TrackerRow } from "./SongRow";
 import scrollIntoView from "scroll-into-view-if-needed";
 import { TrackerHeaderCell } from "./TrackerHeaderCell";
-import { patternHue, playNotePreview } from "components/music/helpers";
+import { patternHue } from "components/music/helpers";
 import { getKeys } from "renderer/lib/keybindings/keyBindings";
 import trackerActions from "store/features/tracker/trackerActions";
 import API from "renderer/lib/api";
@@ -45,7 +45,7 @@ import {
 import renderPatternContextMenu from "components/music/contextMenus/renderPatternContextMenu";
 import renderTrackerContextMenu from "components/music/contextMenus/renderTrackerContextMenu";
 import { DropdownButton } from "ui/buttons/DropdownButton";
-import { NOTE_C5, TRACKER_CHANNEL_FIELDS, TRACKER_ROW_SIZE } from "consts";
+import { OCTAVE_SIZE, TRACKER_CHANNEL_FIELDS, TRACKER_ROW_SIZE } from "consts";
 import { useContextMenu } from "ui/hooks/use-context-menu";
 import {
   copyTrackerFields,
@@ -54,6 +54,7 @@ import {
 } from "store/features/trackerDocument/trackerDocumentState";
 import { PatternCellAddress } from "shared/lib/uge/editor/types";
 import { toValidChannelId } from "shared/lib/uge/editor/helpers";
+import { useMusicNotePreview } from "components/music/hooks/useMusicNotePreview";
 
 interface SongTrackerProps {
   sequenceId: number;
@@ -63,6 +64,7 @@ interface SongTrackerProps {
 
 export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
   const dispatch = useAppDispatch();
+  const playPreview = useMusicNotePreview();
 
   const playing = useAppSelector((state) => state.tracker.playing);
   const editStep = useAppSelector((state) => state.tracker.editStep);
@@ -336,7 +338,7 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
   );
 
   const editPatternCell = useCallback(
-    (type: keyof PatternCell, value: number | null) => {
+    (changes: Partial<PatternCell>) => {
       const editingField = activeFieldValueRef.current;
       const currentPatternId = patternIdRef.current;
 
@@ -344,39 +346,36 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
         return;
       }
 
+      const rowId = Math.floor(editingField / 16);
+      const channelId = Math.floor(editingField / 4) % 4;
+
       dispatch(
         trackerDocumentActions.editPatternCell({
           patternId: currentPatternId,
-          cell: [
-            Math.floor(editingField / 16),
-            Math.floor(editingField / 4) % 4,
-          ],
-          changes: {
-            [type]: value,
-          },
+          cell: [rowId, channelId],
+          changes,
         }),
       );
 
-      const rowId = Math.floor(editingField / 16);
-      const channelId = Math.floor(editingField / 4) % 4;
       const currentCell = patternRef.current?.[rowId]?.[channelId];
 
-      if (currentCell && songRef.current) {
-        const newCell = {
+      if (currentCell) {
+        const newCell: PatternCell = {
           ...currentCell,
-          [type]: value,
+          ...changes,
         };
-        playNotePreview(
-          songRef.current,
-          channelId,
-          newCell.note ?? NOTE_C5,
-          newCell.instrument ?? 0,
-          newCell.effectcode ?? 0,
-          newCell.effectparam ?? 0,
-        );
+        if (newCell.note === null) {
+          return;
+        }
+        playPreview({
+          note: newCell.note,
+          instrumentId: newCell.instrument ?? 0,
+          effectCode: newCell.effectcode ?? 0,
+          effectParam: newCell.effectparam ?? 0,
+        });
       }
     },
-    [dispatch],
+    [dispatch, playPreview],
   );
 
   const editNoteField = useCallback(
@@ -391,14 +390,19 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
 
       const instrument = selectedInstrumentIdRef.current;
 
-      editPatternCell(
-        "note",
-        value === null ? null : value + currentOctaveOffset * 12,
-      );
+      const newNote =
+        value === null ? null : value + currentOctaveOffset * OCTAVE_SIZE;
 
       if (value !== null) {
-        editPatternCell("instrument", instrument);
+        editPatternCell({
+          note: newNote,
+          instrument: instrument,
+        });
         setActiveField(editingField + TRACKER_ROW_SIZE * currentEditStep);
+      } else {
+        editPatternCell({
+          note: newNote,
+        });
       }
     },
     [editPatternCell, setActiveField],
@@ -420,14 +424,16 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
         }
       }
 
-      editPatternCell("instrument", newValue === null ? null : newValue - 1);
+      editPatternCell({
+        instrument: newValue === null ? null : newValue - 1,
+      });
     },
     [editPatternCell],
   );
 
   const editEffectCodeField = useCallback(
     (value: number | null) => {
-      editPatternCell("effectcode", value);
+      editPatternCell({ effectcode: value });
     },
     [editPatternCell],
   );
@@ -445,7 +451,7 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
         newValue = 16 * parseInt(el.innerText[1], 16) + value;
       }
 
-      editPatternCell("effectparam", newValue);
+      editPatternCell({ effectparam: newValue });
     },
     [editPatternCell],
   );

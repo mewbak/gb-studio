@@ -35,7 +35,6 @@ import trackerActions from "store/features/tracker/trackerActions";
 import API from "renderer/lib/api";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
 import { NO_CHANGE_ON_PASTE } from "components/music/musicClipboardHelpers";
-import { playNotePreview } from "components/music/helpers";
 import {
   calculateDocumentWidth,
   calculatePlaybackTrackerPosition,
@@ -67,6 +66,7 @@ import {
 } from "store/features/trackerDocument/trackerDocumentState";
 import { pasteAbsoluteCells } from "store/features/tracker/trackerState";
 import { PatternCellAddress } from "shared/lib/uge/editor/types";
+import { useMusicNotePreview } from "components/music/hooks/useMusicNotePreview";
 
 const GRID_MARGIN = 0;
 
@@ -110,6 +110,7 @@ export const PianoRollCanvas = ({
   playbackRow,
 }: PianoRollCanvasProps) => {
   const dispatch = useAppDispatch();
+  const playPreview = useMusicNotePreview();
 
   const hoverNote = useAppSelector((state) => state.tracker.hoverNote);
   const hoverColumn = useAppSelector((state) => state.tracker.hoverColumn);
@@ -519,6 +520,11 @@ export const PianoRollCanvas = ({
   const hoverColumnRef = useRef(hoverColumn);
   const hoverSequenceIdRef = useRef(hoverSequenceId);
 
+  const songRef = useRef(song);
+  useEffect(() => {
+    songRef.current = song;
+  }, [song]);
+
   useEffect(() => {
     hoverNoteRef.current = hoverNote;
     hoverColumnRef.current = hoverColumn;
@@ -635,19 +641,17 @@ export const PianoRollCanvas = ({
           const originPatternIndex = song.sequence[originSequenceId];
           const originPattern = song.patterns[originPatternIndex];
           const selectedCell = originPattern?.[originRowId]?.[selectedChannel];
-          const instrument = selectedCell?.instrument ?? 0;
+          const instrumentId = selectedCell?.instrument ?? 0;
           const effectCode = selectedCell?.effectcode ?? 0;
           const effectParam = selectedCell?.effectparam ?? 0;
 
           if (lastDragPreviewCellRef.current !== previewCellId) {
-            playNotePreview(
-              song,
-              selectedChannel,
-              noteIndex,
-              instrument,
+            playPreview({
+              note: noteIndex,
+              instrumentId,
               effectCode,
               effectParam,
-            );
+            });
             lastDragPreviewCellRef.current = previewCellId;
           }
         }
@@ -713,16 +717,17 @@ export const PianoRollCanvas = ({
                   },
                 ]),
               );
-            }
 
-            playNotePreview(
-              song,
-              selectedChannel,
-              lastPainted.note,
-              selectedInstrumentId,
-              0,
-              0,
-            );
+              const patternId = songRef.current?.sequence[resolved.sequenceId];
+              const pattern = songRef.current?.patterns[patternId];
+              const cell = pattern?.[resolved.rowId]?.[selectedChannel];
+              playPreview({
+                note: lastPainted.note,
+                instrumentId: selectedInstrumentId,
+                effectCode: cell?.effectcode ?? 0,
+                effectParam: cell?.effectparam ?? 0,
+              });
+            }
           }
         }
       } else if (
@@ -829,23 +834,24 @@ export const PianoRollCanvas = ({
     },
     [
       calculatePositionFromMouse,
+      pastedPattern,
+      tool,
+      isMouseDown,
+      song,
+      selectedPatternCells,
+      noteDragOrigin,
+      draggingSelection,
+      selectionRect,
+      selectionOrigin,
       dispatch,
-      selectedInstrumentId,
       dragDelta.rows,
       dragDelta.notes,
-      draggingSelection,
-      isMouseDown,
       selectedChannel,
-      noteDragOrigin,
-      selectCellsInRange,
-      selectedPatternCells,
-      pastedPattern,
-      selectionOrigin,
-      selectionRect,
-      song,
+      playPreview,
+      selectedInstrumentId,
       totalAbsRows,
       totalNoteRows,
-      tool,
+      selectCellsInRange,
     ],
   );
 
@@ -962,16 +968,14 @@ export const PianoRollCanvas = ({
             }),
           );
 
-          if (song) {
-            playNotePreview(
-              song,
-              selectedChannel,
-              noteIndex,
-              selectedInstrumentId,
-              0,
-              0,
-            );
-          }
+          const pattern = songRef.current?.patterns[patternId];
+          const cell = pattern?.[patternRow]?.[selectedChannel];
+          playPreview({
+            note: noteIndex,
+            instrumentId: selectedInstrumentId,
+            effectCode: cell?.effectcode ?? 0,
+            effectParam: cell?.effectparam ?? 0,
+          });
 
           if (!isSelected) {
             dispatch(
@@ -1067,16 +1071,18 @@ export const PianoRollCanvas = ({
     },
     [
       calculatePositionFromMouse,
-      selectedInstrumentId,
-      dispatch,
       pastedPattern,
-      selectCellsInRange,
+      song.sequence,
+      song.patterns,
       selectedChannel,
       selectedPatternCells,
-      song,
-      totalNoteRows,
       tool,
+      dispatch,
       totalAbsRows,
+      selectedInstrumentId,
+      playPreview,
+      totalNoteRows,
+      selectCellsInRange,
     ],
   );
 
@@ -1430,16 +1436,12 @@ export const PianoRollCanvas = ({
 
   const onPlayNote = useCallback(
     (noteIndex: number) => {
-      playNotePreview(
-        song,
-        selectedChannel,
-        noteIndex,
-        selectedInstrumentId,
-        0,
-        0,
-      );
+      playPreview({
+        note: noteIndex,
+        instrumentId: selectedInstrumentId,
+      });
     },
-    [selectedInstrumentId, selectedChannel, song],
+    [playPreview, selectedInstrumentId],
   );
 
   const [wrapperEl, wrapperSize] = useResizeObserver<HTMLDivElement>();
