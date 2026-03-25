@@ -2,9 +2,7 @@ import React, { FC, useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import { SelectMenu, selectMenuStyleProps } from "ui/form/Select";
 import { RelativePortal } from "ui/layout/RelativePortal";
-import { useAppDispatch } from "store/hooks";
 import { InstrumentSelect } from "components/music/form/InstrumentSelect";
-import { Button } from "ui/buttons/Button";
 import { StyledButton } from "ui/buttons/style";
 
 interface InstrumentSelectProps {

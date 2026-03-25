@@ -18,7 +18,6 @@ import trackerActions from "store/features/tracker/trackerActions";
 import { Button } from "ui/buttons/Button";
 import { MenuOverlay } from "ui/menu/Menu";
 import { saveSongFile } from "store/features/trackerDocument/trackerDocumentState";
-import { InstrumentSelect } from "components/music/form/InstrumentSelect";
 import { Select } from "ui/form/Select";
 import { RelativePortal } from "ui/layout/RelativePortal";
 import { PianoRollToolType } from "store/features/tracker/trackerState";

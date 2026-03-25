@@ -17,8 +17,6 @@ import trackerActions from "store/features/tracker/trackerActions";
 const trackerMiddleware: ThunkMiddleware<RootState> =
   (store) => (next) => async (action) => {
     const state = store.getState();
-    console.log("selectedSongId", state.tracker.selectedSongId);
-    console.log("ACTION", (action as any).type, action);
     if (
       (navigationActions.setSection.match(action) &&
         action.payload !== "music") ||
