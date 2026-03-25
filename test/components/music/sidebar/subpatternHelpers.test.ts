@@ -5,7 +5,7 @@ import {
   formatSubpatternPitch,
   getSubpatternFlowType,
   moveSubpatternRow,
-} from "../../../../src/components/music/sidebar/subpatternHelpers";
+} from "../../../../src/components/music/subpattern/helpers";
 
 test("Should format null and positive subpattern pitch values", () => {
   expect(formatSubpatternPitch(null)).toBe("Base");

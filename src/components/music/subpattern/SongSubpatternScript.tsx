@@ -32,15 +32,17 @@ import {
   isSubpatternRowEmpty,
   isValidSubpatternEffectCode,
   moveSubpatternRow,
+  pitchOffsetLabel,
   subPatternRowLabel,
   toSubpatternJump,
   toSubpatternNote,
   validSubpatternEffectCodes,
-} from "./subpatternHelpers";
+} from "./helpers";
 import { Label } from "ui/form/Label";
 import { SliderField } from "ui/form/SliderField";
 import useResizeObserver from "ui/hooks/use-resize-observer";
 import { mergeRefs } from "ui/hooks/merge-refs";
+import { NoiseMacroEditorForm } from "components/music/form/NoiseMacroEditorForm";
 
 const RowsList = styled.div`
   position: relative;
@@ -346,152 +348,185 @@ export const InstrumentSubpatternSimpleEditor = ({
     wrapperSize,
   ]);
 
-  return (
-    <RowsList ref={mergeRefs(rowsListRef, wrapperEl)}>
-      {jumpArrow ? (
-        <JumpOverlay
-          viewBox={`0 0 ${jumpArrow.width} ${jumpArrow.height}`}
-          aria-hidden="true"
-        >
-          <path d={jumpArrow.path} fill="none" strokeWidth="2" />
-        </JumpOverlay>
-      ) : null}
+  const macroValues = useMemo(() => {
+    return subpattern.slice(0, 6).map((cell) => (cell.note ?? 36) - 36);
+  }, [subpattern]);
 
-      {visibleRows.map((row, rowIndex) => (
-        <SortableItem
-          key={`subpattern-row-${rowIndex}`}
-          itemType="subpattern-row"
-          item={row}
-          index={rowIndex}
-          orientation="vertical"
-          onSelect={() => {}}
-          moveItems={moveRows}
-          setDragging={setIsDragging}
-          useDragHandle
-          renderItem={(_, dragState) => (
-            <TickAccordionSection
-              $dragging={dragState.isDragging}
-              $empty={isSubpatternRowEmpty(row)}
-              $open={selectedRow === rowIndex || dragState.isDragging}
-              style={
-                dragState.isOver && isDragging
-                  ? { boxShadow: "0 0 0 1px currentColor inset" }
-                  : undefined
-              }
-            >
-              <DraggableScriptEventHeader
-                ref={
-                  dragState.dragHandleRef
-                    ? mergeRefs((element: HTMLDivElement | null) => {
-                        rowHeaderRefs.current[rowIndex] = element;
-                      }, dragState.dragHandleRef)
-                    : (element: HTMLDivElement | null) => {
-                        rowHeaderRefs.current[rowIndex] = element;
-                      }
-                }
-                scriptEventId={`subpattern-${rowIndex}`}
-                nestLevel={0}
-                altBg={rowIndex % 2 === 0}
-                isOpen={selectedRow === rowIndex}
-                isMoveable
-                menuItems={
-                  !isSubpatternRowEmpty(row) ? (
-                    <MenuItem
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        clearRow(rowIndex);
-                      }}
-                    >
-                      Clear Row
-                    </MenuItem>
-                  ) : undefined
-                }
-                onToggle={() =>
-                  setSelectedRow((currentRow) =>
-                    currentRow === rowIndex ? null : rowIndex,
-                  )
+  const onChangeMacroValue = useCallback(
+    (values: number[]) => {
+      const newSubpattern = subpattern.map((cell, i) => {
+        const newValue = values[i];
+        if (newValue === undefined) {
+          return cell;
+        }
+        return {
+          ...cell,
+          note: newValue === 0 ? null : newValue + 36,
+        };
+      });
+      dispatch(
+        trackerDocumentActions.editSubPattern({
+          instrumentId,
+          instrumentType,
+          subpattern: newSubpattern,
+        }),
+      );
+    },
+    [dispatch, instrumentId, instrumentType, subpattern],
+  );
+
+  return (
+    <>
+      <NoiseMacroEditorForm
+        macros={macroValues}
+        onChange={onChangeMacroValue}
+      />
+      <RowsList ref={mergeRefs(rowsListRef, wrapperEl)}>
+        {jumpArrow ? (
+          <JumpOverlay
+            viewBox={`0 0 ${jumpArrow.width} ${jumpArrow.height}`}
+            aria-hidden="true"
+          >
+            <path d={jumpArrow.path} fill="none" strokeWidth="2" />
+          </JumpOverlay>
+        ) : null}
+
+        {visibleRows.map((row, rowIndex) => (
+          <SortableItem
+            key={`subpattern-row-${rowIndex}`}
+            itemType="subpattern-row"
+            item={row}
+            index={rowIndex}
+            orientation="vertical"
+            onSelect={() => {}}
+            moveItems={moveRows}
+            setDragging={setIsDragging}
+            useDragHandle
+            renderItem={(_, dragState) => (
+              <TickAccordionSection
+                $dragging={dragState.isDragging}
+                $empty={isSubpatternRowEmpty(row)}
+                $open={selectedRow === rowIndex || dragState.isDragging}
+                style={
+                  dragState.isOver && isDragging
+                    ? { boxShadow: "0 0 0 1px currentColor inset" }
+                    : undefined
                 }
               >
-                <SubpatternLabel
-                  $empty={isSubpatternRowEmpty(row)}
-                  $open={selectedRow === rowIndex || dragState.isDragging}
-                >
-                  {subPatternRowLabel(rowIndex, row)}
-                </SubpatternLabel>
-              </DraggableScriptEventHeader>
-
-              {selectedRow === rowIndex ? (
-                <StyledScriptEventFormWrapper>
-                  <ScriptEventFields>
-                    <ScriptEventField>
-                      <SliderField
-                        name="pitch"
-                        label="Pitch Shift"
-                        min={-36}
-                        max={35}
-                        value={selectedPitchOffset}
-                        onChange={onChangePitch}
-                      />
-                    </ScriptEventField>
-
-                    <ScriptEventField halfWidth>
-                      <Label>Flow</Label>
-                      <ToggleButtonGroup<"continue" | "jump">
-                        name="subpattern_flow"
-                        value={selectedFlowType}
-                        options={[
-                          { value: "continue", label: "Continue" },
-                          { value: "jump", label: "Jump To" },
-                        ]}
-                        onChange={onChangeFlowType}
-                      />
-                    </ScriptEventField>
-
-                    <ScriptEventField halfWidth>
-                      <Input
-                        type="number"
-                        min={0}
-                        max={31}
-                        value={selectedJumpTarget}
-                        onChange={onChangeJumpTarget}
-                      />
-                    </ScriptEventField>
-
-                    <ScriptEventField flexBasis="100%">
-                      <Label>Effect Override</Label>
-                      <EffectCodeSelect
-                        name="subpattern_effect"
-                        value={
-                          selectedEffectIsAdvancedOnly
-                            ? undefined
-                            : selectedCell.effectcode
+                <DraggableScriptEventHeader
+                  ref={
+                    dragState.dragHandleRef
+                      ? mergeRefs((element: HTMLDivElement | null) => {
+                          rowHeaderRefs.current[rowIndex] = element;
+                        }, dragState.dragHandleRef)
+                      : (element: HTMLDivElement | null) => {
+                          rowHeaderRefs.current[rowIndex] = element;
                         }
-                        effectParam={selectedCell.effectparam ?? 0}
-                        note={selectedCell.note ?? undefined}
-                        instrumentId={instrumentId}
-                        allowedEffectCodes={[...validSubpatternEffectCodes]}
-                        onChange={onChangeEffectCode}
-                        noneLabel="None"
-                      />
-                    </ScriptEventField>
-                  </ScriptEventFields>
+                  }
+                  scriptEventId={`subpattern-${rowIndex}`}
+                  nestLevel={0}
+                  altBg={rowIndex % 2 === 0}
+                  isOpen={selectedRow === rowIndex}
+                  isMoveable
+                  menuItems={
+                    !isSubpatternRowEmpty(row) ? (
+                      <MenuItem
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          clearRow(rowIndex);
+                        }}
+                      >
+                        Clear Row
+                      </MenuItem>
+                    ) : undefined
+                  }
+                  onToggle={() =>
+                    setSelectedRow((currentRow) =>
+                      currentRow === rowIndex ? null : rowIndex,
+                    )
+                  }
+                >
+                  <SubpatternLabel
+                    $empty={isSubpatternRowEmpty(row)}
+                    $open={selectedRow === rowIndex || dragState.isDragging}
+                  >
+                    {subPatternRowLabel(rowIndex, row)}
+                  </SubpatternLabel>
+                </DraggableScriptEventHeader>
 
-                  {!selectedEffectIsAdvancedOnly &&
-                    selectedCell.effectcode !== null && (
-                      <EffectParamsForm
-                        effectCode={selectedCell.effectcode}
-                        value={selectedCell.effectparam}
-                        note={selectedCell.note ?? undefined}
-                        instrumentId={instrumentId}
-                        onChange={onChangeEffectParam}
-                      />
-                    )}
-                </StyledScriptEventFormWrapper>
-              ) : null}
-            </TickAccordionSection>
-          )}
-        />
-      ))}
-    </RowsList>
+                {selectedRow === rowIndex ? (
+                  <StyledScriptEventFormWrapper>
+                    <ScriptEventFields>
+                      <ScriptEventField>
+                        <SliderField
+                          name="pitch"
+                          label={`Pitch Shift`}
+                          min={-36}
+                          max={35}
+                          value={selectedPitchOffset}
+                          onChange={onChangePitch}
+                        />
+                      </ScriptEventField>
+
+                      <ScriptEventField halfWidth>
+                        <Label>Flow</Label>
+                        <ToggleButtonGroup<"continue" | "jump">
+                          name="subpattern_flow"
+                          value={selectedFlowType}
+                          options={[
+                            { value: "continue", label: "Continue" },
+                            { value: "jump", label: "Jump To" },
+                          ]}
+                          onChange={onChangeFlowType}
+                        />
+                      </ScriptEventField>
+
+                      <ScriptEventField halfWidth>
+                        <Input
+                          type="number"
+                          min={0}
+                          max={31}
+                          value={selectedJumpTarget}
+                          onChange={onChangeJumpTarget}
+                        />
+                      </ScriptEventField>
+
+                      <ScriptEventField flexBasis="100%">
+                        <Label>Effect Override</Label>
+                        <EffectCodeSelect
+                          name="subpattern_effect"
+                          value={
+                            selectedEffectIsAdvancedOnly
+                              ? undefined
+                              : selectedCell.effectcode
+                          }
+                          effectParam={selectedCell.effectparam ?? 0}
+                          note={selectedCell.note ?? undefined}
+                          instrumentId={instrumentId}
+                          allowedEffectCodes={[...validSubpatternEffectCodes]}
+                          onChange={onChangeEffectCode}
+                          noneLabel="None"
+                        />
+                      </ScriptEventField>
+                    </ScriptEventFields>
+
+                    {!selectedEffectIsAdvancedOnly &&
+                      selectedCell.effectcode !== null && (
+                        <EffectParamsForm
+                          effectCode={selectedCell.effectcode}
+                          value={selectedCell.effectparam}
+                          note={selectedCell.note ?? undefined}
+                          instrumentId={instrumentId}
+                          onChange={onChangeEffectParam}
+                        />
+                      )}
+                  </StyledScriptEventFormWrapper>
+                ) : null}
+              </TickAccordionSection>
+            )}
+          />
+        ))}
+      </RowsList>
+    </>
   );
 };

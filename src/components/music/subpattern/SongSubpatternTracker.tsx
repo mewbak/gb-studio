@@ -23,7 +23,7 @@ import { Position } from "components/music/tracker/helpers";
 import API from "renderer/lib/api";
 import { useAppDispatch, useAppSelector } from "store/hooks";
 import { createSubPatternCell } from "shared/lib/uge/song";
-import { VISIBLE_SUBPATTERN_ROWS } from "./subpatternHelpers";
+import { VISIBLE_SUBPATTERN_ROWS } from "components/music/subpattern/helpers";
 
 const CHANNEL_FIELDS = 4;
 const ROW_SIZE = CHANNEL_FIELDS * 1;

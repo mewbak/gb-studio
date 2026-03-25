@@ -14,8 +14,8 @@ import { StickyTabs, TabBar, TabSettings } from "ui/tabs/Tabs";
 import { InstrumentDutyEditor } from "./InstrumentDutyEditor";
 import { InstrumentWaveEditor } from "./InstrumentWaveEditor";
 import { InstrumentNoiseEditor } from "./InstrumentNoiseEditor";
-import { InstrumentSubpatternEditor } from "./InstrumentSubpatternEditor";
-import { InstrumentSubpatternSimpleEditor } from "./InstrumentSubpatternSimpleEditor";
+import { InstrumentSubpatternEditor } from "components/music/subpattern/SongSubpatternTracker";
+import { InstrumentSubpatternSimpleEditor } from "components/music/subpattern/SongSubpatternScript";
 
 import {
   DutyInstrument,

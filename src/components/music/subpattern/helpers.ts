@@ -29,7 +29,7 @@ const subpatternEffectLabels: Record<number, string> = {
 
 export const isSubpatternRowEmpty = (cell: SubPatternCell) => {
   return (
-    (cell.note === null || cell.note === 0) &&
+    (cell.note === null || cell.note === 36) &&
     (cell.jump === null || cell.jump === 0) &&
     (cell.effectcode === null || cell.effectcode === 0) &&
     (cell.effectparam === null || cell.effectparam === 0)
@@ -181,7 +181,7 @@ export const subPatternRowLabel = (
 ): string => {
   const labelParts: string[] = [];
   if (cell.note !== null && cell.note !== 36) {
-    labelParts.push(`Pitch: ${cell.note > 36 ? "+" : ""}${cell.note - 36}`);
+    labelParts.push(`Pitch: ${pitchOffsetLabel(cell.note - 36)}`);
   }
   if (cell.jump !== null && cell.jump !== 0) {
     if (cell.jump - 1 === tick) {
@@ -199,4 +199,28 @@ export const subPatternRowLabel = (
     );
   }
   return `Tick ${String(tick).padStart(2, "0")}${labelParts.length > 0 ? ":" : ""} ${labelParts.join(", ")}`;
+};
+
+export const pitchOffsetLabel = (offset: number): string => {
+  if (offset === 0) {
+    return "";
+  }
+
+  const sign = offset < 0 ? -1 : 1;
+  const abs = Math.abs(offset);
+
+  const octaves = Math.floor(abs / 12);
+  const semitones = abs % 12;
+
+  const parts: string[] = [];
+
+  if (octaves !== 0) {
+    parts.push(`${sign * octaves > 0 ? "+" : ""}${sign * octaves} Oct`);
+  }
+
+  if (semitones !== 0) {
+    parts.push(`${sign * semitones > 0 ? "+" : ""}${sign * semitones}`);
+  }
+
+  return parts.join(" ");
 };
