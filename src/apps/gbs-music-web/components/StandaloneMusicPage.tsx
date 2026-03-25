@@ -37,6 +37,7 @@ import { MusicDataReceivePacket } from "shared/lib/music/types";
 import { InstrumentEditor } from "components/music/sidebar/InstrumentEditor";
 import { FixedSpacer } from "ui/spacing/Spacing";
 import SongEditorToolsPanel from "components/music/toolbar/SongEditorToolsPanel";
+import { InstrumentIcon } from "ui/icons/Icons";
 
 const Wrapper = styled.div`
   display: flex;
@@ -326,9 +327,14 @@ export const StandaloneMusicPage = ({
               overflow: "hidden",
               background: themeContext?.colors.background,
               color: themeContext?.colors.text,
-              position: "relative",
+              // position: "relative",
               display: "flex",
               flexDirection: "column",
+              position: "fixed",
+              top: 40,
+              left: 0,
+              bottom: 0,
+              right: 0,
             }}
           >
             <div
@@ -340,30 +346,43 @@ export const StandaloneMusicPage = ({
 
             <SongDocument musicAsset={viewSong} />
 
+            {/* {isCompactLayout && (
+              <div
+                style={{
+                  flexShrink: 0,
+                  height: 400,
+                  background: "yellow",
+                }}
+              ></div>
+            )} */}
+
             {isCompactLayout && (
-              <>
+              <div
+                style={{
+                  // position: "fixed",
+                  // bottom: 10,
+                  // left: 10,
+                  // right: 10,
+                  flexShrink: 0,
+                  height: 300,
+                  zIndex: 10000,
+                  background: "green",
+                  overflow: "hidden",
+                  boxShadow: "2px 2px 10px rgba(0,0,0,0.5)",
+                }}
+              >
                 <SplitPaneVerticalDivider />
+
+                <SplitPaneHeader collapsed={false}>WIP</SplitPaneHeader>
                 <div
                   style={{
-                    height: 500,
-                    background: themeContext?.colors.sidebar.background,
-                    display: "flex",
-                    flexDirection: "column",
-                    flexShrink: 0,
+                    height: 300 - 31,
+                    overflow: "auto",
                   }}
                 >
-                  <SplitPaneHeader collapsed={false}>WIP</SplitPaneHeader>
-                  <div
-                    style={{
-                      flexGrow: 1,
-                      overflow: "auto",
-                    }}
-                  >
-                    {status === "loaded" && <InstrumentEditor />}
-                    <FixedSpacer height={40} />
-                  </div>
+                  {status === "loaded" && <InstrumentEditor />}
                 </div>
-              </>
+              </div>
             )}
 
             {!isCompactLayout && (
@@ -413,6 +432,55 @@ export const StandaloneMusicPage = ({
               </div>
             </>
           )}
+
+          {/* {isCompactLayout && (
+            <div
+              style={{
+                position: "fixed",
+                bottom: 20,
+                right: 20,
+                background: "red",
+                borderRadius: 100,
+                width: 60,
+                height: 60,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                zIndex: 10001,
+              }}
+            >
+              <InstrumentIcon />
+            </div>
+          )} */}
+          {/* 
+          {isCompactLayout && (
+            <div
+              style={{
+                position: "fixed",
+                bottom: 10,
+                left: 10,
+                right: 10,
+                height: 300,
+                zIndex: 10000,
+                background: "green",
+                borderRadius: 8,
+                overflow: "hidden",
+                boxShadow: "2px 2px 10px rgba(0,0,0,0.5)",
+              }}
+            >
+              <SplitPaneVerticalDivider />
+
+              <SplitPaneHeader collapsed={false}>WIP</SplitPaneHeader>
+              <div
+                style={{
+                  height: 300 - 31,
+                  overflow: "auto",
+                }}
+              >
+                {status === "loaded" && <InstrumentEditor />}
+              </div>
+            </div>
+          )} */}
         </>
       )}
     </Wrapper>
