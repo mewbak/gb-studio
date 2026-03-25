@@ -1,6 +1,5 @@
 import React, { useContext, useEffect, useRef } from "react";
 import { ThemeContext } from "styled-components";
-import { FormRow } from "ui/form/layout/FormLayout";
 
 interface NoiseMacroEditorFormProps {
   macros: number[];
@@ -153,21 +152,16 @@ export const NoiseMacroEditorForm = ({
   });
 
   return (
-    <>
-      <FormRow>
-        <canvas
-          ref={canvasRef}
-          style={{
-            width: "100%",
-            height: "138px",
-            backgroundColor: "#000",
-            borderRadius: 4,
-            imageRendering: "pixelated",
-            cursor: "pointer",
-          }}
-          height={138}
-        />
-      </FormRow>
-    </>
+    <canvas
+      ref={canvasRef}
+      style={{
+        width: "100%",
+        height: 100,
+        backgroundColor: "#000",
+        imageRendering: "pixelated",
+        cursor: "pointer",
+      }}
+      height={100}
+    />
   );
 };

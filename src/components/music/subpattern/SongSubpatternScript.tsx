@@ -32,7 +32,6 @@ import {
   isSubpatternRowEmpty,
   isValidSubpatternEffectCode,
   moveSubpatternRow,
-  pitchOffsetLabel,
   subPatternRowLabel,
   toSubpatternJump,
   toSubpatternNote,
@@ -117,7 +116,7 @@ export const InstrumentSubpatternSimpleEditor = ({
     [subpattern],
   );
 
-  const [selectedRow, setSelectedRow] = useState<number | null>(0);
+  const [selectedRow, setSelectedRow] = useState<number | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [jumpArrow, setJumpArrow] = useState<{
     height: number;
