@@ -9,7 +9,7 @@ import { PIANO_ROLL_CELL_SIZE } from "consts";
 interface PianoRollEffectRowProps {
   patternId: number;
   sequenceId: number;
-  channelId: number;
+  channelId: 0 | 1 | 2 | 3;
 }
 
 type EffectCellChanges = {

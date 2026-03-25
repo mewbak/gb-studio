@@ -9,6 +9,7 @@ import clamp from "shared/lib/helpers/clamp";
 import { PatternCell } from "shared/lib/uge/types";
 import { createPatternCell } from "shared/lib/uge/song";
 import { noteStringsForClipboard } from "shared/lib/music/constants";
+import { toValidChannelId } from "shared/lib/uge/editor/helpers";
 
 export const NO_CHANGE_ON_PASTE = -9;
 
@@ -75,7 +76,7 @@ export const getTransposeNoteDelta = (
 interface ResolvedTrackerCell {
   patternId: number;
   rowIndex: number;
-  channelIndex: number;
+  channelIndex: 0 | 1 | 2 | 3;
 }
 
 export const resolveUniqueTrackerCells = (
@@ -87,8 +88,9 @@ export const resolveUniqueTrackerCells = (
 
   for (const field of selectedTrackerFields) {
     const rowIndex = Math.floor(field / TRACKER_ROW_SIZE);
-    const channelIndex =
-      Math.floor(field / TRACKER_CHANNEL_FIELDS) % TRACKER_NUM_CHANNELS;
+    const channelIndex = toValidChannelId(
+      Math.floor(field / TRACKER_CHANNEL_FIELDS) % TRACKER_NUM_CHANNELS,
+    );
     const key = `${patternId}:${rowIndex}:${channelIndex}`;
 
     if (seen.has(key)) {

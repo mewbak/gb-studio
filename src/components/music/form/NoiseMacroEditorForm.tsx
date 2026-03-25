@@ -44,8 +44,8 @@ export const NoiseMacroEditorForm = ({
         ctx.lineWidth = 1;
 
         for (let i = 0; i <= noiseMacros.length; i++) {
-          ctx.moveTo(5 + (i * drawWidth) / 6, 0);
-          ctx.lineTo(5 + (i * drawWidth) / 6, canvas.height);
+          ctx.moveTo(5 + (i * drawWidth) / noiseMacros.length, 0);
+          ctx.lineTo(5 + (i * drawWidth) / noiseMacros.length, canvas.height);
         }
         for (let i = 0; i <= 64; i++) {
           ctx.moveTo(0, 5 + (i * drawHeight) / 32);
@@ -71,9 +71,9 @@ export const NoiseMacroEditorForm = ({
 
         noiseMacros.forEach((y: number, x: number) => {
           ctx.fillRect(
-            5 + x * (drawWidth / 6),
+            5 + x * (drawWidth / noiseMacros.length),
             5 + drawHeight / 2,
-            drawWidth / 6,
+            drawWidth / noiseMacros.length,
             -y * ratio,
           );
         });
@@ -110,11 +110,11 @@ export const NoiseMacroEditorForm = ({
         };
 
         const gridP = {
-          i: Math.floor((pos.x - 5) / (drawWidth / 6)),
+          i: Math.floor((pos.x - 5) / (drawWidth / macros.length)),
           j: Math.floor((pos.y - 5) / (drawHeight / 64)),
         };
 
-        if (gridP.j <= 64 && gridP.j >= 0 && gridP.i < 6) {
+        if (gridP.j <= 64 && gridP.j >= 0 && gridP.i < macros.length) {
           drawGrid(macros);
           drawMacros(macros, "#FF000066");
 

@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useCallback, useMemo } from "react";
 import {
   FormDivider,
   FormRow,
@@ -17,6 +17,10 @@ import { EffectCodeSelect } from "components/music/form/EffectCodeSelect";
 import { PatternCellAddress } from "shared/lib/uge/editor/types";
 import { PatternCell, Song } from "shared/lib/uge/types";
 import { EffectParamsForm } from "components/music/form/EffectParamsForm";
+import { InstrumentIcon } from "ui/icons/Icons";
+import trackerActions from "store/features/tracker/trackerActions";
+import { channelIdToInstrumentType } from "components/music/helpers";
+import { InputGroup, InputGroupAppend } from "ui/form/InputGroup";
 
 const getSharedValue = <T extends keyof PatternCell>(
   song: Song | undefined,
@@ -42,6 +46,12 @@ export const PatternCellSelectionEditor = () => {
     (state) => state.tracker.selectedPatternCells,
   );
 
+  const firstChannelId = useMemo(
+    () =>
+      selectedPatternCells.length > 1 ? selectedPatternCells[0].channelId : 0,
+    [selectedPatternCells],
+  );
+
   const sharedNote = useMemo(
     () => getSharedValue(song, selectedPatternCells, "note"),
     [selectedPatternCells, song],
@@ -61,6 +71,25 @@ export const PatternCellSelectionEditor = () => {
     () => getSharedValue(song, selectedPatternCells, "effectparam"),
     [selectedPatternCells, song],
   );
+
+  const onViewInstrument = useCallback(() => {
+    if (
+      sharedInstrumentId.type === "shared" &&
+      sharedInstrumentId.value !== null
+    ) {
+      dispatch(
+        trackerActions.setSelectedInstrument({
+          id: String(sharedInstrumentId.value),
+          type: channelIdToInstrumentType(firstChannelId),
+        }),
+      );
+    }
+  }, [
+    dispatch,
+    firstChannelId,
+    sharedInstrumentId.type,
+    sharedInstrumentId.value,
+  ]);
 
   return (
     <>
@@ -93,24 +122,36 @@ export const PatternCellSelectionEditor = () => {
         <Label>{l10n("FIELD_INSTRUMENT")}</Label>
       </FormRow>
       <FormRow>
-        <InstrumentSelect
-          name="instrument"
-          value={sharedInstrumentId.value ?? undefined}
-          onChange={(instrumentId) => {
-            dispatch(
-              trackerDocumentActions.changeInstrumentAbsoluteCells({
-                patternCells: selectedPatternCells,
-                instrumentId,
-              }),
-            );
-          }}
-          noneLabel={
-            sharedInstrumentId.type === "multiple" ? "Multiple Values" : "None"
-          }
-          note={sharedNote.value ?? undefined}
-          effectCode={sharedEffectCode.value ?? undefined}
-          effectParam={sharedEffectParam.value ?? undefined}
-        />
+        <InputGroup>
+          <InstrumentSelect
+            name="instrument"
+            value={sharedInstrumentId.value ?? undefined}
+            onChange={(instrumentId) => {
+              dispatch(
+                trackerDocumentActions.changeInstrumentAbsoluteCells({
+                  patternCells: selectedPatternCells,
+                  instrumentId,
+                }),
+              );
+            }}
+            noneLabel={
+              sharedInstrumentId.type === "multiple"
+                ? "Multiple Values"
+                : "None"
+            }
+            note={sharedNote.value ?? undefined}
+            effectCode={sharedEffectCode.value ?? undefined}
+            effectParam={sharedEffectParam.value ?? undefined}
+          />
+          {sharedInstrumentId.type === "shared" &&
+            sharedInstrumentId.value !== null && (
+              <InputGroupAppend>
+                <Button onClick={onViewInstrument} title="Edit Instrument">
+                  <InstrumentIcon />
+                </Button>
+              </InputGroupAppend>
+            )}
+        </InputGroup>
       </FormRow>
 
       <FormRow>

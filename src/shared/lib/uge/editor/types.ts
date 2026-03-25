@@ -1,5 +1,5 @@
 export interface PatternCellAddress {
   sequenceId: number;
   rowId: number;
-  channelId: number;
+  channelId: 0 | 1 | 2 | 3;
 }

@@ -13,7 +13,6 @@ import { SortableItem } from "ui/lists/SortableItem";
 import { MenuItem } from "ui/menu/Menu";
 import {
   ScriptEventField,
-  ScriptEventFieldGroup,
   ScriptEventFields,
   ScriptEventFormWrapper,
   ScriptEventHeader,
@@ -350,7 +349,12 @@ export const InstrumentSubpatternSimpleEditor = ({
   ]);
 
   const macroValues = useMemo(() => {
-    return subpattern.slice(0, 6).map((cell) => (cell.note ?? 36) - 36);
+    const lastEmptyRowlIndex = subpattern.findLastIndex(
+      (row) => !isSubpatternRowEmpty(row),
+    );
+    return subpattern
+      .slice(0, Math.max(6, lastEmptyRowlIndex + 1))
+      .map((cell) => (cell.note ?? 36) - 36);
   }, [subpattern]);
 
   const onChangeMacroValue = useCallback(

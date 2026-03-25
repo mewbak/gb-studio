@@ -1,4 +1,5 @@
 import API from "renderer/lib/api";
+import { InstrumentType } from "shared/lib/music/types";
 import {
   DutyInstrument,
   NoiseInstrument,
@@ -98,4 +99,16 @@ export const playNoiseNotePreview = (
     effectCode,
     effectParam,
   });
+};
+
+export const channelIdToInstrumentType = (
+  channelId: 0 | 1 | 2 | 3,
+): InstrumentType => {
+  if (channelId === 2) {
+    return "wave";
+  }
+  if (channelId === 3) {
+    return "noise";
+  }
+  return "duty";
 };
