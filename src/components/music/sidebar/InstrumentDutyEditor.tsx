@@ -204,25 +204,27 @@ export const InstrumentDutyEditor = ({
           />
         </FormField>
       </FormRow>
-      <FormDivider />
-      <FormRow>
-        <FormField
-          name="test_instrument_C5"
-          label={l10n("FIELD_TEST_INSTRUMENT")}
-        >
-          <ButtonGroup>
-            {testNotes.map(({ label, value }) => (
-              <Button
-                key={`test_instrument_${label}`}
-                id={`test_instrument_${label}`}
-                onClick={onTestInstrument(value)}
-              >
-                {label}
-              </Button>
-            ))}
-          </ButtonGroup>
-        </FormField>
-      </FormRow>
+      <div style={{ position: "sticky", bottom: 0 }}>
+        <FormDivider />
+        <FormRow>
+          <FormField
+            name="test_instrument_C5"
+            label={l10n("FIELD_TEST_INSTRUMENT")}
+          >
+            <ButtonGroup>
+              {testNotes.map(({ label, value }) => (
+                <Button
+                  key={`test_instrument_${label}`}
+                  id={`test_instrument_${label}`}
+                  onClick={onTestInstrument(value)}
+                >
+                  {label}
+                </Button>
+              ))}
+            </ButtonGroup>
+          </FormField>
+        </FormRow>
+      </div>
     </>
   );
 };
