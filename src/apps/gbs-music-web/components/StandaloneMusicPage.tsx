@@ -34,6 +34,9 @@ import l10n from "shared/lib/lang/l10n";
 import { SplitPaneHeader } from "ui/splitpane/SplitPaneHeader";
 import API from "renderer/lib/api";
 import { MusicDataReceivePacket } from "shared/lib/music/types";
+import { InstrumentEditor } from "components/music/sidebar/InstrumentEditor";
+import { FixedSpacer } from "ui/spacing/Spacing";
+import SongEditorToolsPanel from "components/music/toolbar/SongEditorToolsPanel";
 
 const Wrapper = styled.div`
   display: flex;
@@ -328,7 +331,40 @@ export const StandaloneMusicPage = ({
               flexDirection: "column",
             }}
           >
+            <div
+              style={{ position: "relative", height: "60px", flexShrink: 0 }}
+            >
+              <SongEditorToolsPanel musicAsset={viewSong} />
+            </div>
+            <SplitPaneVerticalDivider />
+
             <SongDocument musicAsset={viewSong} />
+
+            {isCompactLayout && (
+              <>
+                <SplitPaneVerticalDivider />
+                <div
+                  style={{
+                    height: 500,
+                    background: themeContext?.colors.sidebar.background,
+                    display: "flex",
+                    flexDirection: "column",
+                    flexShrink: 0,
+                  }}
+                >
+                  <SplitPaneHeader collapsed={false}>WIP</SplitPaneHeader>
+                  <div
+                    style={{
+                      flexGrow: 1,
+                      overflow: "auto",
+                    }}
+                  >
+                    {status === "loaded" && <InstrumentEditor />}
+                    <FixedSpacer height={40} />
+                  </div>
+                </div>
+              </>
+            )}
 
             {!isCompactLayout && (
               <>

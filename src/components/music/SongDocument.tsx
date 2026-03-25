@@ -108,10 +108,6 @@ const SongDocument = ({ musicAsset }: { musicAsset: MusicAsset }) => {
 
   return (
     <>
-      <div style={{ position: "relative", height: "60px", flexShrink: 0 }}>
-        <SongEditorToolsPanel musicAsset={musicAsset} />
-      </div>
-      <SplitPaneVerticalDivider />
       {view === "tracker" && (
         <SongTracker sequenceId={sequenceId} song={songDocument} />
       )}
