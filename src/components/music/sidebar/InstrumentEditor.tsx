@@ -20,14 +20,22 @@ import { InstrumentSubpatternSimpleEditor } from "components/music/subpattern/So
 import {
   DutyInstrument,
   NoiseInstrument,
+  SubPatternCell,
   WaveInstrument,
 } from "shared/lib/uge/types";
 import l10n from "shared/lib/lang/l10n";
 import trackerActions from "store/features/tracker/trackerActions";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
 import { useAppDispatch, useAppSelector } from "store/hooks";
-import { TrackerIcon } from "ui/icons/Icons";
-import { Button } from "ui/buttons/Button";
+import { BlankIcon, CheckIcon } from "ui/icons/Icons";
+import { DropdownButton } from "ui/buttons/DropdownButton";
+import { MenuDivider, MenuItem } from "ui/menu/Menu";
+import {
+  doubleSubpattern,
+  halfSubpattern,
+  offsetToStoredPitch,
+} from "components/music/subpattern/helpers";
+import { createSubPatternCell } from "shared/lib/uge/song";
 
 type Instrument = DutyInstrument | NoiseInstrument | WaveInstrument;
 type InstrumentType = "duty" | "wave" | "noise";
@@ -50,6 +58,59 @@ const instrumentTypeLabels: Record<InstrumentType, string> = {
   wave: "Wave",
   noise: "Noise",
 };
+
+type SubpatternPreset = {
+  name: string;
+  value: SubPatternCell[];
+};
+
+type SubpatternJump = readonly [fromIndex: number, toIndex: number];
+
+const createSubpatternPreset = (
+  name: string,
+  pitch: number[],
+  jump: SubpatternJump[] = [],
+): SubpatternPreset => {
+  const cells = Array.from({ length: 32 }, () => createSubPatternCell());
+
+  const jumpMap = new Map<number, number>(jump);
+
+  pitch.forEach((offset, index) => {
+    const jumpTo = jumpMap.get(index);
+    cells[index] = {
+      note: offsetToStoredPitch(offset),
+      jump: jumpTo !== undefined ? jumpTo + 1 : null,
+      effectcode: null,
+      effectparam: null,
+    };
+  });
+
+  return {
+    name,
+    value: cells,
+  };
+};
+
+const presets: (SubpatternPreset | "divider")[] = [
+  createSubpatternPreset("Major (0 +4 +7)", [0, 4, 7], [[2, 0]]),
+  createSubpatternPreset("Minor (0 +3 +7)", [0, 3, 7], [[2, 0]]),
+  createSubpatternPreset("Diminished (0 +3 +6)", [0, 3, 6], [[2, 0]]),
+  createSubpatternPreset("Augmented (0 +4 +8)", [0, 4, 8], [[2, 0]]),
+  "divider",
+  createSubpatternPreset("Major 7 (0 +4 +7 +11)", [0, 4, 7, 11], [[3, 0]]),
+  createSubpatternPreset("Dominant 7 (0 +4 +7 +10)", [0, 4, 7, 10], [[3, 0]]),
+  createSubpatternPreset("Minor 7 (0 +3 +7 +10)", [0, 3, 7, 10], [[3, 0]]),
+  "divider",
+  createSubpatternPreset("Sus2 (0 +2 +7)", [0, 2, 7], [[2, 0]]),
+  createSubpatternPreset("Sus4 (0 +5 +7)", [0, 5, 7], [[2, 0]]),
+  "divider",
+  createSubpatternPreset("Power (0 +7)", [0, 7], [[1, 0]]),
+  createSubpatternPreset("Octave (0 +12)", [0, 12], [[1, 0]]),
+  createSubpatternPreset("Octave + Fifth (0 +7 +12)", [0, 7, 12], [[2, 0]]),
+  "divider",
+  createSubpatternPreset("Major Up-Down (0 +4 +7 +4)", [0, 4, 7, 4], [[3, 0]]),
+  createSubpatternPreset("Minor Up-Down (0 +3 +7 +3)", [0, 3, 7, 3], [[3, 0]]),
+];
 
 const getDefaultInstrumentName = (
   instrument: Instrument,
@@ -167,31 +228,74 @@ export const InstrumentEditor = () => {
     [dispatch, editInstrument, resolvedInstrument],
   );
 
-  const onToggleSubpatternEditorMode = useCallback(() => {
-    if (subpatternEditorMode === "tracker") {
-      dispatch(trackerActions.setSubpatternEditorModeAndSave("simple"));
-    } else {
-      dispatch(trackerActions.setSubpatternEditorModeAndSave("tracker"));
+  const onSetViewTracker = useCallback(() => {
+    dispatch(trackerActions.setSubpatternEditorModeAndSave("tracker"));
+  }, [dispatch]);
+
+  const onSetViewSimple = useCallback(() => {
+    dispatch(trackerActions.setSubpatternEditorModeAndSave("simple"));
+  }, [dispatch]);
+
+  const onSetPreset = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      if (!resolvedInstrument) {
+        return;
+      }
+      console.log(e.currentTarget, e.currentTarget.dataset);
+      const presetId = parseInt(e.currentTarget.dataset.presetId ?? "0", 10);
+      const preset = presets[presetId];
+      if (preset !== "divider" && preset.value) {
+        dispatch(
+          editInstrument({
+            instrumentId: resolvedInstrument.instrument.index,
+            changes: {
+              subpattern: preset.value,
+            },
+          }),
+        );
+      }
+    },
+    [dispatch, editInstrument, resolvedInstrument],
+  );
+
+  const onSpreadSubpattern = useCallback(() => {
+    if (!resolvedInstrument || !resolvedInstrument.instrument.subpattern) {
+      return;
     }
-    if (
-      resolvedInstrument &&
-      !resolvedInstrument.instrument.subpattern_enabled
-    ) {
-      dispatch(
-        editInstrument({
-          instrumentId: resolvedInstrument.instrument.index,
-          changes: {
-            // eslint-disable-next-line camelcase
-            subpattern_enabled: true,
-          },
-        }),
-      );
+    dispatch(
+      editInstrument({
+        instrumentId: resolvedInstrument.instrument.index,
+        changes: {
+          subpattern: doubleSubpattern(
+            resolvedInstrument.instrument.subpattern,
+          ),
+        },
+      }),
+    );
+  }, [dispatch, editInstrument, resolvedInstrument]);
+
+  const onCompactSubpattern = useCallback(() => {
+    if (!resolvedInstrument || !resolvedInstrument.instrument.subpattern) {
+      return;
     }
-  }, [dispatch, editInstrument, resolvedInstrument, subpatternEditorMode]);
+    dispatch(
+      editInstrument({
+        instrumentId: resolvedInstrument.instrument.index,
+        changes: {
+          subpattern: halfSubpattern(resolvedInstrument.instrument.subpattern),
+        },
+      }),
+    );
+  }, [dispatch, editInstrument, resolvedInstrument]);
 
   if (!song || !resolvedInstrument || !resolvedInstrument.instrument) {
     return null;
   }
+
+  console.log(
+    "resolvedInstrument.instrument.subpattern",
+    resolvedInstrument.instrument.subpattern.length,
+  );
 
   return (
     <>
@@ -240,14 +344,67 @@ export const InstrumentEditor = () => {
                 }
               />
               {resolvedInstrument.instrument.subpattern_enabled && (
-                <Button
-                  variant={
-                    subpatternEditorMode === "tracker" ? "primary" : "normal"
-                  }
-                  onClick={onToggleSubpatternEditorMode}
+                <DropdownButton
+                  variant="transparent"
+                  // variant={
+                  //   subpatternEditorMode === "tracker" ? "primary" : "normal"
+                  // }
+                  // onClick={onToggleSubpatternEditorMode}
                 >
-                  <TrackerIcon />
-                </Button>
+                  <MenuItem
+                    subMenu={[
+                      <MenuItem
+                        key="simple"
+                        onClick={onSetViewSimple}
+                        icon={
+                          subpatternEditorMode === "simple" ? (
+                            <CheckIcon />
+                          ) : (
+                            <BlankIcon />
+                          )
+                        }
+                      >
+                        Visual
+                      </MenuItem>,
+                      <MenuItem
+                        key="tracker"
+                        onClick={onSetViewTracker}
+                        icon={
+                          subpatternEditorMode === "tracker" ? (
+                            <CheckIcon />
+                          ) : (
+                            <BlankIcon />
+                          )
+                        }
+                      >
+                        Tracker
+                      </MenuItem>,
+                    ]}
+                  >
+                    View
+                  </MenuItem>
+                  <MenuDivider />
+                  <MenuItem
+                    subMenu={presets.map((preset, presetIndex) =>
+                      preset === "divider" ? (
+                        <MenuDivider key={presetIndex} />
+                      ) : (
+                        <MenuItem
+                          key={preset.name}
+                          data-preset-id={presetIndex}
+                          onClick={onSetPreset}
+                        >
+                          {preset.name}
+                        </MenuItem>
+                      ),
+                    )}
+                  >
+                    Presets
+                  </MenuItem>
+                  <MenuDivider />
+                  <MenuItem onClick={onSpreadSubpattern}>Spread</MenuItem>
+                  <MenuItem onClick={onCompactSubpattern}>Compact</MenuItem>
+                </DropdownButton>
               )}
             </SubpatternSettings>
           </TabSettings>
