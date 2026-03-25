@@ -27,6 +27,15 @@ const ButtonCover = styled.div`
   height: 60px;
 `;
 
+const LabelWrapper = styled.div`
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  background: ${(props) => props.theme.colors.input.background};
+  border: 2px solid ${(props) => props.theme.colors.input.background};
+  outline: 1px solid ${(props) => props.theme.colors.input.border};
+`;
+
 interface LabelColorProps {
   $instrument?: number;
 }
@@ -36,13 +45,12 @@ const LabelColor = styled.div<LabelColorProps>`
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   border-radius: 2px;
   flex-shrink: 0;
   font-size: 10px;
-  border: 2px solid ${(props) => props.theme.colors.input.background};
-  outline: 1px solid ${(props) => props.theme.colors.input.border};
+  border: 1px solid black;
 
   background: ${(props) =>
     props.$instrument !== undefined
@@ -69,12 +77,10 @@ const LabelColor = styled.div<LabelColorProps>`
     mix-blend-mode: overlay;
   }
 
-  span {
-    color: ${(props) =>
-      props.$instrument !== undefined
-        ? `var(--instrument-${props.$instrument}-text-color)`
-        : "white"};
-  }
+  color: ${(props) =>
+    props.$instrument !== undefined
+      ? `var(--instrument-${props.$instrument}-text-color)`
+      : "white"};
 `;
 
 export const InstrumentSelectButton: FC<InstrumentSelectProps> = ({
@@ -163,9 +169,11 @@ export const InstrumentSelectButton: FC<InstrumentSelectProps> = ({
         onFocus={onButtonFocus}
         onBlur={onButtonBlur}
       >
-        <LabelColor $instrument={value}>
-          <span>{String(value).padStart(2, "0")}</span>
-        </LabelColor>
+        <LabelWrapper>
+          <LabelColor $instrument={value}>
+            {String(value).padStart(2, "0")}
+          </LabelColor>
+        </LabelWrapper>
       </StyledButton>
       {isOpen && <ButtonCover onMouseDown={delayedButtonFocus} />}
 
