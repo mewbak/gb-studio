@@ -83,7 +83,11 @@ const getPlayButtonLabel = (play: boolean, playbackFromStart: boolean) => {
   }
 };
 
-export const SongContextBar = () => {
+export const SongContextBar = ({
+  isCompactLayout,
+}: {
+  isCompactLayout?: boolean;
+}) => {
   const dispatch = useAppDispatch();
 
   const play = useAppSelector((state) => state.tracker.playing);
@@ -259,23 +263,28 @@ export const SongContextBar = () => {
           {String(rowIndex).padStart(2, "0")}
         </StyledSongContextBarTimerPart>
       </StyledSongContextBarTimer>
-      <FixedSpacer width={10} />
-      <ButtonGroup>
-        <Button
-          disabled={!playerReady}
-          variant={view === "roll" ? "primary" : "normal"}
-          onClick={setRollView}
-        >
-          {view === "roll" ? <PianoInverseIcon /> : themePianoIcon}
-        </Button>
-        <Button
-          disabled={!playerReady}
-          variant={view === "tracker" ? "primary" : "normal"}
-          onClick={setTrackerView}
-        >
-          <TrackerIcon />
-        </Button>
-      </ButtonGroup>
+
+      {!isCompactLayout && (
+        <>
+          <FixedSpacer width={10} />
+          <ButtonGroup>
+            <Button
+              disabled={!playerReady}
+              variant={view === "roll" ? "primary" : "normal"}
+              onClick={setRollView}
+            >
+              {view === "roll" ? <PianoInverseIcon /> : themePianoIcon}
+            </Button>
+            <Button
+              disabled={!playerReady}
+              variant={view === "tracker" ? "primary" : "normal"}
+              onClick={setTrackerView}
+            >
+              <TrackerIcon />
+            </Button>
+          </ButtonGroup>
+        </>
+      )}
     </StyledSongContextBar>
   );
 };

@@ -40,7 +40,7 @@ interface StepOption {
 }
 
 interface SongEditorToolsPanelProps {
-  selectedSong?: MusicAsset;
+  musicAsset?: MusicAsset;
 }
 
 const FloatingPanelSwitchView = styled(FloatingPanel)`
@@ -67,7 +67,7 @@ const ExportButtonWrapper = styled.div`
   flex-shrink: 0;
 `;
 
-const SongEditorToolsPanel = ({ selectedSong }: SongEditorToolsPanelProps) => {
+const SongEditorToolsPanel = ({ musicAsset }: SongEditorToolsPanelProps) => {
   const dispatch = useAppDispatch();
 
   const play = useAppSelector((state) => state.tracker.playing);
@@ -149,10 +149,10 @@ const SongEditorToolsPanel = ({ selectedSong }: SongEditorToolsPanelProps) => {
   );
 
   const saveSong = useCallback(() => {
-    if (selectedSong && modified) {
+    if (musicAsset && modified) {
       dispatch(saveSongFile());
     }
-  }, [dispatch, modified, selectedSong]);
+  }, [dispatch, modified, musicAsset]);
 
   const onOpenExportPanel = useCallback(() => {
     setShowExportPanel((isOpen) => !isOpen);
@@ -293,7 +293,7 @@ const SongEditorToolsPanel = ({ selectedSong }: SongEditorToolsPanelProps) => {
       <FloatingPanelSwitchView>
         <Button
           variant="transparent"
-          disabled={!selectedSong || !modified}
+          disabled={!musicAsset || !modified}
           onClick={saveSong}
           title={l10n("FIELD_SAVE")}
         >
@@ -309,11 +309,11 @@ const SongEditorToolsPanel = ({ selectedSong }: SongEditorToolsPanelProps) => {
           >
             <ExportIcon />
           </Button>
-          {showExportPanel && selectedSong && (
+          {showExportPanel && musicAsset && (
             <>
               <MenuOverlay onClick={onCloseExportPanel} />
               <RelativePortal pin="top-left" offsetY={10} zIndex={10001}>
-                <SongExportForm name={selectedSong.filename} />
+                <SongExportForm name={musicAsset.filename} />
               </RelativePortal>
             </>
           )}

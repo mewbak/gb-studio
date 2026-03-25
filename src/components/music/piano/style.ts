@@ -16,13 +16,15 @@ export const StyledPianoRollWrapper = styled.div`
   display: flex;
   width: 100%;
   flex-direction: column;
-  height: 100%;
+  flex-grow: 1;
+  min-height: 0;
 `;
 
 export const StyledPianoRollScrollWrapper = styled.div`
   width: 100%;
   height: 100%;
   overflow: auto;
+  overscroll-behavior: none;
 `;
 
 export const StyledPianoRollScrollCanvas = styled.div`

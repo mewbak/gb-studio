@@ -8,7 +8,6 @@ import React, {
 } from "react";
 import { Song, PatternCell } from "shared/lib/uge/types";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
-import { SequenceEditor } from "components/music/sequence/SequenceEditor";
 import { TrackerRow } from "./SongRow";
 import scrollIntoView from "scroll-into-view-if-needed";
 import { TrackerHeaderCell } from "./TrackerHeaderCell";
@@ -18,7 +17,6 @@ import trackerActions from "store/features/tracker/trackerActions";
 import API from "renderer/lib/api";
 import { MusicDataReceivePacket } from "shared/lib/music/types";
 import { useAppDispatch, useAppSelector } from "store/hooks";
-import l10n from "shared/lib/lang/l10n";
 import {
   StyledTrackerContentTable,
   StyledTrackerTableHeader,
@@ -27,8 +25,6 @@ import {
   StyledTrackerTableBody,
   StyledTrackerContentWrapper,
 } from "./style";
-import { SplitPaneVerticalDivider } from "ui/splitpane/SplitPaneDivider";
-import { SplitPaneHeader } from "ui/splitpane/SplitPaneHeader";
 import {
   buildSelectionRect,
   fieldToPosition,
@@ -59,10 +55,9 @@ import { useMusicNotePreview } from "components/music/hooks/useMusicNotePreview"
 interface SongTrackerProps {
   sequenceId: number;
   song: Song | null;
-  height: number;
 }
 
-export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
+export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
   const dispatch = useAppDispatch();
   const playPreview = useMusicNotePreview();
 
@@ -92,7 +87,6 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
   >();
   const [activeField, setActiveFieldState] = useState<number | undefined>();
   const [playbackState, setPlaybackState] = useState<[number, number]>([0, 0]);
-  const [patternsPanelOpen, setPatternsPanelOpen] = useState(true);
 
   const selectionOriginRef = useRef<Position | undefined>(undefined);
   const selectionRectRef = useRef<SelectionRect | undefined>(undefined);
@@ -216,10 +210,6 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
     }
     return rows;
   }, [selectedTrackerFields]);
-
-  const togglePatternsPanel = useCallback(() => {
-    setPatternsPanelOpen((value) => !value);
-  }, []);
 
   useEffect(() => {
     setPlaybackState(startPlaybackPosition);
@@ -1042,7 +1032,7 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
   }, [sequenceId, clearSelection]);
 
   return (
-    <StyledTrackerWrapper style={{ height }}>
+    <StyledTrackerWrapper>
       <StyledTrackerContentWrapper ref={scrollRef}>
         <StyledTrackerContentTable>
           <StyledTrackerTableHeader
@@ -1133,22 +1123,6 @@ export const SongTracker = ({ song, sequenceId, height }: SongTrackerProps) => {
           </StyledTrackerTableBody>
         </StyledTrackerContentTable>
       </StyledTrackerContentWrapper>
-
-      <SplitPaneVerticalDivider />
-      <SplitPaneHeader
-        onToggle={togglePatternsPanel}
-        collapsed={!patternsPanelOpen}
-      >
-        {l10n("FIELD_ORDER")}
-      </SplitPaneHeader>
-      {patternsPanelOpen && (
-        <SequenceEditor
-          direction="horizontal"
-          sequence={song?.sequence}
-          patterns={song?.patterns.length}
-          playingSequence={playbackState[0]}
-        />
-      )}
       {selectionContextMenuElement}
     </StyledTrackerWrapper>
   );

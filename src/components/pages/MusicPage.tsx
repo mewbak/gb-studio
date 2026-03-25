@@ -15,17 +15,10 @@ import {
   SplitPaneVerticalDivider,
 } from "ui/splitpane/SplitPaneDivider";
 import editorActions from "store/features/editor/editorActions";
-import { SongTracker } from "components/music/tracker/SongTracker";
 import { musicSelectors } from "store/features/entities/entitiesState";
 import { SongEditor } from "components/music/sidebar/SongEditor";
-import SongEditorToolsPanel from "components/music/toolbar/SongEditorToolsPanel";
-// import { loadSongFile } from "store/features/trackerDocument/trackerDocumentState";
-import { SongPianoRoll } from "components/music/piano/SongPianoRoll";
 import ModViewer from "components/music/mod/ModViewer";
-import l10n from "shared/lib/lang/l10n";
 import { clampSidebarWidth } from "renderer/lib/window/sidebar";
-import { UgePlayer } from "components/music/UgePlayer";
-// import { assetPath } from "shared/lib/helpers/assets";
 import { useAppDispatch, useAppSelector } from "store/hooks";
 import { sortByFilename } from "shared/lib/entities/entitiesHelpers";
 import { NavigatorInstrumentsPane } from "components/music/navigator/NavigatorInstrumentsPane";
@@ -37,41 +30,16 @@ import { NavigatorChannelsPane } from "components/music/navigator/NavigatorChann
 import trackerActions from "store/features/tracker/trackerActions";
 import { loadSongFile } from "store/features/trackerDocument/trackerDocumentState";
 import { assetPath } from "shared/lib/helpers/assets";
+import SongDocument from "components/music/SongDocument";
+import { SequenceEditor } from "components/music/sequence/SequenceEditor";
+import l10n from "shared/lib/lang/l10n";
+import { SplitPaneHeader } from "ui/splitpane/SplitPaneHeader";
+import API from "renderer/lib/api";
+import { MusicDataReceivePacket } from "shared/lib/music/types";
 
 const Wrapper = styled.div`
   display: flex;
   width: 100%;
-`;
-
-const ContentWrapper = styled.div`
-  flex: 1 1 0;
-  min-width: 0;
-  overflow: hidden;
-  background: ${(props) => props.theme.colors.background};
-  color: ${(props) => props.theme.colors.text};
-  position: relative;
-  display: flex;
-`;
-
-const ContentMessage = styled.div`
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
-`;
-
-const ErrorTitle = styled.div`
-  font-size: 14px;
-  font-weight: bold;
-`;
-
-const ErrorDescription = styled.div`
-  padding-top: 5px;
 `;
 
 const defaultPaneLayout: SplitPaneLayout[] = [
@@ -97,6 +65,10 @@ const MusicPage = () => {
 
   const allSongs = useAppSelector(musicSelectors.selectAll);
   const allUgeSongs = useMemo(() => allSongs.sort(sortByFilename), [allSongs]);
+
+  const songDocument = useAppSelector(
+    (state) => state.trackerDocument.present.song,
+  );
 
   const selectedSongId = useAppSelector(
     (state) => state.tracker.selectedSongId,
@@ -135,14 +107,8 @@ const MusicPage = () => {
     }
   }, [dispatch, selectedSongPath, viewSong.type]);
 
-  const sequenceId = useAppSelector((state) => state.tracker.selectedSequence);
-
-  const songDocument = useAppSelector(
-    (state) => state.trackerDocument.present.song,
-  );
   const modified = useAppSelector((state) => state.tracker.modified);
   const status = useAppSelector((state) => state.tracker.status);
-  const error = useAppSelector((state) => state.tracker.error);
 
   useEffect(() => {
     if (viewSong && (status === "init" || viewSong.id !== selectedSongId)) {
@@ -165,12 +131,6 @@ const MusicPage = () => {
       recalculateRightColumn();
     },
   });
-  const [,] = useResizable({
-    initialSize: 231,
-    direction: "top",
-    minSize: 30,
-    maxSize: windowHeight - 100,
-  });
   const [rightPaneWidth, setRightPaneSize, onResizeRight] = useResizable({
     initialSize: worldSidebarWidth,
     direction: "left",
@@ -188,13 +148,6 @@ const MusicPage = () => {
       }
     },
   });
-  const [,] = useResizable({
-    initialSize: 231,
-    direction: "top",
-    minSize: 30,
-    maxSize: windowHeight - 100,
-  });
-  const [,] = useState(true);
 
   useEffect(() => {
     prevWindowWidthRef.current = windowWidth;
@@ -254,66 +207,85 @@ const MusicPage = () => {
     }
   };
 
-  const view = useAppSelector((state) => state.tracker.view);
+  const isCompactLayout = windowSize?.width ? windowSize.width < 900 : false;
 
-  const renderGridView = useCallback(() => {
-    if (!songDocument) {
-      return;
-    } else if (view === "tracker") {
-      return (
-        <div style={{ position: "relative" }}>
-          <SongTracker
-            sequenceId={sequenceId}
-            song={songDocument}
-            height={windowHeight - 100}
-          />
-        </div>
-      );
-    } else {
-      return (
-        <SongPianoRoll
-          sequenceId={sequenceId}
-          song={songDocument}
-          height={windowHeight - 100}
-        />
-      );
-    }
-  }, [sequenceId, songDocument, view, windowHeight]);
+  const [patternsPanelOpen, setPatternsPanelOpen] = useState(true);
+
+  const togglePatternsPanel = useCallback(() => {
+    setPatternsPanelOpen((value) => !value);
+  }, []);
+
+  const [playbackState, setPlaybackState] = useState<[number, number]>([0, 0]);
+
+  const startPlaybackPosition = useAppSelector(
+    (state) => state.tracker.startPlaybackPosition,
+  );
+
+  useEffect(() => {
+    setPlaybackState(startPlaybackPosition);
+  }, [startPlaybackPosition]);
+
+  useEffect(() => {
+    const listener = (_event: unknown, d: MusicDataReceivePacket) => {
+      if (d.action === "update") {
+        setPlaybackState(d.update);
+      } else if (d.action === "initialized") {
+        setPlaybackState([0, 0]);
+      }
+    };
+
+    const unsubscribeMusicData = API.events.music.response.subscribe(listener);
+    return () => {
+      unsubscribeMusicData();
+    };
+  }, []);
+
+  const songsPane = useMemo(
+    () => (
+      <NavigatorSongsPane
+        modified={modified}
+        selectedSongId={selectedSongId || viewSongId}
+      />
+    ),
+    [modified, selectedSongId, viewSongId],
+  );
 
   return (
     <Wrapper>
-      <div
-        style={{
-          transition: "opacity 0.3s ease-in-out",
-          width: Math.max(200, leftPaneWidth),
-          background: themeContext?.colors.sidebar.background,
-          overflow: "hidden",
-          position: "relative",
-        }}
-      >
-        <div
-          style={{
-            minWidth: 200,
-            position: "relative",
-            width: "100%",
-            height: "100%",
-          }}
-        >
-          <SplitPaneVerticalContainer
-            height={windowHeight - 38}
-            defaultLayout={defaultPaneLayout}
+      {!isCompactLayout && (
+        <>
+          <div
+            style={{
+              transition: "opacity 0.3s ease-in-out",
+              width: Math.max(200, leftPaneWidth),
+              background: themeContext?.colors.sidebar.background,
+              overflow: "hidden",
+              position: "relative",
+              flexShrink: 0,
+            }}
           >
-            <NavigatorSongsPane
-              modified={modified}
-              selectedSongId={selectedSongId || viewSongId}
-            />
-            {viewSong.type === "uge" ? <NavigatorChannelsPane /> : null}
-            {viewSong.type === "uge" ? <NavigatorInstrumentsPane /> : null}
-          </SplitPaneVerticalContainer>
-        </div>
-      </div>
-      <SplitPaneHorizontalDivider onMouseDown={startLeftPaneResize} />
-      {viewSong.type === "mod" && viewSong ? (
+            <div
+              style={{
+                minWidth: 200,
+                position: "relative",
+                width: "100%",
+                height: "100%",
+              }}
+            >
+              <SplitPaneVerticalContainer
+                height={windowHeight - 38}
+                defaultLayout={defaultPaneLayout}
+              >
+                {songsPane}
+                {viewSong.type === "uge" ? <NavigatorChannelsPane /> : null}
+                {viewSong.type === "uge" ? <NavigatorInstrumentsPane /> : null}
+              </SplitPaneVerticalContainer>
+            </div>
+          </div>
+          <SplitPaneHorizontalDivider onMouseDown={startLeftPaneResize} />
+        </>
+      )}
+      {viewSong.type === "mod" && (
         <div
           style={{
             flex: "1 1 0",
@@ -331,58 +303,71 @@ const MusicPage = () => {
             <ModViewer trackId={viewSong.id} allowConvertToUge />
           </div>
         </div>
-      ) : (
+      )}
+      {viewSong.type === "uge" && (
         <>
-          {status === "error" ? (
-            <ContentWrapper style={{ height: windowHeight - 38 }}>
-              <ContentMessage>
-                <ErrorTitle>Can't load the song</ErrorTitle>
-                <ErrorDescription>{error}</ErrorDescription>
-              </ContentMessage>
-            </ContentWrapper>
-          ) : songDocument !== undefined ? (
-            <>
-              <div
-                style={{
-                  flex: "1 1 0",
-                  minWidth: 0,
-                  overflow: "hidden",
-                  background: themeContext?.colors.background,
-                  color: themeContext?.colors.text,
-                  height: windowHeight - 38,
-                  position: "relative",
-                  display: "flex",
-                  flexDirection: "column",
-                }}
-              >
-                <div style={{ position: "relative", height: "60px" }}>
-                  <SongEditorToolsPanel selectedSong={viewSong} />
-                </div>
+          <div
+            id="song-document"
+            style={{
+              flex: "1 1 0",
+              minWidth: 0,
+              overflow: "hidden",
+              background: themeContext?.colors.background,
+              color: themeContext?.colors.text,
+              height: "100%",
+              position: "relative",
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            <SongDocument musicAsset={viewSong} />
+
+            {!isCompactLayout && (
+              <>
                 <SplitPaneVerticalDivider />
-                {renderGridView()}
-                <UgePlayer data={songDocument} />
-              </div>
+                <SplitPaneHeader
+                  onToggle={togglePatternsPanel}
+                  collapsed={!patternsPanelOpen}
+                >
+                  {l10n("FIELD_ORDER")}
+                </SplitPaneHeader>
+
+                {patternsPanelOpen &&
+                  (status === "loaded" ? (
+                    <SequenceEditor
+                      direction="horizontal"
+                      sequence={songDocument?.sequence}
+                      patterns={songDocument?.patterns.length}
+                      playingSequence={playbackState[0]}
+                    />
+                  ) : (
+                    <div
+                      style={{
+                        height: 75,
+                        background: themeContext?.colors.sidebar.background,
+                      }}
+                    />
+                  ))}
+              </>
+            )}
+          </div>
+          {!isCompactLayout && (
+            <>
               <SplitPaneHorizontalDivider onMouseDown={onResizeRight} />
               <div
+                id="song-editor"
                 style={{
                   width: rightPaneWidth,
                   background: themeContext?.colors.sidebar.background,
                   height: "100%",
                   overflow: "hidden",
                   position: "relative",
+                  flexShrink: 0,
                 }}
               >
-                <SongEditor />
+                {status === "loaded" && <SongEditor />}
               </div>
             </>
-          ) : (
-            <ContentWrapper style={{ height: windowHeight - 38 }}>
-              <ContentMessage>
-                {status === "loading"
-                  ? l10n("FIELD_LOADING")
-                  : "No song loaded"}
-              </ContentMessage>
-            </ContentWrapper>
           )}
         </>
       )}

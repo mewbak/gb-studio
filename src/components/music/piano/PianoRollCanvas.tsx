@@ -543,10 +543,6 @@ export const PianoRollCanvas = ({
 
   const c5Ref = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    c5Ref.current?.scrollIntoView({ block: "center" });
-  }, []);
-
   const documentWidth = song.sequence
     ? calculateDocumentWidth(song.sequence.length) + 100
     : 0;
@@ -564,6 +560,17 @@ export const PianoRollCanvas = ({
   useEffect(() => {
     songRef.current = song;
   }, [song]);
+
+  useEffect(() => {
+    if (scrollRef.current && c5Ref.current) {
+      const scrollRect = scrollRef.current.getBoundingClientRect();
+      const targetRect = c5Ref.current.getBoundingClientRect();
+      const offsetTop = targetRect.top - scrollRect.top;
+      scrollRef.current.scrollTo({
+        top: scrollRef.current.scrollTop + offsetTop,
+      });
+    }
+  }, []);
 
   useEffect(() => {
     hoverNoteRef.current = hoverNote;

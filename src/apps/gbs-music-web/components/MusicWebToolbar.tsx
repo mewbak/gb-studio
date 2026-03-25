@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import styled from "styled-components";
 import { Toolbar } from "ui/toolbar/Toolbar";
 import { Button } from "ui/buttons/Button";
@@ -21,9 +21,14 @@ import {
 } from "gbs-music-web/lib/preferences";
 import { useWebFullscreen } from "ui/hooks/use-web-fullscreen";
 import { SongContextBar } from "components/music/toolbar/SongContextBar";
+import useWindowSize from "ui/hooks/use-window-size";
+import trackerActions from "store/features/tracker/trackerActions";
+import { useAppDispatch, useAppSelector } from "store/hooks";
 
 declare const VERSION: string;
 declare const COMMITHASH: string;
+
+const COMPACT_LAYOUT_BREAKPOINT = 900;
 
 const Logo = styled.img`
   width: 16px;
@@ -115,7 +120,19 @@ export const MusicWebToolbar = ({
   onOpenDirectoryWorkspace,
   onImportSong,
 }: MusicWebToolbarProps) => {
+  const dispatch = useAppDispatch();
+
   const [showAbout, setShowAbout] = useState(false);
+
+  const view = useAppSelector((state) => state.tracker.view);
+
+  const setTrackerView = useCallback(() => {
+    dispatch(trackerActions.setViewAndSave("tracker"));
+  }, [dispatch]);
+
+  const setRollView = useCallback(() => {
+    dispatch(trackerActions.setViewAndSave("roll"));
+  }, [dispatch]);
 
   const fileMenu = useMemo(() => {
     return [
@@ -137,6 +154,26 @@ export const MusicWebToolbar = ({
         : []),
     ];
   }, [onCreateSong, onImportSong, onOpenDirectoryWorkspace]);
+
+  const viewMenu = useMemo(
+    () => [
+      <MenuItem
+        key="roll"
+        onClick={setRollView}
+        icon={view === "roll" ? <CheckIcon /> : <BlankIcon />}
+      >
+        Piano Roll
+      </MenuItem>,
+      <MenuItem
+        key="tracker"
+        onClick={setTrackerView}
+        icon={view === "tracker" ? <CheckIcon /> : <BlankIcon />}
+      >
+        Tracker
+      </MenuItem>,
+    ],
+    [setRollView, setTrackerView, view],
+  );
 
   const themeMenu = useMemo(
     () =>
@@ -166,6 +203,12 @@ export const MusicWebToolbar = ({
 
   const { isFullscreen, toggleFullscreen } = useWebFullscreen();
 
+  const windowSize = useWindowSize();
+  const windowWidth = windowSize.width || 0;
+
+  const isCompactLayout =
+    windowWidth > 0 && windowWidth <= COMPACT_LAYOUT_BREAKPOINT;
+
   return (
     <>
       <Toolbar>
@@ -182,6 +225,7 @@ export const MusicWebToolbar = ({
           >
             <MenuItem subMenu={fileMenu}>{l10n("MENU_FILE")}</MenuItem>
             <MenuDivider />
+            <MenuItem subMenu={viewMenu}>{l10n("MENU_VIEW")}</MenuItem>
             <MenuItem subMenu={themeMenu}>{l10n("MENU_THEME")}</MenuItem>
             <MenuItem subMenu={localeMenu}>{l10n("MENU_LANGUAGE")}</MenuItem>
             <MenuDivider />
@@ -191,12 +235,17 @@ export const MusicWebToolbar = ({
           </DropdownButton>
         </Brand>
         <FlexGrow />
-        <SongContextBar />
-        <FlexGrow />
-        <FixedSpacer width={58} />
-        <Button onClick={toggleFullscreen}>
-          {isFullscreen ? <FullscreenCloseIcon /> : <FullscreenIcon />}
-        </Button>
+        <SongContextBar isCompactLayout={isCompactLayout} />
+
+        {!isCompactLayout && (
+          <>
+            <FlexGrow />
+            <FixedSpacer width={58} />
+            <Button onClick={toggleFullscreen}>
+              {isFullscreen ? <FullscreenCloseIcon /> : <FullscreenIcon />}
+            </Button>
+          </>
+        )}
       </Toolbar>
       {showAbout && (
         <>
