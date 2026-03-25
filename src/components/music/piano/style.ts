@@ -392,6 +392,7 @@ export const StyledPianoRollNote = styled.div<StyledPianoRollNoteProps>`
 
 interface StyledPianoRollEffectCellProps {
   $isSelected?: boolean;
+  $instrument?: number;
 }
 
 export const StyledPianoRollEffectCell = styled.div<StyledPianoRollEffectCellProps>`
@@ -410,7 +411,16 @@ export const StyledPianoRollEffectCell = styled.div<StyledPianoRollEffectCellPro
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  background: ${(props) => props.theme.colors.button.activeBackground};
+
+  background: ${(props) =>
+    props.$instrument !== undefined
+      ? `var(--instrument-${props.$instrument}-color)`
+      : props.theme.colors.button.activeBackground};
+
+  color: ${(props) =>
+    props.$instrument !== undefined
+      ? `var(--instrument-${props.$instrument}-text-color)`
+      : props.theme.colors.text};
 
   &::before {
     content: "";

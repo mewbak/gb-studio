@@ -52,6 +52,23 @@ const GlobalStyle = createGlobalStyle`
     --instrument-12-color: #f48cb6;
     --instrument-13-color: #f7b69e;
     --instrument-14-color: #9b9c82;
+
+    --instrument-0-text-color: #000000;
+    --instrument-1-text-color: #000000;
+    --instrument-2-text-color: #ffffff;
+    --instrument-3-text-color: #ffffff;
+    --instrument-4-text-color: #ffffff;
+    --instrument-5-text-color: #ffffff;
+    --instrument-6-text-color: #000000;
+    --instrument-7-text-color: #000000;
+    --instrument-8-text-color: #000000;
+    --instrument-9-text-color: #ffffff;
+    --instrument-10-text-color: #ffffff;
+    --instrument-11-text-color: #ffffff;
+    --instrument-12-text-color: #000000;
+    --instrument-13-text-color: #000000;
+    --instrument-14-text-color: #000000;
+
   }
 
   @font-face {

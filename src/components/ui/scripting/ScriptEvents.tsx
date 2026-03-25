@@ -45,6 +45,7 @@ interface ScriptEventHeaderProps {
   isSelected?: boolean;
   isExecuting?: boolean;
   isMoveable?: boolean;
+  isMultiSelectable?: boolean;
   isOpen: boolean;
   isBreakpoint?: boolean;
   altBg?: boolean;
@@ -102,6 +103,7 @@ export const ScriptEventHeader = forwardRef<
       isSelected,
       isExecuting,
       isMoveable = true,
+      isMultiSelectable,
       isOpen,
       altBg,
       isBreakpoint,
@@ -148,7 +150,7 @@ export const ScriptEventHeader = forwardRef<
           <FixedSpacer width={5} />
           {children}
         </StyledScriptEventHeaderTitle>
-        {isMoveable && (
+        {isMultiSelectable && (
           <PreventDrag>
             <Checkbox
               id="selectEvent"

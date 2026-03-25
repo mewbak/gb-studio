@@ -506,6 +506,7 @@ const ScriptEditorEvent = React.memo(
               isSelected={scriptEventSelectionIds.includes(scriptEvent.id)}
               isExecuting={isExecuting}
               isBreakpoint={breakpointEnabled}
+              isMultiSelectable
               breakpointTitle={l10n("FIELD_BREAKPOINT")}
               menuItems={contextMenuItems}
               onOpenMenu={onFetchClipboard}

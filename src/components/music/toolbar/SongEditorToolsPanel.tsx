@@ -28,6 +28,7 @@ import { SingleValue } from "react-select";
 import { MusicAsset } from "shared/lib/resources/types";
 import SongExportForm from "components/music/form/SongExportForm";
 import l10n from "shared/lib/lang/l10n";
+import { InstrumentSelectButton } from "components/music/form/InstrumentSelectButton";
 
 interface OctaveOffsetOptions {
   value: number;
@@ -385,7 +386,7 @@ const SongEditorToolsPanel = ({ selectedSong }: SongEditorToolsPanelProps) => {
             <FloatingPanelDivider />
           </>
         )}
-        <InstrumentSelect
+        <InstrumentSelectButton
           name="instrument"
           value={selectedInstrumentId}
           onChange={(newValue) => {

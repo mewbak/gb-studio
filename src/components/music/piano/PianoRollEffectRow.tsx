@@ -161,6 +161,7 @@ export const PianoRollEffectRow = React.memo(
               data-row={columnIdx}
               $isSelected={isSelected}
               style={{ left: `${columnIdx * PIANO_ROLL_CELL_SIZE}px` }}
+              $instrument={cell.instrument ?? undefined}
             >
               <span>{cell.effectcode?.toString(16).toUpperCase()}</span>
             </StyledPianoRollEffectCell>
