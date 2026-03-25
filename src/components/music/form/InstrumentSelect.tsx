@@ -28,15 +28,37 @@ interface LabelColorProps {
 }
 
 const LabelColor = styled.div<LabelColorProps>`
+  position: relative;
   width: 10px;
   height: 10px;
-  border-radius: 10px;
+  border-radius: 2px;
+  border: 1px solid black;
   flex-shrink: 0;
   margin-left: 5px;
   background: ${(props) =>
     props.$instrument !== undefined
       ? `var(--instrument-${props.$instrument}-color)`
       : "black"};
+
+  &::before {
+    content: "";
+    position: absolute;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+    height: 2px;
+    background: rgba(0, 0, 0, 0.25);
+  }
+  &::after {
+    content: "";
+    position: absolute;
+    top: 1px;
+    left: 1px;
+    right: 1px;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.6);
+    mix-blend-mode: overlay;
+  }
 `;
 
 interface InstrumentSelectProps extends SelectCommonProps {
