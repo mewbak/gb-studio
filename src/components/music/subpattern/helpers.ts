@@ -187,7 +187,7 @@ export const subPatternRowLabel = (
     if (cell.jump - 1 === tick) {
       labelParts.push(`Loop`);
     } else {
-      labelParts.push(`Jump To: ${String(cell.jump - 1).padStart(2, "0")}`);
+      labelParts.push(`Jump: ${String(cell.jump - 1).padStart(2, "0")}`);
     }
   }
   if (
@@ -205,22 +205,7 @@ export const pitchOffsetLabel = (offset: number): string => {
   if (offset === 0) {
     return "";
   }
-
   const sign = offset < 0 ? -1 : 1;
   const abs = Math.abs(offset);
-
-  const octaves = Math.floor(abs / 12);
-  const semitones = abs % 12;
-
-  const parts: string[] = [];
-
-  if (octaves !== 0) {
-    parts.push(`${sign * octaves > 0 ? "+" : ""}${sign * octaves} Oct`);
-  }
-
-  if (semitones !== 0) {
-    parts.push(`${sign * semitones > 0 ? "+" : ""}${sign * semitones}`);
-  }
-
-  return parts.join(" ");
+  return `${sign * abs > 0 ? "+" : ""}${sign * abs}`;
 };

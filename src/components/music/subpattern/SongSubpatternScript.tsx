@@ -13,6 +13,7 @@ import { SortableItem } from "ui/lists/SortableItem";
 import { MenuItem } from "ui/menu/Menu";
 import {
   ScriptEventField,
+  ScriptEventFieldGroup,
   ScriptEventFields,
   ScriptEventFormWrapper,
   ScriptEventHeader,
@@ -42,6 +43,7 @@ import { SliderField } from "ui/form/SliderField";
 import useResizeObserver from "ui/hooks/use-resize-observer";
 import { mergeRefs } from "ui/hooks/merge-refs";
 import { NoiseMacroEditorForm } from "components/music/form/NoiseMacroEditorForm";
+import { ToggleableFormField } from "ui/form/layout/FormLayout";
 
 const RowsList = styled.div`
   position: relative;
@@ -467,45 +469,57 @@ export const InstrumentSubpatternSimpleEditor = ({
                         />
                       </ScriptEventField>
 
-                      <ScriptEventField halfWidth>
+                      <ScriptEventField>
                         <Label>Flow</Label>
                         <ToggleButtonGroup<"continue" | "jump">
                           name="subpattern_flow"
                           value={selectedFlowType}
                           options={[
                             { value: "continue", label: "Continue" },
-                            { value: "jump", label: "Jump To" },
+                            { value: "jump", label: "Jump" },
                           ]}
                           onChange={onChangeFlowType}
                         />
                       </ScriptEventField>
 
-                      <ScriptEventField halfWidth>
-                        <Input
-                          type="number"
-                          min={0}
-                          max={31}
-                          value={selectedJumpTarget}
-                          onChange={onChangeJumpTarget}
-                        />
+                      <ScriptEventField alignBottom>
+                        {selectedFlowType === "jump" && (
+                          <>
+                            <Label>Next Tick</Label>
+
+                            <Input
+                              type="number"
+                              min={0}
+                              max={31}
+                              value={selectedJumpTarget}
+                              onChange={onChangeJumpTarget}
+                            />
+                          </>
+                        )}
                       </ScriptEventField>
 
                       <ScriptEventField flexBasis="100%">
-                        <Label>Effect Override</Label>
-                        <EffectCodeSelect
+                        <ToggleableFormField
                           name="subpattern_effect"
-                          value={
-                            selectedEffectIsAdvancedOnly
-                              ? undefined
-                              : selectedCell.effectcode
-                          }
-                          effectParam={selectedCell.effectparam ?? 0}
-                          note={selectedCell.note ?? undefined}
-                          instrumentId={instrumentId}
-                          allowedEffectCodes={[...validSubpatternEffectCodes]}
-                          onChange={onChangeEffectCode}
-                          noneLabel="None"
-                        />
+                          disabledLabel="Add Effect Override"
+                          label="Effect Override"
+                          enabled={selectedCell.effectparam !== null}
+                        >
+                          <EffectCodeSelect
+                            name="subpattern_effect"
+                            value={
+                              selectedEffectIsAdvancedOnly
+                                ? undefined
+                                : selectedCell.effectcode
+                            }
+                            effectParam={selectedCell.effectparam ?? 0}
+                            note={selectedCell.note ?? undefined}
+                            instrumentId={instrumentId}
+                            allowedEffectCodes={[...validSubpatternEffectCodes]}
+                            onChange={onChangeEffectCode}
+                            noneLabel="None"
+                          />
+                        </ToggleableFormField>
                       </ScriptEventField>
                     </ScriptEventFields>
 
