@@ -7,10 +7,8 @@ import { MenuDivider, MenuItem, MenuItemIcon, MenuOverlay } from "ui/menu/Menu";
 import {
   BlankIcon,
   CheckIcon,
-  FolderIcon,
   FullscreenCloseIcon,
   FullscreenIcon,
-  PlayIcon,
 } from "ui/icons/Icons";
 import { FixedSpacer, FlexGrow } from "ui/spacing/Spacing";
 import l10n from "shared/lib/lang/l10n";
