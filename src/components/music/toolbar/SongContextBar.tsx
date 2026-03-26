@@ -1,4 +1,10 @@
-import React, { useCallback, useContext, useEffect, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import API from "renderer/lib/api";
 import l10n from "shared/lib/lang/l10n";
 import { MusicDataReceivePacket } from "shared/lib/music/types";
@@ -16,12 +22,17 @@ import {
   StopIcon,
   TrackerIcon,
 } from "ui/icons/Icons";
-import { FixedSpacer } from "ui/spacing/Spacing";
+import { FixedSpacer, FlexGrow } from "ui/spacing/Spacing";
 
-const StyledSongContextBar = styled.div`
+const StyledSongContextBar = styled.div<{ $isCompactLayout?: boolean }>`
   display: flex;
   align-items: center;
   justify-content: center;
+  ${(props) =>
+    props.$isCompactLayout &&
+    css`
+      flex-grow: 500;
+    `}
 `;
 
 const StyledSongContextBarTimer = styled.div<{ disabled: boolean }>`
@@ -218,8 +229,8 @@ export const SongContextBar = ({
   const themePianoIcon =
     themeContext?.type === "light" ? <PianoIcon /> : <PianoInverseIcon />;
 
-  return (
-    <StyledSongContextBar>
+  const playPauseButtons = useMemo(
+    () => (
       <ButtonGroup>
         <Button
           disabled={!playerReady || exporting}
@@ -242,7 +253,20 @@ export const SongContextBar = ({
           <StopIcon />
         </Button>
       </ButtonGroup>
-      <FixedSpacer width={10} />
+    ),
+    [exporting, play, playbackFromStart, playerReady, stopPlayback, togglePlay],
+  );
+
+  return (
+    <StyledSongContextBar $isCompactLayout={isCompactLayout}>
+      {!isCompactLayout && (
+        <>
+          {playPauseButtons}
+          <FixedSpacer width={10} />
+        </>
+      )}
+      {isCompactLayout && <FlexGrow />}
+
       <StyledSongContextBarTimer disabled={!playerReady}>
         <StyledSongContextBarTimerPart>
           <StyledSongContextBarTimerPartLabel>
@@ -283,6 +307,12 @@ export const SongContextBar = ({
               <TrackerIcon />
             </Button>
           </ButtonGroup>
+        </>
+      )}
+      {isCompactLayout && (
+        <>
+          <FlexGrow />
+          {playPauseButtons}
         </>
       )}
     </StyledSongContextBar>
