@@ -61,13 +61,13 @@ export type InteractionState =
       modifiers: PointerModifiers;
     }
   | {
-      type: "pending_pencil";
+      type: "pendingNote";
       modifiers: PointerModifiers;
       startPoint: Position;
       pending: PendingPencilNote;
     }
   | {
-      type: "drag_note";
+      type: "dragNote";
       modifiers: PointerModifiers;
       origin: GridPoint;
       delta: DragDelta;
@@ -84,7 +84,7 @@ export type InteractionState =
       lastPaintPosition: GridPoint | null;
     }
   | {
-      type: "selection_box";
+      type: "selectionBox";
       modifiers: PointerModifiers;
       box: SelectionBox;
     };

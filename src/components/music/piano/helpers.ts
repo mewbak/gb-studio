@@ -4,6 +4,7 @@ import {
   TOTAL_NOTES,
   TRACKER_PATTERN_LENGTH,
 } from "consts";
+import clamp from "shared/lib/helpers/clamp";
 
 export const calculatePlaybackTrackerPosition = (
   playbackOrder: number,
@@ -66,4 +67,48 @@ export const interpolateGridLine = (
   }
 
   return points;
+};
+
+export const pixelToGridIndex = (pixel: number) =>
+  Math.floor(pixel / PIANO_ROLL_CELL_SIZE);
+
+export const pixelToGridStart = (pixel: number) =>
+  pixelToGridIndex(pixel) * PIANO_ROLL_CELL_SIZE;
+
+export const pixelRangeToGridRange = (
+  start: number,
+  size: number,
+  max: number,
+) => {
+  const from = clamp(Math.floor(start / PIANO_ROLL_CELL_SIZE), 0, max - 1);
+
+  const to = clamp(
+    Math.ceil((start + size) / PIANO_ROLL_CELL_SIZE),
+    from + 1,
+    max,
+  );
+
+  return { from, to };
+};
+
+export const pageToSnappedGridPoint = (
+  pageX: number,
+  pageY: number,
+  bounds: DOMRect,
+  sequenceLength: number,
+) => {
+  const totalAbsRows = sequenceLength * TRACKER_PATTERN_LENGTH;
+
+  return {
+    x: clamp(
+      pixelToGridStart(pageX - bounds.left),
+      0,
+      totalAbsRows * PIANO_ROLL_CELL_SIZE - 1,
+    ),
+    y: clamp(
+      pixelToGridStart(pageY - bounds.top),
+      0,
+      TOTAL_NOTES * PIANO_ROLL_CELL_SIZE - PIANO_ROLL_CELL_SIZE,
+    ),
+  };
 };
