@@ -107,12 +107,19 @@ const renderJump = (n: number | null): string => {
   return `J${n.toString().padStart(2, "0")}`;
 };
 
-const renderOffset = (n: number | null): string => {
+const renderOffset = (
+  n: number | null,
+  zeroSignOverride?: 1 | -1 | null,
+): string => {
   if (n === null) {
     return EMPTY_OFFSET_DISPLAY;
   }
 
   const offset = n - 36;
+
+  if (offset === 0 && zeroSignOverride === -1) {
+    return "-00";
+  }
 
   if (offset >= 0) {
     return `+${offset.toString().padStart(2, "0")}`;
@@ -159,6 +166,7 @@ export const InstrumentSubpatternTracker = ({
 
   const activeFieldRef = useRef<HTMLSpanElement | null>(null);
   const offsetSignRef = useRef<1 | -1>(1);
+  const offsetZeroSignOverrideRef = useRef<1 | -1 | null>(null);
 
   const selectedTrackerFields = useMemo(
     () => getSelectedTrackerFields(selectionRect, selectionOrigin),
@@ -190,6 +198,7 @@ export const InstrumentSubpatternTracker = ({
   useEffect(() => {
     if (activeField !== undefined) {
       offsetSignRef.current = 1;
+      offsetZeroSignOverrideRef.current = null;
     }
   }, [activeField]);
 
@@ -326,15 +335,21 @@ export const InstrumentSubpatternTracker = ({
       switch (value) {
         case "+":
           offsetSignRef.current = 1;
+          offsetZeroSignOverrideRef.current = 1;
           nextOffset = Math.abs(currentOffset);
           break;
+
         case "-":
           offsetSignRef.current = -1;
+          offsetZeroSignOverrideRef.current = -1;
           nextOffset = -Math.abs(currentOffset);
           break;
+
         case null:
+          offsetZeroSignOverrideRef.current = null;
           editSubPatternCell("note", null);
           return;
+
         default: {
           const sign =
             currentOffset !== 0
@@ -349,11 +364,17 @@ export const InstrumentSubpatternTracker = ({
 
           nextOffset = sign * Math.min(maxAbsValue, nextAbsValue);
           offsetSignRef.current = sign;
+          offsetZeroSignOverrideRef.current = null;
           break;
         }
       }
 
       const clampedOffset = Math.max(-36, Math.min(35, nextOffset));
+
+      if (clampedOffset !== 0) {
+        offsetZeroSignOverrideRef.current = null;
+      }
+
       editSubPatternCell("note", clampedOffset + 36);
     },
     [activeCell?.note, editSubPatternCell],
@@ -618,6 +639,8 @@ export const InstrumentSubpatternTracker = ({
     }
 
     e.preventDefault();
+
+    const _delta = e.deltaY === 0 ? e.deltaX : e.deltaY;
   }, []);
 
   const onFocus = useCallback(() => {
@@ -629,6 +652,7 @@ export const InstrumentSubpatternTracker = ({
 
   const onBlur = useCallback(() => {
     setActiveField(undefined);
+    offsetZeroSignOverrideRef.current = null;
     dispatch(trackerActions.setSubpatternEditorFocus(false));
   }, [dispatch]);
 
@@ -786,7 +810,10 @@ export const InstrumentSubpatternTracker = ({
                   data-subpattern_fieldid={fieldCount}
                   $selected={selectedTrackerFieldSet.has(fieldCount)}
                 >
-                  {renderOffset(row.note)}
+                  {renderOffset(
+                    row.note,
+                    isOffsetActive ? offsetZeroSignOverrideRef.current : null,
+                  )}
                 </StyledTrackerNoteField>
 
                 <StyledTrackerJumpField
