@@ -61,7 +61,9 @@ import {
   commitPastedAbsoluteCells,
   copyAbsoluteCells,
   cutAbsoluteCells,
+  eraseAbsoluteCells,
   moveAbsoluteCells,
+  paintAbsoluteCells,
   pasteInPlace,
 } from "store/features/trackerDocument/trackerDocumentState";
 import { pasteAbsoluteCells } from "store/features/tracker/trackerState";
@@ -1218,46 +1220,13 @@ export const PianoRollCanvas = ({
             { absRow, note: noteIndex },
           );
 
-          const changes: Array<{
-            patternId: number;
-            rowId: number;
-            channelId: number;
-            changes: Partial<PatternCell>;
-          }> = [];
-
-          for (const paintCell of cellsToPaint) {
-            const resolved = resolveAbsRow(song.sequence, paintCell.absRow);
-            if (!resolved) {
-              continue;
-            }
-
-            const existing =
-              song.patterns[resolved.patternId]?.[resolved.rowId]?.[
-                selectedChannel
-              ];
-
-            if (existing?.note === paintCell.note) {
-              continue;
-            }
-
-            changes.push({
-              patternId: resolved.patternId,
-              rowId: resolved.rowId,
+          dispatch(
+            paintAbsoluteCells({
+              cells: cellsToPaint,
               channelId: selectedChannel,
-              changes: {
-                instrument: selectedInstrumentId,
-                note: paintCell.note,
-              },
-            });
-          }
-
-          if (changes.length > 0) {
-            dispatch(
-              trackerDocumentActions.applyPatternCellChanges({
-                changes,
-              }),
-            );
-          }
+              instrumentId: selectedInstrumentId,
+            }),
+          );
 
           const lastPainted = cellsToPaint[cellsToPaint.length - 1];
           if (lastPainted) {
@@ -1309,48 +1278,12 @@ export const PianoRollCanvas = ({
             { absRow, note: noteIndex },
           );
 
-          const changes: Array<{
-            patternId: number;
-            rowId: number;
-            channelId: number;
-            changes: Partial<PatternCell>;
-          }> = [];
-
-          for (const eraseCell of cellsToErase) {
-            const resolved = resolveAbsRow(song.sequence, eraseCell.absRow);
-            if (!resolved) {
-              continue;
-            }
-
-            const existing =
-              song.patterns[resolved.patternId]?.[resolved.rowId]?.[
-                selectedChannel
-              ];
-
-            if (
-              existing?.note !== null &&
-              existing?.note !== undefined &&
-              existing.note === eraseCell.note
-            ) {
-              changes.push({
-                patternId: resolved.patternId,
-                rowId: resolved.rowId,
-                channelId: selectedChannel,
-                changes: {
-                  instrument: null,
-                  note: null,
-                },
-              });
-            }
-          }
-
-          if (changes.length > 0) {
-            dispatch(
-              trackerDocumentActions.applyPatternCellChanges({
-                changes,
-              }),
-            );
-          }
+          dispatch(
+            eraseAbsoluteCells({
+              cells: cellsToErase,
+              channelId: selectedChannel,
+            }),
+          );
         }
 
         return input.shouldPreventDefault;

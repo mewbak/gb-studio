@@ -55,6 +55,13 @@ export const initialState: TrackerDocumentState = {
   // modified: false,
 };
 
+type PatternCellChange = {
+  patternId: number;
+  rowId: number;
+  channelId: number;
+  changes: Partial<PatternCell>;
+};
+
 export const requestAddNewSongFile = createAction<string>(
   "trackerDocument/requestAddNewSong",
 );
@@ -675,6 +682,132 @@ export const commitPastedAbsoluteCells =
         changes: {
           ...cell,
           note: wrapNote(cell.note + noteOffset),
+        },
+      });
+    }
+
+    if (changes.length > 0) {
+      dispatch(actions.applyPatternCellChanges({ changes }));
+    }
+  };
+
+export const paintAbsoluteCells =
+  (args: {
+    cells: Array<{ absRow: number; note: number }>;
+    channelId: number;
+    instrumentId: number;
+  }): AppThunk =>
+  (dispatch, getState) => {
+    const state = getState();
+    const song = selectTrackerDocumentSong(state);
+
+    if (!song) {
+      return;
+    }
+
+    const { cells, channelId, instrumentId } = args;
+
+    if (cells.length === 0) {
+      return;
+    }
+
+    const changes: PatternCellChange[] = [];
+    const seen = new Set<string>();
+
+    for (const paintCell of cells) {
+      const resolved = resolveAbsRow(song.sequence, paintCell.absRow);
+      if (!resolved) {
+        continue;
+      }
+
+      const key = `${resolved.patternId}:${resolved.rowId}:${channelId}`;
+      if (seen.has(key)) {
+        continue;
+      }
+      seen.add(key);
+
+      const existing =
+        song.patterns?.[resolved.patternId]?.[resolved.rowId]?.[channelId];
+
+      if (!existing) {
+        continue;
+      }
+
+      if (
+        existing.note === paintCell.note &&
+        existing.instrument === instrumentId
+      ) {
+        continue;
+      }
+
+      changes.push({
+        patternId: resolved.patternId,
+        rowId: resolved.rowId,
+        channelId,
+        changes: {
+          instrument: instrumentId,
+          note: paintCell.note,
+        },
+      });
+    }
+
+    if (changes.length > 0) {
+      dispatch(actions.applyPatternCellChanges({ changes }));
+    }
+  };
+
+export const eraseAbsoluteCells =
+  (args: {
+    cells: Array<{ absRow: number; note: number }>;
+    channelId: number;
+  }): AppThunk =>
+  (dispatch, getState) => {
+    const state = getState();
+    const song = selectTrackerDocumentSong(state);
+
+    if (!song) {
+      return;
+    }
+
+    const { cells, channelId } = args;
+
+    if (cells.length === 0) {
+      return;
+    }
+
+    const changes: PatternCellChange[] = [];
+    const seen = new Set<string>();
+
+    for (const eraseCell of cells) {
+      const resolved = resolveAbsRow(song.sequence, eraseCell.absRow);
+      if (!resolved) {
+        continue;
+      }
+
+      const key = `${resolved.patternId}:${resolved.rowId}:${channelId}`;
+      if (seen.has(key)) {
+        continue;
+      }
+      seen.add(key);
+
+      const existing =
+        song.patterns?.[resolved.patternId]?.[resolved.rowId]?.[channelId];
+
+      if (!existing) {
+        continue;
+      }
+
+      if (existing.note !== eraseCell.note) {
+        continue;
+      }
+
+      changes.push({
+        patternId: resolved.patternId,
+        rowId: resolved.rowId,
+        channelId,
+        changes: {
+          instrument: null,
+          note: null,
         },
       });
     }
