@@ -85,22 +85,9 @@ interface Position {
   y: number;
 }
 
-interface NoteDragOrigin {
-  absRow: number;
-  note: number;
-}
-
 interface DragDelta {
   rows: number;
   notes: number;
-}
-
-interface TwoFingerTapGesture {
-  isActive: boolean;
-  startedAt: number;
-  startMidpointX: number;
-  startMidpointY: number;
-  movedTooFar: boolean;
 }
 
 type BlurableDOMElement = {
@@ -114,6 +101,82 @@ export interface SelectionRect {
   height: number;
 }
 
+type PointerModifiers = {
+  addToSelection: boolean;
+  clone: boolean;
+};
+
+type GridPoint = {
+  absRow: number;
+  note: number;
+};
+
+type SelectionBox = {
+  origin: Position;
+  rect: SelectionRect;
+};
+
+type PendingPencilNote = {
+  patternId: number;
+  patternRow: number;
+  sequenceId: number;
+  absRow: number;
+  noteIndex: number;
+  clickedCellAddress: PatternCellAddress;
+};
+
+type TwoFingerTapState =
+  | { type: "idle" }
+  | {
+      type: "tracking";
+      startedAt: number;
+      startMidpointX: number;
+      startMidpointY: number;
+      movedTooFar: boolean;
+    };
+
+type InteractionState =
+  | {
+      type: "idle";
+      modifiers: PointerModifiers;
+    }
+  | {
+      type: "pending_pencil";
+      modifiers: PointerModifiers;
+      startPoint: Position;
+      pending: PendingPencilNote;
+    }
+  | {
+      type: "drag_note";
+      modifiers: PointerModifiers;
+      origin: GridPoint;
+      delta: DragDelta;
+      startedFromSelection: boolean;
+    }
+  | {
+      type: "paint";
+      modifiers: PointerModifiers;
+      lastPaintPosition: GridPoint | null;
+    }
+  | {
+      type: "erase";
+      modifiers: PointerModifiers;
+      lastPaintPosition: GridPoint | null;
+    }
+  | {
+      type: "selection_box";
+      modifiers: PointerModifiers;
+      box: SelectionBox;
+    };
+
+type DragPreviewState =
+  | { type: "idle" }
+  | {
+      type: "dragging";
+      clone: boolean;
+      delta: DragDelta;
+    };
+
 export const PianoRollCanvas = ({
   song,
   sequenceId,
@@ -121,6 +184,14 @@ export const PianoRollCanvas = ({
   playbackRow,
 }: PianoRollCanvasProps) => {
   const dispatch = useAppDispatch();
+
+  const interactionRef = useRef<InteractionState>({
+    type: "idle",
+    modifiers: { addToSelection: false, clone: false },
+  });
+
+  const twoFingerTapRef = useRef<TwoFingerTapState>({ type: "idle" });
+
   const playPreview = useMusicNotePreview();
 
   const hoverNote = useAppSelector((state) => state.tracker.hoverNote);
@@ -131,29 +202,25 @@ export const PianoRollCanvas = ({
   const selectedPatternCells = useAppSelector(
     (state) => state.tracker.selectedPatternCells,
   );
+  const selectedPatternCellsRef = useRef(selectedPatternCells);
+  useEffect(() => {
+    selectedPatternCellsRef.current = selectedPatternCells;
+  }, [selectedPatternCells]);
+
   const subpatternEditorFocus = useAppSelector(
     (state) => state.tracker.subpatternEditorFocus,
   );
   const pastedPattern = useAppSelector((state) => state.tracker.pastedPattern);
 
-  const addToSelection = useRef(false);
-  const clonePatternCells = useRef(false);
-  const [isCloneMode, setIsCloneMode] = useState(false);
+  const [dragPreviewState, setDragPreviewState] = useState<DragPreviewState>({
+    type: "idle",
+  });
 
-  const [isMouseDown, setIsMouseDown] = useState<boolean>(false);
-  const [isDraggingNotes, setIsDraggingNotes] = useState(false);
-  const [noteDragOrigin, setNoteDragOrigin] = useState<NoteDragOrigin | null>(
-    null,
-  );
   const lastDragPreviewCellRef = useRef<string | null>(null);
   const lastPaintPositionRef = useRef<{
     absRow: number;
     noteIndex: number;
   } | null>(null);
-  const [dragDelta, setDragDelta] = useState<DragDelta>({
-    rows: 0,
-    notes: 0,
-  });
 
   const selectedChannel = useAppSelector(
     (state) => state.tracker.selectedChannel,
@@ -164,10 +231,6 @@ export const PianoRollCanvas = ({
 
   const tool = useAppSelector((state) => state.tracker.tool);
 
-  const [draggingSelection, setDraggingSelection] = useState(false);
-  const [selectionOrigin, setSelectionOrigin] = useState<
-    Position | undefined
-  >();
   const [selectionRect, setSelectionRect] = useState<
     SelectionRect | undefined
   >();
@@ -175,14 +238,6 @@ export const PianoRollCanvas = ({
   const selectedInstrumentId = useAppSelector(
     (state) => state.tracker.selectedInstrumentId,
   );
-
-  const twoFingerTapRef = useRef<TwoFingerTapGesture>({
-    isActive: false,
-    startedAt: 0,
-    startMidpointX: 0,
-    startMidpointY: 0,
-    movedTooFar: false,
-  });
 
   const TOUCH_TAP_MAX_MOVEMENT = 10;
 
@@ -404,54 +459,60 @@ export const PianoRollCanvas = ({
 
   const handleKeyDownActions = useCallback(
     (e: KeyboardEvent) => {
-      if ((e.target as HTMLElement)?.nodeName !== "BODY") {
+      if ((e.target as HTMLElement | null)?.nodeName !== "BODY") {
         return;
       }
+
       if (e.ctrlKey || e.metaKey) {
         return;
       }
 
       if (e.key === "Backspace" || e.key === "Delete") {
-        if (selectedPatternCells.length === 0) return;
+        if (selectedPatternCellsRef.current.length === 0) {
+          return;
+        }
+
         dispatch(
           trackerDocumentActions.clearAbsoluteCells({
-            patternCells: selectedPatternCells,
+            patternCells: selectedPatternCellsRef.current,
           }),
         );
         dispatch(trackerActions.setSelectedPatternCells([]));
+        return;
       }
 
       if (e.key === "Escape") {
+        interactionRef.current = {
+          type: "idle",
+          modifiers: {
+            addToSelection: e.shiftKey,
+            clone: e.altKey,
+          },
+        };
+
+        lastDragPreviewCellRef.current = null;
+        lastPaintPositionRef.current = null;
+
+        setSelectionRect(undefined);
         dispatch(trackerActions.setSelectedPatternCells([]));
-        setIsDraggingNotes(false);
-        setDragDelta({ rows: 0, notes: 0 });
-        setNoteDragOrigin(null);
         dispatch(trackerActions.clearPastedPattern());
       }
     },
-    [dispatch, selectedPatternCells],
+    [dispatch],
   );
-
-  const changeInstrumentForSelectedIds = useCallback(() => {
-    dispatch(
-      trackerDocumentActions.changeInstrumentAbsoluteCells({
-        patternCells: selectedPatternCells,
-        instrumentId: selectedInstrumentId,
-      }),
-    );
-  }, [dispatch, selectedInstrumentId, selectedPatternCells]);
 
   const handleKeyDownActionsRef = useRef(handleKeyDownActions);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.shiftKey) {
-        addToSelection.current = true;
-      }
-      if (e.altKey) {
-        clonePatternCells.current = true;
-        setIsCloneMode(true);
-      }
+      interactionRef.current = {
+        ...interactionRef.current,
+        modifiers: {
+          addToSelection: e.shiftKey,
+          clone: e.altKey,
+        },
+      };
+
       if (e.code === "Equal") {
         dispatch(
           trackerDocumentActions.transposeAbsoluteCells({
@@ -481,8 +542,9 @@ export const PianoRollCanvas = ({
               size: "octave",
             }),
           );
-          return true;
+          return;
         }
+
         if (e.code === "KeyA") {
           dispatch(
             trackerDocumentActions.transposeAbsoluteCells({
@@ -491,7 +553,7 @@ export const PianoRollCanvas = ({
               size: "octave",
             }),
           );
-          return true;
+          return;
         }
       } else if (e.altKey && e.shiftKey) {
         if (e.code === "KeyQ") {
@@ -502,8 +564,9 @@ export const PianoRollCanvas = ({
               size: "note",
             }),
           );
-          return true;
+          return;
         }
+
         if (e.code === "KeyA") {
           dispatch(
             trackerDocumentActions.transposeAbsoluteCells({
@@ -512,7 +575,7 @@ export const PianoRollCanvas = ({
               size: "note",
             }),
           );
-          return true;
+          return;
         }
       } else if (e.ctrlKey) {
         if (e.code === "KeyI") {
@@ -522,15 +585,16 @@ export const PianoRollCanvas = ({
               instrumentId: selectedInstrumentId,
             }),
           );
-          return true;
+          return;
         }
+
         if (e.code === "KeyK") {
           dispatch(
             trackerDocumentActions.interpolateAbsoluteCells({
               patternCells: selectedPatternCells,
             }),
           );
-          return true;
+          return;
         }
       }
 
@@ -538,13 +602,13 @@ export const PianoRollCanvas = ({
     };
 
     const onKeyUp = (e: KeyboardEvent) => {
-      if (!e.shiftKey) {
-        addToSelection.current = false;
-      }
-      if (!e.altKey) {
-        clonePatternCells.current = false;
-        setIsCloneMode(false);
-      }
+      interactionRef.current = {
+        ...interactionRef.current,
+        modifiers: {
+          addToSelection: e.shiftKey,
+          clone: e.altKey,
+        },
+      };
     };
 
     window.addEventListener("keydown", onKeyDown);
@@ -554,13 +618,7 @@ export const PianoRollCanvas = ({
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("keyup", onKeyUp);
     };
-  }, [
-    changeInstrumentForSelectedIds,
-    dispatch,
-    selectedChannel,
-    selectedPatternCells,
-    selectedInstrumentId,
-  ]);
+  }, [dispatch, selectedPatternCells, selectedInstrumentId]);
 
   const displayChannels = useMemo(
     () =>
@@ -668,9 +726,13 @@ export const PianoRollCanvas = ({
 
   const handleMouseMove = useCallback(
     (e: MouseEvent) => {
-      addToSelection.current = e.shiftKey;
-      clonePatternCells.current = e.altKey;
-      setIsCloneMode(e.altKey);
+      interactionRef.current = {
+        ...interactionRef.current,
+        modifiers: {
+          addToSelection: e.shiftKey,
+          clone: e.altKey,
+        },
+      };
 
       const { noteIndex, patternRow, sequenceId } =
         calculatePositionFromMouse(e);
@@ -697,30 +759,43 @@ export const PianoRollCanvas = ({
         return;
       }
 
-      if (
-        (tool === "selection" || tool === "pencil") &&
-        isMouseDown &&
-        song &&
-        selectedPatternCells.length > 0 &&
-        noteDragOrigin
-      ) {
+      const song = songRef.current;
+      if (!song) {
+        return;
+      }
+
+      const interaction = interactionRef.current;
+
+      if (interaction.type === "drag_note") {
+        if (selectedPatternCellsRef.current.length === 0) {
+          return;
+        }
+
         const absRow = toAbsRow(sequenceId, patternRow);
         const nextDragDelta = {
-          rows: absRow - noteDragOrigin.absRow,
-          notes: noteIndex - noteDragOrigin.note,
+          rows: absRow - interaction.origin.absRow,
+          notes: noteIndex - interaction.origin.note,
         };
 
         if (
-          nextDragDelta.rows !== dragDelta.rows ||
-          nextDragDelta.notes !== dragDelta.notes
+          nextDragDelta.rows !== interaction.delta.rows ||
+          nextDragDelta.notes !== interaction.delta.notes
         ) {
-          setDragDelta(nextDragDelta);
-          setIsDraggingNotes(true);
+          interactionRef.current = {
+            ...interaction,
+            delta: nextDragDelta,
+          };
+
+          setDragPreviewState({
+            type: "dragging",
+            clone: e.altKey,
+            delta: nextDragDelta,
+          });
 
           const previewCellId = `${absRow}:${noteIndex}`;
 
           const { sequenceId: originSequenceId, rowId: originRowId } =
-            fromAbsRow(noteDragOrigin.absRow);
+            fromAbsRow(interaction.origin.absRow);
 
           const originPatternIndex = song.sequence[originSequenceId];
           const originPattern = song.patterns[originPatternIndex];
@@ -739,40 +814,50 @@ export const PianoRollCanvas = ({
             lastDragPreviewCellRef.current = previewCellId;
           }
         }
-      } else if (
-        tool === "pencil" &&
-        isMouseDown &&
-        !noteDragOrigin &&
-        e.button === 0
-      ) {
+
+        return;
+      }
+
+      if (interaction.type === "paint") {
         const absRow = toAbsRow(sequenceId, patternRow);
         const currentCellId = `${absRow}:${noteIndex}`;
+
         if (lastDragPreviewCellRef.current !== currentCellId) {
-          const prev = lastPaintPositionRef.current;
+          const prev = interaction.lastPaintPosition;
           lastDragPreviewCellRef.current = currentCellId;
-          lastPaintPositionRef.current = { absRow, noteIndex };
+
+          interactionRef.current = {
+            ...interaction,
+            lastPaintPosition: { absRow, note: noteIndex },
+          };
 
           const cellsToPaint = interpolateGridLine(
-            prev ? { absRow: prev.absRow, note: prev.noteIndex } : null,
+            prev ? { absRow: prev.absRow, note: prev.note } : null,
             { absRow, note: noteIndex },
           );
 
           type PaintEdit = { rowId: number; note: number };
           const paintsByPattern = new Map<number, PaintEdit[]>();
+
           for (const paintCell of cellsToPaint) {
             const resolved = resolveAbsRow(song.sequence, paintCell.absRow);
             if (!resolved) continue;
+
             const existing =
-              song.patterns[resolved.patternId][resolved.rowId][
+              song.patterns[resolved.patternId]?.[resolved.rowId]?.[
                 selectedChannel
               ];
+
             if (existing?.note === paintCell.note) continue;
+
             const edits = paintsByPattern.get(resolved.patternId) ?? [];
             edits.push({ rowId: resolved.rowId, note: paintCell.note });
             paintsByPattern.set(resolved.patternId, edits);
           }
+
           for (const [patternId, edits] of paintsByPattern) {
             const pattern = clonePattern(song.patterns[patternId]);
+
             for (const { rowId, note } of edits) {
               pattern[rowId][selectedChannel] = {
                 ...pattern[rowId][selectedChannel],
@@ -780,6 +865,7 @@ export const PianoRollCanvas = ({
                 note,
               };
             }
+
             dispatch(
               trackerDocumentActions.editPattern({
                 patternId: Number(patternId),
@@ -791,6 +877,7 @@ export const PianoRollCanvas = ({
           const lastPainted = cellsToPaint[cellsToPaint.length - 1];
           if (lastPainted) {
             const resolved = resolveAbsRow(song.sequence, lastPainted.absRow);
+
             if (resolved) {
               dispatch(
                 trackerActions.setSelectedPatternCells([
@@ -802,9 +889,10 @@ export const PianoRollCanvas = ({
                 ]),
               );
 
-              const patternId = songRef.current?.sequence[resolved.sequenceId];
-              const pattern = songRef.current?.patterns[patternId];
+              const patternId = song.sequence[resolved.sequenceId];
+              const pattern = song.patterns[patternId];
               const cell = pattern?.[resolved.rowId]?.[selectedChannel];
+
               playPreview({
                 note: lastPainted.note,
                 instrumentId: selectedInstrumentId,
@@ -814,32 +902,40 @@ export const PianoRollCanvas = ({
             }
           }
         }
-      } else if (
-        (tool === "eraser" || e.button === 2) &&
-        isMouseDown &&
-        !noteDragOrigin
-      ) {
+
+        return;
+      }
+
+      if (interaction.type === "erase") {
         const absRow = toAbsRow(sequenceId, patternRow);
         const currentCellId = `${absRow}:${noteIndex}`;
+
         if (lastDragPreviewCellRef.current !== currentCellId) {
-          const prev = lastPaintPositionRef.current;
+          const prev = interaction.lastPaintPosition;
           lastDragPreviewCellRef.current = currentCellId;
-          lastPaintPositionRef.current = { absRow, noteIndex };
+
+          interactionRef.current = {
+            ...interaction,
+            lastPaintPosition: { absRow, note: noteIndex },
+          };
 
           const cellsToErase = interpolateGridLine(
-            prev ? { absRow: prev.absRow, note: prev.noteIndex } : null,
+            prev ? { absRow: prev.absRow, note: prev.note } : null,
             { absRow, note: noteIndex },
           );
 
           type EraseEdit = { rowId: number };
           const erasesByPattern = new Map<number, EraseEdit[]>();
+
           for (const eraseCell of cellsToErase) {
             const resolved = resolveAbsRow(song.sequence, eraseCell.absRow);
             if (!resolved) continue;
+
             const existing =
-              song.patterns[resolved.patternId][resolved.rowId][
+              song.patterns[resolved.patternId]?.[resolved.rowId]?.[
                 selectedChannel
               ];
+
             if (
               existing?.note !== null &&
               existing?.note !== undefined &&
@@ -850,8 +946,10 @@ export const PianoRollCanvas = ({
               erasesByPattern.set(resolved.patternId, edits);
             }
           }
+
           for (const [patternId, edits] of erasesByPattern) {
             const pattern = clonePattern(song.patterns[patternId]);
+
             for (const { rowId } of edits) {
               pattern[rowId][selectedChannel] = {
                 ...pattern[rowId][selectedChannel],
@@ -859,6 +957,7 @@ export const PianoRollCanvas = ({
                 note: null,
               };
             }
+
             dispatch(
               trackerDocumentActions.editPattern({
                 patternId: Number(patternId),
@@ -867,15 +966,15 @@ export const PianoRollCanvas = ({
             );
           }
         }
-      } else if (
-        tool === "selection" &&
-        draggingSelection &&
-        selectionRect &&
-        selectionOrigin
-      ) {
+
+        return;
+      }
+
+      if (interaction.type === "selection_box") {
         if (!documentRef.current) {
           return;
         }
+
         const bounds = documentRef.current.getBoundingClientRect();
         const newAbsRow = Math.floor(
           (e.pageX - bounds.left - GRID_MARGIN) / PIANO_ROLL_CELL_SIZE,
@@ -895,81 +994,107 @@ export const PianoRollCanvas = ({
           totalNoteRows * PIANO_ROLL_CELL_SIZE,
         );
 
-        const x = Math.min(selectionOrigin.x, x2);
-        const y = Math.min(selectionOrigin.y, y2);
+        const x = Math.min(interaction.box.origin.x, x2);
+        const y = Math.min(interaction.box.origin.y, y2);
         const width = Math.max(
           PIANO_ROLL_CELL_SIZE,
-          Math.abs(selectionOrigin.x - x2),
+          Math.abs(interaction.box.origin.x - x2),
         );
         const height = Math.max(
           PIANO_ROLL_CELL_SIZE,
-          Math.abs(selectionOrigin.y - y2),
+          Math.abs(interaction.box.origin.y - y2),
         );
 
         const nextSelectionRect = { x, y, width, height };
+
+        interactionRef.current = {
+          ...interaction,
+          box: {
+            ...interaction.box,
+            rect: nextSelectionRect,
+          },
+        };
+
         setSelectionRect(nextSelectionRect);
 
         const selectedCells = selectCellsInRange(
-          addToSelection.current ? selectedPatternCells : [],
+          interaction.modifiers.addToSelection
+            ? selectedPatternCellsRef.current
+            : [],
           nextSelectionRect,
         );
+
         dispatch(trackerActions.setSelectedPatternCells(selectedCells));
       }
     },
     [
       calculatePositionFromMouse,
-      pastedPattern,
-      tool,
-      isMouseDown,
-      song,
-      selectedPatternCells,
-      noteDragOrigin,
-      draggingSelection,
-      selectionRect,
-      selectionOrigin,
       dispatch,
-      dragDelta.rows,
-      dragDelta.notes,
-      selectedChannel,
+      pastedPattern,
       playPreview,
+      selectCellsInRange,
+      selectedChannel,
       selectedInstrumentId,
       totalAbsRows,
       totalNoteRows,
-      selectCellsInRange,
     ],
   );
 
   const handleMouseDown = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
       suppressNextContextMenuRef.current = false;
-      addToSelection.current = e.shiftKey;
-      clonePatternCells.current = e.altKey;
-      setIsCloneMode(e.altKey);
+
+      interactionRef.current = {
+        ...interactionRef.current,
+        modifiers: {
+          addToSelection: e.shiftKey,
+          clone: e.altKey,
+        },
+      };
 
       const { noteIndex, patternRow, sequenceId } = calculatePositionFromMouse(
         e.nativeEvent,
       );
+
       if (noteIndex === null || patternRow === null || sequenceId === null) {
+        return;
+      }
+
+      const song = songRef.current;
+      if (!song) {
         return;
       }
 
       if (pastedPattern) {
         const absRow = toAbsRow(sequenceId, patternRow);
+
         const { clonedPatterns, changedPatternIds } =
           mutatePatternsAndCollectChanges(
             song.patterns,
             (patterns, changed) => {
-              let noteOffset: number | undefined = undefined;
+              let noteOffset: number | undefined;
+
               for (let offset = 0; offset < pastedPattern.length; offset++) {
                 const cell = pastedPattern[offset][0];
-                if (cell.note === null || cell.note === NO_CHANGE_ON_PASTE)
+
+                if (cell.note === null || cell.note === NO_CHANGE_ON_PASTE) {
                   continue;
-                if (noteOffset === undefined)
+                }
+
+                if (noteOffset === undefined) {
                   noteOffset = noteIndex - cell.note;
+                }
+
                 const targetAbsRow = absRow + offset;
-                if (targetAbsRow < 0 || targetAbsRow >= totalAbsRows) continue;
+                if (targetAbsRow < 0 || targetAbsRow >= totalAbsRows) {
+                  continue;
+                }
+
                 const resolved = resolveAbsRow(song.sequence, targetAbsRow);
-                if (!resolved) continue;
+                if (!resolved) {
+                  continue;
+                }
+
                 patterns[resolved.patternId][resolved.rowId][selectedChannel] =
                   {
                     ...patterns[resolved.patternId][resolved.rowId][
@@ -995,6 +1120,7 @@ export const PianoRollCanvas = ({
             );
           },
         );
+
         dispatch(trackerActions.clearPastedPattern());
         return;
       }
@@ -1005,12 +1131,15 @@ export const PianoRollCanvas = ({
       const cell = pattern[patternRow][selectedChannel];
 
       const selectedCellKey = `${sequenceId}:${patternRow}:${selectedChannel}`;
+      const selectedPatternCells = selectedPatternCellsRef.current;
+
       const isSelected = selectedPatternCells.some(
-        (cell) =>
-          cell.sequenceId === sequenceId &&
-          cell.rowId === patternRow &&
-          cell.channelId === selectedChannel,
+        (selectedCell) =>
+          selectedCell.sequenceId === sequenceId &&
+          selectedCell.rowId === patternRow &&
+          selectedCell.channelId === selectedChannel,
       );
+
       const clickedCellAddress: PatternCellAddress = {
         sequenceId,
         rowId: patternRow,
@@ -1024,55 +1153,100 @@ export const PianoRollCanvas = ({
               trackerActions.setSelectedPatternCells([clickedCellAddress]),
             );
           }
-          setIsMouseDown(true);
-          setIsDraggingNotes(false);
-          setNoteDragOrigin({ absRow, note: cell.note });
-          setDragDelta({ rows: 0, notes: 0 });
+
+          interactionRef.current = {
+            type: "drag_note",
+            modifiers: {
+              addToSelection: e.shiftKey,
+              clone: e.altKey,
+            },
+            origin: {
+              absRow,
+              note: cell.note,
+            },
+            delta: {
+              rows: 0,
+              notes: 0,
+            },
+            startedFromSelection: false,
+          };
+
+          setDragPreviewState({ type: "idle" });
           lastDragPreviewCellRef.current = null;
+          lastPaintPositionRef.current = null;
           return;
         }
+
         if (
           cell &&
           cell.note !== noteIndex &&
           selectedPatternCells.length > 1
         ) {
           dispatch(trackerActions.setSelectedPatternCells([]));
-        } else {
-          const changes = {
-            instrument: selectedInstrumentId,
-            note: noteIndex,
+          interactionRef.current = {
+            type: "idle",
+            modifiers: {
+              addToSelection: e.shiftKey,
+              clone: e.altKey,
+            },
           };
-          dispatch(
-            trackerDocumentActions.editPatternCell({
-              patternId,
-              cell: [patternRow, selectedChannel],
-              changes,
-            }),
-          );
-
-          const currentPattern = songRef.current?.patterns[patternId];
-          const currentCell = currentPattern?.[patternRow]?.[selectedChannel];
-          playPreview({
-            note: noteIndex,
-            instrumentId: selectedInstrumentId,
-            effectCode: currentCell?.effectcode ?? 0,
-            effectParam: currentCell?.effectparam ?? 0,
-          });
-
-          if (!isSelected) {
-            dispatch(
-              trackerActions.setSelectedPatternCells([clickedCellAddress]),
-            );
-          }
-          setIsMouseDown(true);
-          setIsDraggingNotes(false);
-          setNoteDragOrigin(null);
-          lastDragPreviewCellRef.current = `${absRow}:${noteIndex}`;
-          lastPaintPositionRef.current = { absRow, noteIndex };
+          setDragPreviewState({ type: "idle" });
+          lastDragPreviewCellRef.current = null;
+          lastPaintPositionRef.current = null;
+          return;
         }
-      } else if (e.button === 2 || (tool === "eraser" && e.button === 0)) {
+
+        const changes = {
+          instrument: selectedInstrumentId,
+          note: noteIndex,
+        };
+
+        dispatch(
+          trackerDocumentActions.editPatternCell({
+            patternId,
+            cell: [patternRow, selectedChannel],
+            changes,
+          }),
+        );
+
+        const currentPattern = songRef.current?.patterns[patternId];
+        const currentCell = currentPattern?.[patternRow]?.[selectedChannel];
+
+        playPreview({
+          note: noteIndex,
+          instrumentId: selectedInstrumentId,
+          effectCode: currentCell?.effectcode ?? 0,
+          effectParam: currentCell?.effectparam ?? 0,
+        });
+
+        if (!isSelected) {
+          dispatch(
+            trackerActions.setSelectedPatternCells([clickedCellAddress]),
+          );
+        }
+
+        interactionRef.current = {
+          type: "paint",
+          modifiers: {
+            addToSelection: e.shiftKey,
+            clone: e.altKey,
+          },
+          lastPaintPosition: {
+            absRow,
+            note: noteIndex,
+          },
+        };
+
+        setDragPreviewState({ type: "idle" });
+        lastDragPreviewCellRef.current = `${absRow}:${noteIndex}`;
+        lastPaintPositionRef.current = { absRow, noteIndex };
+        return;
+      }
+
+      if (e.button === 2 || (tool === "eraser" && e.button === 0)) {
         if (cell && cell.note === noteIndex) {
           suppressNextContextMenuRef.current = true;
+
           dispatch(
             trackerDocumentActions.editPatternCell({
               patternId,
@@ -1083,25 +1257,43 @@ export const PianoRollCanvas = ({
               },
             }),
           );
+
           dispatch(
             trackerActions.setSelectedPatternCells([clickedCellAddress]),
           );
         }
-        setIsMouseDown(true);
-        setIsDraggingNotes(false);
-        setNoteDragOrigin(null);
+
+        interactionRef.current = {
+          type: "erase",
+          modifiers: {
+            addToSelection: e.shiftKey,
+            clone: e.altKey,
+          },
+          lastPaintPosition: {
+            absRow,
+            note: noteIndex,
+          },
+        };
+
+        setDragPreviewState({ type: "idle" });
+        lastDragPreviewCellRef.current = null;
         lastPaintPositionRef.current = { absRow, noteIndex };
-      } else if (tool === "selection" && e.button === 0) {
+        return;
+      }
+
+      if (tool === "selection" && e.button === 0) {
         if (cell && cell.note === noteIndex) {
           if (!isSelected) {
-            if (addToSelection.current) {
+            if (interactionRef.current.modifiers.addToSelection) {
               const selectedPatternCellMap = new Map(
                 selectedPatternCells.map((selectedCell) => [
                   `${selectedCell.sequenceId}:${selectedCell.rowId}:${selectedCell.channelId}`,
                   selectedCell,
                 ]),
               );
+
               selectedPatternCellMap.set(selectedCellKey, clickedCellAddress);
+
               dispatch(
                 trackerActions.setSelectedPatternCells([
                   ...selectedPatternCellMap.values(),
@@ -1113,13 +1305,33 @@ export const PianoRollCanvas = ({
               );
             }
           }
-          setIsMouseDown(true);
-          setIsDraggingNotes(false);
-          setNoteDragOrigin({ absRow, note: cell.note });
-          setDragDelta({ rows: 0, notes: 0 });
+
+          interactionRef.current = {
+            type: "drag_note",
+            modifiers: {
+              addToSelection: e.shiftKey,
+              clone: e.altKey,
+            },
+            origin: {
+              absRow,
+              note: cell.note,
+            },
+            delta: {
+              rows: 0,
+              notes: 0,
+            },
+            startedFromSelection: true,
+          };
+
+          setDragPreviewState({ type: "idle" });
           lastDragPreviewCellRef.current = null;
-        } else if (documentRef.current) {
+          lastPaintPositionRef.current = null;
+          return;
+        }
+
+        if (documentRef.current) {
           const bounds = documentRef.current.getBoundingClientRect();
+
           const x = clamp(
             Math.floor(
               (e.pageX - bounds.left - GRID_MARGIN) / PIANO_ROLL_CELL_SIZE,
@@ -1127,6 +1339,7 @@ export const PianoRollCanvas = ({
             0,
             totalAbsRows * PIANO_ROLL_CELL_SIZE - 1,
           );
+
           const y = clamp(
             Math.floor((e.pageY - bounds.top) / PIANO_ROLL_CELL_SIZE) *
               PIANO_ROLL_CELL_SIZE,
@@ -1142,179 +1355,213 @@ export const PianoRollCanvas = ({
           };
 
           const newSelectedPatterns = selectCellsInRange(
-            addToSelection.current ? selectedPatternCells : [],
+            interactionRef.current.modifiers.addToSelection
+              ? selectedPatternCells
+              : [],
             newSelectionRect,
           );
 
-          setSelectionOrigin({ x, y });
+          interactionRef.current = {
+            type: "selection_box",
+            modifiers: {
+              addToSelection: e.shiftKey,
+              clone: e.altKey,
+            },
+            box: {
+              origin: { x, y },
+              rect: newSelectionRect,
+            },
+          };
+
           setSelectionRect(newSelectionRect);
-          setDraggingSelection(true);
-          setIsMouseDown(true);
-          setIsDraggingNotes(false);
-          setNoteDragOrigin(null);
-          setDragDelta({ rows: 0, notes: 0 });
+          setDragPreviewState({ type: "idle" });
+          lastDragPreviewCellRef.current = null;
+          lastPaintPositionRef.current = null;
+
           dispatch(trackerActions.setSelectedPatternCells(newSelectedPatterns));
         }
       }
     },
     [
       calculatePositionFromMouse,
-      pastedPattern,
-      song.sequence,
-      song.patterns,
-      selectedChannel,
-      selectedPatternCells,
-      tool,
       dispatch,
-      totalAbsRows,
-      selectedInstrumentId,
+      pastedPattern,
       playPreview,
-      totalNoteRows,
       selectCellsInRange,
+      selectedChannel,
+      selectedInstrumentId,
+      tool,
+      totalAbsRows,
+      totalNoteRows,
     ],
   );
 
   const finishPointerInteraction = useCallback(() => {
-    if (!isMouseDown && !isDraggingNotes && !draggingSelection) {
+    const interaction = interactionRef.current;
+    const song = songRef.current;
+
+    if (!song) {
+      interactionRef.current = {
+        type: "idle",
+        modifiers: {
+          addToSelection: false,
+          clone: false,
+        },
+      };
+      setSelectionRect(undefined);
+      setDragPreviewState({ type: "idle" });
+      lastDragPreviewCellRef.current = null;
+      lastPaintPositionRef.current = null;
       return;
     }
 
-    if (isDraggingNotes && selectedPatternCells.length > 0) {
-      const selectedPatternCellKeys = new Set(
-        selectedPatternCells.map(
-          (selectedCell) =>
-            `${selectedCell.sequenceId}:${selectedCell.rowId}:${selectedCell.channelId}`,
-        ),
-      );
+    if (interaction.type === "drag_note") {
+      const selectedPatternCells = selectedPatternCellsRef.current;
 
-      const { clonedPatterns, changedPatternIds } =
-        mutatePatternsAndCollectChanges(song.patterns, (patterns, changed) => {
-          for (const sourceAddress of selectedPatternCells) {
-            const sourcePatternId = song.sequence[sourceAddress.sequenceId];
-            if (sourcePatternId === undefined) continue;
+      const hasMoved =
+        interaction.delta.rows !== 0 || interaction.delta.notes !== 0;
 
-            const sourceCell =
-              song.patterns[sourcePatternId]?.[sourceAddress.rowId]?.[
-                sourceAddress.channelId
-              ];
+      if (hasMoved && selectedPatternCells.length > 0) {
+        const selectedPatternCellKeys = new Set(
+          selectedPatternCells.map(
+            (selectedCell) =>
+              `${selectedCell.sequenceId}:${selectedCell.rowId}:${selectedCell.channelId}`,
+          ),
+        );
 
-            if (!sourceCell || sourceCell.note === null) {
-              continue;
-            }
+        const { clonedPatterns, changedPatternIds } =
+          mutatePatternsAndCollectChanges(
+            song.patterns,
+            (patterns, changed) => {
+              for (const sourceAddress of selectedPatternCells) {
+                const sourcePatternId = song.sequence[sourceAddress.sequenceId];
+                if (sourcePatternId === undefined) {
+                  continue;
+                }
 
-            const sourceAbsRow = toAbsRow(
-              sourceAddress.sequenceId,
-              sourceAddress.rowId,
-            );
-            const targetAbsRow = sourceAbsRow + dragDelta.rows;
+                const sourceCell =
+                  song.patterns[sourcePatternId]?.[sourceAddress.rowId]?.[
+                    sourceAddress.channelId
+                  ];
 
-            const previousSourcePositionKey = `${sourceAddress.sequenceId}:${
-              sourceAddress.rowId - dragDelta.rows
-            }:${sourceAddress.channelId}`;
+                if (!sourceCell || sourceCell.note === null) {
+                  continue;
+                }
 
-            if (
-              !clonePatternCells.current &&
-              !selectedPatternCellKeys.has(previousSourcePositionKey)
-            ) {
-              patterns[sourcePatternId][sourceAddress.rowId][
-                sourceAddress.channelId
-              ] = {
-                ...patterns[sourcePatternId][sourceAddress.rowId][
+                const sourceAbsRow = toAbsRow(
+                  sourceAddress.sequenceId,
+                  sourceAddress.rowId,
+                );
+                const targetAbsRow = sourceAbsRow + interaction.delta.rows;
+
+                const previousSourcePositionKey = `${sourceAddress.sequenceId}:${
+                  sourceAddress.rowId - interaction.delta.rows
+                }:${sourceAddress.channelId}`;
+
+                if (
+                  !interaction.modifiers.clone &&
+                  !selectedPatternCellKeys.has(previousSourcePositionKey)
+                ) {
+                  patterns[sourcePatternId][sourceAddress.rowId][
+                    sourceAddress.channelId
+                  ] = {
+                    ...patterns[sourcePatternId][sourceAddress.rowId][
+                      sourceAddress.channelId
+                    ],
+                    instrument: null,
+                    note: null,
+                    effectcode: null,
+                    effectparam: null,
+                  };
+                  changed.add(sourcePatternId);
+                }
+
+                if (targetAbsRow < 0 || targetAbsRow >= totalAbsRows) {
+                  continue;
+                }
+
+                const targetResolved = resolveAbsRow(
+                  song.sequence,
+                  targetAbsRow,
+                );
+                if (!targetResolved) {
+                  continue;
+                }
+
+                patterns[targetResolved.patternId][targetResolved.rowId][
                   sourceAddress.channelId
-                ],
-                instrument: null,
-                note: null,
-                effectcode: null,
-                effectparam: null,
-              };
-              changed.add(sourcePatternId);
-            }
-
-            if (targetAbsRow < 0 || targetAbsRow >= totalAbsRows) {
-              continue;
-            }
-
-            const targetResolved = resolveAbsRow(song.sequence, targetAbsRow);
-            if (!targetResolved) continue;
-
-            patterns[targetResolved.patternId][targetResolved.rowId][
-              sourceAddress.channelId
-            ] = {
-              ...patterns[targetResolved.patternId][targetResolved.rowId][
-                sourceAddress.channelId
-              ],
-              ...sourceCell,
-              note: wrapNote(sourceCell.note + dragDelta.notes),
-            };
-            changed.add(targetResolved.patternId);
-          }
-        });
-
-      commitChangedPatterns(
-        changedPatternIds,
-        clonedPatterns,
-        (patternId, pattern) => {
-          dispatch(
-            trackerDocumentActions.editPattern({
-              patternId,
-              pattern,
-            }),
+                ] = {
+                  ...patterns[targetResolved.patternId][targetResolved.rowId][
+                    sourceAddress.channelId
+                  ],
+                  ...sourceCell,
+                  note: wrapNote(sourceCell.note + interaction.delta.notes),
+                };
+                changed.add(targetResolved.patternId);
+              }
+            },
           );
-        },
-      );
 
-      dispatch(
-        trackerActions.setSelectedPatternCells(
-          selectedPatternCells
-            .map((selectedCell) => {
-              const sourceAbsRow = toAbsRow(
-                selectedCell.sequenceId,
-                selectedCell.rowId,
-              );
-              const targetAbsRow = sourceAbsRow + dragDelta.rows;
+        commitChangedPatterns(
+          changedPatternIds,
+          clonedPatterns,
+          (patternId, pattern) => {
+            dispatch(
+              trackerDocumentActions.editPattern({
+                patternId,
+                pattern,
+              }),
+            );
+          },
+        );
 
-              if (targetAbsRow < 0 || targetAbsRow >= totalAbsRows) {
-                return null;
-              }
+        dispatch(
+          trackerActions.setSelectedPatternCells(
+            selectedPatternCells
+              .map((selectedCell) => {
+                const sourceAbsRow = toAbsRow(
+                  selectedCell.sequenceId,
+                  selectedCell.rowId,
+                );
+                const targetAbsRow = sourceAbsRow + interaction.delta.rows;
 
-              const resolved = resolveAbsRow(song.sequence, targetAbsRow);
-              if (!resolved) {
-                return null;
-              }
+                if (targetAbsRow < 0 || targetAbsRow >= totalAbsRows) {
+                  return null;
+                }
 
-              return {
-                sequenceId: resolved.sequenceId,
-                rowId: resolved.rowId,
-                channelId: selectedCell.channelId,
-              };
-            })
-            .filter((selectedCell) => selectedCell !== null),
-        ),
-      );
+                const resolved = resolveAbsRow(song.sequence, targetAbsRow);
+                if (!resolved) {
+                  return null;
+                }
+
+                return {
+                  sequenceId: resolved.sequenceId,
+                  rowId: resolved.rowId,
+                  channelId: selectedCell.channelId,
+                };
+              })
+              .filter(
+                (selectedCell): selectedCell is PatternCellAddress =>
+                  selectedCell !== null,
+              ),
+          ),
+        );
+      }
     }
 
+    interactionRef.current = {
+      type: "idle",
+      modifiers: {
+        addToSelection: false,
+        clone: false,
+      },
+    };
+
     setSelectionRect(undefined);
-    setSelectionOrigin(undefined);
-    setDraggingSelection(false);
-    setIsDraggingNotes(false);
-    setDragDelta({ rows: 0, notes: 0 });
-    setNoteDragOrigin(null);
+    setDragPreviewState({ type: "idle" });
     lastDragPreviewCellRef.current = null;
     lastPaintPositionRef.current = null;
-    setIsCloneMode(false);
-    setIsMouseDown(false);
-  }, [
-    isMouseDown,
-    isDraggingNotes,
-    draggingSelection,
-    selectedPatternCells,
-    song.patterns,
-    song.sequence,
-    dispatch,
-    dragDelta.rows,
-    dragDelta.notes,
-    totalAbsRows,
-  ]);
+  }, [dispatch, totalAbsRows]);
 
   const handleMouseUp = useCallback(
     (_e: MouseEvent) => {
@@ -1325,7 +1572,12 @@ export const PianoRollCanvas = ({
 
   const updateTouchSelection = useCallback(
     (clientX: number, clientY: number) => {
-      if (!documentRef.current || !selectionOrigin) {
+      if (!documentRef.current) {
+        return;
+      }
+
+      const interaction = interactionRef.current;
+      if (interaction.type !== "selection_box") {
         return;
       }
 
@@ -1346,38 +1598,48 @@ export const PianoRollCanvas = ({
         totalNoteRows * PIANO_ROLL_CELL_SIZE,
       );
 
-      const x = Math.min(selectionOrigin.x, x2);
-      const y = Math.min(selectionOrigin.y, y2);
+      const x = Math.min(interaction.box.origin.x, x2);
+      const y = Math.min(interaction.box.origin.y, y2);
       const width = Math.max(
         PIANO_ROLL_CELL_SIZE,
-        Math.abs(selectionOrigin.x - x2),
+        Math.abs(interaction.box.origin.x - x2),
       );
       const height = Math.max(
         PIANO_ROLL_CELL_SIZE,
-        Math.abs(selectionOrigin.y - y2),
+        Math.abs(interaction.box.origin.y - y2),
       );
 
       const nextSelectionRect = { x, y, width, height };
+
+      interactionRef.current = {
+        ...interaction,
+        box: {
+          ...interaction.box,
+          rect: nextSelectionRect,
+        },
+      };
+
       setSelectionRect(nextSelectionRect);
 
       const selectedCells = selectCellsInRange(
-        addToSelection.current ? selectedPatternCells : [],
+        interaction.modifiers.addToSelection
+          ? selectedPatternCellsRef.current
+          : [],
         nextSelectionRect,
       );
+
       dispatch(trackerActions.setSelectedPatternCells(selectedCells));
     },
-    [
-      selectionOrigin,
-      totalAbsRows,
-      totalNoteRows,
-      selectCellsInRange,
-      selectedPatternCells,
-      dispatch,
-    ],
+    [dispatch, selectCellsInRange, totalAbsRows, totalNoteRows],
   );
 
   const previewNotes = useMemo(() => {
-    if (!isDraggingNotes) {
+    if (dragPreviewState.type !== "dragging") {
+      return [];
+    }
+
+    const song = songRef.current;
+    if (!song) {
       return [];
     }
 
@@ -1401,13 +1663,15 @@ export const PianoRollCanvas = ({
           sourceCellAddress.sequenceId,
           sourceCellAddress.rowId,
         );
-        const targetAbsRow = sourceAbsRow + dragDelta.rows;
+        const targetAbsRow = sourceAbsRow + dragPreviewState.delta.rows;
 
         if (targetAbsRow < 0 || targetAbsRow >= totalAbsRows) {
           return null;
         }
 
-        const targetNote = wrapNote(sourceCell.note + dragDelta.notes);
+        const targetNote = wrapNote(
+          sourceCell.note + dragPreviewState.delta.notes,
+        );
         const targetRow = noteToRow(targetNote);
 
         return {
@@ -1417,16 +1681,17 @@ export const PianoRollCanvas = ({
           instrument: sourceCell.instrument ?? 0,
         };
       })
-      .filter((note) => note !== null);
-  }, [
-    dragDelta.rows,
-    dragDelta.notes,
-    isDraggingNotes,
-    selectedPatternCells,
-    song.patterns,
-    song.sequence,
-    totalAbsRows,
-  ]);
+      .filter(
+        (
+          note,
+        ): note is {
+          key: string;
+          left: number;
+          top: number;
+          instrument: number;
+        } => note !== null,
+      );
+  }, [selectedPatternCells, totalAbsRows, dragPreviewState]);
 
   const pastePreviewNotes = useMemo(() => {
     if (
@@ -1597,13 +1862,7 @@ export const PianoRollCanvas = ({
   }, [dispatch, tool]);
 
   const resetTwoFingerTapGesture = useCallback(() => {
-    twoFingerTapRef.current = {
-      isActive: false,
-      startedAt: 0,
-      startMidpointX: 0,
-      startMidpointY: 0,
-      movedTooFar: false,
-    };
+    twoFingerTapRef.current = { type: "idle" };
   }, []);
 
   const handleTouchStart = useCallback(
@@ -1621,16 +1880,21 @@ export const PianoRollCanvas = ({
         const midpointY = (touchA.clientY + touchB.clientY) * 0.5;
 
         twoFingerTapRef.current = {
-          isActive: true,
+          type: "tracking",
           startedAt: Date.now(),
           startMidpointX: midpointX,
           startMidpointY: midpointY,
           movedTooFar: false,
         };
 
-        touchModeRef.current = "idle";
-        pendingPencilNoteRef.current = null;
+        interactionRef.current = {
+          type: "idle",
+          modifiers: interactionRef.current.modifiers,
+        };
+
         touchStartPointRef.current = null;
+        setSelectionRect(undefined);
+        setDragPreviewState({ type: "idle" });
 
         e.preventDefault();
         return;
@@ -1639,8 +1903,10 @@ export const PianoRollCanvas = ({
       resetTwoFingerTapGesture();
 
       if (e.touches.length !== 1) {
-        touchModeRef.current = "idle";
-        pendingPencilNoteRef.current = null;
+        interactionRef.current = {
+          type: "idle",
+          modifiers: interactionRef.current.modifiers,
+        };
         touchStartPointRef.current = null;
         return;
       }
@@ -1655,8 +1921,19 @@ export const PianoRollCanvas = ({
         calculatePositionFromClientPoint(touch.clientX, touch.clientY);
 
       if (noteIndex === null || patternRow === null || sequenceId === null) {
-        touchModeRef.current = "idle";
-        pendingPencilNoteRef.current = null;
+        interactionRef.current = {
+          type: "idle",
+          modifiers: interactionRef.current.modifiers,
+        };
+        return;
+      }
+
+      const song = songRef.current;
+      if (!song) {
+        interactionRef.current = {
+          type: "idle",
+          modifiers: interactionRef.current.modifiers,
+        };
         return;
       }
 
@@ -1670,6 +1947,8 @@ export const PianoRollCanvas = ({
         rowId: patternRow,
         channelId: selectedChannel,
       };
+
+      const selectedPatternCells = selectedPatternCellsRef.current;
 
       const isSelected = selectedPatternCells.some(
         (selectedCell) =>
@@ -1686,16 +1965,22 @@ export const PianoRollCanvas = ({
             );
           }
 
-          touchModeRef.current = "pencil_drag_note";
-          pendingPencilNoteRef.current = null;
+          interactionRef.current = {
+            type: "drag_note",
+            modifiers: interactionRef.current.modifiers,
+            origin: {
+              absRow,
+              note: cell.note,
+            },
+            delta: {
+              rows: 0,
+              notes: 0,
+            },
+            startedFromSelection: false,
+          };
 
           setSelectionRect(undefined);
-          setSelectionOrigin(undefined);
-          setDraggingSelection(false);
-          setIsMouseDown(true);
-          setIsDraggingNotes(false);
-          setNoteDragOrigin({ absRow, note: cell.note });
-          setDragDelta({ rows: 0, notes: 0 });
+          setDragPreviewState({ type: "idle" });
           lastDragPreviewCellRef.current = null;
           lastPaintPositionRef.current = null;
 
@@ -1704,63 +1989,66 @@ export const PianoRollCanvas = ({
         }
 
         if (selectedPatternCells.length > 1) {
-          touchModeRef.current = "idle";
-          pendingPencilNoteRef.current = null;
+          interactionRef.current = {
+            type: "idle",
+            modifiers: interactionRef.current.modifiers,
+          };
 
           dispatch(trackerActions.setSelectedPatternCells([]));
           setSelectionRect(undefined);
-          setSelectionOrigin(undefined);
-          setDraggingSelection(false);
-          setIsDraggingNotes(false);
-          setNoteDragOrigin(null);
-          setDragDelta({ rows: 0, notes: 0 });
+          setDragPreviewState({ type: "idle" });
           lastDragPreviewCellRef.current = null;
           lastPaintPositionRef.current = null;
-          setIsMouseDown(false);
           return;
         }
 
-        touchModeRef.current = "pencil_pending";
-        pendingPencilNoteRef.current = {
-          patternId,
-          patternRow,
-          sequenceId,
-          absRow,
-          noteIndex,
-          clickedCellAddress,
+        interactionRef.current = {
+          type: "pending_pencil",
+          modifiers: interactionRef.current.modifiers,
+          startPoint: {
+            x: touch.clientX,
+            y: touch.clientY,
+          },
+          pending: {
+            patternId,
+            patternRow,
+            sequenceId,
+            absRow,
+            noteIndex,
+            clickedCellAddress,
+          },
         };
 
         setSelectionRect(undefined);
-        setSelectionOrigin(undefined);
-        setDraggingSelection(false);
-        setIsMouseDown(false);
-        setIsDraggingNotes(false);
-        setNoteDragOrigin(null);
-        setDragDelta({ rows: 0, notes: 0 });
+        setDragPreviewState({ type: "idle" });
         lastDragPreviewCellRef.current = null;
         lastPaintPositionRef.current = null;
         return;
       }
 
       if (tool !== "selection") {
-        touchModeRef.current = "idle";
-        pendingPencilNoteRef.current = null;
+        interactionRef.current = {
+          type: "idle",
+          modifiers: interactionRef.current.modifiers,
+        };
         return;
       }
 
       if (cell && cell.note === noteIndex) {
         if (!isSelected) {
-          if (addToSelection.current) {
+          if (interactionRef.current.modifiers.addToSelection) {
             const selectedPatternCellMap = new Map(
               selectedPatternCells.map((selectedCell) => [
                 `${selectedCell.sequenceId}:${selectedCell.rowId}:${selectedCell.channelId}`,
                 selectedCell,
               ]),
             );
+
             selectedPatternCellMap.set(
               `${clickedCellAddress.sequenceId}:${clickedCellAddress.rowId}:${clickedCellAddress.channelId}`,
               clickedCellAddress,
             );
+
             dispatch(
               trackerActions.setSelectedPatternCells([
                 ...selectedPatternCellMap.values(),
@@ -1773,16 +2061,22 @@ export const PianoRollCanvas = ({
           }
         }
 
-        touchModeRef.current = "selection_drag_note";
-        pendingPencilNoteRef.current = null;
+        interactionRef.current = {
+          type: "drag_note",
+          modifiers: interactionRef.current.modifiers,
+          origin: {
+            absRow,
+            note: cell.note,
+          },
+          delta: {
+            rows: 0,
+            notes: 0,
+          },
+          startedFromSelection: true,
+        };
 
         setSelectionRect(undefined);
-        setSelectionOrigin(undefined);
-        setDraggingSelection(false);
-        setIsMouseDown(true);
-        setIsDraggingNotes(false);
-        setNoteDragOrigin({ absRow, note: cell.note });
-        setDragDelta({ rows: 0, notes: 0 });
+        setDragPreviewState({ type: "idle" });
         lastDragPreviewCellRef.current = null;
         lastPaintPositionRef.current = null;
 
@@ -1814,20 +2108,24 @@ export const PianoRollCanvas = ({
         };
 
         const newSelectedPatterns = selectCellsInRange(
-          addToSelection.current ? selectedPatternCells : [],
+          interactionRef.current.modifiers.addToSelection
+            ? selectedPatternCells
+            : [],
           newSelectionRect,
         );
 
-        touchModeRef.current = "selection_box";
-        pendingPencilNoteRef.current = null;
+        interactionRef.current = {
+          type: "selection_box",
+          modifiers: interactionRef.current.modifiers,
+          box: {
+            origin: { x, y },
+            rect: newSelectionRect,
+          },
+        };
 
-        setSelectionOrigin({ x, y });
         setSelectionRect(newSelectionRect);
-        setDraggingSelection(true);
-        setIsMouseDown(true);
-        setIsDraggingNotes(false);
-        setNoteDragOrigin(null);
-        setDragDelta({ rows: 0, notes: 0 });
+        setDragPreviewState({ type: "idle" });
+        lastDragPreviewCellRef.current = null;
         lastPaintPositionRef.current = null;
 
         dispatch(trackerActions.setSelectedPatternCells(newSelectedPatterns));
@@ -1839,10 +2137,7 @@ export const PianoRollCanvas = ({
       playing,
       resetTwoFingerTapGesture,
       calculatePositionFromClientPoint,
-      song.sequence,
-      song.patterns,
       selectedChannel,
-      selectedPatternCells,
       dispatch,
       totalAbsRows,
       totalNoteRows,
@@ -1854,9 +2149,13 @@ export const PianoRollCanvas = ({
   const handleTouchMove = useCallback(
     (e: React.TouchEvent<HTMLDivElement>) => {
       const gesture = twoFingerTapRef.current;
-      if (gesture.isActive) {
+
+      if (gesture.type === "tracking") {
         if (e.touches.length !== 2) {
-          gesture.movedTooFar = true;
+          twoFingerTapRef.current = {
+            ...gesture,
+            movedTooFar: true,
+          };
           return;
         }
 
@@ -1870,7 +2169,10 @@ export const PianoRollCanvas = ({
         const distance = Math.hypot(deltaX, deltaY);
 
         if (distance > TWO_FINGER_TAP_MAX_MOVEMENT) {
-          gesture.movedTooFar = true;
+          twoFingerTapRef.current = {
+            ...gesture,
+            movedTooFar: true,
+          };
         }
 
         return;
@@ -1881,16 +2183,21 @@ export const PianoRollCanvas = ({
       }
 
       const touch = e.touches[0];
-      const startPoint = touchStartPointRef.current;
-      const movedDistance = startPoint
-        ? Math.hypot(touch.clientX - startPoint.x, touch.clientY - startPoint.y)
-        : 0;
+      const interaction = interactionRef.current;
 
-      if (touchModeRef.current === "pencil_pending") {
+      if (interaction.type === "pending_pencil") {
+        const movedDistance = Math.hypot(
+          touch.clientX - interaction.startPoint.x,
+          touch.clientY - interaction.startPoint.y,
+        );
+
         if (movedDistance > TOUCH_TAP_MAX_MOVEMENT) {
-          touchModeRef.current = "idle";
-          pendingPencilNoteRef.current = null;
+          interactionRef.current = {
+            type: "idle",
+            modifiers: interaction.modifiers,
+          };
         }
+
         return;
       }
 
@@ -1901,69 +2208,75 @@ export const PianoRollCanvas = ({
         return;
       }
 
-      if (
-        touchModeRef.current === "pencil_drag_note" ||
-        touchModeRef.current === "selection_drag_note"
-      ) {
+      if (interaction.type === "drag_note") {
         e.preventDefault();
 
-        if (isMouseDown && selectedPatternCells.length > 0 && noteDragOrigin) {
-          const absRow = toAbsRow(sequenceId, patternRow);
-          const nextDragDelta = {
-            rows: absRow - noteDragOrigin.absRow,
-            notes: noteIndex - noteDragOrigin.note,
+        const selectedPatternCells = selectedPatternCellsRef.current;
+        if (selectedPatternCells.length === 0) {
+          return;
+        }
+
+        const song = songRef.current;
+        if (!song) {
+          return;
+        }
+
+        const absRow = toAbsRow(sequenceId, patternRow);
+        const nextDragDelta = {
+          rows: absRow - interaction.origin.absRow,
+          notes: noteIndex - interaction.origin.note,
+        };
+
+        if (
+          nextDragDelta.rows !== interaction.delta.rows ||
+          nextDragDelta.notes !== interaction.delta.notes
+        ) {
+          interactionRef.current = {
+            ...interaction,
+            delta: nextDragDelta,
           };
 
-          if (
-            nextDragDelta.rows !== dragDelta.rows ||
-            nextDragDelta.notes !== dragDelta.notes
-          ) {
-            setDragDelta(nextDragDelta);
-            setIsDraggingNotes(true);
+          setDragPreviewState({
+            type: "dragging",
+            clone: e.altKey,
+            delta: nextDragDelta,
+          });
 
-            const previewCellId = `${absRow}:${noteIndex}`;
+          const previewCellId = `${absRow}:${noteIndex}`;
 
-            const { sequenceId: originSequenceId, rowId: originRowId } =
-              fromAbsRow(noteDragOrigin.absRow);
+          const { sequenceId: originSequenceId, rowId: originRowId } =
+            fromAbsRow(interaction.origin.absRow);
 
-            const originPatternIndex = song.sequence[originSequenceId];
-            const originPattern = song.patterns[originPatternIndex];
-            const selectedCell =
-              originPattern?.[originRowId]?.[selectedChannel];
-            const instrumentId = selectedCell?.instrument ?? 0;
-            const effectCode = selectedCell?.effectcode ?? 0;
-            const effectParam = selectedCell?.effectparam ?? 0;
+          const originPatternIndex = song.sequence[originSequenceId];
+          const originPattern = song.patterns[originPatternIndex];
+          const selectedCell = originPattern?.[originRowId]?.[selectedChannel];
+          const instrumentId = selectedCell?.instrument ?? 0;
+          const effectCode = selectedCell?.effectcode ?? 0;
+          const effectParam = selectedCell?.effectparam ?? 0;
 
-            if (lastDragPreviewCellRef.current !== previewCellId) {
-              playPreview({
-                note: noteIndex,
-                instrumentId,
-                effectCode,
-                effectParam,
-              });
-              lastDragPreviewCellRef.current = previewCellId;
-            }
+          if (lastDragPreviewCellRef.current !== previewCellId) {
+            playPreview({
+              note: noteIndex,
+              instrumentId,
+              effectCode,
+              effectParam,
+            });
+            lastDragPreviewCellRef.current = previewCellId;
           }
         }
+
         return;
       }
 
-      if (touchModeRef.current === "selection_box") {
+      if (interaction.type === "selection_box") {
         e.preventDefault();
         updateTouchSelection(touch.clientX, touch.clientY);
       }
     },
     [
       calculatePositionFromClientPoint,
-      isMouseDown,
-      selectedPatternCells,
-      noteDragOrigin,
-      dragDelta.rows,
-      dragDelta.notes,
-      song.sequence,
-      song.patterns,
-      selectedChannel,
       playPreview,
+      selectedChannel,
       updateTouchSelection,
     ],
   );
@@ -1971,7 +2284,8 @@ export const PianoRollCanvas = ({
   const handleTouchEnd = useCallback(
     (e: React.TouchEvent<HTMLDivElement>) => {
       const gesture = twoFingerTapRef.current;
-      if (gesture.isActive) {
+
+      if (gesture.type === "tracking") {
         const duration = Date.now() - gesture.startedAt;
         const isTwoFingerTap =
           !gesture.movedTooFar &&
@@ -1987,11 +2301,10 @@ export const PianoRollCanvas = ({
         return;
       }
 
-      if (
-        touchModeRef.current === "pencil_pending" &&
-        pendingPencilNoteRef.current
-      ) {
-        const pending = pendingPencilNoteRef.current;
+      const interaction = interactionRef.current;
+
+      if (interaction.type === "pending_pencil") {
+        const pending = interaction.pending;
 
         dispatch(
           trackerDocumentActions.editPatternCell({
@@ -2024,28 +2337,32 @@ export const PianoRollCanvas = ({
           absRow: pending.absRow,
           noteIndex: pending.noteIndex,
         };
+
+        interactionRef.current = {
+          type: "idle",
+          modifiers: interaction.modifiers,
+        };
+
+        return;
       }
 
       if (
-        touchModeRef.current === "pencil_drag_note" ||
-        touchModeRef.current === "selection_drag_note" ||
-        touchModeRef.current === "selection_box" ||
-        isDraggingNotes ||
-        draggingSelection ||
-        isMouseDown
+        interaction.type === "drag_note" ||
+        interaction.type === "selection_box" ||
+        interaction.type === "paint" ||
+        interaction.type === "erase"
       ) {
         e.preventDefault();
         finishPointerInteraction();
-      } else {
-        setIsMouseDown(false);
-        setIsDraggingNotes(false);
-        setNoteDragOrigin(null);
-        setDragDelta({ rows: 0, notes: 0 });
+        return;
       }
 
-      touchModeRef.current = "idle";
-      pendingPencilNoteRef.current = null;
-      touchStartPointRef.current = null;
+      interactionRef.current = {
+        type: "idle",
+        modifiers: interaction.modifiers,
+      };
+
+      setDragPreviewState({ type: "idle" });
     },
     [
       resetTwoFingerTapGesture,
@@ -2054,9 +2371,6 @@ export const PianoRollCanvas = ({
       selectedChannel,
       selectedInstrumentId,
       playPreview,
-      isDraggingNotes,
-      draggingSelection,
-      isMouseDown,
       finishPointerInteraction,
     ],
   );
@@ -2123,7 +2437,12 @@ export const PianoRollCanvas = ({
           ref={documentRef}
           style={{
             width: documentWidth,
-            cursor: isDraggingNotes ? (isCloneMode ? "copy" : "move") : "auto",
+            cursor:
+              dragPreviewState.type === "dragging"
+                ? dragPreviewState.clone
+                  ? "copy"
+                  : "move"
+                : "auto",
             touchAction: tool === "selection" ? "none" : "auto",
           }}
           onContextMenu={onSelectionContextMenu}
@@ -2140,7 +2459,7 @@ export const PianoRollCanvas = ({
                 patternId={p}
                 sequenceId={i}
                 displayChannels={displayChannels}
-                isDragging={isDraggingNotes}
+                isDragging={dragPreviewState.type === "dragging"}
               />
             ))}
           </StyledPianoRollPatternsWrapper>
@@ -2160,7 +2479,7 @@ export const PianoRollCanvas = ({
               <PlusIcon />
             </StyledAddPatternButton>
           </StyledAddPatternWrapper>
-          {isDraggingNotes &&
+          {dragPreviewState.type === "dragging" &&
             previewNotes.map((previewNote) => (
               <StyledPianoRollNote
                 key={`preview_${previewNote.key}`}
