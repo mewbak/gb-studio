@@ -106,7 +106,9 @@ export const SongContextBar = ({
   const exporting = useAppSelector((state) => state.tracker.exporting);
   const playerReady = useAppSelector((state) => state.tracker.playerReady);
 
-  const song = useAppSelector((state) => state.trackerDocument.present.song);
+  const sequence = useAppSelector(
+    (state) => state.trackerDocument.present.song?.sequence,
+  );
 
   const defaultStartPlaybackPosition = useAppSelector(
     (state) => state.tracker.defaultStartPlaybackPosition,
@@ -221,7 +223,7 @@ export const SongContextBar = ({
   }, [setPlaybackState]);
 
   const orderIndex = playbackState[0] + 1;
-  const patternIndex = song?.sequence[playbackState[0]] ?? 0;
+  const patternIndex = sequence?.[playbackState[0]] ?? 0;
   const rowIndex = playbackState[1];
 
   const themeContext = useContext(ThemeContext);
