@@ -169,7 +169,7 @@ export const InstrumentSelectButton: FC<InstrumentSelectProps> = ({
       >
         <LabelWrapper>
           <LabelColor $instrument={value}>
-            {String(value).padStart(2, "0")}
+            {String(value + 1).padStart(2, "0")}
           </LabelColor>
         </LabelWrapper>
       </StyledButton>
