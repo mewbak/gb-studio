@@ -238,10 +238,6 @@ export const PianoRollCanvas = ({
   });
 
   const lastDragPreviewCellRef = useRef<string | null>(null);
-  const lastPaintPositionRef = useRef<{
-    absRow: number;
-    noteIndex: number;
-  } | null>(null);
 
   const selectedChannel = useAppSelector(
     (state) => state.tracker.selectedChannel,
@@ -262,8 +258,6 @@ export const PianoRollCanvas = ({
 
   const TOUCH_TAP_MAX_MOVEMENT = 10;
 
-  const touchStartPointRef = useRef<{ x: number; y: number } | null>(null);
-
   useEffect(() => {
     const channelSelectedPatternCells = selectedPatternCells.filter(
       (cell) => cell.channelId === selectedChannel,
@@ -278,7 +272,7 @@ export const PianoRollCanvas = ({
 
   const selectCellsInRange = useCallback(
     (
-      _selectedPatternCells: PatternCellAddress[],
+      selectedPatternCells: PatternCellAddress[],
       nextSelectionRect: SelectionRect,
     ) => {
       const totalAbsRows = song.sequence.length * TRACKER_PATTERN_LENGTH;
@@ -313,7 +307,7 @@ export const PianoRollCanvas = ({
       );
 
       const selectedPatternCellMap = new Map(
-        _selectedPatternCells.map((cell) => [
+        selectedPatternCells.map((cell) => [
           `${cell.sequenceId}:${cell.rowId}:${cell.channelId}`,
           cell,
         ]),
@@ -462,13 +456,108 @@ export const PianoRollCanvas = ({
     };
   }, [onSelectAll, subpatternEditorFocus]);
 
-  const handleKeyDownActions = useCallback(
+  const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
+      interactionRef.current = {
+        ...interactionRef.current,
+        modifiers: {
+          addToSelection: e.shiftKey,
+          clone: e.altKey,
+        },
+      };
+
       if ((e.target as HTMLElement | null)?.nodeName !== "BODY") {
         return;
       }
 
-      if (e.ctrlKey || e.metaKey) {
+      if (e.ctrlKey && e.shiftKey) {
+        if (e.code === "KeyQ") {
+          dispatch(
+            trackerDocumentActions.transposeAbsoluteCells({
+              patternCells: selectedPatternCellsRef.current,
+              direction: "up",
+              size: "octave",
+            }),
+          );
+          return;
+        }
+
+        if (e.code === "KeyA") {
+          dispatch(
+            trackerDocumentActions.transposeAbsoluteCells({
+              patternCells: selectedPatternCellsRef.current,
+              direction: "down",
+              size: "octave",
+            }),
+          );
+          return;
+        }
+      } else if (e.altKey && e.shiftKey) {
+        if (e.code === "KeyQ") {
+          dispatch(
+            trackerDocumentActions.transposeAbsoluteCells({
+              patternCells: selectedPatternCellsRef.current,
+              direction: "up",
+              size: "note",
+            }),
+          );
+          return;
+        }
+
+        if (e.code === "KeyA") {
+          dispatch(
+            trackerDocumentActions.transposeAbsoluteCells({
+              patternCells: selectedPatternCellsRef.current,
+              direction: "down",
+              size: "note",
+            }),
+          );
+          return;
+        }
+      } else if (e.ctrlKey) {
+        if (e.code === "KeyI") {
+          dispatch(
+            trackerDocumentActions.changeInstrumentAbsoluteCells({
+              patternCells: selectedPatternCellsRef.current,
+              instrumentId: selectedInstrumentId,
+            }),
+          );
+          return;
+        }
+
+        if (e.code === "KeyK") {
+          dispatch(
+            trackerDocumentActions.interpolateAbsoluteCells({
+              patternCells: selectedPatternCellsRef.current,
+            }),
+          );
+          return;
+        }
+
+        return;
+      } else if (e.metaKey) {
+        return;
+      }
+
+      if (e.code === "Equal") {
+        dispatch(
+          trackerDocumentActions.transposeAbsoluteCells({
+            patternCells: selectedPatternCellsRef.current,
+            direction: "up",
+            size: e.shiftKey ? "octave" : "note",
+          }),
+        );
+        return;
+      }
+
+      if (e.code === "Minus") {
+        dispatch(
+          trackerDocumentActions.transposeAbsoluteCells({
+            patternCells: selectedPatternCellsRef.current,
+            direction: "down",
+            size: e.shiftKey ? "octave" : "note",
+          }),
+        );
         return;
       }
 
@@ -496,134 +585,35 @@ export const PianoRollCanvas = ({
         };
 
         lastDragPreviewCellRef.current = null;
-        lastPaintPositionRef.current = null;
-
         setSelectionRect(undefined);
+        setDragPreviewState({ type: "idle" });
         dispatch(trackerActions.setSelectedPatternCells([]));
         dispatch(trackerActions.clearPastedPattern());
       }
     },
-    [dispatch],
+    [dispatch, selectedInstrumentId],
   );
 
-  const handleKeyDownActionsRef = useRef(handleKeyDownActions);
+  const handleKeyUp = useCallback((e: KeyboardEvent) => {
+    interactionRef.current = {
+      ...interactionRef.current,
+      modifiers: {
+        addToSelection: e.shiftKey,
+        clone: e.altKey,
+      },
+    };
+  }, []);
 
   useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      interactionRef.current = {
-        ...interactionRef.current,
-        modifiers: {
-          addToSelection: e.shiftKey,
-          clone: e.altKey,
-        },
-      };
+    window.addEventListener("keydown", handleKeyDown);
 
-      if (e.code === "Equal") {
-        dispatch(
-          trackerDocumentActions.transposeAbsoluteCells({
-            patternCells: selectedPatternCells,
-            direction: "up",
-            size: e.shiftKey ? "octave" : "note",
-          }),
-        );
-      }
-
-      if (e.code === "Minus") {
-        dispatch(
-          trackerDocumentActions.transposeAbsoluteCells({
-            patternCells: selectedPatternCells,
-            direction: "down",
-            size: e.shiftKey ? "octave" : "note",
-          }),
-        );
-      }
-
-      if (e.ctrlKey && e.shiftKey) {
-        if (e.code === "KeyQ") {
-          dispatch(
-            trackerDocumentActions.transposeAbsoluteCells({
-              patternCells: selectedPatternCells,
-              direction: "up",
-              size: "octave",
-            }),
-          );
-          return;
-        }
-
-        if (e.code === "KeyA") {
-          dispatch(
-            trackerDocumentActions.transposeAbsoluteCells({
-              patternCells: selectedPatternCells,
-              direction: "down",
-              size: "octave",
-            }),
-          );
-          return;
-        }
-      } else if (e.altKey && e.shiftKey) {
-        if (e.code === "KeyQ") {
-          dispatch(
-            trackerDocumentActions.transposeAbsoluteCells({
-              patternCells: selectedPatternCells,
-              direction: "up",
-              size: "note",
-            }),
-          );
-          return;
-        }
-
-        if (e.code === "KeyA") {
-          dispatch(
-            trackerDocumentActions.transposeAbsoluteCells({
-              patternCells: selectedPatternCells,
-              direction: "down",
-              size: "note",
-            }),
-          );
-          return;
-        }
-      } else if (e.ctrlKey) {
-        if (e.code === "KeyI") {
-          dispatch(
-            trackerDocumentActions.changeInstrumentAbsoluteCells({
-              patternCells: selectedPatternCells,
-              instrumentId: selectedInstrumentId,
-            }),
-          );
-          return;
-        }
-
-        if (e.code === "KeyK") {
-          dispatch(
-            trackerDocumentActions.interpolateAbsoluteCells({
-              patternCells: selectedPatternCells,
-            }),
-          );
-          return;
-        }
-      }
-
-      handleKeyDownActionsRef.current(e);
-    };
-
-    const onKeyUp = (e: KeyboardEvent) => {
-      interactionRef.current = {
-        ...interactionRef.current,
-        modifiers: {
-          addToSelection: e.shiftKey,
-          clone: e.altKey,
-        },
-      };
-    };
-
-    window.addEventListener("keydown", onKeyDown);
-    window.addEventListener("keyup", onKeyUp);
+    window.addEventListener("keyup", handleKeyUp);
 
     return () => {
-      window.removeEventListener("keydown", onKeyDown);
-      window.removeEventListener("keyup", onKeyUp);
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
     };
-  }, [dispatch, selectedPatternCells, selectedInstrumentId]);
+  }, [handleKeyDown, handleKeyUp]);
 
   const displayChannels = useMemo(
     () =>
@@ -726,7 +716,6 @@ export const PianoRollCanvas = ({
     setSelectionRect(undefined);
     setDragPreviewState({ type: "idle" });
     lastDragPreviewCellRef.current = null;
-    lastPaintPositionRef.current = null;
   }, []);
 
   const selectClickedCell = useCallback(
@@ -843,7 +832,6 @@ export const PianoRollCanvas = ({
       setSelectionRect(newSelectionRect);
       setDragPreviewState({ type: "idle" });
       lastDragPreviewCellRef.current = null;
-      lastPaintPositionRef.current = null;
 
       dispatch(trackerActions.setSelectedPatternCells(newSelectedPatterns));
     },
@@ -923,7 +911,6 @@ export const PianoRollCanvas = ({
     setSelectionRect(undefined);
     setDragPreviewState({ type: "idle" });
     lastDragPreviewCellRef.current = null;
-    lastPaintPositionRef.current = null;
   }, []);
 
   const completePointerInteraction = useCallback(() => {
@@ -1203,7 +1190,6 @@ export const PianoRollCanvas = ({
 
         setDragPreviewState({ type: "idle" });
         lastDragPreviewCellRef.current = `${absRow}:${noteIndex}`;
-        lastPaintPositionRef.current = { absRow, noteIndex };
         return false;
       }
 
@@ -1240,7 +1226,6 @@ export const PianoRollCanvas = ({
 
         setDragPreviewState({ type: "idle" });
         lastDragPreviewCellRef.current = null;
-        lastPaintPositionRef.current = { absRow, noteIndex };
         return false;
       }
 
@@ -1772,33 +1757,32 @@ export const PianoRollCanvas = ({
     return notes;
   }, [pastedPattern, hoverColumn, hoverNote, hoverSequenceId, totalAbsRows]);
 
-  const handleMouseMoveRef = useRef(handleMouseMove);
-  const handleMouseUpRef = useRef(handleMouseUp);
-
   const onCopy = useCallback(
     (e: ClipboardEvent) => {
       if (!(e.target instanceof HTMLElement)) return;
       if (e.target.nodeName === "INPUT") return;
+
       dispatch(
         copyAbsoluteCells({
-          patternCells: selectedPatternCells,
+          patternCells: selectedPatternCellsRef.current,
         }),
       );
     },
-    [dispatch, selectedPatternCells],
+    [dispatch],
   );
 
   const onCut = useCallback(
     (e: ClipboardEvent) => {
       if (!(e.target instanceof HTMLElement)) return;
       if (e.target.nodeName === "INPUT") return;
+
       dispatch(
         cutAbsoluteCells({
-          patternCells: selectedPatternCells,
+          patternCells: selectedPatternCellsRef.current,
         }),
       );
     },
-    [dispatch, selectedPatternCells],
+    [dispatch],
   );
 
   const onPaste = useCallback(() => {
@@ -1837,59 +1821,35 @@ export const PianoRollCanvas = ({
     lastSequenceId.current = sequenceId;
   }, [sequenceId, playing]);
 
-  const onCopyRef = useRef(onCopy);
-  const onCutRef = useRef(onCut);
-  const onPasteRef = useRef(onPaste);
-  const onPasteInPlaceRef = useRef(onPasteInPlace);
-
   useEffect(() => {
-    handleMouseMoveRef.current = handleMouseMove;
-    handleMouseUpRef.current = handleMouseUp;
-    handleKeyDownActionsRef.current = handleKeyDownActions;
-    onCopyRef.current = onCopy;
-    onCutRef.current = onCut;
-    onPasteRef.current = onPaste;
-    onPasteInPlaceRef.current = onPasteInPlace;
-  });
+    if (subpatternEditorFocus) {
+      return;
+    }
 
-  useEffect(() => {
-    if (subpatternEditorFocus) return;
-    const handleCopy = (e: ClipboardEvent) => onCopyRef.current(e);
-    const handleCut = (e: ClipboardEvent) => onCutRef.current(e);
-    const handlePaste = () => onPasteRef.current();
-    const handlePasteInPlace = () => {
-      onPasteInPlaceRef.current();
-    };
-    window.addEventListener("copy", handleCopy);
-    window.addEventListener("cut", handleCut);
-    window.addEventListener("paste", handlePaste);
+    window.addEventListener("copy", onCopy);
+    window.addEventListener("cut", onCut);
+    window.addEventListener("paste", onPaste);
+
     const unsubscribePasteInPlace =
-      API.events.menu.pasteInPlace.subscribe(handlePasteInPlace);
+      API.events.menu.pasteInPlace.subscribe(onPasteInPlace);
+
     return () => {
-      window.removeEventListener("copy", handleCopy);
-      window.removeEventListener("cut", handleCut);
-      window.removeEventListener("paste", handlePaste);
+      window.removeEventListener("copy", onCopy);
+      window.removeEventListener("cut", onCut);
+      window.removeEventListener("paste", onPaste);
       unsubscribePasteInPlace();
     };
-  }, [subpatternEditorFocus]);
+  }, [subpatternEditorFocus, onCopy, onCut, onPaste, onPasteInPlace]);
 
   useEffect(() => {
-    const onMouseMove = (e: MouseEvent) => {
-      handleMouseMoveRef.current(e);
-    };
-
-    const onMouseUp = (e: MouseEvent) => {
-      handleMouseUpRef.current(e);
-    };
-
-    window.addEventListener("mousemove", onMouseMove);
-    window.addEventListener("mouseup", onMouseUp);
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
 
     return () => {
-      window.removeEventListener("mousemove", onMouseMove);
-      window.removeEventListener("mouseup", onMouseUp);
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
     };
-  }, []);
+  }, [handleMouseMove, handleMouseUp]);
 
   const onPlayNote = useCallback(
     (noteIndex: number) => {
@@ -1932,7 +1892,6 @@ export const PianoRollCanvas = ({
           modifiers: interactionRef.current.modifiers,
         };
 
-        touchStartPointRef.current = null;
         resetPointerPreviewState();
 
         e.preventDefault();
@@ -1946,15 +1905,10 @@ export const PianoRollCanvas = ({
           type: "idle",
           modifiers: interactionRef.current.modifiers,
         };
-        touchStartPointRef.current = null;
         return;
       }
 
       const touch = e.touches[0];
-      touchStartPointRef.current = {
-        x: touch.clientX,
-        y: touch.clientY,
-      };
 
       const preventDefault = handlePointerDown({
         isTouch: true,
@@ -2098,10 +2052,6 @@ export const PianoRollCanvas = ({
         );
 
         lastDragPreviewCellRef.current = `${pending.absRow}:${pending.noteIndex}`;
-        lastPaintPositionRef.current = {
-          absRow: pending.absRow,
-          noteIndex: pending.noteIndex,
-        };
 
         interactionRef.current = {
           type: "idle",
