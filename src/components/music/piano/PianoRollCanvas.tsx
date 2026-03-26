@@ -605,8 +605,8 @@ export const PianoRollCanvas = ({
 
   const documentRef = useRef<HTMLDivElement>(null);
 
-  const calculatePositionFromMouse = useCallback(
-    (e: MouseEvent) => {
+  const calculatePositionFromClientPoint = useCallback(
+    (clientX: number, clientY: number) => {
       if (!documentRef.current) {
         return {
           noteIndex: null,
@@ -616,13 +616,14 @@ export const PianoRollCanvas = ({
       }
 
       const rect = documentRef.current.getBoundingClientRect();
-      const x = e.clientX - rect.left;
+      const x = clientX - rect.left;
       const absRow = clamp(
         Math.floor(x / PIANO_ROLL_CELL_SIZE),
         0,
         totalAbsRows - 1,
       );
       const resolved = resolveAbsRow(song.sequence, absRow);
+
       if (!resolved) {
         return {
           noteIndex: null,
@@ -630,8 +631,9 @@ export const PianoRollCanvas = ({
           sequenceId: null,
         };
       }
+
       const newNoteRow = Math.floor(
-        (e.pageY - rect.top) / PIANO_ROLL_CELL_SIZE,
+        (clientY - rect.top) / PIANO_ROLL_CELL_SIZE,
       );
       const newNote = rowToNote(newNoteRow);
 
@@ -642,6 +644,13 @@ export const PianoRollCanvas = ({
       };
     },
     [song.sequence, totalAbsRows],
+  );
+
+  const calculatePositionFromMouse = useCallback(
+    (e: MouseEvent) => {
+      return calculatePositionFromClientPoint(e.clientX, e.clientY);
+    },
+    [calculatePositionFromClientPoint],
   );
 
   const handleMouseMove = useCallback(
@@ -1294,6 +1303,59 @@ export const PianoRollCanvas = ({
     ],
   );
 
+  const updateTouchSelection = useCallback(
+    (clientX: number, clientY: number) => {
+      if (!documentRef.current || !selectionOrigin) {
+        return;
+      }
+
+      const bounds = documentRef.current.getBoundingClientRect();
+      const newAbsRow = Math.floor(
+        (clientX - bounds.left - GRID_MARGIN) / PIANO_ROLL_CELL_SIZE,
+      );
+      const newRow = Math.floor((clientY - bounds.top) / PIANO_ROLL_CELL_SIZE);
+
+      const x2 = clamp(
+        newAbsRow * PIANO_ROLL_CELL_SIZE,
+        0,
+        totalAbsRows * PIANO_ROLL_CELL_SIZE,
+      );
+      const y2 = clamp(
+        newRow * PIANO_ROLL_CELL_SIZE,
+        0,
+        totalNoteRows * PIANO_ROLL_CELL_SIZE,
+      );
+
+      const x = Math.min(selectionOrigin.x, x2);
+      const y = Math.min(selectionOrigin.y, y2);
+      const width = Math.max(
+        PIANO_ROLL_CELL_SIZE,
+        Math.abs(selectionOrigin.x - x2),
+      );
+      const height = Math.max(
+        PIANO_ROLL_CELL_SIZE,
+        Math.abs(selectionOrigin.y - y2),
+      );
+
+      const nextSelectionRect = { x, y, width, height };
+      setSelectionRect(nextSelectionRect);
+
+      const selectedCells = selectCellsInRange(
+        addToSelection.current ? selectedPatternCells : [],
+        nextSelectionRect,
+      );
+      dispatch(trackerActions.setSelectedPatternCells(selectedCells));
+    },
+    [
+      selectionOrigin,
+      totalAbsRows,
+      totalNoteRows,
+      selectCellsInRange,
+      selectedPatternCells,
+      dispatch,
+    ],
+  );
+
   const previewNotes = useMemo(() => {
     if (!isDraggingNotes) {
       return [];
@@ -1538,75 +1600,218 @@ export const PianoRollCanvas = ({
         return;
       }
 
-      if (e.touches.length !== 2) {
-        resetTwoFingerTapGesture();
+      suppressNextContextMenuRef.current = false;
+
+      if (e.touches.length === 2) {
+        const touchA = e.touches[0];
+        const touchB = e.touches[1];
+        const midpointX = (touchA.clientX + touchB.clientX) * 0.5;
+        const midpointY = (touchA.clientY + touchB.clientY) * 0.5;
+
+        twoFingerTapRef.current = {
+          isActive: true,
+          startedAt: Date.now(),
+          startMidpointX: midpointX,
+          startMidpointY: midpointY,
+          movedTooFar: false,
+        };
+
+        e.preventDefault();
         return;
       }
 
-      const touchA = e.touches[0];
-      const touchB = e.touches[1];
-      const midpointX = (touchA.clientX + touchB.clientX) * 0.5;
-      const midpointY = (touchA.clientY + touchB.clientY) * 0.5;
+      resetTwoFingerTapGesture();
 
-      twoFingerTapRef.current = {
-        isActive: true,
-        startedAt: Date.now(),
-        startMidpointX: midpointX,
-        startMidpointY: midpointY,
-        movedTooFar: false,
-      };
+      if (tool !== "selection" || e.touches.length !== 1) {
+        return;
+      }
+
+      const touch = e.touches[0];
+      const { noteIndex, patternRow, sequenceId } =
+        calculatePositionFromClientPoint(touch.clientX, touch.clientY);
+
+      if (noteIndex === null || patternRow === null || sequenceId === null) {
+        return;
+      }
 
       e.preventDefault();
+
+      const patternId = song.sequence[sequenceId];
+      const absRow = toAbsRow(sequenceId, patternRow);
+      const pattern = song.patterns[patternId];
+      const cell = pattern[patternRow][selectedChannel];
+
+      const clickedCellAddress: PatternCellAddress = {
+        sequenceId,
+        rowId: patternRow,
+        channelId: selectedChannel,
+      };
+
+      const isSelected = selectedPatternCells.some(
+        (selectedCell) =>
+          selectedCell.sequenceId === sequenceId &&
+          selectedCell.rowId === patternRow &&
+          selectedCell.channelId === selectedChannel,
+      );
+
+      if (cell && cell.note === noteIndex) {
+        if (!isSelected) {
+          if (addToSelection.current) {
+            const selectedPatternCellMap = new Map(
+              selectedPatternCells.map((selectedCell) => [
+                `${selectedCell.sequenceId}:${selectedCell.rowId}:${selectedCell.channelId}`,
+                selectedCell,
+              ]),
+            );
+            selectedPatternCellMap.set(
+              `${clickedCellAddress.sequenceId}:${clickedCellAddress.rowId}:${clickedCellAddress.channelId}`,
+              clickedCellAddress,
+            );
+            dispatch(
+              trackerActions.setSelectedPatternCells([
+                ...selectedPatternCellMap.values(),
+              ]),
+            );
+          } else {
+            dispatch(
+              trackerActions.setSelectedPatternCells([clickedCellAddress]),
+            );
+          }
+        }
+
+        setIsMouseDown(true);
+        setIsDraggingNotes(false);
+        setNoteDragOrigin({ absRow, note: cell.note });
+        setDragDelta({ rows: 0, notes: 0 });
+        lastDragPreviewCellRef.current = null;
+        return;
+      }
+
+      if (documentRef.current) {
+        const bounds = documentRef.current.getBoundingClientRect();
+        const x = clamp(
+          Math.floor(
+            (touch.clientX - bounds.left - GRID_MARGIN) / PIANO_ROLL_CELL_SIZE,
+          ) * PIANO_ROLL_CELL_SIZE,
+          0,
+          totalAbsRows * PIANO_ROLL_CELL_SIZE - 1,
+        );
+        const y = clamp(
+          Math.floor((touch.clientY - bounds.top) / PIANO_ROLL_CELL_SIZE) *
+            PIANO_ROLL_CELL_SIZE,
+          0,
+          totalNoteRows * PIANO_ROLL_CELL_SIZE - PIANO_ROLL_CELL_SIZE,
+        );
+
+        const newSelectionRect = {
+          x,
+          y,
+          width: PIANO_ROLL_CELL_SIZE,
+          height: PIANO_ROLL_CELL_SIZE,
+        };
+
+        const newSelectedPatterns = selectCellsInRange(
+          addToSelection.current ? selectedPatternCells : [],
+          newSelectionRect,
+        );
+
+        setSelectionOrigin({ x, y });
+        setSelectionRect(newSelectionRect);
+        setDraggingSelection(true);
+        setIsMouseDown(true);
+        setNoteDragOrigin(null);
+        setDragDelta({ rows: 0, notes: 0 });
+
+        dispatch(trackerActions.setSelectedPatternCells(newSelectedPatterns));
+      }
     },
-    [playing, resetTwoFingerTapGesture],
+    [
+      playing,
+      tool,
+      resetTwoFingerTapGesture,
+      calculatePositionFromClientPoint,
+      song.sequence,
+      song.patterns,
+      selectedChannel,
+      selectedPatternCells,
+      dispatch,
+      totalAbsRows,
+      totalNoteRows,
+      selectCellsInRange,
+    ],
   );
 
-  const handleTouchMove = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
-    const gesture = twoFingerTapRef.current;
-    if (!gesture.isActive) {
-      return;
-    }
+  const handleTouchMove = useCallback(
+    (e: React.TouchEvent<HTMLDivElement>) => {
+      const gesture = twoFingerTapRef.current;
+      if (gesture.isActive) {
+        if (e.touches.length !== 2) {
+          gesture.movedTooFar = true;
+          return;
+        }
 
-    if (e.touches.length !== 2) {
-      gesture.movedTooFar = true;
-      return;
-    }
+        const touchA = e.touches[0];
+        const touchB = e.touches[1];
+        const midpointX = (touchA.clientX + touchB.clientX) * 0.5;
+        const midpointY = (touchA.clientY + touchB.clientY) * 0.5;
 
-    const touchA = e.touches[0];
-    const touchB = e.touches[1];
-    const midpointX = (touchA.clientX + touchB.clientX) * 0.5;
-    const midpointY = (touchA.clientY + touchB.clientY) * 0.5;
+        const deltaX = midpointX - gesture.startMidpointX;
+        const deltaY = midpointY - gesture.startMidpointY;
+        const distance = Math.hypot(deltaX, deltaY);
 
-    const deltaX = midpointX - gesture.startMidpointX;
-    const deltaY = midpointY - gesture.startMidpointY;
-    const distance = Math.hypot(deltaX, deltaY);
+        if (distance > TWO_FINGER_TAP_MAX_MOVEMENT) {
+          gesture.movedTooFar = true;
+        }
 
-    if (distance > TWO_FINGER_TAP_MAX_MOVEMENT) {
-      gesture.movedTooFar = true;
-    }
-  }, []);
+        return;
+      }
+
+      if (
+        tool !== "selection" ||
+        e.touches.length !== 1 ||
+        !draggingSelection
+      ) {
+        return;
+      }
+
+      const touch = e.touches[0];
+      e.preventDefault();
+      updateTouchSelection(touch.clientX, touch.clientY);
+    },
+    [tool, draggingSelection, updateTouchSelection],
+  );
 
   const handleTouchEnd = useCallback(
     (e: React.TouchEvent<HTMLDivElement>) => {
       const gesture = twoFingerTapRef.current;
-      if (!gesture.isActive) {
+      if (gesture.isActive) {
+        const duration = Date.now() - gesture.startedAt;
+        const isTwoFingerTap =
+          !gesture.movedTooFar &&
+          duration <= TWO_FINGER_TAP_MAX_DURATION &&
+          e.touches.length < 2;
+
+        resetTwoFingerTapGesture();
+
+        if (isTwoFingerTap) {
+          e.preventDefault();
+          togglePencilEraserTool();
+        }
         return;
       }
 
-      const duration = Date.now() - gesture.startedAt;
-      const isTwoFingerTap =
-        !gesture.movedTooFar &&
-        duration <= TWO_FINGER_TAP_MAX_DURATION &&
-        e.touches.length < 2;
-
-      resetTwoFingerTapGesture();
-
-      if (isTwoFingerTap) {
-        e.preventDefault();
-        togglePencilEraserTool();
+      if (tool === "selection") {
+        setSelectionRect(undefined);
+        setDraggingSelection(false);
+        setSelectionOrigin(undefined);
+        setIsMouseDown(false);
+        setNoteDragOrigin(null);
+        setDragDelta({ rows: 0, notes: 0 });
+        lastDragPreviewCellRef.current = null;
+        lastPaintPositionRef.current = null;
       }
     },
-    [resetTwoFingerTapGesture, togglePencilEraserTool],
+    [resetTwoFingerTapGesture, togglePencilEraserTool, tool],
   );
 
   const handleTouchCancel = useCallback(() => {
@@ -1668,6 +1873,7 @@ export const PianoRollCanvas = ({
           style={{
             width: documentWidth,
             cursor: isDraggingNotes ? (isCloneMode ? "copy" : "move") : "auto",
+            touchAction: tool === "selection" ? "none" : "auto",
           }}
           onContextMenu={onSelectionContextMenu}
           onMouseDown={!playing ? handleMouseDown : undefined}
