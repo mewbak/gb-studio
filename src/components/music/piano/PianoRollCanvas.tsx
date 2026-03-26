@@ -6,7 +6,7 @@ import React, {
   useState,
   useLayoutEffect,
 } from "react";
-import { PatternCell, Song } from "shared/lib/uge/types";
+import { Song } from "shared/lib/uge/types";
 import { useAppDispatch, useAppSelector } from "store/hooks";
 import { PianoRollPatternBlock } from "./PianoRollPatternBlock";
 import {
@@ -860,6 +860,43 @@ export const PianoRollCanvas = ({
     [dispatch, pastedPattern, selectedChannel],
   );
 
+  const commitPlacedNote = useCallback(
+    (args: { cellAddress: PatternCellAddress; noteIndex: number }) => {
+      const { cellAddress, noteIndex } = args;
+      const { sequenceId, rowId, channelId } = cellAddress;
+
+      const patternId = songRef.current?.sequence[sequenceId];
+
+      if (patternId === undefined) {
+        return;
+      }
+
+      dispatch(
+        trackerDocumentActions.editPatternCell({
+          patternId,
+          cell: [rowId, channelId],
+          changes: {
+            instrument: selectedInstrumentId,
+            note: noteIndex,
+          },
+        }),
+      );
+
+      const currentPattern = songRef.current?.patterns[patternId];
+      const currentCell = currentPattern?.[rowId]?.[channelId];
+
+      playPreview({
+        note: noteIndex,
+        instrumentId: selectedInstrumentId,
+        effectCode: currentCell?.effectcode ?? 0,
+        effectParam: currentCell?.effectparam ?? 0,
+      });
+
+      dispatch(trackerActions.setSelectedPatternCells([cellAddress]));
+    },
+    [dispatch, playPreview, selectedInstrumentId],
+  );
+
   const resetPointerInteractionState = useCallback(() => {
     interactionRef.current = {
       type: "idle",
@@ -997,32 +1034,18 @@ export const PianoRollCanvas = ({
           return false;
         }
 
-        dispatch(
-          trackerDocumentActions.editPatternCell({
-            patternId,
-            cell: [patternRow, selectedChannel],
-            changes: {
-              instrument: selectedInstrumentId,
-              note: noteIndex,
-            },
-          }),
-        );
-
-        const currentPattern = songRef.current?.patterns[patternId];
-        const currentCell = currentPattern?.[patternRow]?.[selectedChannel];
-
-        playPreview({
-          note: noteIndex,
-          instrumentId: selectedInstrumentId,
-          effectCode: currentCell?.effectcode ?? 0,
-          effectParam: currentCell?.effectparam ?? 0,
+        console.warn("FOOBAR::COMITPLACED", {
+          patternId,
+          patternRow,
+          sequenceId,
+          noteIndex,
+          clickedCellAddress,
         });
 
-        if (!isSelected) {
-          dispatch(
-            trackerActions.setSelectedPatternCells([clickedCellAddress]),
-          );
-        }
+        commitPlacedNote({
+          cellAddress: clickedCellAddress,
+          noteIndex,
+        });
 
         interactionRef.current = {
           type: "paint",
@@ -1104,13 +1127,12 @@ export const PianoRollCanvas = ({
       beginSelectionBoxInteraction,
       calculatePositionFromClientPoint,
       commitPastedPatternAt,
+      commitPlacedNote,
       dispatch,
       pastedPattern,
-      playPreview,
       resetPointerPreviewState,
       selectClickedCell,
       selectedChannel,
-      selectedInstrumentId,
       tool,
     ],
   );
@@ -1805,31 +1827,10 @@ export const PianoRollCanvas = ({
       if (interaction.type === "pending_pencil") {
         const pending = interaction.pending;
 
-        dispatch(
-          trackerDocumentActions.editPatternCell({
-            patternId: pending.patternId,
-            cell: [pending.patternRow, selectedChannel],
-            changes: {
-              instrument: selectedInstrumentId,
-              note: pending.noteIndex,
-            },
-          }),
-        );
-
-        const currentPattern = songRef.current?.patterns[pending.patternId];
-        const currentCell =
-          currentPattern?.[pending.patternRow]?.[selectedChannel];
-
-        playPreview({
-          note: pending.noteIndex,
-          instrumentId: selectedInstrumentId,
-          effectCode: currentCell?.effectcode ?? 0,
-          effectParam: currentCell?.effectparam ?? 0,
+        commitPlacedNote({
+          cellAddress: pending.clickedCellAddress,
+          noteIndex: pending.noteIndex,
         });
-
-        dispatch(
-          trackerActions.setSelectedPatternCells([pending.clickedCellAddress]),
-        );
 
         lastDragPreviewCellRef.current = `${pending.absRow}:${pending.noteIndex}`;
 
@@ -1848,12 +1849,9 @@ export const PianoRollCanvas = ({
       }
     },
     [
-      dispatch,
+      commitPlacedNote,
       handlePointerEnd,
-      playPreview,
       resetTwoFingerTapGesture,
-      selectedChannel,
-      selectedInstrumentId,
       togglePencilEraserTool,
     ],
   );
