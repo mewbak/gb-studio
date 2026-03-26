@@ -925,14 +925,6 @@ export const PianoRollCanvas = ({
           return false;
         }
 
-        console.warn("FOOBAR::COMITPLACED", {
-          patternId,
-          patternRow,
-          sequenceId,
-          noteIndex,
-          clickedCellAddress,
-        });
-
         commitPlacedNote({
           cellAddress: clickedCellAddress,
           noteIndex,

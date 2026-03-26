@@ -142,8 +142,6 @@ export const PitchSelect: FC<PitchSelectProps> = ({
     };
   }, [flatOptions, noneLabel, value]);
 
-  console.log({ currentValue });
-
   const onSelectChange = (newValue: SingleValue<PitchOption>) => {
     if (newValue && newValue.value >= 0) {
       onChange?.(newValue.value);
