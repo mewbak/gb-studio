@@ -322,7 +322,6 @@ export const StyledPianoRollNote = styled.div<StyledPianoRollNoteProps>`
   box-sizing: border-box;
   text-align: center;
   line-height: 1.1em;
-  pointer-events: none;
   background: ${(props) =>
     props.$instrument !== undefined
       ? `var(--instrument-${props.$instrument}-color)`

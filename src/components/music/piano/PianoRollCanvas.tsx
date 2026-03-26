@@ -1686,9 +1686,6 @@ export const PianoRollCanvas = ({
             );
           }
 
-          e.currentTarget.style.touchAction = "none";
-          e.preventDefault();
-
           touchModeRef.current = "pencil_drag_note";
           pendingPencilNoteRef.current = null;
 
@@ -1701,6 +1698,8 @@ export const PianoRollCanvas = ({
           setDragDelta({ rows: 0, notes: 0 });
           lastDragPreviewCellRef.current = null;
           lastPaintPositionRef.current = null;
+
+          e.preventDefault();
           return;
         }
 
@@ -1774,9 +1773,6 @@ export const PianoRollCanvas = ({
           }
         }
 
-        e.currentTarget.style.touchAction = "none";
-        e.preventDefault();
-
         touchModeRef.current = "selection_drag_note";
         pendingPencilNoteRef.current = null;
 
@@ -1789,6 +1785,8 @@ export const PianoRollCanvas = ({
         setDragDelta({ rows: 0, notes: 0 });
         lastDragPreviewCellRef.current = null;
         lastPaintPositionRef.current = null;
+
+        e.preventDefault();
         return;
       }
 
@@ -1820,9 +1818,6 @@ export const PianoRollCanvas = ({
           newSelectionRect,
         );
 
-        e.currentTarget.style.touchAction = "none";
-        e.preventDefault();
-
         touchModeRef.current = "selection_box";
         pendingPencilNoteRef.current = null;
 
@@ -1836,6 +1831,8 @@ export const PianoRollCanvas = ({
         lastPaintPositionRef.current = null;
 
         dispatch(trackerActions.setSelectedPatternCells(newSelectedPatterns));
+
+        e.preventDefault();
       }
     },
     [
@@ -1908,7 +1905,6 @@ export const PianoRollCanvas = ({
         touchModeRef.current === "pencil_drag_note" ||
         touchModeRef.current === "selection_drag_note"
       ) {
-        e.currentTarget.style.touchAction = "none";
         e.preventDefault();
 
         if (isMouseDown && selectedPatternCells.length > 0 && noteDragOrigin) {
@@ -1953,7 +1949,6 @@ export const PianoRollCanvas = ({
       }
 
       if (touchModeRef.current === "selection_box") {
-        e.currentTarget.style.touchAction = "none";
         e.preventDefault();
         updateTouchSelection(touch.clientX, touch.clientY);
       }
@@ -2031,8 +2026,6 @@ export const PianoRollCanvas = ({
         };
       }
 
-      e.currentTarget.style.touchAction = "";
-
       if (
         touchModeRef.current === "pencil_drag_note" ||
         touchModeRef.current === "selection_drag_note" ||
@@ -2068,17 +2061,14 @@ export const PianoRollCanvas = ({
     ],
   );
 
-  const handleTouchCancel = useCallback(
-    (e: React.TouchEvent<HTMLDivElement>) => {
-      e.currentTarget.style.touchAction = "";
-      resetTwoFingerTapGesture();
-      touchModeRef.current = "idle";
-      pendingPencilNoteRef.current = null;
-      touchStartPointRef.current = null;
-      finishPointerInteraction();
-    },
-    [resetTwoFingerTapGesture, finishPointerInteraction],
-  );
+  const handleTouchCancel = useCallback(() => {
+    resetTwoFingerTapGesture();
+    touchModeRef.current = "idle";
+    pendingPencilNoteRef.current = null;
+    touchStartPointRef.current = null;
+    finishPointerInteraction();
+  }, [resetTwoFingerTapGesture, finishPointerInteraction]);
+
   const [wrapperEl, wrapperSize] = useResizeObserver<HTMLDivElement>();
 
   const onAddSequence = useCallback(
@@ -2134,10 +2124,7 @@ export const PianoRollCanvas = ({
           style={{
             width: documentWidth,
             cursor: isDraggingNotes ? (isCloneMode ? "copy" : "move") : "auto",
-            touchAction:
-              tool === "selection" || (tool === "pencil" && isMouseDown)
-                ? "none"
-                : "auto",
+            touchAction: tool === "selection" ? "none" : "auto",
           }}
           onContextMenu={onSelectionContextMenu}
           onMouseDown={!playing ? handleMouseDown : undefined}

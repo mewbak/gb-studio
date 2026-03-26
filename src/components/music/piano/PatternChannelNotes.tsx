@@ -3,6 +3,7 @@ import { PatternCell } from "shared/lib/uge/types";
 import { PIANO_ROLL_CELL_SIZE, TOTAL_NOTES } from "consts";
 import { StyledPianoRollNote, StyledPatternChannelNotes } from "./style";
 import { PatternCellAddress } from "shared/lib/uge/editor/types";
+import { useAppSelector } from "store/hooks";
 
 interface PatternChannelNotesProps {
   channelId: number;
@@ -28,6 +29,8 @@ export const PatternChannelNotes = React.memo(
     isDragging,
   }: PatternChannelNotesProps) => {
     let instrument: number | null = null;
+
+    const tool = useAppSelector((state) => state.tracker.tool);
 
     return (
       <StyledPatternChannelNotes $active={isActive}>
@@ -70,6 +73,8 @@ export const PatternChannelNotes = React.memo(
                 style={{
                   left,
                   bottom: noteBottom(cell.note),
+                  touchAction:
+                    tool === "pencil" && isSelected ? "none" : "auto",
                 }}
               />
               {cell.effectcode === ARPEGGIO_CODE && (
