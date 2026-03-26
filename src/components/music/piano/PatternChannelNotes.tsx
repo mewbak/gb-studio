@@ -73,10 +73,22 @@ export const PatternChannelNotes = React.memo(
                 style={{
                   left,
                   bottom: noteBottom(cell.note),
-                  touchAction:
-                    tool === "pencil" && isSelected ? "none" : "auto",
                 }}
               />
+              {isSelected && (
+                <div
+                  style={{
+                    position: "absolute",
+                    background: "red",
+                    left: left - 25,
+                    bottom: noteBottom(cell.note) - 25,
+                    width: PIANO_ROLL_CELL_SIZE + 50,
+                    height: PIANO_ROLL_CELL_SIZE + 50,
+                    opacity: 0.5,
+                    touchAction: "none",
+                  }}
+                />
+              )}
               {cell.effectcode === ARPEGGIO_CODE && (
                 <>
                   <StyledPianoRollNote
