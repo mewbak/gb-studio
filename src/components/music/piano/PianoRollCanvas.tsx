@@ -1076,8 +1076,10 @@ export const PianoRollCanvas = ({
         return false;
       }
 
+      const interaction = interactionRef.current;
+
       if (
-        input.updateHover &&
+        (input.updateHover || interaction.type === "dragNote") &&
         (noteIndex !== hoverNoteRef.current ||
           patternRow !== hoverColumnRef.current ||
           sequenceId !== hoverSequenceIdRef.current)
@@ -1099,8 +1101,6 @@ export const PianoRollCanvas = ({
       if (!song) {
         return false;
       }
-
-      const interaction = interactionRef.current;
 
       if (interaction.type === "dragNote") {
         if (selectedPatternCellsRef.current.length === 0) {
