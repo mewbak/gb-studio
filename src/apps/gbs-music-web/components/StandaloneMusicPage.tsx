@@ -35,9 +35,7 @@ import { SplitPaneHeader } from "ui/splitpane/SplitPaneHeader";
 import API from "renderer/lib/api";
 import { MusicDataReceivePacket } from "shared/lib/music/types";
 import { InstrumentEditor } from "components/music/sidebar/InstrumentEditor";
-import { FixedSpacer } from "ui/spacing/Spacing";
 import SongEditorToolsPanel from "components/music/toolbar/SongEditorToolsPanel";
-import { InstrumentIcon } from "ui/icons/Icons";
 import { PatternCellSelectionEditor } from "components/music/sidebar/PatternCellSelectionEditor";
 
 const Wrapper = styled.div`
@@ -68,7 +66,6 @@ export const StandaloneMusicPage = ({
   onCreateSong,
   onImportSong,
   onSelectSong,
-  topInset = 0,
 }: StandaloneMusicPageProps) => {
   const dispatch = useAppDispatch();
   const themeContext = useContext(ThemeContext);
@@ -387,11 +384,10 @@ export const StandaloneMusicPage = ({
                     }}
                   >
                     {sidebarView === "cell" &&
-                    selectedPatternCells.length > 0 ? (
-                      <PatternCellSelectionEditor />
-                    ) : (
-                      <InstrumentEditor />
-                    )}
+                      selectedPatternCells.length > 0 && (
+                        <PatternCellSelectionEditor />
+                      )}
+                    {sidebarView === "instrument" && <InstrumentEditor />}
                   </div>
                 )}
               </div>
