@@ -8,10 +8,15 @@ import React, {
 } from "react";
 import { Song, PatternCell } from "shared/lib/uge/types";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
-import { TrackerRow } from "./SongRow";
 import scrollIntoView from "scroll-into-view-if-needed";
 import { TrackerHeaderCell } from "./TrackerHeaderCell";
-import { patternHue } from "components/music/helpers";
+import {
+  patternHue,
+  renderEffect,
+  renderEffectParam,
+  renderInstrument,
+  renderNote,
+} from "components/music/helpers";
 import { getKeys } from "renderer/lib/keybindings/keyBindings";
 import trackerActions from "store/features/tracker/trackerActions";
 import API from "renderer/lib/api";
@@ -24,6 +29,13 @@ import {
   StyledTrackerWrapper,
   StyledTrackerTableBody,
   StyledTrackerContentWrapper,
+  StyledTrackerRow,
+  StyledTrackerCell,
+  StyledTrackerRowIndexField,
+  StyledTrackerNoteField,
+  StyledTrackerInstrumentField,
+  StyledTrackerEffectCodeField,
+  StyledTrackerEffectParamField,
 } from "./style";
 import {
   buildSelectionRect,
@@ -56,6 +68,10 @@ interface SongTrackerProps {
   sequenceId: number;
   song: Song | null;
 }
+
+const renderCounter = (n: number): string => {
+  return n?.toString().padStart(2, "0") || "__";
+};
 
 export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
   const dispatch = useAppDispatch();
@@ -201,14 +217,6 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
 
   useEffect(() => {
     selectedTrackerFieldsRef.current = selectedTrackerFields;
-  }, [selectedTrackerFields]);
-
-  const selectedTrackerRowSet = useMemo(() => {
-    const rows = new Set<number>();
-    for (const field of selectedTrackerFields) {
-      rows.add(Math.floor(field / TRACKER_ROW_SIZE));
-    }
-    return rows;
   }, [selectedTrackerFields]);
 
   useEffect(() => {
@@ -1095,29 +1103,99 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
             onContextMenu={onSelectionContextMenu}
           >
             {pattern?.map((row: PatternCell[], i: number) => {
-              const isActiveRow =
+              const isActive =
                 activeField !== undefined &&
                 Math.floor(activeField / TRACKER_ROW_SIZE) === i;
               const isPlaying =
                 playbackState[0] === sequenceId && playbackState[1] === i;
-              const isSelected = selectedTrackerRowSet.has(i);
+              // const isSelected = selectedTrackerRowSet.has(i);
+              const isStepMarker = i % 8 === 0;
+              let fieldCount = i * TRACKER_ROW_SIZE;
 
               return (
-                <TrackerRow
-                  key={`__${i}`}
-                  id={`__${i}`}
-                  n={i}
-                  row={row}
-                  fieldCount={i * TRACKER_ROW_SIZE}
-                  activeField={isActiveRow ? activeField : undefined}
-                  isActive={isActiveRow}
-                  isPlaying={isPlaying}
-                  ref={activeFieldRef}
-                  channelStatus={channelStatus}
-                  selectedTrackerFields={
-                    isSelected ? selectedTrackerFields : []
-                  }
-                />
+                <StyledTrackerRow
+                  $isStepMarker={isStepMarker}
+                  $isActive={isActive}
+                >
+                  <StyledTrackerCell
+                    $isPlaying={isPlaying}
+                    $isMuted={false}
+                    data-row={i}
+                  >
+                    <StyledTrackerRowIndexField id={`cell_${i}`}>
+                      {renderCounter(i)}
+                    </StyledTrackerRowIndexField>
+                  </StyledTrackerCell>
+                  {row.map((cell, channelId) => {
+                    const ret = (
+                      <StyledTrackerCell
+                        $isMuted={channelStatus[channelId]}
+                        key={`_${channelId}`}
+                      >
+                        <StyledTrackerNoteField
+                          id={`cell_${i}_${channelId}_note`}
+                          $active={activeField === fieldCount}
+                          ref={
+                            activeField === fieldCount ? activeFieldRef : null
+                          }
+                          data-fieldid={fieldCount}
+                          $selected={
+                            selectedTrackerFields.indexOf(fieldCount) > -1
+                          }
+                        >
+                          {renderNote(cell.note)}
+                        </StyledTrackerNoteField>
+                        <StyledTrackerInstrumentField
+                          id={`cell_${i}_${channelId}_instrument`}
+                          $active={activeField === fieldCount + 1}
+                          ref={
+                            activeField === fieldCount + 1
+                              ? activeFieldRef
+                              : null
+                          }
+                          data-fieldid={fieldCount + 1}
+                          $selected={
+                            selectedTrackerFields.indexOf(fieldCount + 1) > -1
+                          }
+                        >
+                          {renderInstrument(cell.instrument)}
+                        </StyledTrackerInstrumentField>
+                        <StyledTrackerEffectCodeField
+                          id={`cell_${i}_${channelId}_effectcode`}
+                          $active={activeField === fieldCount + 2}
+                          ref={
+                            activeField === fieldCount + 2
+                              ? activeFieldRef
+                              : null
+                          }
+                          data-fieldid={fieldCount + 2}
+                          $selected={
+                            selectedTrackerFields.indexOf(fieldCount + 2) > -1
+                          }
+                        >
+                          {renderEffect(cell.effectcode)}
+                        </StyledTrackerEffectCodeField>
+                        <StyledTrackerEffectParamField
+                          id={`cell_${i}_${channelId}_effectparam`}
+                          $active={activeField === fieldCount + 3}
+                          ref={
+                            activeField === fieldCount + 3
+                              ? activeFieldRef
+                              : null
+                          }
+                          data-fieldid={fieldCount + 3}
+                          $selected={
+                            selectedTrackerFields.indexOf(fieldCount + 3) > -1
+                          }
+                        >
+                          {renderEffectParam(cell.effectparam)}
+                        </StyledTrackerEffectParamField>
+                      </StyledTrackerCell>
+                    );
+                    fieldCount += 4;
+                    return ret;
+                  })}
+                </StyledTrackerRow>
               );
             })}
           </StyledTrackerTableBody>
