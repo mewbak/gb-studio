@@ -20,7 +20,7 @@ import trackerDocumentActions from "store/features/trackerDocument/trackerDocume
 import { mergeWith } from "lodash";
 import { Position, SelectionRect } from "components/music/tracker/helpers";
 import API from "renderer/lib/api";
-import { useAppDispatch } from "store/hooks";
+import { useAppDispatch, useAppSelector } from "store/hooks";
 import { createSubPatternCell } from "shared/lib/uge/song";
 import { SUBPATTERN_ROW_COUNT } from "components/music/form/subpattern/helpers";
 import {
@@ -167,6 +167,10 @@ export const InstrumentSubpatternTracker = ({
   const activeFieldRef = useRef<HTMLSpanElement | null>(null);
   const offsetSignRef = useRef<1 | -1>(1);
   const offsetZeroSignOverrideRef = useRef<1 | -1 | null>(null);
+
+  const subpatternEditorFocus = useAppSelector(
+    (state) => state.tracker.subpatternEditorFocus,
+  );
 
   const selectedTrackerFields = useMemo(
     () => getSelectedTrackerFields(selectionRect, selectionOrigin),
@@ -656,8 +660,14 @@ export const InstrumentSubpatternTracker = ({
     dispatch(trackerActions.setSubpatternEditorFocus(false));
   }, [dispatch]);
 
+  useEffect(() => {
+    return () => {
+      dispatch(trackerActions.setSubpatternEditorFocus(false));
+    };
+  }, [dispatch]);
+
   const onCopy = useCallback(
-    (e: React.ClipboardEvent<HTMLTableElement>) => {
+    (e: ClipboardEvent) => {
       if (activeField === undefined || selectedTrackerFields.length === 0) {
         return;
       }
@@ -668,14 +678,14 @@ export const InstrumentSubpatternTracker = ({
       );
 
       e.preventDefault();
-      e.clipboardData.setData("text/plain", parsedSelectedPattern);
+      e.clipboardData?.setData("text/plain", parsedSelectedPattern);
       void API.clipboard.writeText(parsedSelectedPattern);
     },
     [activeField, selectedTrackerFields, subpattern],
   );
 
   const onCut = useCallback(
-    (e: React.ClipboardEvent<HTMLTableElement>) => {
+    (e: ClipboardEvent) => {
       if (activeField === undefined || selectedTrackerFields.length === 0) {
         return;
       }
@@ -686,7 +696,7 @@ export const InstrumentSubpatternTracker = ({
       );
 
       e.preventDefault();
-      e.clipboardData.setData("text/plain", parsedSelectedPattern);
+      e.clipboardData?.setData("text/plain", parsedSelectedPattern);
       void API.clipboard.writeText(parsedSelectedPattern);
       deleteSelectedTrackerFields();
     },
@@ -699,7 +709,7 @@ export const InstrumentSubpatternTracker = ({
   );
 
   const onPaste = useCallback(
-    async (e: React.ClipboardEvent<HTMLTableElement>) => {
+    async (e: ClipboardEvent) => {
       const tempActiveField =
         activeField !== undefined
           ? activeField
@@ -714,7 +724,7 @@ export const InstrumentSubpatternTracker = ({
       e.preventDefault();
 
       const clipboardText =
-        e.clipboardData.getData("text/plain") ||
+        e.clipboardData?.getData("text/plain") ||
         (await API.clipboard.readText());
 
       const pastedPattern = parseClipboardToSubPattern(clipboardText);
@@ -777,6 +787,20 @@ export const InstrumentSubpatternTracker = ({
     ],
   );
 
+  // Clipboard
+  useEffect(() => {
+    if (subpatternEditorFocus) {
+      window.addEventListener("copy", onCopy);
+      window.addEventListener("cut", onCut);
+      window.addEventListener("paste", onPaste);
+      return () => {
+        window.removeEventListener("copy", onCopy);
+        window.removeEventListener("cut", onCut);
+        window.removeEventListener("paste", onPaste);
+      };
+    }
+  }, [onCopy, onCut, onPaste, subpatternEditorFocus]);
+
   return (
     <StyledTrackerContentTable
       $type="subpattern"
@@ -786,9 +810,6 @@ export const InstrumentSubpatternTracker = ({
       onKeyDown={handleKeyDown}
       onMouseDown={handleMouseDown}
       onWheel={handleWheel}
-      onCopy={onCopy}
-      onCut={onCut}
-      onPaste={onPaste}
     >
       <StyledTrackerTableBody>
         {subpattern.slice(0, visibleRowCount).map((row, rowIndex) => {
