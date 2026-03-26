@@ -6,7 +6,7 @@ import React, {
   useState,
   useLayoutEffect,
 } from "react";
-import { Song } from "shared/lib/uge/types";
+import { PatternCell, Song } from "shared/lib/uge/types";
 import { useAppDispatch, useAppSelector } from "store/hooks";
 import { PianoRollPatternBlock } from "./PianoRollPatternBlock";
 import {
@@ -39,7 +39,6 @@ import { NO_CHANGE_ON_PASTE } from "components/music/musicClipboardHelpers";
 import {
   calculateDocumentWidth,
   calculatePlaybackTrackerPosition,
-  clonePattern,
   commitChangedPatterns,
   interpolateGridLine,
   mutatePatternsAndCollectChanges,
@@ -63,6 +62,7 @@ import { useContextMenu } from "ui/hooks/use-context-menu";
 import {
   copyAbsoluteCells,
   cutAbsoluteCells,
+  moveAbsoluteCells,
   pasteInPlace,
 } from "store/features/trackerDocument/trackerDocumentState";
 import { pasteAbsoluteCells } from "store/features/tracker/trackerState";
@@ -929,135 +929,19 @@ export const PianoRollCanvas = ({
         interaction.delta.rows !== 0 || interaction.delta.notes !== 0;
 
       if (hasMoved && selectedPatternCells.length > 0) {
-        const selectedPatternCellKeys = new Set(
-          selectedPatternCells.map(
-            (selectedCell) =>
-              `${selectedCell.sequenceId}:${selectedCell.rowId}:${selectedCell.channelId}`,
-          ),
-        );
-
-        const { clonedPatterns, changedPatternIds } =
-          mutatePatternsAndCollectChanges(
-            song.patterns,
-            (patterns, changed) => {
-              for (const sourceAddress of selectedPatternCells) {
-                const sourcePatternId = song.sequence[sourceAddress.sequenceId];
-                if (sourcePatternId === undefined) {
-                  continue;
-                }
-
-                const sourceCell =
-                  song.patterns[sourcePatternId]?.[sourceAddress.rowId]?.[
-                    sourceAddress.channelId
-                  ];
-
-                if (!sourceCell || sourceCell.note === null) {
-                  continue;
-                }
-
-                const sourceAbsRow = toAbsRow(
-                  sourceAddress.sequenceId,
-                  sourceAddress.rowId,
-                );
-                const targetAbsRow = sourceAbsRow + interaction.delta.rows;
-
-                const previousSourcePositionKey = `${sourceAddress.sequenceId}:${
-                  sourceAddress.rowId - interaction.delta.rows
-                }:${sourceAddress.channelId}`;
-
-                if (
-                  !interaction.modifiers.clone &&
-                  !selectedPatternCellKeys.has(previousSourcePositionKey)
-                ) {
-                  patterns[sourcePatternId][sourceAddress.rowId][
-                    sourceAddress.channelId
-                  ] = {
-                    ...patterns[sourcePatternId][sourceAddress.rowId][
-                      sourceAddress.channelId
-                    ],
-                    instrument: null,
-                    note: null,
-                    effectcode: null,
-                    effectparam: null,
-                  };
-                  changed.add(sourcePatternId);
-                }
-
-                if (targetAbsRow < 0 || targetAbsRow >= totalAbsRows) {
-                  continue;
-                }
-
-                const targetResolved = resolveAbsRow(
-                  song.sequence,
-                  targetAbsRow,
-                );
-                if (!targetResolved) {
-                  continue;
-                }
-
-                patterns[targetResolved.patternId][targetResolved.rowId][
-                  sourceAddress.channelId
-                ] = {
-                  ...patterns[targetResolved.patternId][targetResolved.rowId][
-                    sourceAddress.channelId
-                  ],
-                  ...sourceCell,
-                  note: wrapNote(sourceCell.note + interaction.delta.notes),
-                };
-                changed.add(targetResolved.patternId);
-              }
-            },
-          );
-
-        commitChangedPatterns(
-          changedPatternIds,
-          clonedPatterns,
-          (patternId, pattern) => {
-            dispatch(
-              trackerDocumentActions.editPattern({
-                patternId,
-                pattern,
-              }),
-            );
-          },
-        );
-
         dispatch(
-          trackerActions.setSelectedPatternCells(
-            selectedPatternCells
-              .map((selectedCell) => {
-                const sourceAbsRow = toAbsRow(
-                  selectedCell.sequenceId,
-                  selectedCell.rowId,
-                );
-                const targetAbsRow = sourceAbsRow + interaction.delta.rows;
-
-                if (targetAbsRow < 0 || targetAbsRow >= totalAbsRows) {
-                  return null;
-                }
-
-                const resolved = resolveAbsRow(song.sequence, targetAbsRow);
-                if (!resolved) {
-                  return null;
-                }
-
-                return {
-                  sequenceId: resolved.sequenceId,
-                  rowId: resolved.rowId,
-                  channelId: selectedCell.channelId,
-                };
-              })
-              .filter(
-                (selectedCell): selectedCell is PatternCellAddress =>
-                  selectedCell !== null,
-              ),
-          ),
+          moveAbsoluteCells({
+            patternCells: selectedPatternCells,
+            rowDelta: interaction.delta.rows,
+            noteDelta: interaction.delta.notes,
+            clone: interaction.modifiers.clone,
+          }),
         );
       }
     }
 
     resetPointerInteractionState();
-  }, [dispatch, resetPointerInteractionState, totalAbsRows]);
+  }, [dispatch, resetPointerInteractionState]);
 
   const handlePointerDown = useCallback(
     (input: PointerDownInput): boolean => {
@@ -1375,40 +1259,43 @@ export const PianoRollCanvas = ({
             { absRow, note: noteIndex },
           );
 
-          type PaintEdit = { rowId: number; note: number };
-          const paintsByPattern = new Map<number, PaintEdit[]>();
+          const changes: Array<{
+            patternId: number;
+            rowId: number;
+            channelId: number;
+            changes: Partial<PatternCell>;
+          }> = [];
 
           for (const paintCell of cellsToPaint) {
             const resolved = resolveAbsRow(song.sequence, paintCell.absRow);
-            if (!resolved) continue;
+            if (!resolved) {
+              continue;
+            }
 
             const existing =
               song.patterns[resolved.patternId]?.[resolved.rowId]?.[
                 selectedChannel
               ];
 
-            if (existing?.note === paintCell.note) continue;
-
-            const edits = paintsByPattern.get(resolved.patternId) ?? [];
-            edits.push({ rowId: resolved.rowId, note: paintCell.note });
-            paintsByPattern.set(resolved.patternId, edits);
-          }
-
-          for (const [patternId, edits] of paintsByPattern) {
-            const pattern = clonePattern(song.patterns[patternId]);
-
-            for (const { rowId, note } of edits) {
-              pattern[rowId][selectedChannel] = {
-                ...pattern[rowId][selectedChannel],
-                instrument: selectedInstrumentId,
-                note,
-              };
+            if (existing?.note === paintCell.note) {
+              continue;
             }
 
+            changes.push({
+              patternId: resolved.patternId,
+              rowId: resolved.rowId,
+              channelId: selectedChannel,
+              changes: {
+                instrument: selectedInstrumentId,
+                note: paintCell.note,
+              },
+            });
+          }
+
+          if (changes.length > 0) {
             dispatch(
-              trackerDocumentActions.editPattern({
-                patternId: Number(patternId),
-                pattern,
+              trackerDocumentActions.applyPatternCellChanges({
+                changes,
               }),
             );
           }
@@ -1463,12 +1350,18 @@ export const PianoRollCanvas = ({
             { absRow, note: noteIndex },
           );
 
-          type EraseEdit = { rowId: number };
-          const erasesByPattern = new Map<number, EraseEdit[]>();
+          const changes: Array<{
+            patternId: number;
+            rowId: number;
+            channelId: number;
+            changes: Partial<PatternCell>;
+          }> = [];
 
           for (const eraseCell of cellsToErase) {
             const resolved = resolveAbsRow(song.sequence, eraseCell.absRow);
-            if (!resolved) continue;
+            if (!resolved) {
+              continue;
+            }
 
             const existing =
               song.patterns[resolved.patternId]?.[resolved.rowId]?.[
@@ -1480,27 +1373,22 @@ export const PianoRollCanvas = ({
               existing?.note !== undefined &&
               existing.note === eraseCell.note
             ) {
-              const edits = erasesByPattern.get(resolved.patternId) ?? [];
-              edits.push({ rowId: resolved.rowId });
-              erasesByPattern.set(resolved.patternId, edits);
+              changes.push({
+                patternId: resolved.patternId,
+                rowId: resolved.rowId,
+                channelId: selectedChannel,
+                changes: {
+                  instrument: null,
+                  note: null,
+                },
+              });
             }
           }
 
-          for (const [patternId, edits] of erasesByPattern) {
-            const pattern = clonePattern(song.patterns[patternId]);
-
-            for (const { rowId } of edits) {
-              pattern[rowId][selectedChannel] = {
-                ...pattern[rowId][selectedChannel],
-                instrument: null,
-                note: null,
-              };
-            }
-
+          if (changes.length > 0) {
             dispatch(
-              trackerDocumentActions.editPattern({
-                patternId: Number(patternId),
-                pattern,
+              trackerDocumentActions.applyPatternCellChanges({
+                changes,
               }),
             );
           }

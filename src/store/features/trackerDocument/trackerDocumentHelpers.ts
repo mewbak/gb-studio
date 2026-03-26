@@ -1,5 +1,6 @@
 import {
   OCTAVE_SIZE,
+  TOTAL_NOTES,
   TRACKER_CHANNEL_FIELDS,
   TRACKER_NUM_CHANNELS,
   TRACKER_PATTERN_LENGTH,
@@ -333,3 +334,6 @@ export const parseClipboardToPattern = (clipboard: string) => {
 
   return pattern;
 };
+
+export const wrapNote = (note: number) =>
+  ((note % TOTAL_NOTES) + TOTAL_NOTES) % TOTAL_NOTES;

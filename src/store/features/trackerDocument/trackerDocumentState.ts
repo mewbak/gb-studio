@@ -27,9 +27,12 @@ import {
   parseClipboardToPattern,
   parsePatternFieldsToClipboard,
   parsePatternToClipboard,
+  resolveAbsRow,
   resolveTrackerCellFields,
   resolveUniqueTrackerCells,
+  toAbsRow,
   transposePatternCellNote,
+  wrapNote,
 } from "./trackerDocumentHelpers";
 import {
   TRACKER_CHANNEL_FIELDS,
@@ -432,6 +435,171 @@ export const pasteTrackerFields =
       dispatch(actions.applyPatternCellChanges({ changes }));
     }
   };
+
+export const moveAbsoluteCells =
+  (args: {
+    patternCells: PatternCellAddress[];
+    rowDelta: number;
+    noteDelta: number;
+    clone: boolean;
+  }): AppThunk =>
+  (dispatch, getState) => {
+    const state = getState();
+    const song = selectTrackerDocumentSong(state);
+
+    if (!song) {
+      return;
+    }
+
+    const { patternCells, rowDelta, noteDelta, clone } = args;
+
+    if (patternCells.length === 0) {
+      return;
+    }
+
+    if (rowDelta === 0 && noteDelta === 0) {
+      return;
+    }
+
+    const totalAbsRows = song.sequence.length * TRACKER_PATTERN_LENGTH;
+
+    const uniqueSourceCells = new Map<
+      string,
+      {
+        patternId: number;
+        rowId: number;
+        channelId: number;
+        sequenceId: number;
+        absRow: number;
+        cell: PatternCell;
+        note: number;
+      }
+    >();
+
+    for (const sourceAddress of patternCells) {
+      const patternId = song.sequence[sourceAddress.sequenceId];
+      if (patternId === undefined) {
+        continue;
+      }
+
+      const cell =
+        song.patterns?.[patternId]?.[sourceAddress.rowId]?.[
+          sourceAddress.channelId
+        ];
+
+      if (!cell || cell.note === null) {
+        continue;
+      }
+
+      const key = `${patternId}:${sourceAddress.rowId}:${sourceAddress.channelId}`;
+      if (uniqueSourceCells.has(key)) {
+        continue;
+      }
+
+      uniqueSourceCells.set(key, {
+        patternId,
+        rowId: sourceAddress.rowId,
+        channelId: sourceAddress.channelId,
+        sequenceId: sourceAddress.sequenceId,
+        absRow: toAbsRow(sourceAddress.sequenceId, sourceAddress.rowId),
+        cell,
+        note: cell.note,
+      });
+    }
+
+    if (uniqueSourceCells.size === 0) {
+      return;
+    }
+
+    const selectedPatternCellKeys = new Set(
+      patternCells.map(
+        (selectedCell) =>
+          `${selectedCell.sequenceId}:${selectedCell.rowId}:${selectedCell.channelId}`,
+      ),
+    );
+
+    const changes: Array<{
+      patternId: number;
+      rowId: number;
+      channelId: number;
+      changes: Partial<PatternCell>;
+    }> = [];
+
+    for (const source of uniqueSourceCells.values()) {
+      const targetAbsRow = source.absRow + rowDelta;
+
+      const previousSourcePositionKey = `${source.sequenceId}:${
+        source.rowId - rowDelta
+      }:${source.channelId}`;
+
+      if (!clone && !selectedPatternCellKeys.has(previousSourcePositionKey)) {
+        changes.push({
+          patternId: source.patternId,
+          rowId: source.rowId,
+          channelId: source.channelId,
+          changes: {
+            instrument: null,
+            note: null,
+            effectcode: null,
+            effectparam: null,
+          },
+        });
+      }
+
+      if (targetAbsRow < 0 || targetAbsRow >= totalAbsRows) {
+        continue;
+      }
+
+      const targetResolved = resolveAbsRow(song.sequence, targetAbsRow);
+      if (!targetResolved) {
+        continue;
+      }
+
+      changes.push({
+        patternId: targetResolved.patternId,
+        rowId: targetResolved.rowId,
+        channelId: source.channelId,
+        changes: {
+          ...source.cell,
+          note: wrapNote(source.note + noteDelta),
+        },
+      });
+    }
+
+    if (changes.length > 0) {
+      dispatch(actions.applyPatternCellChanges({ changes }));
+    }
+
+    const newSelection = [...uniqueSourceCells.values()]
+      .map((source) => {
+        const targetAbsRow = source.absRow + rowDelta;
+
+        if (targetAbsRow < 0 || targetAbsRow >= totalAbsRows) {
+          return null;
+        }
+
+        const resolved = resolveAbsRow(song.sequence, targetAbsRow);
+        if (!resolved) {
+          return null;
+        }
+
+        return {
+          sequenceId: resolved.sequenceId,
+          rowId: resolved.rowId,
+          channelId: source.channelId,
+        };
+      })
+      .filter(
+        (selectedCell): selectedCell is PatternCellAddress =>
+          selectedCell !== null,
+      );
+
+    dispatch(moveAbsoluteCellsComplete({ newSelection }));
+  };
+
+export const moveAbsoluteCellsComplete = createAction<{
+  newSelection: PatternCellAddress[];
+}>("trackerDocument/moveAbsoluteCellsComplete");
 
 const trackerSlice = createSlice({
   name: "trackerDocument",
