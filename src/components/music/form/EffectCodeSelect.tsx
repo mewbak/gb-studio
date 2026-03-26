@@ -10,7 +10,7 @@ import l10n from "shared/lib/lang/l10n";
 import { useMusicNotePreview } from "components/music/hooks/useMusicNotePreview";
 
 export interface EffectCodeOption {
-  value: number | null;
+  value: number | "";
   label: string;
   info?: string;
 }
@@ -33,7 +33,7 @@ const buildEffectCodeOptions = (): EffectCodeOptionGroup[] => [
     label: "",
     options: [
       {
-        value: null,
+        value: "",
         label: l10n("FIELD_NO_EFFECT"),
       },
     ],
@@ -165,7 +165,7 @@ export const EffectCodeSelect: FC<EffectCodeSelectProps> = ({
           ...group,
           options: group.options.filter(
             (option) =>
-              option.value === null ||
+              option.value === "" ||
               !allowedEffectCodes ||
               allowedEffectCodes.includes(option.value),
           ),
@@ -186,10 +186,10 @@ export const EffectCodeSelect: FC<EffectCodeSelectProps> = ({
     }
 
     return {
-      value: value ?? null,
+      value: value ?? "",
       label:
         value === null || value === undefined
-          ? noneLabel ?? l10n("FIELD_NO_EFFECT")
+          ? (noneLabel ?? l10n("FIELD_NO_EFFECT"))
           : `Effect ${value.toString(16).toUpperCase()}`,
     };
   }, [allFlatOptions, noneLabel, value]);
@@ -198,11 +198,12 @@ export const EffectCodeSelect: FC<EffectCodeSelectProps> = ({
     if (!newValue) {
       return;
     }
-    onChange?.(newValue.value);
+    const newEffectCode = newValue.value !== "" ? newValue.value : null;
+    onChange?.(newEffectCode);
     playPreview({
       note,
       instrumentId,
-      effectCode: newValue.value,
+      effectCode: newEffectCode,
       effectParam,
     });
   };
