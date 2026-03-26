@@ -320,8 +320,10 @@ export const StyledTrackerJumpField = styled(StyledTrackerField)`
 
 export const StyledTrackerEffectCodeField = styled(StyledTrackerField)`
   color: ${(props) => props.theme.colors.tracker.effectCode};
+  padding-right: 1px;
 `;
 
 export const StyledTrackerEffectParamField = styled(StyledTrackerField)`
   color: ${(props) => props.theme.colors.tracker.effectParam};
+  padding-left: 1px;
 `;

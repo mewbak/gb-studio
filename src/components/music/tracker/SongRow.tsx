@@ -83,9 +83,6 @@ const TrackerRowFwd = React.forwardRef<HTMLSpanElement, TrackerRowProps>(
                 $active={activeField === fieldCount + 2}
                 ref={activeField === fieldCount + 2 ? ref : null}
                 data-fieldid={fieldCount + 2}
-                style={{
-                  paddingRight: 1,
-                }}
                 $selected={selectedTrackerFields.indexOf(fieldCount + 2) > -1}
               >
                 {renderEffect(cell.effectcode)}
@@ -95,9 +92,6 @@ const TrackerRowFwd = React.forwardRef<HTMLSpanElement, TrackerRowProps>(
                 $active={activeField === fieldCount + 3}
                 ref={activeField === fieldCount + 3 ? ref : null}
                 data-fieldid={fieldCount + 3}
-                style={{
-                  paddingLeft: 1,
-                }}
                 $selected={selectedTrackerFields.indexOf(fieldCount + 3) > -1}
               >
                 {renderEffectParam(cell.effectparam)}
