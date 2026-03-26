@@ -4,7 +4,6 @@ import { MAX_OCTAVE, TOTAL_OCTAVES } from "consts";
 
 interface PianoKeyboardProps {
   hoverNote: number | null;
-  c5Ref: React.RefObject<HTMLDivElement>;
   onPlayNote: (noteIndex: number) => void;
 }
 
@@ -30,7 +29,6 @@ const tallNotes = ["A", "G", "D"];
 
 export const PianoKeyboard = ({
   hoverNote,
-  c5Ref,
   onPlayNote,
 }: PianoKeyboardProps) => {
   const keyboardRef = useRef<HTMLDivElement | null>(null);
@@ -149,7 +147,6 @@ export const PianoKeyboard = ({
               const isBlack = blackNotes.includes(note);
               const isTall = tallNotes.includes(note);
               const isC = note === "C";
-              const isC5 = isC && octave === 5;
 
               return (
                 <StyledPianoKey
@@ -158,7 +155,6 @@ export const PianoKeyboard = ({
                   $color={isBlack ? "black" : "white"}
                   $highlight={hoverNote === noteNumber}
                   $tall={isTall || undefined}
-                  ref={isC5 ? c5Ref : undefined}
                   title={`${note}${octave}`}
                   onMouseDown={(e) => {
                     if (e.buttons & 1) {

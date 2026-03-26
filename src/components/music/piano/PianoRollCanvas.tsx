@@ -24,6 +24,7 @@ import {
 } from "./style";
 import { PianoKeyboard } from "./PianoKeyboard";
 import {
+  OCTAVE_SIZE,
   PIANO_ROLL_CELL_SIZE,
   PIANO_ROLL_PIANO_WIDTH,
   TOTAL_NOTES,
@@ -541,8 +542,6 @@ export const PianoRollCanvas = ({
     [selectedChannel, visibleChannels],
   );
 
-  const c5Ref = useRef<HTMLDivElement>(null);
-
   const documentWidth = song.sequence
     ? calculateDocumentWidth(song.sequence.length) + 100
     : 0;
@@ -562,12 +561,12 @@ export const PianoRollCanvas = ({
   }, [song]);
 
   useEffect(() => {
-    if (scrollRef.current && c5Ref.current) {
+    if (scrollRef.current) {
       const scrollRect = scrollRef.current.getBoundingClientRect();
-      const targetRect = c5Ref.current.getBoundingClientRect();
-      const offsetTop = targetRect.top - scrollRect.top;
+      const halfViewHeight = scrollRect.height * 0.5;
+      const c5Y = PIANO_ROLL_CELL_SIZE * OCTAVE_SIZE * 4;
       scrollRef.current.scrollTo({
-        top: scrollRef.current.scrollTop + offsetTop,
+        top: c5Y - halfViewHeight + 40,
       });
     }
   }, []);
@@ -1542,11 +1541,7 @@ export const PianoRollCanvas = ({
           playbackRow={playbackRow}
         />
         <StyledPianoRollScrollLeftWrapper>
-          <PianoKeyboard
-            c5Ref={c5Ref}
-            hoverNote={hoverNote}
-            onPlayNote={onPlayNote}
-          />
+          <PianoKeyboard hoverNote={hoverNote} onPlayNote={onPlayNote} />
           <StyledPianoRollScrollLeftFXSpacer>
             <FXIcon />
           </StyledPianoRollScrollLeftFXSpacer>
