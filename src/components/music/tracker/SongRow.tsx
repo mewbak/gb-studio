@@ -46,16 +46,10 @@ const TrackerRowFwd = React.forwardRef<HTMLSpanElement, TrackerRowProps>(
     }: TrackerRowProps,
     ref,
   ) => {
+    const isStepMarker = n % 8 === 0;
     return (
-      <StyledTrackerRow>
-        <StyledTrackerCell
-          $isPlaying={isPlaying}
-          $isActive={isActive}
-          $isMuted={false}
-          $n={n}
-          $size="small"
-          data-row={n}
-        >
+      <StyledTrackerRow $isStepMarker={isStepMarker} $isActive={isActive}>
+        <StyledTrackerCell $isPlaying={isPlaying} $isMuted={false} data-row={n}>
           <StyledTrackerRowIndexField id={`cell_${n}`}>
             {renderCounter(n)}
           </StyledTrackerRowIndexField>
@@ -63,9 +57,7 @@ const TrackerRowFwd = React.forwardRef<HTMLSpanElement, TrackerRowProps>(
         {row.map((cell, channelId) => {
           const ret = (
             <StyledTrackerCell
-              $isActive={isActive}
               $isMuted={channelStatus[channelId]}
-              $n={n}
               key={`_${channelId}`}
             >
               <StyledTrackerNoteField

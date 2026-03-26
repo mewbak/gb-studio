@@ -16,16 +16,38 @@ export const StyledTrackerContentWrapper = styled.div`
   overscroll-behavior: none;
 `;
 
-export const StyledTrackerContentTable = styled.table`
+interface StyledTrackerContentTableProps {
+  $type: "pattern" | "subpattern";
+}
+
+export const StyledTrackerContentTable = styled.table<StyledTrackerContentTableProps>`
   width: 600px;
   display: table;
   border-collapse: collapse;
 
-  & tr td:first-child {
-    position: sticky;
-    left: 0;
-    z-index: 1;
-  }
+  ${(props) =>
+    props.$type === "pattern" &&
+    css`
+      & tr td:first-child {
+        position: sticky;
+        left: 0;
+        z-index: 1;
+      }
+    `}
+
+  ${(props) =>
+    props.$type === "subpattern" &&
+    css`
+      width: 100%;
+      max-width: 270px;
+      & tr td:first-child {
+        width: 56px;
+      }
+      & tr td:last-child {
+        text-align: left;
+        padding: 0 5px;
+      }
+    `}
 `;
 
 export const StyledTrackerTableHeader = styled.thead`
@@ -181,14 +203,31 @@ export const StyledTrackerHeaderCell = styled.th<StyledTrackerHeaderCellProps>`
     `}
 `;
 
-export const StyledTrackerRow = styled.tr``;
+interface StyledTrackerRowProps {
+  $isStepMarker?: boolean;
+  $isActive?: boolean;
+}
+
+export const StyledTrackerRow = styled.tr<StyledTrackerRowProps>`
+  ${(props) =>
+    props.$isStepMarker
+      ? css`
+          td {
+            background-color: ${props.theme.colors.tracker.activeBackground};
+          }
+        `
+      : ""}
+  ${(props) =>
+    props.$isActive
+      ? css`
+          background-color: ${props.theme.colors.tracker.activeBackground};
+        `
+      : ""}
+`;
 
 interface StyledTrackerCellProps {
-  $n: number;
-  $isActive: boolean;
   $isPlaying?: boolean;
-  $isMuted: boolean;
-  $size?: "normal" | "small";
+  $isMuted?: boolean;
 }
 
 export const StyledTrackerCell = styled.td<StyledTrackerCellProps>`
@@ -207,28 +246,20 @@ export const StyledTrackerCell = styled.td<StyledTrackerCellProps>`
   text-align: center;
 
   background-color: ${(props) => props.theme.colors.tracker.background};
-  ${(props) =>
-    props.$n % 8 === 0
-      ? css`
-          background-color: ${props.theme.colors.tracker.activeBackground};
-        `
-      : ""}
-  ${(props) =>
-    props.$isActive
-      ? css`
-          background-color: ${props.theme.colors.tracker.activeBackground};
-        `
-      : ""}
+
   ${(props) =>
     props.$isPlaying
       ? css`
-          background-color: ${props.theme.colors.highlight};
-          color: ${props.theme.colors.highlightText};
+          && {
+            background-color: ${props.theme.colors.highlight};
+            color: ${props.theme.colors.highlightText};
+          }
           ${StyledTrackerField} {
             color: ${props.theme.colors.highlightText};
           }
         `
       : ""}
+
   ${(props) =>
     props.$isMuted
       ? css`
@@ -280,6 +311,10 @@ export const StyledTrackerNoteField = styled(StyledTrackerField)`
 `;
 
 export const StyledTrackerInstrumentField = styled(StyledTrackerField)`
+  color: ${(props) => props.theme.colors.tracker.instrument};
+`;
+
+export const StyledTrackerJumpField = styled(StyledTrackerField)`
   color: ${(props) => props.theme.colors.tracker.instrument};
 `;
 

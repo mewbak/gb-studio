@@ -5,8 +5,6 @@ import React, {
   useRef,
   useState,
 } from "react";
-import styled, { css } from "styled-components";
-import { CheckboxContainer } from "ui/form/Checkbox";
 import { Input } from "ui/form/Input";
 import { ToggleButtonGroup } from "ui/form/ToggleButtonGroup";
 import { SortableItem } from "ui/lists/SortableItem";
@@ -14,7 +12,6 @@ import { MenuItem } from "ui/menu/Menu";
 import {
   ScriptEventField,
   ScriptEventFields,
-  ScriptEventFormWrapper,
   ScriptEventHeader,
   ScriptEventWrapper,
 } from "ui/scripting/ScriptEvents";
@@ -43,72 +40,23 @@ import useResizeObserver from "ui/hooks/use-resize-observer";
 import { mergeRefs } from "ui/hooks/merge-refs";
 import { NoiseMacroEditorForm } from "components/music/form/NoiseMacroEditorForm";
 import { ToggleableFormField } from "ui/form/layout/FormLayout";
+import {
+  StyledInstrumentSubpatternJumpOverlay,
+  StyledInstrumentSubpatternScriptList,
+} from "components/music/form/subpattern/style";
+import { StyledScriptEventFormWrapper } from "ui/scripting/style";
 
-const RowsList = styled.div`
-  position: relative;
-`;
-
-const JumpOverlay = styled.svg`
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  overflow: visible;
-  z-index: 2;
-  stroke: ${(props) => props.theme.colors.scripting.header.text};
-`;
-
-const SubpatternLabel = styled.span<{
-  $empty: boolean;
-  $open: boolean;
-}>`
-  ${(props) =>
-    props.$empty && !props.$open
-      ? css`
-          opacity: 0.4;
-        `
-      : ""}
-`;
-
-const TickAccordionSection = styled(ScriptEventWrapper)<{
-  $dragging: boolean;
-  $empty: boolean;
-  $open: boolean;
-}>`
-  position: relative;
-  z-index: 1;
-
-  ${(props) =>
-    props.$dragging
-      ? css`
-          opacity: 0.45;
-        `
-      : ""}
-`;
-
-const StyledScriptEventFormWrapper = styled(ScriptEventFormWrapper)`
-  margin-left: 20px;
-  margin-right: 8px;
-`;
-
-const DraggableScriptEventHeader = styled(ScriptEventHeader)`
-  ${CheckboxContainer} {
-    display: none;
-  }
-`;
-
-interface InstrumentSubpatternVisualEditorProps {
+interface InstrumentSubpatternScriptProps {
   instrumentId: number;
   instrumentType: "duty" | "wave" | "noise";
   subpattern: SubPatternCell[];
 }
 
-export const InstrumentSubpatternVisualEditor = ({
+export const InstrumentSubpatternScript = ({
   instrumentId,
   instrumentType,
   subpattern,
-}: InstrumentSubpatternVisualEditorProps) => {
+}: InstrumentSubpatternScriptProps) => {
   const dispatch = useAppDispatch();
   const rowsListRef = useRef<HTMLDivElement | null>(null);
   const rowHeaderRefs = useRef<Array<HTMLDivElement | null>>([]);
@@ -386,15 +334,17 @@ export const InstrumentSubpatternVisualEditor = ({
         macros={macroValues}
         onChange={onChangeMacroValue}
       />
-      <RowsList ref={mergeRefs(rowsListRef, wrapperEl)}>
-        {jumpArrow ? (
-          <JumpOverlay
+      <StyledInstrumentSubpatternScriptList
+        ref={mergeRefs(rowsListRef, wrapperEl)}
+      >
+        {jumpArrow && (
+          <StyledInstrumentSubpatternJumpOverlay
             viewBox={`0 0 ${jumpArrow.width} ${jumpArrow.height}`}
             aria-hidden="true"
           >
             <path d={jumpArrow.path} fill="none" strokeWidth="2" />
-          </JumpOverlay>
-        ) : null}
+          </StyledInstrumentSubpatternJumpOverlay>
+        )}
 
         {visibleRows.map((row, rowIndex) => (
           <SortableItem
@@ -408,17 +358,16 @@ export const InstrumentSubpatternVisualEditor = ({
             setDragging={setIsDragging}
             useDragHandle
             renderItem={(_, dragState) => (
-              <TickAccordionSection
-                $dragging={dragState.isDragging}
-                $empty={isSubpatternRowEmpty(row)}
-                $open={selectedRow === rowIndex || dragState.isDragging}
-                style={
-                  dragState.isOver && isDragging
-                    ? { boxShadow: "0 0 0 1px currentColor inset" }
-                    : undefined
-                }
+              <ScriptEventWrapper
+                style={{
+                  opacity: dragState.isDragging ? 0.4 : 1,
+                  boxShadow:
+                    dragState.isOver && isDragging
+                      ? "0 0 0 1px currentColor inset"
+                      : undefined,
+                }}
               >
-                <DraggableScriptEventHeader
+                <ScriptEventHeader
                   ref={
                     dragState.dragHandleRef
                       ? mergeRefs((element: HTMLDivElement | null) => {
@@ -451,13 +400,18 @@ export const InstrumentSubpatternVisualEditor = ({
                     )
                   }
                 >
-                  <SubpatternLabel
-                    $empty={isSubpatternRowEmpty(row)}
-                    $open={selectedRow === rowIndex || dragState.isDragging}
+                  <div
+                    style={{
+                      opacity:
+                        !(selectedRow === rowIndex || dragState.isDragging) &&
+                        isSubpatternRowEmpty(row)
+                          ? 0.4
+                          : 1,
+                    }}
                   >
                     {subPatternRowLabel(rowIndex, row)}
-                  </SubpatternLabel>
-                </DraggableScriptEventHeader>
+                  </div>
+                </ScriptEventHeader>
 
                 {selectedRow === rowIndex ? (
                   <StyledScriptEventFormWrapper>
@@ -539,11 +493,11 @@ export const InstrumentSubpatternVisualEditor = ({
                       )}
                   </StyledScriptEventFormWrapper>
                 ) : null}
-              </TickAccordionSection>
+              </ScriptEventWrapper>
             )}
           />
         ))}
-      </RowsList>
+      </StyledInstrumentSubpatternScriptList>
     </>
   );
 };

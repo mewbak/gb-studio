@@ -15,7 +15,7 @@ import { InstrumentDutyEditor } from "./InstrumentDutyEditor";
 import { InstrumentWaveEditor } from "./InstrumentWaveEditor";
 import { InstrumentNoiseEditor } from "./InstrumentNoiseEditor";
 import { InstrumentSubpatternTracker } from "components/music/form/subpattern/InstrumentSubpatternTracker";
-import { InstrumentSubpatternVisualEditor } from "components/music/form/subpattern/InstrumentSubpatternVisual";
+import { InstrumentSubpatternScript } from "components/music/form/subpattern/InstrumentSubpatternScript";
 
 import {
   DutyInstrument,
@@ -451,7 +451,7 @@ export const InstrumentEditor = () => {
             instrumentType={resolvedInstrument.instrumentType}
           />
         ) : (
-          <InstrumentSubpatternVisualEditor
+          <InstrumentSubpatternScript
             subpattern={resolvedInstrument.instrument.subpattern}
             instrumentId={resolvedInstrument.instrument.index}
             instrumentType={resolvedInstrument.instrumentType}

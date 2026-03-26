@@ -1034,7 +1034,7 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
   return (
     <StyledTrackerWrapper>
       <StyledTrackerContentWrapper ref={scrollRef}>
-        <StyledTrackerContentTable>
+        <StyledTrackerContentTable $type="pattern">
           <StyledTrackerTableHeader
             style={{
               background: `linear-gradient(0deg, hsl(${patternHue(patternId)}deg 100% 70%) 0%, hsl(${patternHue(patternId)}deg 100% 80%) 100%)`,

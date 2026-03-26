@@ -6,7 +6,6 @@ import React, {
   useRef,
   useState,
 } from "react";
-import styled, { css } from "styled-components";
 import { renderEffect, renderEffectParam } from "components/music/helpers";
 import {
   NO_CHANGE_ON_PASTE,
@@ -23,6 +22,16 @@ import API from "renderer/lib/api";
 import { useAppDispatch, useAppSelector } from "store/hooks";
 import { createSubPatternCell } from "shared/lib/uge/song";
 import { SUBPATTERN_ROW_COUNT } from "components/music/form/subpattern/helpers";
+import {
+  StyledTrackerCell,
+  StyledTrackerContentTable,
+  StyledTrackerEffectCodeField,
+  StyledTrackerEffectParamField,
+  StyledTrackerJumpField,
+  StyledTrackerNoteField,
+  StyledTrackerRow,
+  StyledTrackerTableBody,
+} from "components/music/tracker/style";
 
 const CHANNEL_FIELDS = 4;
 const ROW_SIZE = CHANNEL_FIELDS * 1;
@@ -54,122 +63,6 @@ function getSelectedTrackerFields(
   }
   return selectedTrackerFields;
 }
-
-const SubpatternGrid = styled.div`
-  white-space: nowrap;
-  border-width: 0;
-  border-color: ${(props) => props.theme.colors.sidebar.border};
-  border-style: solid;
-  padding: 0 10px 10px 10px;
-`;
-
-const SubpatternRow = styled.div`
-  max-width: fit-content;
-  margin: auto;
-  border-width: 0 0 0 1px;
-  border-color: ${(props) => props.theme.colors.sidebar.border};
-  border-style: solid;
-  &:first-child {
-    border-width: 1px 0 0 1px;
-  }
-  &:last-child {
-    border-width: 0 0 1px 1px;
-  }
-`;
-
-interface SubpatternRowGroupProps {
-  $n: number;
-  $isActive: boolean;
-  $isPlaying: boolean;
-  $size?: "normal" | "small";
-}
-
-const SubpatternRowGroup = styled.span<SubpatternRowGroupProps>`
-  display: inline-block;
-  font-family: monospace;
-  font-size: 18px;
-  font-weight: bold;
-  color: ${(props) => props.theme.colors.tracker.text};
-  border-width: 0 1px 0 0;
-  border-color: ${(props) => props.theme.colors.tracker.border};
-  border-style: solid;
-  margin: 0;
-  padding: 4px 8px;
-  height: 20px;
-  ${(props) =>
-    props.$size === "small"
-      ? css`
-          width: 30px;
-        `
-      : css`
-          width: 126px;
-        `}
-  background-color: ${(props) => props.theme.colors.tracker.background};
-  ${(props) =>
-    props.$n % 8 === 0
-      ? css`
-          background-color: ${props.theme.colors.tracker.activeBackground};
-        `
-      : ""}
-  ${(props) =>
-    props.$isActive
-      ? css`
-          background-color: ${props.theme.colors.tracker.activeBackground};
-        `
-      : ""}
-  ${(props) =>
-    props.$isPlaying
-      ? css`
-          background-color: ${props.theme.colors.highlight};
-        `
-      : ""}
-`;
-
-const Field = styled.span<{ $active?: boolean; $selected?: boolean }>`
-  &:hover {
-    box-shadow: 0px 0px 0px 2px rgba(255, 0, 0, 0.2) inset;
-  }
-  margin: 0;
-  padding: 0 4px;
-  ${(props) =>
-    props.$selected
-      ? css`
-          background-color: rgba(255, 0, 0, 0.2);
-        `
-      : ""}
-  ${(props) =>
-    props.$active
-      ? css`
-          background-color: white;
-        `
-      : ""}
-  ${(props) =>
-    props.$active && props.$selected
-      ? css`
-          box-shadow: 0px 0px 0px 2px rgba(255, 0, 0, 0.2) inset;
-        `
-      : ""}
-`;
-
-const NoteField = styled(Field)`
-  color: ${(props) => props.theme.colors.tracker.note};
-  padding-right: 10px;
-`;
-
-const JumpField = styled(Field)`
-  color: ${(props) => props.theme.colors.tracker.instrument};
-`;
-
-const EffectCodeField = styled(Field)`
-  color: ${(props) => props.theme.colors.tracker.effectCode};
-  padding-right: 1px;
-`;
-
-const EffectParamField = styled(Field)`
-  color: ${(props) => props.theme.colors.tracker.effectParam};
-  padding-left: 1px;
-`;
-
 interface InstrumentSubpatternEditorProps {
   instrumentId: number;
   instrumentType: "duty" | "wave" | "noise";
@@ -227,59 +120,6 @@ export const InstrumentSubpatternTracker = ({
       block: "nearest",
     });
   }
-
-  // const transposeSelectedTrackerFields = useCallback(
-  //   (change: number, large: boolean) => {
-  //     if (pattern && selectedTrackerFields) {
-  //       const newPattern = cloneDeep(pattern);
-  //       for (let i = 0; i < selectedTrackerFields.length; i++) {
-  //         const field = selectedTrackerFields[i];
-  //         const newPatternCell = {
-  //           ...newPattern[Math.floor(field / 16)][Math.floor(field / 4) % 4],
-  //         };
-
-  //         if (field % 4 === 0 && newPatternCell.note !== null) {
-  //           newPatternCell.note = clamp(
-  //             newPatternCell.note + (large ? change * 12 : change),
-  //             0,
-  //             71
-  //           );
-  //         }
-  //         if (field % 4 === 1 && newPatternCell.instrument !== null) {
-  //           newPatternCell.instrument = clamp(
-  //             newPatternCell.instrument + (large ? change * 10 : change),
-  //             0,
-  //             14
-  //           );
-  //         }
-  //         if (field % 4 === 2 && newPatternCell.effectcode !== null) {
-  //           newPatternCell.effectcode = clamp(
-  //             newPatternCell.effectcode + change,
-  //             0,
-  //             15
-  //           );
-  //         }
-  //         if (field % 4 === 3 && newPatternCell.effectparam !== null) {
-  //           newPatternCell.effectparam = clamp(
-  //             newPatternCell.effectparam + (large ? change * 16 : change),
-  //             0,
-  //             255
-  //           );
-  //         }
-
-  //         newPattern[Math.floor(field / 16)][Math.floor(field / 4) % 4] =
-  //           newPatternCell;
-  //       }
-  //       dispatch(
-  //         trackerDocumentActions.editPattern({
-  //           patternId: patternId,
-  //           pattern: newPattern,
-  //         })
-  //       );
-  //     }
-  //   },
-  //   [dispatch, pattern, patternId, selectedTrackerFields]
-  // );
 
   const deleteSelectedTrackerFields = useCallback(() => {
     if (subpattern && selectedTrackerFields) {
@@ -350,6 +190,14 @@ export const InstrumentSubpatternTracker = ({
     [subpattern, activeField, dispatch, instrumentId, instrumentType],
   );
 
+  const offsetSignRef = useRef<1 | -1>(1);
+
+  useEffect(() => {
+    if (activeField) {
+      offsetSignRef.current = 1;
+    }
+  }, [activeField]);
+
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       const editSubPatternCell =
@@ -373,37 +221,53 @@ export const InstrumentSubpatternTracker = ({
         };
 
       const editOffsetField = (value: "+" | "-" | number | null) => {
-        if (activeFieldRef && activeFieldRef.current) {
-          const el = activeFieldRef.current;
-          let newValue = value;
-          switch (value) {
-            case "+":
-              if (el.innerText !== "...") {
-                newValue = Math.abs(parseInt(el.innerText, 10));
-              } else {
-                newValue = 0;
-              }
-              break;
-            case "-":
-              if (el.innerText !== "...") {
-                newValue = Math.abs(parseInt(el.innerText, 10)) * -1;
-              } else {
-                newValue = 0;
-              }
-              break;
-            case null:
-              editSubPatternCell("note")(null);
-              return;
-            default:
-              if (el.innerText !== "...") {
-                newValue = Math.min(
-                  10 * parseInt(el.innerText[2], 10) + value,
-                  36,
-                );
-              }
-          }
-          editSubPatternCell("note")(parseInt(`${newValue ?? 90}`) + 36);
+        if (!activeFieldRef?.current) {
+          return;
         }
+
+        const el = activeFieldRef.current;
+        const text = el.innerText;
+
+        const currentValue = text === "..." ? 0 : parseInt(text, 10);
+
+        let newValue: number | null = null;
+
+        switch (value) {
+          case "+":
+            offsetSignRef.current = 1;
+            newValue = Math.abs(currentValue);
+            break;
+
+          case "-":
+            offsetSignRef.current = -1;
+            newValue = -Math.abs(currentValue);
+            break;
+
+          case null:
+            editSubPatternCell("note")(null);
+            return;
+
+          default: {
+            const sign =
+              currentValue !== 0
+                ? currentValue < 0
+                  ? -1
+                  : 1
+                : offsetSignRef.current;
+
+            const absValue = Math.abs(currentValue);
+            const ones = absValue % 10;
+            const nextAbsValue = ones * 10 + value;
+            const maxAbsValue = sign < 0 ? 36 : 35;
+
+            newValue = sign * Math.min(maxAbsValue, nextAbsValue);
+            offsetSignRef.current = sign;
+            break;
+          }
+        }
+
+        const clamped = Math.max(-36, Math.min(35, newValue ?? 0));
+        editSubPatternCell("note")(clamped + 36);
       };
 
       const editJumpField = (value: number | null) => {
@@ -542,21 +406,6 @@ export const InstrumentSubpatternTracker = ({
           currentFocus = "effectParamColumnFocus";
           break;
       }
-
-      // if (e.ctrlKey) {
-      //   if (e.shiftKey) {
-      //     if (e.key === "Q" || e.key === "+" || e.key === "=")
-      //       return transposeSelectedTrackerFields(1, true);
-      //     if (e.key === "A" || e.key === "_")
-      //       return transposeSelectedTrackerFields(-1, true);
-      //   } else {
-      //     if (e.key === "=") return transposeSelectedTrackerFields(1, false);
-      //     if (e.key === "-") return transposeSelectedTrackerFields(-1, false);
-      //   }
-      //   return;
-      // } else if (e.metaKey) {
-      //   return;
-      // }
 
       if (currentFocus && !e.metaKey && !e.ctrlKey && !e.altKey) {
         getKeys(e.code, currentFocus, {
@@ -863,77 +712,61 @@ export const InstrumentSubpatternTracker = ({
     }
   }, [onCopy, onCut, onPaste, subpatternEditorFocus]);
 
-  const renderSubpattern = [...subpattern].slice(0, SUBPATTERN_ROW_COUNT);
-
   return (
-    <>
-      <SubpatternGrid tabIndex={0} onFocus={onFocus} onBlur={onBlur}>
-        {renderSubpattern.map((s, i) => {
-          const fieldCount = i * ROW_SIZE;
-          const isActiveRow =
-            activeField !== undefined &&
-            Math.floor(activeField / ROW_SIZE) === i;
-          const renderSelectedTrackerFields = selectedTrackerFields ?? [];
+    <StyledTrackerContentTable
+      $type="subpattern"
+      tabIndex={0}
+      onFocus={onFocus}
+      onBlur={onBlur}
+    >
+      <StyledTrackerTableBody>
+        {subpattern.map((row, rowIndex) => {
+          if (rowIndex >= SUBPATTERN_ROW_COUNT) return null;
+          const isStepMarker = rowIndex % 8 === 0;
+          const fieldCount = rowIndex * ROW_SIZE;
           return (
-            <SubpatternRow key={`subpattern_${i}`}>
-              <SubpatternRowGroup
-                $n={i}
-                $size="small"
-                $isActive={false}
-                $isPlaying={false}
-              >
-                <Field>{renderCounter(i)}</Field>
-              </SubpatternRowGroup>
-              <SubpatternRowGroup
-                $n={i}
-                $isActive={isActiveRow}
-                $isPlaying={false}
-              >
-                <NoteField
+            <StyledTrackerRow key={rowIndex} $isStepMarker={isStepMarker}>
+              <StyledTrackerCell>{renderCounter(rowIndex)}</StyledTrackerCell>
+              <StyledTrackerCell>
+                <StyledTrackerNoteField
                   ref={activeField === fieldCount ? activeFieldRef : null}
                   $active={activeField === fieldCount}
                   data-subpattern_fieldid={fieldCount}
-                  $selected={
-                    renderSelectedTrackerFields.indexOf(fieldCount) > -1
-                  }
+                  $selected={selectedTrackerFields.indexOf(fieldCount) > -1}
                 >
-                  {renderOffset(s.note)}
-                </NoteField>
-                <JumpField
+                  {renderOffset(row.note)}
+                </StyledTrackerNoteField>
+
+                <StyledTrackerJumpField
                   ref={activeField === fieldCount + 1 ? activeFieldRef : null}
                   $active={activeField === fieldCount + 1}
                   data-subpattern_fieldid={fieldCount + 1}
-                  $selected={
-                    renderSelectedTrackerFields.indexOf(fieldCount + 1) > -1
-                  }
+                  $selected={selectedTrackerFields.indexOf(fieldCount + 1) > -1}
                 >
-                  {renderJump(s.jump)}
-                </JumpField>
-                <EffectCodeField
+                  {renderJump(row.jump)}
+                </StyledTrackerJumpField>
+
+                <StyledTrackerEffectCodeField
                   ref={activeField === fieldCount + 2 ? activeFieldRef : null}
                   $active={activeField === fieldCount + 2}
                   data-subpattern_fieldid={fieldCount + 2}
-                  $selected={
-                    renderSelectedTrackerFields.indexOf(fieldCount + 2) > -1
-                  }
+                  $selected={selectedTrackerFields.indexOf(fieldCount + 2) > -1}
                 >
-                  {renderEffect(s.effectcode)}
-                </EffectCodeField>
-                <EffectParamField
+                  {renderEffect(row.effectcode)}
+                </StyledTrackerEffectCodeField>
+                <StyledTrackerEffectParamField
                   ref={activeField === fieldCount + 3 ? activeFieldRef : null}
                   $active={activeField === fieldCount + 3}
                   data-subpattern_fieldid={fieldCount + 3}
-                  $selected={
-                    renderSelectedTrackerFields.indexOf(fieldCount + 3) > -1
-                  }
+                  $selected={selectedTrackerFields.indexOf(fieldCount + 3) > -1}
                 >
-                  {renderEffectParam(s.effectparam)}
-                </EffectParamField>
-              </SubpatternRowGroup>
-            </SubpatternRow>
+                  {renderEffectParam(row.effectparam)}
+                </StyledTrackerEffectParamField>
+              </StyledTrackerCell>
+            </StyledTrackerRow>
           );
         })}
-      </SubpatternGrid>
-    </>
+      </StyledTrackerTableBody>
+    </StyledTrackerContentTable>
   );
 };
