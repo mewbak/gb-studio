@@ -22,7 +22,7 @@ import { Position, SelectionRect } from "components/music/tracker/helpers";
 import API from "renderer/lib/api";
 import { useAppDispatch, useAppSelector } from "store/hooks";
 import { createSubPatternCell } from "shared/lib/uge/song";
-import { SUBPATTERN_ROW_COUNT } from "components/music/subpattern/helpers";
+import { SUBPATTERN_ROW_COUNT } from "components/music/form/subpattern/helpers";
 
 const CHANNEL_FIELDS = 4;
 const ROW_SIZE = CHANNEL_FIELDS * 1;
@@ -193,7 +193,7 @@ const renderOffset = (n: number | null): string => {
     .padStart(2, "0")}`;
 };
 
-export const InstrumentSubpatternEditor = ({
+export const InstrumentSubpatternTracker = ({
   instrumentId,
   instrumentType,
   subpattern,

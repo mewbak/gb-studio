@@ -14,8 +14,8 @@ import { StickyTabs, TabBar, TabSettings } from "ui/tabs/Tabs";
 import { InstrumentDutyEditor } from "./InstrumentDutyEditor";
 import { InstrumentWaveEditor } from "./InstrumentWaveEditor";
 import { InstrumentNoiseEditor } from "./InstrumentNoiseEditor";
-import { InstrumentSubpatternEditor } from "components/music/subpattern/SongSubpatternTracker";
-import { InstrumentSubpatternSimpleEditor } from "components/music/subpattern/SongSubpatternScript";
+import { InstrumentSubpatternTracker } from "components/music/form/subpattern/InstrumentSubpatternTracker";
+import { InstrumentSubpatternVisualEditor } from "components/music/form/subpattern/InstrumentSubpatternVisual";
 
 import {
   DutyInstrument,
@@ -34,7 +34,7 @@ import {
   doubleSubpattern,
   halfSubpattern,
   offsetToStoredPitch,
-} from "components/music/subpattern/helpers";
+} from "components/music/form/subpattern/helpers";
 import { createSubPatternCell } from "shared/lib/uge/song";
 
 type Instrument = DutyInstrument | NoiseInstrument | WaveInstrument;
@@ -445,13 +445,13 @@ export const InstrumentEditor = () => {
       {instrumentEditorTab === "subpattern" &&
       resolvedInstrument.instrument.subpattern_enabled ? (
         subpatternEditorMode === "tracker" ? (
-          <InstrumentSubpatternEditor
+          <InstrumentSubpatternTracker
             subpattern={resolvedInstrument.instrument.subpattern}
             instrumentId={resolvedInstrument.instrument.index}
             instrumentType={resolvedInstrument.instrumentType}
           />
         ) : (
-          <InstrumentSubpatternSimpleEditor
+          <InstrumentSubpatternVisualEditor
             subpattern={resolvedInstrument.instrument.subpattern}
             instrumentId={resolvedInstrument.instrument.index}
             instrumentType={resolvedInstrument.instrumentType}

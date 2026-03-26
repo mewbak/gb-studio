@@ -98,17 +98,17 @@ const DraggableScriptEventHeader = styled(ScriptEventHeader)`
   }
 `;
 
-interface InstrumentSubpatternSimpleEditorProps {
+interface InstrumentSubpatternVisualEditorProps {
   instrumentId: number;
   instrumentType: "duty" | "wave" | "noise";
   subpattern: SubPatternCell[];
 }
 
-export const InstrumentSubpatternSimpleEditor = ({
+export const InstrumentSubpatternVisualEditor = ({
   instrumentId,
   instrumentType,
   subpattern,
-}: InstrumentSubpatternSimpleEditorProps) => {
+}: InstrumentSubpatternVisualEditorProps) => {
   const dispatch = useAppDispatch();
   const rowsListRef = useRef<HTMLDivElement | null>(null);
   const rowHeaderRefs = useRef<Array<HTMLDivElement | null>>([]);
