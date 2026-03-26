@@ -69,8 +69,17 @@ import {
 import { pasteAbsoluteCells } from "store/features/tracker/trackerState";
 import { PatternCellAddress } from "shared/lib/uge/editor/types";
 import { useMusicNotePreview } from "components/music/hooks/useMusicNotePreview";
+import {
+  BlurableDOMElement,
+  DragPreviewState,
+  InteractionState,
+  PointerDownInput,
+  PointerModifiers,
+  PointerMoveInput,
+  SelectionRect,
+  TwoFingerTapState,
+} from "components/music/piano/types";
 
-const GRID_MARGIN = 0;
 const TWO_FINGER_TAP_MAX_DURATION = 300;
 const TWO_FINGER_TAP_MAX_MOVEMENT = 24;
 
@@ -80,124 +89,6 @@ interface PianoRollCanvasProps {
   playbackOrder: number;
   playbackRow: number;
 }
-
-interface Position {
-  x: number;
-  y: number;
-}
-
-interface DragDelta {
-  rows: number;
-  notes: number;
-}
-
-type BlurableDOMElement = {
-  blur: () => void;
-};
-
-export interface SelectionRect {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
-
-type PointerModifiers = {
-  addToSelection: boolean;
-  clone: boolean;
-};
-
-type GridPoint = {
-  absRow: number;
-  note: number;
-};
-
-type SelectionBox = {
-  origin: Position;
-  rect: SelectionRect;
-};
-
-type PendingPencilNote = {
-  patternId: number;
-  patternRow: number;
-  sequenceId: number;
-  absRow: number;
-  noteIndex: number;
-  clickedCellAddress: PatternCellAddress;
-};
-
-type TwoFingerTapState =
-  | { type: "idle" }
-  | {
-      type: "tracking";
-      startedAt: number;
-      startMidpointX: number;
-      startMidpointY: number;
-      movedTooFar: boolean;
-    };
-
-type InteractionState =
-  | {
-      type: "idle";
-      modifiers: PointerModifiers;
-    }
-  | {
-      type: "pending_pencil";
-      modifiers: PointerModifiers;
-      startPoint: Position;
-      pending: PendingPencilNote;
-    }
-  | {
-      type: "drag_note";
-      modifiers: PointerModifiers;
-      origin: GridPoint;
-      delta: DragDelta;
-      startedFromSelection: boolean;
-    }
-  | {
-      type: "paint";
-      modifiers: PointerModifiers;
-      lastPaintPosition: GridPoint | null;
-    }
-  | {
-      type: "erase";
-      modifiers: PointerModifiers;
-      lastPaintPosition: GridPoint | null;
-    }
-  | {
-      type: "selection_box";
-      modifiers: PointerModifiers;
-      box: SelectionBox;
-    };
-
-type DragPreviewState =
-  | { type: "idle" }
-  | {
-      type: "dragging";
-      clone: boolean;
-      delta: DragDelta;
-    };
-
-type PointerDownInput = {
-  isTouch: boolean;
-  clientX: number;
-  clientY: number;
-  pageX: number;
-  pageY: number;
-  modifiers: PointerModifiers;
-  isPrimaryAction: boolean;
-  isEraseAction: boolean;
-};
-
-type PointerMoveInput = {
-  clientX: number;
-  clientY: number;
-  pageX: number;
-  pageY: number;
-  modifiers: PointerModifiers;
-  updateHover: boolean;
-  shouldPreventDefault: boolean;
-};
 
 export const PianoRollCanvas = ({
   song,
@@ -796,7 +687,7 @@ export const PianoRollCanvas = ({
       const bounds = documentRef.current.getBoundingClientRect();
 
       const x = clamp(
-        Math.floor((pageX - bounds.left - GRID_MARGIN) / PIANO_ROLL_CELL_SIZE) *
+        Math.floor((pageX - bounds.left) / PIANO_ROLL_CELL_SIZE) *
           PIANO_ROLL_CELL_SIZE,
         0,
         totalAbsRows * PIANO_ROLL_CELL_SIZE - 1,
@@ -1318,7 +1209,7 @@ export const PianoRollCanvas = ({
 
         const bounds = documentRef.current.getBoundingClientRect();
         const newAbsRow = Math.floor(
-          (input.pageX - bounds.left - GRID_MARGIN) / PIANO_ROLL_CELL_SIZE,
+          (input.pageX - bounds.left) / PIANO_ROLL_CELL_SIZE,
         );
         const newRow = Math.floor(
           (input.pageY - bounds.top) / PIANO_ROLL_CELL_SIZE,
@@ -1401,6 +1292,7 @@ export const PianoRollCanvas = ({
     resetPointerInteractionState();
     return false;
   }, [completePointerInteraction, resetPointerInteractionState]);
+
   const handleMouseDown = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
       const preventDefault = handlePointerDown({

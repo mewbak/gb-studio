@@ -15,11 +15,10 @@ import {
 } from "components/music/musicClipboardHelpers";
 import { KeyWhen, getKeys } from "renderer/lib/keybindings/keyBindings";
 import trackerActions from "store/features/tracker/trackerActions";
-import { SelectionRect } from "components/music/piano/PianoRollCanvas";
 import scrollIntoView from "scroll-into-view-if-needed";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
 import { cloneDeep, mergeWith } from "lodash";
-import { Position } from "components/music/tracker/helpers";
+import { Position, SelectionRect } from "components/music/tracker/helpers";
 import API from "renderer/lib/api";
 import { useAppDispatch, useAppSelector } from "store/hooks";
 import { createSubPatternCell } from "shared/lib/uge/song";
