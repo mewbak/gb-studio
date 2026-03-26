@@ -38,6 +38,7 @@ import { InstrumentEditor } from "components/music/sidebar/InstrumentEditor";
 import { FixedSpacer } from "ui/spacing/Spacing";
 import SongEditorToolsPanel from "components/music/toolbar/SongEditorToolsPanel";
 import { InstrumentIcon } from "ui/icons/Icons";
+import { PatternCellSelectionEditor } from "components/music/sidebar/PatternCellSelectionEditor";
 
 const Wrapper = styled.div`
   display: flex;
@@ -270,6 +271,11 @@ export const StandaloneMusicPage = ({
     };
   }, []);
 
+  const sidebarView = useAppSelector((state) => state.tracker.sidebarView);
+  const selectedPatternCells = useAppSelector(
+    (state) => state.tracker.selectedPatternCells,
+  );
+
   const songsPane = useMemo(
     () => (
       <NavigatorSongsPane
@@ -373,15 +379,21 @@ export const StandaloneMusicPage = ({
               >
                 <SplitPaneVerticalDivider />
 
-                <SplitPaneHeader collapsed={false}>WIP</SplitPaneHeader>
-                <div
-                  style={{
-                    height: 300 - 31,
-                    overflow: "auto",
-                  }}
-                >
-                  {status === "loaded" && <InstrumentEditor />}
-                </div>
+                {status === "loaded" && (
+                  <div
+                    style={{
+                      height: 300 - 31,
+                      overflow: "auto",
+                    }}
+                  >
+                    {sidebarView === "cell" &&
+                    selectedPatternCells.length > 0 ? (
+                      <PatternCellSelectionEditor />
+                    ) : (
+                      <InstrumentEditor />
+                    )}
+                  </div>
+                )}
               </div>
             )}
 
