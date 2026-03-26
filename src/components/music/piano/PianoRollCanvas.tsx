@@ -65,11 +65,16 @@ import {
   cutAbsoluteCells,
   pasteInPlace,
 } from "store/features/trackerDocument/trackerDocumentState";
-import { pasteAbsoluteCells } from "store/features/tracker/trackerState";
+import {
+  pasteAbsoluteCells,
+  PianoRollToolType,
+} from "store/features/tracker/trackerState";
 import { PatternCellAddress } from "shared/lib/uge/editor/types";
 import { useMusicNotePreview } from "components/music/hooks/useMusicNotePreview";
 
 const GRID_MARGIN = 0;
+const TWO_FINGER_TAP_MAX_DURATION = 300;
+const TWO_FINGER_TAP_MAX_MOVEMENT = 24;
 
 interface PianoRollCanvasProps {
   song: Song;
@@ -91,6 +96,14 @@ interface NoteDragOrigin {
 interface DragDelta {
   rows: number;
   notes: number;
+}
+
+interface TwoFingerTapGesture {
+  isActive: boolean;
+  startedAt: number;
+  startMidpointX: number;
+  startMidpointY: number;
+  movedTooFar: boolean;
 }
 
 type BlurableDOMElement = {
@@ -165,6 +178,14 @@ export const PianoRollCanvas = ({
   const selectedInstrumentId = useAppSelector(
     (state) => state.tracker.selectedInstrumentId,
   );
+
+  const twoFingerTapRef = useRef<TwoFingerTapGesture>({
+    isActive: false,
+    startedAt: 0,
+    startMidpointX: 0,
+    startMidpointY: 0,
+    movedTooFar: false,
+  });
 
   // Piano roll only supports selecting notes from a single channel.
   // The shared `selectedPatternCells` state can span multiple channels
@@ -271,15 +292,11 @@ export const PianoRollCanvas = ({
     window.getSelection()?.empty();
 
     if (lastSelectAllRef.current + 100 > Date.now()) {
-      // Select all will be called multiple times
-      // added a required delay between calls to allow
-      // Pattern then Song selection
       return;
     }
     lastSelectAllRef.current = Date.now();
 
     if (selectedPatternCells.length <= 1) {
-      // Select all cells in pattern
       const selectSequenceId =
         selectedPatternCells.length === 1
           ? selectedPatternCells[0].sequenceId
@@ -299,7 +316,6 @@ export const PianoRollCanvas = ({
 
       dispatch(trackerActions.setSelectedPatternCells(patternPatternCells));
     } else {
-      // Select all cells in song
       const allPatternCells: PatternCellAddress[] = song.sequence
         .flatMap((patternId, sequenceId) =>
           song.patterns[patternId].map((patternRow, rowId) =>
@@ -915,7 +931,6 @@ export const PianoRollCanvas = ({
         return;
       }
 
-      // Commit any pending paste on click
       if (pastedPattern) {
         const absRow = toAbsRow(sequenceId, patternRow);
         const { clonedPatterns, changedPatternIds } =
@@ -981,7 +996,6 @@ export const PianoRollCanvas = ({
       };
 
       if (tool === "pencil" && e.button === 0) {
-        // If there's a note in position
         if (cell && cell.note === noteIndex) {
           if (!isSelected) {
             dispatch(
@@ -1015,12 +1029,12 @@ export const PianoRollCanvas = ({
           );
 
           const pattern = songRef.current?.patterns[patternId];
-          const cell = pattern?.[patternRow]?.[selectedChannel];
+          const currentCell = pattern?.[patternRow]?.[selectedChannel];
           playPreview({
             note: noteIndex,
             instrumentId: selectedInstrumentId,
-            effectCode: cell?.effectcode ?? 0,
-            effectParam: cell?.effectparam ?? 0,
+            effectCode: currentCell?.effectcode ?? 0,
+            effectParam: currentCell?.effectparam ?? 0,
           });
 
           if (!isSelected) {
@@ -1030,10 +1044,9 @@ export const PianoRollCanvas = ({
           }
           setIsMouseDown(true);
           lastDragPreviewCellRef.current = `${absRow}:${noteIndex}`;
-          lastPaintPositionRef.current = { absRow: absRow, noteIndex };
+          lastPaintPositionRef.current = { absRow, noteIndex };
         }
       } else if (e.button === 2 || (tool === "eraser" && e.button === 0)) {
-        // Erase the note at click position if there is one
         if (cell && cell.note === noteIndex) {
           suppressNextContextMenuRef.current = true;
           dispatch(
@@ -1051,16 +1064,15 @@ export const PianoRollCanvas = ({
           );
         }
         setIsMouseDown(true);
-        lastPaintPositionRef.current = { absRow: absRow, noteIndex };
+        lastPaintPositionRef.current = { absRow, noteIndex };
       } else if (tool === "selection" && e.button === 0) {
-        // If there's a note in position
         if (cell && cell.note === noteIndex) {
           if (!isSelected) {
             if (addToSelection.current) {
               const selectedPatternCellMap = new Map(
-                selectedPatternCells.map((cell) => [
-                  `${cell.sequenceId}:${cell.rowId}:${cell.channelId}`,
-                  cell,
+                selectedPatternCells.map((selectedCell) => [
+                  `${selectedCell.sequenceId}:${selectedCell.rowId}:${selectedCell.channelId}`,
+                  selectedCell,
                 ]),
               );
               selectedPatternCellMap.set(selectedCellKey, clickedCellAddress);
@@ -1141,7 +1153,8 @@ export const PianoRollCanvas = ({
       if (isDraggingNotes && selectedPatternCells.length > 0) {
         const selectedPatternCellKeys = new Set(
           selectedPatternCells.map(
-            (cell) => `${cell.sequenceId}:${cell.rowId}:${cell.channelId}`,
+            (selectedCell) =>
+              `${selectedCell.sequenceId}:${selectedCell.rowId}:${selectedCell.channelId}`,
           ),
         );
 
@@ -1230,8 +1243,11 @@ export const PianoRollCanvas = ({
         dispatch(
           trackerActions.setSelectedPatternCells(
             selectedPatternCells
-              .map((cell) => {
-                const sourceAbsRow = toAbsRow(cell.sequenceId, cell.rowId);
+              .map((selectedCell) => {
+                const sourceAbsRow = toAbsRow(
+                  selectedCell.sequenceId,
+                  selectedCell.rowId,
+                );
                 const targetAbsRow = sourceAbsRow + dragDelta.rows;
 
                 if (targetAbsRow < 0 || targetAbsRow >= totalAbsRows) {
@@ -1246,10 +1262,10 @@ export const PianoRollCanvas = ({
                 return {
                   sequenceId: resolved.sequenceId,
                   rowId: resolved.rowId,
-                  channelId: cell.channelId,
+                  channelId: selectedCell.channelId,
                 };
               })
-              .filter((cell) => cell !== null),
+              .filter((selectedCell) => selectedCell !== null),
           ),
         );
       }
@@ -1367,8 +1383,6 @@ export const PianoRollCanvas = ({
 
   const handleMouseMoveRef = useRef(handleMouseMove);
   const handleMouseUpRef = useRef(handleMouseUp);
-
-  // Clipboard callbacks
 
   const onCopy = useCallback(
     (e: ClipboardEvent) => {
@@ -1496,6 +1510,109 @@ export const PianoRollCanvas = ({
     [playPreview, selectedInstrumentId],
   );
 
+  const setToolPencil = useCallback(() => {
+    dispatch(trackerActions.setTool("pencil"));
+  }, [dispatch]);
+
+  const setToolEraser = useCallback(() => {
+    dispatch(trackerActions.setTool("eraser"));
+  }, [dispatch]);
+
+  const togglePencilEraserTool = useCallback(() => {
+    dispatch(trackerActions.setTool(tool === "eraser" ? "pencil" : "eraser"));
+  }, [dispatch, tool]);
+
+  const resetTwoFingerTapGesture = useCallback(() => {
+    twoFingerTapRef.current = {
+      isActive: false,
+      startedAt: 0,
+      startMidpointX: 0,
+      startMidpointY: 0,
+      movedTooFar: false,
+    };
+  }, []);
+
+  const handleTouchStart = useCallback(
+    (e: React.TouchEvent<HTMLDivElement>) => {
+      if (playing) {
+        return;
+      }
+
+      if (e.touches.length !== 2) {
+        resetTwoFingerTapGesture();
+        return;
+      }
+
+      const touchA = e.touches[0];
+      const touchB = e.touches[1];
+      const midpointX = (touchA.clientX + touchB.clientX) * 0.5;
+      const midpointY = (touchA.clientY + touchB.clientY) * 0.5;
+
+      twoFingerTapRef.current = {
+        isActive: true,
+        startedAt: Date.now(),
+        startMidpointX: midpointX,
+        startMidpointY: midpointY,
+        movedTooFar: false,
+      };
+
+      e.preventDefault();
+    },
+    [playing, resetTwoFingerTapGesture],
+  );
+
+  const handleTouchMove = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+    const gesture = twoFingerTapRef.current;
+    if (!gesture.isActive) {
+      return;
+    }
+
+    if (e.touches.length !== 2) {
+      gesture.movedTooFar = true;
+      return;
+    }
+
+    const touchA = e.touches[0];
+    const touchB = e.touches[1];
+    const midpointX = (touchA.clientX + touchB.clientX) * 0.5;
+    const midpointY = (touchA.clientY + touchB.clientY) * 0.5;
+
+    const deltaX = midpointX - gesture.startMidpointX;
+    const deltaY = midpointY - gesture.startMidpointY;
+    const distance = Math.hypot(deltaX, deltaY);
+
+    if (distance > TWO_FINGER_TAP_MAX_MOVEMENT) {
+      gesture.movedTooFar = true;
+    }
+  }, []);
+
+  const handleTouchEnd = useCallback(
+    (e: React.TouchEvent<HTMLDivElement>) => {
+      const gesture = twoFingerTapRef.current;
+      if (!gesture.isActive) {
+        return;
+      }
+
+      const duration = Date.now() - gesture.startedAt;
+      const isTwoFingerTap =
+        !gesture.movedTooFar &&
+        duration <= TWO_FINGER_TAP_MAX_DURATION &&
+        e.touches.length < 2;
+
+      resetTwoFingerTapGesture();
+
+      if (isTwoFingerTap) {
+        e.preventDefault();
+        togglePencilEraserTool();
+      }
+    },
+    [resetTwoFingerTapGesture, togglePencilEraserTool],
+  );
+
+  const handleTouchCancel = useCallback(() => {
+    resetTwoFingerTapGesture();
+  }, [resetTwoFingerTapGesture]);
+
   const [wrapperEl, wrapperSize] = useResizeObserver<HTMLDivElement>();
 
   const onAddSequence = useCallback(
@@ -1554,6 +1671,10 @@ export const PianoRollCanvas = ({
           }}
           onContextMenu={onSelectionContextMenu}
           onMouseDown={!playing ? handleMouseDown : undefined}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          onTouchCancel={handleTouchCancel}
         >
           <StyledPianoRollPatternsWrapper>
             {song.sequence.map((p, i) => (
