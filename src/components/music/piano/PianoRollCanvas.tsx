@@ -156,6 +156,19 @@ export const PianoRollCanvas = ({
 
   const tool = useAppSelector((state) => state.tracker.tool);
 
+  const toolRef = useRef(tool);
+  const prevDrawToolRef = useRef(tool);
+
+  useEffect(() => {
+    toolRef.current = tool;
+  }, [tool]);
+
+  useEffect(() => {
+    if (tool === "pencil" || tool === "eraser") {
+      prevDrawToolRef.current = tool;
+    }
+  }, [tool]);
+
   const selectedInstrumentId = useAppSelector(
     (state) => state.tracker.selectedInstrumentId,
   );
@@ -1047,6 +1060,8 @@ export const PianoRollCanvas = ({
           selectedPatternCells,
         );
 
+        dispatch(trackerActions.setTool(prevDrawToolRef.current));
+
         return input.isTouch;
       }
 
@@ -1800,6 +1815,10 @@ export const PianoRollCanvas = ({
           </StyledPianoRollPatternsWrapper>
           <StyledAddPatternWrapper
             onMouseDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+            onTouchStart={(e) => {
               e.preventDefault();
               e.stopPropagation();
             }}
