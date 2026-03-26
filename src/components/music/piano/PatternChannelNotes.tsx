@@ -72,7 +72,7 @@ export const PatternChannelNotes = React.memo(
                   bottom: noteBottom(cell.note),
                 }}
               />
-              {
+              {isActive && (
                 <div
                   style={{
                     position: "absolute",
@@ -86,7 +86,7 @@ export const PatternChannelNotes = React.memo(
                     zIndex: 10000,
                   }}
                 />
-              }
+              )}
               {cell.effectcode === ARPEGGIO_CODE && (
                 <>
                   <StyledPianoRollNote
