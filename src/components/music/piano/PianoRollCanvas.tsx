@@ -39,9 +39,7 @@ import { NO_CHANGE_ON_PASTE } from "components/music/musicClipboardHelpers";
 import {
   calculateDocumentWidth,
   calculatePlaybackTrackerPosition,
-  commitChangedPatterns,
   interpolateGridLine,
-  mutatePatternsAndCollectChanges,
   noteToRow,
   rowToNote,
   wrapNote,
@@ -60,6 +58,7 @@ import {
 import renderPianoContextMenu from "components/music/contextMenus/renderPianoContextMenu";
 import { useContextMenu } from "ui/hooks/use-context-menu";
 import {
+  commitPastedAbsoluteCells,
   copyAbsoluteCells,
   cutAbsoluteCells,
   moveAbsoluteCells,
@@ -840,63 +839,23 @@ export const PianoRollCanvas = ({
 
   const commitPastedPatternAt = useCallback(
     (sequenceId: number, patternRow: number, noteIndex: number) => {
-      const song = songRef.current;
-      if (!song || !pastedPattern) {
+      if (!pastedPattern) {
         return;
       }
 
-      const absRow = toAbsRow(sequenceId, patternRow);
-
-      const { clonedPatterns, changedPatternIds } =
-        mutatePatternsAndCollectChanges(song.patterns, (patterns, changed) => {
-          let noteOffset: number | undefined;
-
-          for (let offset = 0; offset < pastedPattern.length; offset++) {
-            const cell = pastedPattern[offset][0];
-
-            if (cell.note === null || cell.note === NO_CHANGE_ON_PASTE) {
-              continue;
-            }
-
-            if (noteOffset === undefined) {
-              noteOffset = noteIndex - cell.note;
-            }
-
-            const targetAbsRow = absRow + offset;
-            if (targetAbsRow < 0 || targetAbsRow >= totalAbsRows) {
-              continue;
-            }
-
-            const resolved = resolveAbsRow(song.sequence, targetAbsRow);
-            if (!resolved) {
-              continue;
-            }
-
-            patterns[resolved.patternId][resolved.rowId][selectedChannel] = {
-              ...patterns[resolved.patternId][resolved.rowId][selectedChannel],
-              ...cell,
-              note: wrapNote(cell.note + noteOffset),
-            };
-            changed.add(resolved.patternId);
-          }
-        });
-
-      commitChangedPatterns(
-        changedPatternIds,
-        clonedPatterns,
-        (patternId, pattern) => {
-          dispatch(
-            trackerDocumentActions.editPattern({
-              patternId,
-              pattern,
-            }),
-          );
-        },
+      dispatch(
+        commitPastedAbsoluteCells({
+          pastedPattern,
+          channelId: selectedChannel,
+          startSequenceId: sequenceId,
+          startRowId: patternRow,
+          anchorNote: noteIndex,
+        }),
       );
 
       dispatch(trackerActions.clearPastedPattern());
     },
-    [dispatch, pastedPattern, selectedChannel, totalAbsRows],
+    [dispatch, pastedPattern, selectedChannel],
   );
 
   const resetPointerInteractionState = useCallback(() => {

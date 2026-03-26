@@ -601,6 +601,89 @@ export const moveAbsoluteCellsComplete = createAction<{
   newSelection: PatternCellAddress[];
 }>("trackerDocument/moveAbsoluteCellsComplete");
 
+export const commitPastedAbsoluteCells =
+  (args: {
+    pastedPattern: PatternCell[][];
+    channelId: number;
+    startSequenceId: number;
+    startRowId: number;
+    anchorNote: number;
+  }): AppThunk =>
+  (dispatch, getState) => {
+    const state = getState();
+    const song = selectTrackerDocumentSong(state);
+
+    if (!song) {
+      return;
+    }
+
+    const {
+      pastedPattern,
+      channelId,
+      startSequenceId,
+      startRowId,
+      anchorNote,
+    } = args;
+
+    if (pastedPattern.length === 0) {
+      return;
+    }
+
+    const startAbsRow = toAbsRow(startSequenceId, startRowId);
+    const totalAbsRows = song.sequence.length * TRACKER_PATTERN_LENGTH;
+
+    let noteOffset: number | undefined;
+
+    const changes: Array<{
+      patternId: number;
+      rowId: number;
+      channelId: number;
+      changes: Partial<PatternCell>;
+    }> = [];
+
+    for (let offset = 0; offset < pastedPattern.length; offset++) {
+      const cell = pastedPattern[offset]?.[0];
+
+      if (!cell || cell.note === null || cell.note === NO_CHANGE_ON_PASTE) {
+        continue;
+      }
+
+      if (noteOffset === undefined) {
+        noteOffset = anchorNote - cell.note;
+      }
+
+      const targetAbsRow = startAbsRow + offset;
+      if (targetAbsRow < 0 || targetAbsRow >= totalAbsRows) {
+        continue;
+      }
+
+      const resolved = resolveAbsRow(song.sequence, targetAbsRow);
+      if (!resolved) {
+        continue;
+      }
+
+      const existing =
+        song.patterns?.[resolved.patternId]?.[resolved.rowId]?.[channelId];
+      if (!existing) {
+        continue;
+      }
+
+      changes.push({
+        patternId: resolved.patternId,
+        rowId: resolved.rowId,
+        channelId,
+        changes: {
+          ...cell,
+          note: wrapNote(cell.note + noteOffset),
+        },
+      });
+    }
+
+    if (changes.length > 0) {
+      dispatch(actions.applyPatternCellChanges({ changes }));
+    }
+  };
+
 const trackerSlice = createSlice({
   name: "trackerDocument",
   initialState,

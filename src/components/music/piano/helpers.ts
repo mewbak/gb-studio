@@ -28,29 +28,6 @@ export const clonePattern = (pattern: PatternCell[][]) =>
 export const clonePatterns = (patterns: PatternCell[][][]) =>
   patterns.map(clonePattern);
 
-export const mutatePatternsAndCollectChanges = (
-  sourcePatterns: PatternCell[][][],
-  mutate: (
-    clonedPatterns: PatternCell[][][],
-    changedPatternIds: Set<number>,
-  ) => void,
-) => {
-  const clonedPatterns = clonePatterns(sourcePatterns);
-  const changedPatternIds = new Set<number>();
-  mutate(clonedPatterns, changedPatternIds);
-  return { clonedPatterns, changedPatternIds };
-};
-
-export const commitChangedPatterns = (
-  changedPatternIds: Iterable<number>,
-  clonedPatterns: PatternCell[][][],
-  commit: (patternId: number, pattern: PatternCell[][]) => void,
-) => {
-  for (const patternId of changedPatternIds) {
-    commit(patternId, clonedPatterns[patternId]);
-  }
-};
-
 export interface RollGridPoint {
   absRow: number;
   note: number;
