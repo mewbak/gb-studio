@@ -104,7 +104,7 @@ export const StyledMobileOverlay = styled.div<{
   ${(props) =>
     props.$fullHeight
       ? css`
-          top: 0;
+          top: 37px;
           height: auto;
           max-height: none;
         `
