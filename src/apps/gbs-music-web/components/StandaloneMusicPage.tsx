@@ -44,15 +44,19 @@ import {
   StyledMobileOverlayContent,
   StyledMobileToolbar,
   StyledMobileToolbarSpacer,
+  StyledSafeMarginBottom,
 } from "gbs-music-web/components/style";
 import { ChannelsView } from "components/music/navigator/ChannelsView";
 
 const Wrapper = styled.div`
   display: flex;
-  width: 100%;
-  height: 100%;
   min-height: 0;
-  position: relative;
+  box-sizing: border-box;
+  position: fixed;
+  left: 0px;
+  right: 0px;
+  top: 40px;
+  bottom: 0px;
 `;
 
 const defaultPaneLayout: SplitPaneLayout[] = [
@@ -424,10 +428,17 @@ export const StandaloneMusicPage = ({
               // position: "relative",
               display: "flex",
               flexDirection: "column",
-              position: "fixed",
-              top: 40,
+              position: isCompactLayout ? "fixed" : "relative",
+              top: isCompactLayout ? 40 : 0,
+              bottom: 60,
               left: 0,
-              bottom: 0,
+
+              // left: "env(safe-area-inset-bottom)",
+              // height: "calc(100vh - 200px)",
+              // minHeight: "-webkit-fill-available",
+              boxSizing: "border-box",
+              // boxShadow: "10px -10px 20px inset rgba(255,0,0,0.5)",
+              // borderBottom: "10px solid green",
               right: 0,
               zIndex: 0,
             }}
@@ -443,7 +454,6 @@ export const StandaloneMusicPage = ({
               <SongEditorToolsPanel musicAsset={viewSong} />
             </div>
             <SplitPaneVerticalDivider />
-
             <SongDocument musicAsset={viewSong} />
 
             {/* {isCompactLayout && (
@@ -490,10 +500,10 @@ export const StandaloneMusicPage = ({
               </div>
             )} */}
 
-            {isCompactLayout && <StyledMobileToolbarSpacer />}
+            {/* {isCompactLayout && <StyledMobileToolbarSpacer />} */}
 
             {!isCompactLayout && (
-              <>
+              <StyledSafeMarginBottom>
                 <SplitPaneVerticalDivider />
                 <SplitPaneHeader
                   onToggle={togglePatternsPanel}
@@ -518,13 +528,18 @@ export const StandaloneMusicPage = ({
                       }}
                     />
                   ))}
-              </>
+              </StyledSafeMarginBottom>
             )}
           </div>
 
-          <StyledMobileOverlay $open={mobileView === "instruments"} $fullHeight>
-            <StyledMobileOverlayContent>
-              {/* <StyledMobilePaneHeader>
+          {isCompactLayout && (
+            <>
+              <StyledMobileOverlay
+                $open={mobileView === "instruments"}
+                $fullHeight
+              >
+                <StyledMobileOverlayContent>
+                  {/* <StyledMobilePaneHeader>
               <Button
                 variant="transparent"
                 onClick={() => {
@@ -534,17 +549,17 @@ export const StandaloneMusicPage = ({
                 <CloseIcon />
               </Button>
             </StyledMobilePaneHeader> */}
-              <InstrumentEditor />
-            </StyledMobileOverlayContent>
-          </StyledMobileOverlay>
+                  <InstrumentEditor />
+                </StyledMobileOverlayContent>
+              </StyledMobileOverlay>
 
-          <StyledMobileOverlay $open={mobileView === "channels"}>
-            <StyledMobileOverlayClose
-              onClick={() => {
-                setMobileView("none");
-              }}
-            />
-            {/* <StyledMobilePaneHeader>
+              <StyledMobileOverlay $open={mobileView === "channels"}>
+                <StyledMobileOverlayClose
+                  onClick={() => {
+                    setMobileView("none");
+                  }}
+                />
+                {/* <StyledMobilePaneHeader>
               <Button
                 variant="transparent"
                 onClick={() => {
@@ -554,16 +569,16 @@ export const StandaloneMusicPage = ({
                 <CloseIcon />
               </Button>
             </StyledMobilePaneHeader> */}
-            <ChannelsView />
-          </StyledMobileOverlay>
+                <ChannelsView />
+              </StyledMobileOverlay>
 
-          <StyledMobileOverlay $open={mobileView === "sequence"}>
-            <StyledMobileOverlayClose
-              onClick={() => {
-                setMobileView("none");
-              }}
-            />
-            {/* <StyledMobilePaneHeader>
+              <StyledMobileOverlay $open={mobileView === "sequence"}>
+                <StyledMobileOverlayClose
+                  onClick={() => {
+                    setMobileView("none");
+                  }}
+                />
+                {/* <StyledMobilePaneHeader>
               <Button
                 variant="transparent"
                 onClick={() => {
@@ -573,24 +588,24 @@ export const StandaloneMusicPage = ({
                 <CloseIcon />
               </Button>
             </StyledMobilePaneHeader> */}
-            {songDocument && (
-              <SequenceEditor
-                direction="horizontal"
-                sequence={songDocument.sequence}
-                patterns={songDocument.patterns.length}
-                playingSequence={playbackState[0]}
-              />
-            )}
-          </StyledMobileOverlay>
+                {songDocument && (
+                  <SequenceEditor
+                    direction="horizontal"
+                    sequence={songDocument.sequence}
+                    patterns={songDocument.patterns.length}
+                    playingSequence={playbackState[0]}
+                  />
+                )}
+              </StyledMobileOverlay>
 
-          <StyledMobileOverlay $open={mobileView === "notes"}>
-            <StyledMobileOverlayClose
-              onClick={() => {
-                setMobileView("none");
-              }}
-            />
-            <StyledMobileOverlayContent>
-              {/* <StyledMobilePaneHeader>
+              <StyledMobileOverlay $open={mobileView === "notes"}>
+                <StyledMobileOverlayClose
+                  onClick={() => {
+                    setMobileView("none");
+                  }}
+                />
+                <StyledMobileOverlayContent>
+                  {/* <StyledMobilePaneHeader>
               <Button
                 variant="transparent"
                 onClick={() => {
@@ -600,9 +615,11 @@ export const StandaloneMusicPage = ({
                 <CloseIcon />
               </Button>
             </StyledMobilePaneHeader> */}
-              <PatternCellSelectionEditor />
-            </StyledMobileOverlayContent>
-          </StyledMobileOverlay>
+                  <PatternCellSelectionEditor />
+                </StyledMobileOverlayContent>
+              </StyledMobileOverlay>
+            </>
+          )}
 
           {!isCompactLayout && (
             <>

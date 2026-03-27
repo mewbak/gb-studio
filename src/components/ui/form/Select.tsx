@@ -64,7 +64,7 @@ export const Select: typeof WindowedSelect = styled(WindowedSelect).attrs(
       }),
     },
     inputId: props.name,
-    menuPlacement: "auto",
+    menuPlacement: props.menuPlacement ?? "auto",
     menuPortalTarget: setDefault(props.menuPortalTarget, menuPortalEl),
   }),
 )`

@@ -79,11 +79,16 @@ const GlobalStyle = createGlobalStyle`
       font-display: swap;
   }
 
+  html {
+    overscroll-behavior: none;
+  }
+
   html,
   body {
     width: 100%;
     height: 100%;
     overflow: hidden;
+    position: fixed;
   }
 
   body {
@@ -97,6 +102,7 @@ const GlobalStyle = createGlobalStyle`
     background: ${(props) => props.theme.colors.background};
     color: ${(props) => props.theme.colors.text};
     overscroll-behavior-x: none;
+    overflow: hidden;
   }
 
   input {

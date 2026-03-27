@@ -90,18 +90,16 @@ export const StyledMobileOverlay = styled.div<{
   // overflow: auto;
   background: ${(props) => props.theme.colors.sidebar.background};
   z-index: ${(props) => (props.$open ? "1001" : "1000")};
-  transition:
-    transform 250ms ease-out,
-    opacity 250ms ease-out;
+  transition: transform 200ms ease-in-out;
 
   transform: translateY(${(props) => (props.$open ? "0" : "100%")});
-  // opacity: ${(props) => (props.$open ? 1 : 0)};
   pointer-events: ${(props) => (props.$open ? "auto" : "none")};
 
   padding-bottom: calc(60px + env(safe-area-inset-bottom));
 
   box-sizing: border-box;
-  box-shadow: 0px 2px 60px rgba(0, 0, 0, 0.5);
+  box-shadow: ${(props) =>
+    props.$open ? "0px 2px 50px rgba(0, 0, 0, 0.2)" : "none"};
 
   ${(props) =>
     props.$fullHeight
@@ -119,7 +117,6 @@ export const StyledMobileOverlay = styled.div<{
           padding-top: 12px;
           border-top: 1px solid ${(props) => props.theme.colors.sidebar.border};
         `}
-
   ${(props) =>
     !props.$open &&
     css`
@@ -140,4 +137,9 @@ export const StyledMobileOverlayClose = styled.div`
 export const StyledMobileOverlayContent = styled.div`
   max-height: 100%;
   overflow: auto;
+`;
+
+export const StyledSafeMarginBottom = styled.div`
+  flex-shrink: 0;
+  padding-bottom: env(safe-area-inset-bottom);
 `;

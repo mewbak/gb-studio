@@ -168,6 +168,7 @@ export const InstrumentDutyEditor = ({
             value={selectedSweepTime}
             options={sweepTimeOptions}
             onChange={onChangeFieldSelect("frequency_sweep_time")}
+            menuPlacement="top"
           />
         </FormField>
       </FormRow>
@@ -201,6 +202,7 @@ export const InstrumentDutyEditor = ({
             value={selectedDuty}
             options={dutyOptions}
             onChange={onChangeFieldSelect("duty_cycle")}
+            menuPlacement="top"
           />
         </FormField>
       </FormRow>
