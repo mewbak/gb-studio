@@ -37,13 +37,12 @@ import { MusicDataReceivePacket } from "shared/lib/music/types";
 import { InstrumentEditor } from "components/music/sidebar/InstrumentEditor";
 import SongEditorToolsPanel from "components/music/toolbar/SongEditorToolsPanel";
 import { PatternCellSelectionEditor } from "components/music/sidebar/PatternCellSelectionEditor";
-import { Button } from "ui/buttons/Button";
 import {
   StyledMobileOverlay,
   StyledMobileOverlayClose,
   StyledMobileOverlayContent,
   StyledMobileToolbar,
-  StyledMobileToolbarSpacer,
+  StyledMobileToolbarButton,
   StyledSafeMarginBottom,
 } from "gbs-music-web/components/style";
 import { ChannelsView } from "components/music/navigator/ChannelsView";
@@ -539,16 +538,6 @@ export const StandaloneMusicPage = ({
                 $fullHeight
               >
                 <StyledMobileOverlayContent>
-                  {/* <StyledMobilePaneHeader>
-              <Button
-                variant="transparent"
-                onClick={() => {
-                  setMobileView("none");
-                }}
-              >
-                <CloseIcon />
-              </Button>
-            </StyledMobilePaneHeader> */}
                   <InstrumentEditor />
                 </StyledMobileOverlayContent>
               </StyledMobileOverlay>
@@ -642,8 +631,8 @@ export const StandaloneMusicPage = ({
 
           {isCompactLayout && (
             <StyledMobileToolbar>
-              <Button
-                variant="transparent"
+              <StyledMobileToolbarButton
+                $isActive={mobileView === "channels"}
                 onClick={() => {
                   setMobileView(
                     mobileView !== "channels" ? "channels" : "none",
@@ -651,9 +640,9 @@ export const StandaloneMusicPage = ({
                 }}
               >
                 Channels
-              </Button>
-              <Button
-                variant="transparent"
+              </StyledMobileToolbarButton>
+              <StyledMobileToolbarButton
+                $isActive={mobileView === "instruments"}
                 onClick={() => {
                   setMobileView(
                     mobileView !== "instruments" ? "instruments" : "none",
@@ -661,9 +650,9 @@ export const StandaloneMusicPage = ({
                 }}
               >
                 Instruments
-              </Button>
-              <Button
-                variant="transparent"
+              </StyledMobileToolbarButton>
+              <StyledMobileToolbarButton
+                $isActive={mobileView === "sequence"}
                 onClick={() => {
                   setMobileView(
                     mobileView !== "sequence" ? "sequence" : "none",
@@ -671,19 +660,19 @@ export const StandaloneMusicPage = ({
                 }}
               >
                 Sequence
-              </Button>
-              <Button
-                variant="transparent"
+              </StyledMobileToolbarButton>
+              <StyledMobileToolbarButton
+                $isActive={mobileView === "notes"}
                 onClick={() => {
                   setMobileView(mobileView !== "notes" ? "notes" : "none");
                 }}
               >
                 Notes
-              </Button>
-              <Button
-                variant={view === "tracker" ? "primary" : "transparent"}
+              </StyledMobileToolbarButton>
+              <StyledMobileToolbarButton
+                $isActive={view === "tracker"}
                 onClick={() => {
-                  // (mobileView !== "notes" ? "notes" : "none");
+                  setMobileView("none");
                   dispatch(
                     trackerActions.setView(
                       view === "tracker" ? "roll" : "tracker",
@@ -692,7 +681,7 @@ export const StandaloneMusicPage = ({
                 }}
               >
                 Tracker
-              </Button>
+              </StyledMobileToolbarButton>
             </StyledMobileToolbar>
           )}
         </>

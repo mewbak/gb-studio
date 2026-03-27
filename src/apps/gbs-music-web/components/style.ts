@@ -1,20 +1,6 @@
 import styled, { css } from "styled-components";
 import { StyledButton } from "ui/buttons/style";
 
-// const slideUp = keyframes`
-//   from {
-//     transform: translateY(100%);
-//   }
-//   to {
-//     transform: translateY(0);
-//   }
-// `;
-
-export const StyledMobileToolbarSpacer = styled.div`
-  flex-shrink: 0;
-  height: calc(60px + env(safe-area-inset-bottom));
-`;
-
 export const StyledMobileToolbar = styled.div`
   position: fixed;
   left: 0;
@@ -43,6 +29,45 @@ export const StyledMobileToolbar = styled.div`
     background: transparent;
     -webkit-tap-highlight-color: transparent;
   }
+`;
+
+export const StyledMobileToolbarButton = styled.button<{
+  $isActive?: boolean;
+}>`
+  user-select: none;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  font-size: ${(props) => props.theme.typography.fontSize};
+  border-radius: ${(props) => props.theme.borderRadius}px;
+  height: 28px;
+  min-width: 24px;
+  white-space: nowrap;
+  padding: 0px 10px;
+  box-sizing: border-box;
+  font-weight: normal;
+  border-width: 1px;
+  overflow: hidden;
+  flex-shrink: 0;
+
+  svg {
+    height: 17px;
+    width: 17px;
+    max-width: 100%;
+    max-height: 100%;
+    min-width: 17px;
+    fill: ${(props) => props.theme.colors.button.text};
+    opacity: ${(props) => (props.disabled ? 0.3 : 1)};
+  }
+
+  ${(props) =>
+    props.$isActive &&
+    css`
+      background: red;
+    `}
 `;
 
 export const StyledMobileInstrumentsView = styled.div`
