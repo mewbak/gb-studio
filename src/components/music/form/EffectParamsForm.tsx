@@ -9,7 +9,6 @@ import { Label } from "ui/form/Label";
 import { Input } from "ui/form/Input";
 import clamp from "shared/lib/helpers/clamp";
 import styled from "styled-components";
-import { renderNote } from "components/music/helpers";
 import { VibratoWaveformPreview } from "./VibratoWaveformPreview";
 import { useMusicNotePreview } from "components/music/hooks/useMusicNotePreview";
 import { PitchSelect } from "components/music/form/PitchSelect";
@@ -60,11 +59,6 @@ const waveformOptions: SelectOption[] = [
   { value: 0xe, label: "0011111111111111001111111" },
   { value: 0xf, label: "0111111111111111011111111" },
 ];
-
-const noteOptions: SelectOption[] = Array.from({ length: 72 }, (_, i) => ({
-  value: i,
-  label: renderNote(i),
-}));
 
 const VibrateWaveFormOptionWrapper = styled.div`
   display: flex;
