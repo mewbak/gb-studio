@@ -63,6 +63,7 @@ import {
 import { PatternCellAddress } from "shared/lib/uge/editor/types";
 import { toValidChannelId } from "shared/lib/uge/editor/helpers";
 import { useMusicNotePreview } from "components/music/hooks/useMusicNotePreview";
+import { TrackerKeyboard } from "components/music/tracker/TrackerKeyboard";
 
 interface SongTrackerProps {
   sequenceId: number;
@@ -1210,6 +1211,12 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
           </StyledTrackerTableBody>
         </StyledTrackerContentTable>
       </StyledTrackerContentWrapper>
+      <TrackerKeyboard
+        fieldType="note"
+        onKeyPressed={(virtualKey) => {
+          console.log(virtualKey);
+        }}
+      />
       {selectionContextMenuElement}
     </StyledTrackerWrapper>
   );

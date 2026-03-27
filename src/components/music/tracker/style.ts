@@ -13,6 +13,7 @@ export const StyledTrackerWrapper = styled.div`
 export const StyledTrackerContentWrapper = styled.div`
   overflow: auto;
   flex-grow: 1;
+  flex-basis: 0;
   overscroll-behavior: none;
 `;
 
