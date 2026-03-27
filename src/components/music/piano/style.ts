@@ -243,7 +243,7 @@ export const StyledPianoRollSequenceHeaderOrder = styled.div`
 
 export const StyledPianoRollSequenceHeaderText = styled.div`
   position: sticky;
-  left: 31px;
+  left: 51px;
   padding: 0 5px;
 `;
 
