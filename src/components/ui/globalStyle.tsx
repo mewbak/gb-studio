@@ -76,6 +76,7 @@ const GlobalStyle = createGlobalStyle`
       src: url('${pixelFont}') format('woff2');
       font-weight: normal;
       font-style: normal;
+      font-display: swap;
   }
 
   html,
