@@ -127,7 +127,7 @@ export const StyledPianoKeyboard = styled.div`
 
 const blackKeyStyle = css`
   height: ${PIANO_ROLL_CELL_SIZE}px;
-  width: 85%;
+  width: ${PIANO_ROLL_PIANO_WIDTH - 20}px;
   background: linear-gradient(45deg, #636363, black);
   background: linear-gradient(
     90deg,

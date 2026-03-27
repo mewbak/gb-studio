@@ -313,7 +313,10 @@ export const StandaloneMusicPage = ({
   const mobileViewRef = useRef(mobileView);
   useEffect(() => {
     mobileViewRef.current = mobileView;
-  }, [mobileView]);
+    if (mobileView === "notes") {
+      dispatch(trackerActions.setSidebarView("cell"));
+    }
+  }, [dispatch, mobileView]);
 
   useEffect(() => {
     if (sidebarView === "cell" && selectedEffectCell) {

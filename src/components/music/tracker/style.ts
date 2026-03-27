@@ -52,7 +52,7 @@ export const StyledTrackerContentTable = styled.table<StyledTrackerContentTableP
 
 export const StyledTrackerTableHeader = styled.thead`
   width: 100%;
-  height: 30px;
+  height: 40px;
   white-space: nowrap;
   box-shadow: 0 3px 5px rgb(0 0 0 / 20%);
   flex-shrink: 0;
@@ -104,7 +104,7 @@ export const StyledTrackerHeaderCellContents = styled.div`
   border-left-style: solid;
   border-left-color: inherit;
   padding: 0px;
-  height: 30px;
+  height: 40px;
 `;
 
 export const StyledTrackerHeaderCell = styled.th<StyledTrackerHeaderCellProps>`
