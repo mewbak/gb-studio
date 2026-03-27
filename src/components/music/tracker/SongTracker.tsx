@@ -93,6 +93,7 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
   const selectedInstrumentId = useAppSelector(
     (state) => state.tracker.selectedInstrumentId,
   );
+  const tableRef = useRef<HTMLTableSectionElement>(null);
 
   const patternId = song?.sequence[sequenceId] ?? 0;
   const pattern = song?.patterns[patternId];
@@ -703,6 +704,10 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
+      if (e.target !== tableRef.current) {
+        return;
+      }
+
       if (handleStructureKey(e)) {
         return;
       }
@@ -1106,6 +1111,7 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
           </StyledTrackerTableHeader>
 
           <StyledTrackerTableBody
+            ref={tableRef}
             tabIndex={0}
             onFocus={onFocus}
             onContextMenu={onSelectionContextMenu}
