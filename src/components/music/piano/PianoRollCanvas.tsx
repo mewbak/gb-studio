@@ -1529,14 +1529,25 @@ export const PianoRollCanvas = ({
     };
   }, [handleMouseMove, handleMouseUp]);
 
-  const onPlayNote = useCallback(
+  const onPianoNote = useCallback(
     (noteIndex: number) => {
       playPreview({
         note: noteIndex,
         instrumentId: selectedInstrumentId,
       });
+      // If a single note is selected move it to played note
+      if (selectedPatternCellsRef.current.length === 1) {
+        dispatch(
+          trackerDocumentActions.editPatternCells({
+            patternCells: selectedPatternCellsRef.current,
+            changes: {
+              note: noteIndex,
+            },
+          }),
+        );
+      }
     },
-    [playPreview, selectedInstrumentId],
+    [dispatch, playPreview, selectedInstrumentId],
   );
 
   const togglePencilEraserTool = useCallback(() => {
@@ -1778,7 +1789,7 @@ export const PianoRollCanvas = ({
           playbackRow={playbackRow}
         />
         <StyledPianoRollScrollLeftWrapper>
-          <PianoKeyboard hoverNote={hoverNote} onPlayNote={onPlayNote} />
+          <PianoKeyboard hoverNote={hoverNote} onPlayNote={onPianoNote} />
           <StyledPianoRollScrollLeftFXSpacer>
             <FXIcon />
           </StyledPianoRollScrollLeftFXSpacer>
