@@ -30,8 +30,6 @@ import { ButtonGroup } from "ui/buttons/ButtonGroup";
 import { FixedSpacer } from "ui/spacing/Spacing";
 import { toValidChannelId } from "shared/lib/uge/editor/helpers";
 
-const COLLAPSED_SIZE = 30;
-
 interface ChannelNavigatorItem {
   id: string;
   index: 0 | 1 | 2 | 3;
