@@ -369,11 +369,11 @@ const MusicPage = () => {
                 </SplitPaneHeader>
 
                 {patternsPanelOpen &&
-                  (status === "loaded" ? (
+                  (status === "loaded" && songDocument ? (
                     <SequenceEditor
                       direction="horizontal"
-                      sequence={songDocument?.sequence}
-                      patterns={songDocument?.patterns.length}
+                      sequence={songDocument.sequence}
+                      patterns={songDocument.patterns.length}
                       playingSequence={playbackState[0]}
                     />
                   ) : (

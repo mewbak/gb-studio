@@ -37,6 +37,19 @@ import { MusicDataReceivePacket } from "shared/lib/music/types";
 import { InstrumentEditor } from "components/music/sidebar/InstrumentEditor";
 import SongEditorToolsPanel from "components/music/toolbar/SongEditorToolsPanel";
 import { PatternCellSelectionEditor } from "components/music/sidebar/PatternCellSelectionEditor";
+import { ButtonGroup } from "ui/buttons/ButtonGroup";
+import { Button } from "ui/buttons/Button";
+import {
+  StyledMobileChannelsView,
+  StyledMobileInstrumentsView,
+  StyledMobileOverlay,
+  StyledMobilePaneHeader,
+  StyledMobileToolbar,
+  StyledMobileToolbarSpacer,
+} from "gbs-music-web/components/style";
+import { CloseIcon } from "ui/icons/Icons";
+import { flushSync } from "react-dom";
+import { ChannelsView } from "components/music/navigator/ChannelsView";
 
 const Wrapper = styled.div`
   display: flex;
@@ -53,6 +66,14 @@ const defaultPaneLayout: SplitPaneLayout[] = [
 ];
 
 const COMPACT_LAYOUT_BREAKPOINT = 900;
+
+type MobileViewType =
+  | "none"
+  | "files"
+  | "notes"
+  | "channels"
+  | "sequence"
+  | "instruments";
 
 interface StandaloneMusicPageProps {
   onCreateSong?: () => void;
@@ -118,6 +139,7 @@ export const StandaloneMusicPage = ({
 
   const modified = useAppSelector((state) => state.tracker.modified);
   const status = useAppSelector((state) => state.tracker.status);
+  const view = useAppSelector((state) => state.tracker.view);
 
   const [selectedSongPath, setSelectedSongPath] = useState("");
   useEffect(() => {
@@ -285,6 +307,56 @@ export const StandaloneMusicPage = ({
     ),
     [modified, onCreateSong, onImportSong, onSelectSong, viewSongId],
   );
+
+  const [mobileView, setMobileView] = useState<MobileViewType>("none");
+
+  // const transitionMobileView = useCallback((view: MobileViewType) => {
+  //   if (!document.startViewTransition) {
+  //     setMobileView(view);
+  //     return;
+  //   }
+
+  //   document.startViewTransition(() => {
+  //     setMobileView(view);
+  //   });
+  // }, []);
+
+  // const transitionMobileView = useCallback((view: MobileViewType) => {
+  //   if (!document.startViewTransition) {
+  //     setMobileView(view);
+  //     return;
+  //   }
+
+  //   document.startViewTransition(() => {
+  //     flushSync(() => {
+  //       setMobileView(view);
+  //     });
+  //   });
+  // }, []);
+
+  // const transitionRef = useRef<Promise<void> | null>(null);
+
+  // const transitionMobileView = useCallback((view: MobileViewType) => {
+  //   if (transitionRef.current) {
+  //     return;
+  //   }
+
+  //   if (!document.startViewTransition) {
+  //     setMobileView(view);
+  //     return;
+  //   }
+
+  //   const transition = document.startViewTransition(() => {
+  //     flushSync(() => {
+  //       setMobileView(view);
+  //     });
+  //   });
+
+  //   transitionRef.current = transition.finished.finally(() => {
+  //     transitionRef.current = null;
+  //   });
+  // }, []);
+
   return (
     <Wrapper>
       {!isCompactLayout && (
@@ -338,10 +410,16 @@ export const StandaloneMusicPage = ({
               left: 0,
               bottom: 0,
               right: 0,
+              zIndex: 0,
             }}
           >
             <div
-              style={{ position: "relative", height: "60px", flexShrink: 0 }}
+              style={{
+                position: "relative",
+                height: "60px",
+                flexShrink: 0,
+                // zIndex: 0,
+              }}
             >
               <SongEditorToolsPanel musicAsset={viewSong} />
             </div>
@@ -359,7 +437,7 @@ export const StandaloneMusicPage = ({
               ></div>
             )} */}
 
-            {isCompactLayout && (
+            {/* {isCompactLayout && (
               <div
                 style={{
                   // position: "fixed",
@@ -391,7 +469,9 @@ export const StandaloneMusicPage = ({
                   </div>
                 )}
               </div>
-            )}
+            )} */}
+
+            {isCompactLayout && <StyledMobileToolbarSpacer />}
 
             {!isCompactLayout && (
               <>
@@ -404,11 +484,11 @@ export const StandaloneMusicPage = ({
                 </SplitPaneHeader>
 
                 {patternsPanelOpen &&
-                  (status === "loaded" ? (
+                  (status === "loaded" && songDocument ? (
                     <SequenceEditor
                       direction="horizontal"
-                      sequence={songDocument?.sequence}
-                      patterns={songDocument?.patterns.length}
+                      sequence={songDocument.sequence}
+                      patterns={songDocument.patterns.length}
                       playingSequence={playbackState[0]}
                     />
                   ) : (
@@ -422,6 +502,70 @@ export const StandaloneMusicPage = ({
               </>
             )}
           </div>
+
+          <StyledMobileOverlay $open={mobileView === "instruments"} $fullHeight>
+            <StyledMobilePaneHeader>
+              <Button
+                variant="transparent"
+                onClick={() => {
+                  setMobileView("none");
+                }}
+              >
+                <CloseIcon />
+              </Button>
+            </StyledMobilePaneHeader>
+            <InstrumentEditor />
+          </StyledMobileOverlay>
+
+          <StyledMobileOverlay $open={mobileView === "channels"}>
+            <StyledMobilePaneHeader>
+              <Button
+                variant="transparent"
+                onClick={() => {
+                  setMobileView("none");
+                }}
+              >
+                <CloseIcon />
+              </Button>
+            </StyledMobilePaneHeader>
+            <ChannelsView />
+          </StyledMobileOverlay>
+
+          <StyledMobileOverlay $open={mobileView === "sequence"}>
+            <StyledMobilePaneHeader>
+              <Button
+                variant="transparent"
+                onClick={() => {
+                  setMobileView("none");
+                }}
+              >
+                <CloseIcon />
+              </Button>
+            </StyledMobilePaneHeader>
+            {songDocument && (
+              <SequenceEditor
+                direction="horizontal"
+                sequence={songDocument.sequence}
+                patterns={songDocument.patterns.length}
+                playingSequence={playbackState[0]}
+              />
+            )}
+          </StyledMobileOverlay>
+
+          <StyledMobileOverlay $open={mobileView === "notes"}>
+            <StyledMobilePaneHeader>
+              <Button
+                variant="transparent"
+                onClick={() => {
+                  setMobileView("none");
+                }}
+              >
+                <CloseIcon />
+              </Button>
+            </StyledMobilePaneHeader>
+            <PatternCellSelectionEditor />
+          </StyledMobileOverlay>
+
           {!isCompactLayout && (
             <>
               <SplitPaneHorizontalDivider onMouseDown={onResizeRight} />
@@ -441,54 +585,61 @@ export const StandaloneMusicPage = ({
             </>
           )}
 
-          {/* {isCompactLayout && (
-            <div
-              style={{
-                position: "fixed",
-                bottom: 20,
-                right: 20,
-                background: "red",
-                borderRadius: 100,
-                width: 60,
-                height: 60,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                zIndex: 10001,
-              }}
-            >
-              <InstrumentIcon />
-            </div>
-          )} */}
-          {/* 
           {isCompactLayout && (
-            <div
-              style={{
-                position: "fixed",
-                bottom: 10,
-                left: 10,
-                right: 10,
-                height: 300,
-                zIndex: 10000,
-                background: "green",
-                borderRadius: 8,
-                overflow: "hidden",
-                boxShadow: "2px 2px 10px rgba(0,0,0,0.5)",
-              }}
-            >
-              <SplitPaneVerticalDivider />
-
-              <SplitPaneHeader collapsed={false}>WIP</SplitPaneHeader>
-              <div
-                style={{
-                  height: 300 - 31,
-                  overflow: "auto",
+            <StyledMobileToolbar>
+              <Button
+                variant="transparent"
+                onClick={() => {
+                  setMobileView(
+                    mobileView !== "channels" ? "channels" : "none",
+                  );
                 }}
               >
-                {status === "loaded" && <InstrumentEditor />}
-              </div>
-            </div>
-          )} */}
+                Channels
+              </Button>
+              <Button
+                variant="transparent"
+                onClick={() => {
+                  setMobileView(
+                    mobileView !== "instruments" ? "instruments" : "none",
+                  );
+                }}
+              >
+                Instruments
+              </Button>
+              <Button
+                variant="transparent"
+                onClick={() => {
+                  setMobileView(
+                    mobileView !== "sequence" ? "sequence" : "none",
+                  );
+                }}
+              >
+                Sequence
+              </Button>
+              <Button
+                variant="transparent"
+                onClick={() => {
+                  setMobileView(mobileView !== "notes" ? "notes" : "none");
+                }}
+              >
+                Notes
+              </Button>
+              <Button
+                variant={view === "tracker" ? "primary" : "transparent"}
+                onClick={() => {
+                  // (mobileView !== "notes" ? "notes" : "none");
+                  dispatch(
+                    trackerActions.setView(
+                      view === "tracker" ? "roll" : "tracker",
+                    ),
+                  );
+                }}
+              >
+                Tracker
+              </Button>
+            </StyledMobileToolbar>
+          )}
         </>
       )}
     </Wrapper>

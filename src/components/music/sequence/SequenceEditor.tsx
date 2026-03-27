@@ -28,8 +28,8 @@ interface SequenceOption {
   shortLabel: string;
 }
 interface SequenceEditorProps {
-  sequence?: number[];
-  patterns?: number;
+  sequence: number[];
+  patterns: number;
   playingSequence: number;
   height?: number;
   direction: "vertical" | "horizontal";
