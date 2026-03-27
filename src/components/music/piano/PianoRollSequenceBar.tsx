@@ -193,7 +193,7 @@ export const PianoRollSequenceBar = ({
         <StyledPianoRollSequenceHeader key={`${i}:${pattern}`}>
           <StyledPianoRollSequenceHeaderOrder>
             <StyledPianoRollSequenceHeaderText>
-              {i + 1}
+              <span>{i + 1}</span>
             </StyledPianoRollSequenceHeaderText>
           </StyledPianoRollSequenceHeaderOrder>
           <PianoRollSequenceBarPattern
