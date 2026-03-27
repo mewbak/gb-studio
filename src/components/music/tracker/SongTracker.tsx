@@ -79,19 +79,9 @@ const renderCounter = (n: number): string => {
 
 const getRowIndexFromField = (field: number) => Math.floor(field / 4);
 
-const getFieldTypeFromFieldIndex = (index: number) => {
-  const fieldIndex = Math.floor(index / 4);
-  if (fieldIndex === 0) {
-    return "note";
-  } else if (fieldIndex === 1) {
-    return "instrument";
-  } else if (fieldIndex === 2) {
-    return "effectCode";
-  } else if (fieldIndex === 3) {
-    return "effectParam";
-  }
-  return "note";
-};
+type TrackerInput =
+  | { type: "keyboard"; code: string }
+  | { type: "hex"; value: number };
 
 export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
   const dispatch = useAppDispatch();
@@ -147,6 +137,11 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
 
   const activeFieldRef = useRef<HTMLSpanElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const currentFocus = useMemo(
+    () => getFieldColumnFocus(activeField ?? 0),
+    [activeField],
+  );
 
   useEffect(() => {
     patternRef.current = pattern;
@@ -321,7 +316,6 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
         });
         return;
       }
-
     },
     [
       dispatch,
@@ -366,6 +360,7 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
 
   const editPatternCell = useCallback(
     (changes: Partial<PatternCell>) => {
+      console.log("EDIT PATTERN CELL", changes);
       const editingField = activeFieldValueRef.current;
       const currentPatternId = patternIdRef.current;
 
@@ -460,6 +455,7 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
 
   const editEffectCodeField = useCallback(
     (value: number | null) => {
+      console.log("EDIT EFFECT CODE", value);
       editPatternCell({ effectcode: value });
     },
     [editPatternCell],
@@ -536,6 +532,66 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
       return true;
     },
     [setActiveField, setSelectionOrigin, setSelectionRect],
+  );
+
+  const applyTrackerInput = useCallback(
+    (input: TrackerInput) => {
+      console.log("APPLY TRACKER INPUT", input);
+      const currentActiveField = activeFieldValueRef.current;
+      if (currentActiveField === undefined) {
+        return false;
+      }
+      console.log("APPLY TRACKER INPUT A ", input);
+
+      const currentFocus = getFieldColumnFocus(currentActiveField);
+      if (!currentFocus) {
+        return false;
+      }
+
+      console.log("APPLY TRACKER INPUT B", input);
+
+      if (input.type === "keyboard") {
+        getKeys(input.code, currentFocus, {
+          editNoteField,
+          editInstrumentField,
+          editEffectCodeField,
+          editEffectParamField,
+        });
+        return true;
+      }
+
+      console.log("APPLY TRACKER INPUT C ", input);
+
+      console.log("APPLY TRACKER INPUT D", currentFocus);
+
+      if (currentFocus === "noteColumnFocus") {
+        editNoteField(input.value);
+        return true;
+      }
+
+      if (currentFocus === "instrumentColumnFocus") {
+        editInstrumentField(input.value);
+        return true;
+      }
+
+      if (currentFocus === "effectCodeColumnFocus") {
+        editEffectCodeField(input.value);
+        return true;
+      }
+
+      if (currentFocus === "effectParamColumnFocus") {
+        editEffectParamField(input.value);
+        return true;
+      }
+
+      return false;
+    },
+    [
+      editEffectCodeField,
+      editEffectParamField,
+      editInstrumentField,
+      editNoteField,
+    ],
   );
 
   const handleStructureKey = useCallback(
@@ -721,7 +777,6 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
     },
     [moveActiveField],
   );
-
   const handleEditKey = useCallback(
     (e: KeyboardEvent) => {
       const currentActiveField = activeFieldValueRef.current;
@@ -733,26 +788,12 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
         return false;
       }
 
-      const currentFocus = getFieldColumnFocus(currentActiveField);
-      if (!currentFocus) {
-        return false;
-      }
-
-      getKeys(e.code, currentFocus, {
-        editNoteField,
-        editInstrumentField,
-        editEffectCodeField,
-        editEffectParamField,
+      return applyTrackerInput({
+        type: "keyboard",
+        code: e.code,
       });
-
-      return true;
     },
-    [
-      editEffectCodeField,
-      editEffectParamField,
-      editInstrumentField,
-      editNoteField,
-    ],
+    [applyTrackerInput],
   );
 
   const handleKeyDown = useCallback(
@@ -1123,20 +1164,33 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
 
   const handleVirtualKeyPressed = useCallback(
     (virtualKey: VirtualTrackerKey) => {
-      if (virtualKey.type !== "navigation") {
-        return;
-      }
-
       if (activeFieldValueRef.current === undefined) {
         setActiveField(0);
         setSingleFieldSelection(0);
-      } else {
-        moveActiveField(virtualKey.direction, false);
       }
 
-      tableRef.current?.focus();
+      if (virtualKey.type === "navigation") {
+        moveActiveField(virtualKey.direction, false);
+        tableRef.current?.focus();
+        return;
+      }
+
+      if (virtualKey.type === "number" || virtualKey.type === "note") {
+        applyTrackerInput({
+          type: "hex",
+          value: virtualKey.value,
+        });
+
+        tableRef.current?.focus();
+        return;
+      }
     },
-    [moveActiveField, setActiveField, setSingleFieldSelection],
+    [
+      applyTrackerInput,
+      moveActiveField,
+      setActiveField,
+      setSingleFieldSelection,
+    ],
   );
 
   useLayoutEffect(() => {
@@ -1309,7 +1363,8 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
         </StyledTrackerContentTable>
       </StyledTrackerContentWrapper>
       <TrackerKeyboard
-        fieldType={getFieldTypeFromFieldIndex(activeField ?? 0)}
+        fieldType={currentFocus}
+        octaveOffset={octaveOffset}
         open={showVirtualKeyboard}
         onKeyPressed={handleVirtualKeyPressed}
       />

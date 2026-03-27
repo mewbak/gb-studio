@@ -12,6 +12,7 @@ import {
   PencilIcon,
   EraserIcon,
   SelectionIcon,
+  VirtualKeyboardIcon,
 } from "ui/icons/Icons";
 import { FloatingPanel, FloatingPanelDivider } from "ui/panels/FloatingPanel";
 import trackerActions from "store/features/tracker/trackerActions";
@@ -433,7 +434,7 @@ const SongEditorToolsPanel = ({ musicAsset }: SongEditorToolsPanelProps) => {
               active={showVirtualKeyboard}
               onClick={toggleVirtualKeyboard}
             >
-              K
+              <VirtualKeyboardIcon />
             </Button>
           </>
         )}

@@ -259,6 +259,12 @@ export const FXIcon = () => (
   </svg>
 );
 
+export const VirtualKeyboardIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24">
+    <path d="M0 3v18h24v-18h-24zm15 4h3v3h-3v-3zm1 4v3h-3v-3h3zm-5-4h3v3h-3v-3zm1 4v3h-3v-3h3zm-5-4h3v3h-3v-3zm-5 0h4v3h-4v-3zm0 4h6v3h-6v-3zm16 7h-12v-3h12v3zm4-4h-5v-3h5v3zm0-4h-3v-3h3v3z" />
+  </svg>
+);
+
 export const SelectionIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24">
     <path d="M11 23v-2h-4v2h4zm8-20h3v2h2v-4h-5v2zm-19 14h2v-4h-2v4zm0-6h2v-4h-2v4zm2-6v-2h3v-2h-5v4h2zm22 2h-2v4h2v-4zm0 6h-2v4h2v-4zm-2 6v2h-3v2h5v-4h-2zm-17 2h-3v-2h-2v4h5v-2zm12 2v-2h-4v2h4zm-6-20v-2h-4v2h4zm6 0v-2h-4v2h4z" />
