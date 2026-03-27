@@ -19,7 +19,8 @@ export interface Position {
   y: number;
 }
 
-export const TRACKER_HEADER_HEIGHT = 30;
+export const TRACKER_HEADER_HEIGHT = 40;
+export const TRACKER_INDEX_WIDTH = 56;
 export const TRACKER_CELL_HEIGHT = 25;
 
 export const normalizeFieldIndex = (field: number) =>

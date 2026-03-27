@@ -268,6 +268,14 @@ const SongEditorToolsPanel = ({ musicAsset }: SongEditorToolsPanelProps) => {
     [tmpSelectionMode, setTool, previousTool],
   );
 
+  const showVirtualKeyboard = useAppSelector(
+    (state) => state.tracker.showVirtualKeyboard,
+  );
+
+  const toggleVirtualKeyboard = useCallback(() => {
+    dispatch(trackerActions.setShowVirtualKeyboard(!showVirtualKeyboard));
+  }, [dispatch, showVirtualKeyboard]);
+
   useEffect(() => {
     window.addEventListener("keydown", onKeyDown);
     window.addEventListener("keyup", onKeyUp);
@@ -418,6 +426,15 @@ const SongEditorToolsPanel = ({ musicAsset }: SongEditorToolsPanelProps) => {
                 }
               }}
             />
+            <FloatingPanelDivider />
+
+            <Button
+              variant="transparent"
+              active={showVirtualKeyboard}
+              onClick={toggleVirtualKeyboard}
+            >
+              K
+            </Button>
           </>
         )}
       </FloatingPanelTools>

@@ -5,8 +5,8 @@ export const StyledTrackerWrapper = styled.div`
   position: relative;
   display: flex;
   width: 100%;
-  flex-grow: 1;
   flex-direction: column;
+  flex-grow: 1;
   min-height: 0;
 `;
 
@@ -14,6 +14,7 @@ export const StyledTrackerContentWrapper = styled.div`
   overflow: auto;
   flex-grow: 1;
   flex-basis: 0;
+  min-height: 0;
   overscroll-behavior: none;
 `;
 

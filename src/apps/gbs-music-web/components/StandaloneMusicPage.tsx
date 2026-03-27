@@ -82,6 +82,17 @@ interface StandaloneMusicPageProps {
   topInset?: number;
 }
 
+const isProbablyPhone = () => {
+  if (
+    typeof window === "undefined" ||
+    typeof window.matchMedia !== "function"
+  ) {
+    return false;
+  }
+
+  return window.matchMedia("(pointer: coarse) and (max-width: 768px)").matches;
+};
+
 export const StandaloneMusicPage = ({
   onCreateSong,
   onImportSong,
@@ -293,6 +304,10 @@ export const StandaloneMusicPage = ({
   // const selectedPatternCells = useAppSelector(
   //   (state) => state.tracker.selectedPatternCells,
   // );
+
+  useEffect(() => {
+    dispatch(trackerActions.setShowVirtualKeyboard(isProbablyPhone()));
+  }, [dispatch]);
 
   const songsPane = useMemo(
     () => (

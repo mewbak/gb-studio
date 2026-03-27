@@ -87,6 +87,7 @@ export interface TrackerState {
   channelStatus: [boolean, boolean, boolean, boolean];
   pastedPattern: PatternCell[][] | null;
   sidebarView: TrackerSidebarViewType;
+  showVirtualKeyboard: boolean;
 }
 
 export const initialState: TrackerState = {
@@ -128,6 +129,7 @@ export const initialState: TrackerState = {
   channelStatus: [false, false, false, false],
   pastedPattern: null,
   sidebarView: "instrument",
+  showVirtualKeyboard: false,
 };
 
 const trackerSlice = createSlice({
@@ -275,6 +277,10 @@ const trackerSlice = createSlice({
     setSidebarView: (state, action: PayloadAction<TrackerSidebarViewType>) => {
       state.sidebarView = action.payload;
     },
+
+    setShowVirtualKeyboard: (state, action: PayloadAction<boolean>) => {
+      state.showVirtualKeyboard = action.payload;
+    },
   },
   extraReducers: (builder) =>
     builder
@@ -291,6 +297,7 @@ const trackerSlice = createSlice({
           selectedSongId: state.selectedSongId,
           view: state.view,
           subpatternEditorMode: state.subpatternEditorMode,
+          showVirtualKeyboard: state.showVirtualKeyboard,
           status: "loaded",
           modified: false,
         };

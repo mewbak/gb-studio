@@ -8,7 +8,6 @@ import React, {
 } from "react";
 import { Song, PatternCell } from "shared/lib/uge/types";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
-import scrollIntoView from "scroll-into-view-if-needed";
 import { TrackerHeaderCell } from "./TrackerHeaderCell";
 import {
   patternHue,
@@ -48,6 +47,7 @@ import {
   SelectionRect,
   TRACKER_CELL_HEIGHT,
   TRACKER_HEADER_HEIGHT,
+  TRACKER_INDEX_WIDTH,
   trackerFieldsToPatternCells,
 } from "./helpers";
 import renderPatternContextMenu from "components/music/contextMenus/renderPatternContextMenu";
@@ -63,7 +63,10 @@ import {
 import { PatternCellAddress } from "shared/lib/uge/editor/types";
 import { toValidChannelId } from "shared/lib/uge/editor/helpers";
 import { useMusicNotePreview } from "components/music/hooks/useMusicNotePreview";
-import { TrackerKeyboard } from "components/music/tracker/TrackerKeyboard";
+import {
+  TrackerKeyboard,
+  VirtualTrackerKey,
+} from "components/music/tracker/TrackerKeyboard";
 
 interface SongTrackerProps {
   sequenceId: number;
@@ -75,6 +78,20 @@ const renderCounter = (n: number): string => {
 };
 
 const getRowIndexFromField = (field: number) => Math.floor(field / 4);
+
+const getFieldTypeFromFieldIndex = (index: number) => {
+  const fieldIndex = Math.floor(index / 4);
+  if (fieldIndex === 0) {
+    return "note";
+  } else if (fieldIndex === 1) {
+    return "instrument";
+  } else if (fieldIndex === 2) {
+    return "effectCode";
+  } else if (fieldIndex === 3) {
+    return "effectParam";
+  }
+  return "note";
+};
 
 export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
   const dispatch = useAppDispatch();
@@ -94,6 +111,10 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
   const selectedInstrumentId = useAppSelector(
     (state) => state.tracker.selectedInstrumentId,
   );
+  const showVirtualKeyboard = useAppSelector(
+    (state) => state.tracker.showVirtualKeyboard,
+  );
+
   const tableRef = useRef<HTMLTableSectionElement>(null);
 
   const patternId = song?.sequence[sequenceId] ?? 0;
@@ -301,7 +322,6 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
         return;
       }
 
-      setActiveField(undefined);
     },
     [
       dispatch,
@@ -463,6 +483,61 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
     [editPatternCell],
   );
 
+  const moveActiveField = useCallback(
+    (direction: "up" | "down" | "left" | "right", extendSelection: boolean) => {
+      const currentActiveField = activeFieldValueRef.current;
+      const currentSelectionRect = selectionRectRef.current;
+
+      if (currentActiveField === undefined) {
+        return false;
+      }
+
+      const key =
+        direction === "left"
+          ? "ArrowLeft"
+          : direction === "right"
+            ? "ArrowRight"
+            : direction === "up"
+              ? "ArrowUp"
+              : "ArrowDown";
+
+      const movedField = getMovedField(
+        currentActiveField,
+        key,
+        extendSelection,
+      );
+
+      if (movedField === null) {
+        return false;
+      }
+
+      const newActiveField = normalizeFieldIndex(movedField);
+
+      if (extendSelection) {
+        if (!isSelectingRef.current) {
+          isSelectingRef.current = true;
+
+          if (!currentSelectionRect) {
+            setSelectionOrigin(fieldToPosition(currentActiveField));
+          }
+        }
+
+        const origin =
+          selectionOriginRef.current ?? fieldToPosition(currentActiveField);
+
+        setSelectionRect(buildSelectionRect(origin, newActiveField));
+      } else {
+        const origin = fieldToPosition(newActiveField);
+        setSelectionOrigin(origin);
+        setSelectionRect(buildSelectionRect(origin, newActiveField));
+      }
+
+      setActiveField(newActiveField);
+      return true;
+    },
+    [setActiveField, setSelectionOrigin, setSelectionRect],
+  );
+
   const handleStructureKey = useCallback(
     (e: KeyboardEvent) => {
       const currentActiveField = activeFieldValueRef.current;
@@ -621,53 +696,30 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
 
   const handleNavigationKey = useCallback(
     (e: KeyboardEvent) => {
-      const currentActiveField = activeFieldValueRef.current;
-      const currentSelectionRect = selectionRectRef.current;
+      const direction =
+        e.key === "ArrowLeft"
+          ? "left"
+          : e.key === "ArrowRight"
+            ? "right"
+            : e.key === "ArrowUp"
+              ? "up"
+              : e.key === "ArrowDown"
+                ? "down"
+                : null;
 
-      if (currentActiveField === undefined) {
+      if (!direction) {
         return false;
       }
 
-      const movedField = getMovedField(currentActiveField, e.key, e.shiftKey);
+      const handled = moveActiveField(direction, e.shiftKey);
 
-      if (movedField === null) {
-        return false;
+      if (handled) {
+        e.preventDefault();
       }
 
-      e.preventDefault();
-
-      const newActiveField = normalizeFieldIndex(movedField);
-
-      const shouldExtendSelection =
-        e.shiftKey &&
-        (e.key === "ArrowLeft" ||
-          e.key === "ArrowRight" ||
-          e.key === "ArrowUp" ||
-          e.key === "ArrowDown");
-
-      if (shouldExtendSelection) {
-        if (!isSelectingRef.current) {
-          isSelectingRef.current = true;
-
-          if (!currentSelectionRect) {
-            setSelectionOrigin(fieldToPosition(currentActiveField));
-          }
-        }
-
-        const origin =
-          selectionOriginRef.current ?? fieldToPosition(currentActiveField);
-
-        setSelectionRect(buildSelectionRect(origin, newActiveField));
-      } else {
-        const origin = fieldToPosition(newActiveField);
-        setSelectionOrigin(origin);
-        setSelectionRect(buildSelectionRect(origin, newActiveField));
-      }
-
-      setActiveField(newActiveField);
-      return true;
+      return handled;
     },
-    [setActiveField, setSelectionOrigin, setSelectionRect],
+    [moveActiveField],
   );
 
   const handleEditKey = useCallback(
@@ -723,15 +775,36 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
   );
 
   useLayoutEffect(() => {
-    if (!playing && activeFieldRef.current) {
-      const parentEl = activeFieldRef.current.parentElement;
-      if (parentEl) {
-        scrollIntoView(parentEl, {
-          scrollMode: "if-needed",
-          block: "end",
-          inline: "end",
-        });
-      }
+    if (
+      playing ||
+      activeField === undefined ||
+      !scrollRef.current ||
+      !activeFieldRef.current
+    ) {
+      return;
+    }
+
+    const scrollEl = scrollRef.current;
+    const fieldEl = activeFieldRef.current;
+
+    const scrollRect = scrollEl.getBoundingClientRect();
+    const fieldRect = fieldEl.getBoundingClientRect();
+
+    const visibleTop = scrollRect.top + TRACKER_HEADER_HEIGHT;
+    const visibleBottom = scrollRect.bottom - 30;
+    const visibleLeft = scrollRect.left + TRACKER_INDEX_WIDTH;
+    const visibleRight = scrollRect.right - 30;
+
+    if (fieldRect.top < visibleTop) {
+      scrollEl.scrollTop -= visibleTop - fieldRect.top;
+    } else if (fieldRect.bottom > visibleBottom) {
+      scrollEl.scrollTop += fieldRect.bottom - visibleBottom;
+    }
+
+    if (fieldRect.left < visibleLeft) {
+      scrollEl.scrollLeft -= visibleLeft - fieldRect.left;
+    } else if (fieldRect.right > visibleRight) {
+      scrollEl.scrollLeft += fieldRect.right - visibleRight;
     }
   }, [playing, activeField]);
 
@@ -1048,10 +1121,34 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
     getMenu: getSelectionContextMenu,
   });
 
+  const handleVirtualKeyPressed = useCallback(
+    (virtualKey: VirtualTrackerKey) => {
+      if (virtualKey.type !== "navigation") {
+        return;
+      }
+
+      if (activeFieldValueRef.current === undefined) {
+        setActiveField(0);
+        setSingleFieldSelection(0);
+      } else {
+        moveActiveField(virtualKey.direction, false);
+      }
+
+      tableRef.current?.focus();
+    },
+    [moveActiveField, setActiveField, setSingleFieldSelection],
+  );
+
   useLayoutEffect(() => {
     // If sequence id changes clear the current selection
     clearSelection();
   }, [sequenceId, clearSelection]);
+
+  useLayoutEffect(() => {
+    setActiveField(0);
+    setSingleFieldSelection(0);
+    tableRef.current?.focus({ preventScroll: true });
+  }, [setActiveField, setSingleFieldSelection]);
 
   return (
     <StyledTrackerWrapper>
@@ -1212,10 +1309,9 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
         </StyledTrackerContentTable>
       </StyledTrackerContentWrapper>
       <TrackerKeyboard
-        fieldType="note"
-        onKeyPressed={(virtualKey) => {
-          console.log(virtualKey);
-        }}
+        fieldType={getFieldTypeFromFieldIndex(activeField ?? 0)}
+        open={showVirtualKeyboard}
+        onKeyPressed={handleVirtualKeyPressed}
       />
       {selectionContextMenuElement}
     </StyledTrackerWrapper>
