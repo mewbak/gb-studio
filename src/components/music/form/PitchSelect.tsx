@@ -8,7 +8,7 @@ import {
   SelectCommonProps,
 } from "ui/form/Select";
 import l10n from "shared/lib/lang/l10n";
-import { MAX_OCTAVE, OCTAVE_SIZE, TOTAL_OCTAVES } from "consts";
+import { MIN_OCTAVE, OCTAVE_SIZE, TOTAL_OCTAVES } from "consts";
 import { useMusicNotePreview } from "components/music/hooks/useMusicNotePreview";
 
 type PitchOption = {
@@ -73,14 +73,11 @@ const buildGroupedOptions = (): GroupBase<PitchOption>[] => {
   const options = buildNoteOptions();
 
   return Array.from({ length: TOTAL_OCTAVES }, (_, octaveIndex) => {
-    const octave = MAX_OCTAVE - octaveIndex;
+    const octave = MIN_OCTAVE + octaveIndex;
 
     return {
       label: `${l10n("FIELD_OCTAVE")} ${octave}`,
-      options: options
-        .filter((option) => option.octave === octave)
-        .slice()
-        .reverse(),
+      options: options.filter((option) => option.octave === octave),
     };
   });
 };

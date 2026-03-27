@@ -52,6 +52,10 @@ export const PatternCellSelectionEditor = () => {
     [selectedPatternCells],
   );
 
+  const selectedInstrumentId = useAppSelector(
+    (state) => state.tracker.selectedInstrumentId,
+  );
+
   const sharedNote = useMemo(
     () => getSharedValue(song, selectedPatternCells, "note"),
     [selectedPatternCells, song],
@@ -108,6 +112,14 @@ export const PatternCellSelectionEditor = () => {
                 note,
               }),
             );
+            if (sharedInstrumentId.type === "none") {
+              dispatch(
+                trackerDocumentActions.changeInstrumentAbsoluteCells({
+                  patternCells: selectedPatternCells,
+                  instrumentId: selectedInstrumentId,
+                }),
+              );
+            }
           }}
           noneLabel={
             sharedNote.type === "multiple" ? "Multiple Values" : "None"

@@ -12,6 +12,7 @@ import styled from "styled-components";
 import { renderNote } from "components/music/helpers";
 import { VibratoWaveformPreview } from "./VibratoWaveformPreview";
 import { useMusicNotePreview } from "components/music/hooks/useMusicNotePreview";
+import { PitchSelect } from "components/music/form/PitchSelect";
 
 type SelectOption = {
   value: number;
@@ -171,19 +172,15 @@ export const EffectParamsForm: FC<EffectParamsFormProps> = ({
 
     case 3: {
       // Tone Portamento
-      const selectedNoteOption =
-        noteOptions.find((option) => option.value === note) ?? null;
-
       return (
         <>
           <FormRow>
             <FormField name="note" label={l10n("FIELD_TOWARDS_NOTE")}>
-              <Select
+              <PitchSelect
                 name="note"
-                value={selectedNoteOption}
-                options={noteOptions}
-                onChange={(selected: SingleValue<SelectOption>) => {
-                  onChangeNote?.(selected?.value ?? null);
+                value={note}
+                onChange={(newNote) => {
+                  onChangeNote?.(newNote);
                 }}
               />
             </FormField>
