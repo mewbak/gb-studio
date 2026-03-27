@@ -11,8 +11,8 @@ import { StyledButton } from "ui/buttons/style";
 // `;
 
 export const StyledMobileToolbarSpacer = styled.div`
-  height: 60px;
   flex-shrink: 0;
+  height: calc(60px + env(safe-area-inset-bottom));
 `;
 
 export const StyledMobileToolbar = styled.div`
@@ -21,7 +21,7 @@ export const StyledMobileToolbar = styled.div`
   right: 0;
   bottom: 0;
   display: flex;
-  height: 60px;
+  height: calc(60px + env(safe-area-inset-bottom));
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
@@ -31,9 +31,17 @@ export const StyledMobileToolbar = styled.div`
   background: ${(props) => props.theme.colors.background};
   z-index: 10000;
 
+  padding-bottom: calc(env(safe-area-inset-bottom));
+
   ${StyledButton} {
     height: 100%;
     flex: 1;
+  }
+
+  ${StyledButton}:hover,
+  ${StyledButton}:active {
+    background: transparent;
+    -webkit-tap-highlight-color: transparent;
   }
 `;
 
@@ -62,8 +70,13 @@ export const StyledMobileChannelsView = styled.div`
 `;
 
 export const StyledMobilePaneHeader = styled.div`
-  background: blue;
-  height: 80px;
+  display: flex;
+  background: ${(props) => props.theme.colors.sidebar.header.background};
+  border-top: 1px solid ${(props) => props.theme.colors.sidebar.header.border};
+  border-bottom: 1px solid
+    ${(props) => props.theme.colors.sidebar.header.border};
+  height: 30px;
+  justify-content: flex-end;
 `;
 
 export const StyledMobileOverlay = styled.div<{
@@ -74,7 +87,7 @@ export const StyledMobileOverlay = styled.div<{
   left: 0;
   right: 0;
   bottom: 0;
-  overflow: auto;
+  // overflow: auto;
   background: ${(props) => props.theme.colors.sidebar.background};
   z-index: ${(props) => (props.$open ? "1001" : "1000")};
   transition:
@@ -85,8 +98,10 @@ export const StyledMobileOverlay = styled.div<{
   // opacity: ${(props) => (props.$open ? 1 : 0)};
   pointer-events: ${(props) => (props.$open ? "auto" : "none")};
 
-  padding-bottom: 60px;
+  padding-bottom: calc(60px + env(safe-area-inset-bottom));
+
   box-sizing: border-box;
+  box-shadow: 0px 2px 60px rgba(0, 0, 0, 0.5);
 
   ${(props) =>
     props.$fullHeight
@@ -99,5 +114,30 @@ export const StyledMobileOverlay = styled.div<{
           top: auto;
           height: auto;
           max-height: 100dvh;
+          border-top-left-radius: 12px;
+          border-top-right-radius: 12px;
+          padding-top: 12px;
+          border-top: 1px solid ${(props) => props.theme.colors.sidebar.border};
         `}
+
+  ${(props) =>
+    !props.$open &&
+    css`
+      ${StyledMobileOverlayClose} {
+        display: none;
+      }
+    `};
+`;
+
+export const StyledMobileOverlayClose = styled.div`
+  position: absolute;
+  bottom: 100%;
+  width: 100%;
+  background: transparent;
+  height: 100vh;
+`;
+
+export const StyledMobileOverlayContent = styled.div`
+  max-height: 100%;
+  overflow: auto;
 `;
