@@ -7,6 +7,8 @@ const CopyPlugin = require("copy-webpack-plugin");
 const { GitRevisionPlugin } = require("git-revision-webpack-plugin");
 const baseRules = require("../shared/webpack.rules");
 const { repoPath, srcPath } = require("../shared/webpack.paths");
+const ReactRefreshWebpackPlugin = require("@pmmmwh/react-refresh-webpack-plugin");
+const ReactRefreshTypeScript = require("react-refresh-typescript");
 const pkg = require("../../../package.json");
 
 const gzip = promisify(zlib.gzip);
@@ -83,6 +85,10 @@ const rules = baseRules.map((rule) => {
         ...nestedRule,
         options: {
           ...nestedRule.options,
+          transpileOnly: !isProduction,
+          getCustomTransformers: () => ({
+            before: [!isProduction && ReactRefreshTypeScript()].filter(Boolean),
+          }),
           compilerOptions: {
             ...(nestedRule.options?.compilerOptions || {}),
             module: "esnext",
@@ -163,7 +169,7 @@ module.exports = {
       RELEASE_VERSION: JSON.stringify(pkg.version.replace(/-rc.*/, "")),
       DOCS_URL: JSON.stringify(docsUrl),
     }),
-
+    ...(isProduction ? [] : [new ReactRefreshWebpackPlugin()]),
     ...(isProduction ? [new PrecompressAssetsPlugin()] : []),
   ],
   optimization: {
@@ -178,8 +184,8 @@ module.exports = {
     compress: true,
     port: 3200,
     host: "127.0.0.1",
-    hot: false,
-    liveReload: true,
+    hot: true,
+    liveReload: false,
     historyApiFallback: true,
     client: {
       overlay: true,
