@@ -22,11 +22,22 @@ import { SongContextBar } from "components/music/toolbar/SongContextBar";
 import useWindowSize from "ui/hooks/use-window-size";
 import trackerActions from "store/features/tracker/trackerActions";
 import { useAppDispatch, useAppSelector } from "store/hooks";
+import { StyledButton } from "ui/buttons/style";
 
 declare const VERSION: string;
 declare const COMMITHASH: string;
 
 const COMPACT_LAYOUT_BREAKPOINT = 900;
+
+const Wrapper = styled.div`
+  ${StyledButton} {
+    svg {
+      // Real nitpick, align play/stop buttons
+      // with save/export panel in mobile view
+      padding: 0 1.25px;
+    }
+  }
+`;
 
 const Logo = styled.img`
   width: 16px;
@@ -209,42 +220,44 @@ export const MusicWebToolbar = ({
 
   return (
     <>
-      <Toolbar>
-        <Brand>
-          <DropdownButton
-            label={
-              <>
-                <Logo src={appIconUrl} alt="GB Studio" />
-                <BrandText>GBS Music</BrandText>
-              </>
-            }
-            menuDirection="left"
-            title={l10n("MENU_SETTINGS")}
-          >
-            <MenuItem subMenu={fileMenu}>{l10n("MENU_FILE")}</MenuItem>
-            <MenuDivider />
-            <MenuItem subMenu={viewMenu}>{l10n("MENU_VIEW")}</MenuItem>
-            <MenuItem subMenu={themeMenu}>{l10n("MENU_THEME")}</MenuItem>
-            <MenuItem subMenu={localeMenu}>{l10n("MENU_LANGUAGE")}</MenuItem>
-            <MenuDivider />
-            <MenuItem onClick={() => setShowAbout(true)}>
-              {l10n("MENU_ABOUT")}
-            </MenuItem>
-          </DropdownButton>
-        </Brand>
-        <FlexGrow />
-        <SongContextBar isCompactLayout={isCompactLayout} />
+      <Wrapper>
+        <Toolbar>
+          <Brand>
+            <DropdownButton
+              label={
+                <>
+                  <Logo src={appIconUrl} alt="GB Studio" />
+                  <BrandText>GBS Music</BrandText>
+                </>
+              }
+              menuDirection="left"
+              title={l10n("MENU_SETTINGS")}
+            >
+              <MenuItem subMenu={fileMenu}>{l10n("MENU_FILE")}</MenuItem>
+              <MenuDivider />
+              <MenuItem subMenu={viewMenu}>{l10n("MENU_VIEW")}</MenuItem>
+              <MenuItem subMenu={themeMenu}>{l10n("MENU_THEME")}</MenuItem>
+              <MenuItem subMenu={localeMenu}>{l10n("MENU_LANGUAGE")}</MenuItem>
+              <MenuDivider />
+              <MenuItem onClick={() => setShowAbout(true)}>
+                {l10n("MENU_ABOUT")}
+              </MenuItem>
+            </DropdownButton>
+          </Brand>
+          <FlexGrow />
+          <SongContextBar isCompactLayout={isCompactLayout} />
 
-        {!isCompactLayout && (
-          <>
-            <FlexGrow />
-            <FixedSpacer width={58} />
-            <Button onClick={toggleFullscreen}>
-              {isFullscreen ? <FullscreenCloseIcon /> : <FullscreenIcon />}
-            </Button>
-          </>
-        )}
-      </Toolbar>
+          {!isCompactLayout && (
+            <>
+              <FlexGrow />
+              <FixedSpacer width={58} />
+              <Button onClick={toggleFullscreen}>
+                {isFullscreen ? <FullscreenCloseIcon /> : <FullscreenIcon />}
+              </Button>
+            </>
+          )}
+        </Toolbar>
+      </Wrapper>
       {showAbout && (
         <>
           <AboutOverlay onClick={() => setShowAbout(false)} />
