@@ -89,13 +89,15 @@ export const PianoRollEffectRow = React.memo(
           const changes = computeEffectChanges(cell, lastCell);
 
           if (changes) {
-            dispatch(
-              trackerDocumentActions.editPatternCell({
-                patternId,
-                cell: [col, channelId],
-                changes,
-              }),
-            );
+            if (tool === "pencil") {
+              dispatch(
+                trackerDocumentActions.editPatternCell({
+                  patternId,
+                  cell: [col, channelId],
+                  changes,
+                }),
+              );
+            }
             dispatch(
               trackerActions.setSelectedEffectCell({
                 sequenceId,
