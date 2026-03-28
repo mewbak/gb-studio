@@ -10,12 +10,16 @@ export const StyledTrackerWrapper = styled.div`
   min-height: 0;
 `;
 
-export const StyledTrackerContentWrapper = styled.div`
+export const StyledTrackerScrollWrapper = styled.div`
   overflow: auto;
   flex-grow: 1;
   flex-basis: 0;
   min-height: 0;
   overscroll-behavior: none;
+`;
+
+export const StyledTrackerScrollCanvas = styled.div`
+  max-width: 0;
 `;
 
 interface StyledTrackerContentTableProps {

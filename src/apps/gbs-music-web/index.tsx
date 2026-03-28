@@ -45,12 +45,13 @@ initKeyBindings();
 const AppShell = styled.div`
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  flex-grow: 1;
 `;
 
 const AppContent = styled.div`
   flex: 1 1 0;
   min-height: 0;
+  display: flex;
 `;
 
 const ConfirmOverlay = styled(MenuOverlay)`
@@ -315,6 +316,7 @@ const MusicWebApp = () => {
     <ThemeProvider theme={theme}>
       <GlobalStyle />
       <AppShell
+        data-id="app-shell"
         onContextMenu={(e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -350,7 +352,7 @@ const MusicWebApp = () => {
                   })
           }
         />
-        <AppContent>
+        <AppContent data-id="app-content">
           {allSongs.length > 0 ? (
             <StandaloneMusicPage
               key={localeId}
@@ -365,7 +367,7 @@ const MusicWebApp = () => {
               style={{
                 background:
                   "radial-gradient(circle at 50% 40%,#e9a1ab 0%, #d1456d 26%, #982c51 50%, #1f1828 100%)",
-                height: "100vh",
+                flexGrow: 1,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",

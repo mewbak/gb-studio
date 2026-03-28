@@ -27,7 +27,7 @@ import {
   StyledTrackerTableHeaderRow,
   StyledTrackerWrapper,
   StyledTrackerTableBody,
-  StyledTrackerContentWrapper,
+  StyledTrackerScrollWrapper,
   StyledTrackerRow,
   StyledTrackerCell,
   StyledTrackerRowIndexField,
@@ -35,6 +35,7 @@ import {
   StyledTrackerInstrumentField,
   StyledTrackerEffectCodeField,
   StyledTrackerEffectParamField,
+  StyledTrackerScrollCanvas,
 } from "./style";
 import {
   buildSelectionRect,
@@ -1206,162 +1207,165 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
 
   return (
     <StyledTrackerWrapper>
-      <StyledTrackerContentWrapper ref={scrollRef}>
-        <StyledTrackerContentTable $type="pattern">
-          <StyledTrackerTableHeader
-            style={{
-              background: `linear-gradient(0deg, hsl(${patternHue(patternId)}deg 100% 70%) 0%, hsl(${patternHue(patternId)}deg 100% 80%) 100%)`,
-              borderColor: `hsl(${patternHue(patternId)}deg 80% 50% / 30%)`,
-            }}
-          >
-            <StyledTrackerTableHeaderRow>
-              <TrackerHeaderCell type="patternIndex">
-                {orderLength > 1 ? (
-                  <DropdownButton
-                    variant="transparent"
-                    label={String(patternId).padStart(2, "0")}
-                  >
-                    {patternContextMenu}
-                  </DropdownButton>
-                ) : (
-                  String(patternId).padStart(2, "0")
-                )}
-              </TrackerHeaderCell>
-              <TrackerHeaderCell
-                type="channel"
-                channel={0}
-                muted={channelStatus[0] && soloChannel === -1}
-                solo={soloChannel === 0}
-              >
-                Duty 1
-              </TrackerHeaderCell>
-              <TrackerHeaderCell
-                type="channel"
-                channel={1}
-                muted={channelStatus[1] && soloChannel === -1}
-                solo={soloChannel === 1}
-              >
-                Duty 2
-              </TrackerHeaderCell>
-              <TrackerHeaderCell
-                type="channel"
-                channel={2}
-                muted={channelStatus[2] && soloChannel === -1}
-                solo={soloChannel === 2}
-              >
-                Wave
-              </TrackerHeaderCell>
-              <TrackerHeaderCell
-                type="channel"
-                channel={3}
-                muted={channelStatus[3] && soloChannel === -1}
-                solo={soloChannel === 3}
-              >
-                Noise
-              </TrackerHeaderCell>
-            </StyledTrackerTableHeaderRow>
-          </StyledTrackerTableHeader>
-
-          <StyledTrackerTableBody
-            ref={tableRef}
-            tabIndex={0}
-            onFocus={onFocus}
-            onContextMenu={onSelectionContextMenu}
-          >
-            {pattern?.map((row: PatternCell[], rowIndex: number) => {
-              const isActive =
-                activeField !== undefined &&
-                getRowIndexFromField(activeField) === rowIndex;
-              const isPlaying =
-                playbackState[0] === sequenceId &&
-                playbackState[1] === rowIndex;
-              const isStepMarker = rowIndex % 8 === 0;
-              const rowFieldBase = rowIndex * TRACKER_ROW_SIZE;
-
-              return (
-                <StyledTrackerRow
-                  key={rowIndex}
-                  $isStepMarker={isStepMarker}
-                  $isActive={isActive}
+      <StyledTrackerScrollWrapper ref={scrollRef}>
+        <StyledTrackerScrollCanvas>
+          <StyledTrackerContentTable $type="pattern">
+            <StyledTrackerTableHeader
+              style={{
+                background: `linear-gradient(0deg, hsl(${patternHue(patternId)}deg 100% 70%) 0%, hsl(${patternHue(patternId)}deg 100% 80%) 100%)`,
+                borderColor: `hsl(${patternHue(patternId)}deg 80% 50% / 30%)`,
+              }}
+            >
+              <StyledTrackerTableHeaderRow>
+                <TrackerHeaderCell type="patternIndex">
+                  {orderLength > 1 ? (
+                    <DropdownButton
+                      variant="transparent"
+                      label={String(patternId).padStart(2, "0")}
+                    >
+                      {patternContextMenu}
+                    </DropdownButton>
+                  ) : (
+                    String(patternId).padStart(2, "0")
+                  )}
+                </TrackerHeaderCell>
+                <TrackerHeaderCell
+                  type="channel"
+                  channel={0}
+                  muted={channelStatus[0] && soloChannel === -1}
+                  solo={soloChannel === 0}
                 >
-                  <StyledTrackerCell
-                    $isPlaying={isPlaying}
-                    $isMuted={false}
-                    data-row={rowIndex}
+                  Duty 1
+                </TrackerHeaderCell>
+                <TrackerHeaderCell
+                  type="channel"
+                  channel={1}
+                  muted={channelStatus[1] && soloChannel === -1}
+                  solo={soloChannel === 1}
+                >
+                  Duty 2
+                </TrackerHeaderCell>
+                <TrackerHeaderCell
+                  type="channel"
+                  channel={2}
+                  muted={channelStatus[2] && soloChannel === -1}
+                  solo={soloChannel === 2}
+                >
+                  Wave
+                </TrackerHeaderCell>
+                <TrackerHeaderCell
+                  type="channel"
+                  channel={3}
+                  muted={channelStatus[3] && soloChannel === -1}
+                  solo={soloChannel === 3}
+                >
+                  Noise
+                </TrackerHeaderCell>
+              </StyledTrackerTableHeaderRow>
+            </StyledTrackerTableHeader>
+
+            <StyledTrackerTableBody
+              ref={tableRef}
+              tabIndex={0}
+              onFocus={onFocus}
+              onContextMenu={onSelectionContextMenu}
+            >
+              {pattern?.map((row: PatternCell[], rowIndex: number) => {
+                const isActive =
+                  activeField !== undefined &&
+                  getRowIndexFromField(activeField) === rowIndex;
+                const isPlaying =
+                  playbackState[0] === sequenceId &&
+                  playbackState[1] === rowIndex;
+                const isStepMarker = rowIndex % 8 === 0;
+                const rowFieldBase = rowIndex * TRACKER_ROW_SIZE;
+
+                return (
+                  <StyledTrackerRow
+                    key={rowIndex}
+                    $isStepMarker={isStepMarker}
+                    $isActive={isActive}
                   >
-                    <StyledTrackerRowIndexField id={`cell_${rowIndex}`}>
-                      {renderCounter(rowIndex)}
-                    </StyledTrackerRowIndexField>
-                  </StyledTrackerCell>
+                    <StyledTrackerCell
+                      $isPlaying={isPlaying}
+                      $isMuted={false}
+                      data-row={rowIndex}
+                    >
+                      <StyledTrackerRowIndexField id={`cell_${rowIndex}`}>
+                        {renderCounter(rowIndex)}
+                      </StyledTrackerRowIndexField>
+                    </StyledTrackerCell>
 
-                  {row.map((cell, rowChannelId) => {
-                    const fieldCount =
-                      rowFieldBase + rowChannelId * TRACKER_CHANNEL_FIELDS;
+                    {row.map((cell, rowChannelId) => {
+                      const fieldCount =
+                        rowFieldBase + rowChannelId * TRACKER_CHANNEL_FIELDS;
 
-                    const isNoteActive = activeField === fieldCount;
-                    const isInstrumentActive = activeField === fieldCount + 1;
-                    const isEffectCodeActive = activeField === fieldCount + 2;
-                    const isEffectParamActive = activeField === fieldCount + 3;
+                      const isNoteActive = activeField === fieldCount;
+                      const isInstrumentActive = activeField === fieldCount + 1;
+                      const isEffectCodeActive = activeField === fieldCount + 2;
+                      const isEffectParamActive =
+                        activeField === fieldCount + 3;
 
-                    return (
-                      <StyledTrackerCell
-                        $isMuted={channelStatus[rowChannelId]}
-                        key={rowChannelId}
-                      >
-                        <StyledTrackerNoteField
-                          id={`cell_${rowIndex}_${rowChannelId}_note`}
-                          $active={isNoteActive}
-                          ref={isNoteActive ? activeFieldRef : null}
-                          data-fieldid={fieldCount}
-                          $selected={selectedTrackerFieldSet.has(fieldCount)}
+                      return (
+                        <StyledTrackerCell
+                          $isMuted={channelStatus[rowChannelId]}
+                          key={rowChannelId}
                         >
-                          {renderNote(cell.note)}
-                        </StyledTrackerNoteField>
+                          <StyledTrackerNoteField
+                            id={`cell_${rowIndex}_${rowChannelId}_note`}
+                            $active={isNoteActive}
+                            ref={isNoteActive ? activeFieldRef : null}
+                            data-fieldid={fieldCount}
+                            $selected={selectedTrackerFieldSet.has(fieldCount)}
+                          >
+                            {renderNote(cell.note)}
+                          </StyledTrackerNoteField>
 
-                        <StyledTrackerInstrumentField
-                          id={`cell_${rowIndex}_${rowChannelId}_instrument`}
-                          $active={isInstrumentActive}
-                          ref={isInstrumentActive ? activeFieldRef : null}
-                          data-fieldid={fieldCount + 1}
-                          $selected={selectedTrackerFieldSet.has(
-                            fieldCount + 1,
-                          )}
-                        >
-                          {renderInstrument(cell.instrument)}
-                        </StyledTrackerInstrumentField>
+                          <StyledTrackerInstrumentField
+                            id={`cell_${rowIndex}_${rowChannelId}_instrument`}
+                            $active={isInstrumentActive}
+                            ref={isInstrumentActive ? activeFieldRef : null}
+                            data-fieldid={fieldCount + 1}
+                            $selected={selectedTrackerFieldSet.has(
+                              fieldCount + 1,
+                            )}
+                          >
+                            {renderInstrument(cell.instrument)}
+                          </StyledTrackerInstrumentField>
 
-                        <StyledTrackerEffectCodeField
-                          id={`cell_${rowIndex}_${rowChannelId}_effectcode`}
-                          $active={isEffectCodeActive}
-                          ref={isEffectCodeActive ? activeFieldRef : null}
-                          data-fieldid={fieldCount + 2}
-                          $selected={selectedTrackerFieldSet.has(
-                            fieldCount + 2,
-                          )}
-                        >
-                          {renderEffect(cell.effectcode)}
-                        </StyledTrackerEffectCodeField>
+                          <StyledTrackerEffectCodeField
+                            id={`cell_${rowIndex}_${rowChannelId}_effectcode`}
+                            $active={isEffectCodeActive}
+                            ref={isEffectCodeActive ? activeFieldRef : null}
+                            data-fieldid={fieldCount + 2}
+                            $selected={selectedTrackerFieldSet.has(
+                              fieldCount + 2,
+                            )}
+                          >
+                            {renderEffect(cell.effectcode)}
+                          </StyledTrackerEffectCodeField>
 
-                        <StyledTrackerEffectParamField
-                          id={`cell_${rowIndex}_${rowChannelId}_effectparam`}
-                          $active={isEffectParamActive}
-                          ref={isEffectParamActive ? activeFieldRef : null}
-                          data-fieldid={fieldCount + 3}
-                          $selected={selectedTrackerFieldSet.has(
-                            fieldCount + 3,
-                          )}
-                        >
-                          {renderEffectParam(cell.effectparam)}
-                        </StyledTrackerEffectParamField>
-                      </StyledTrackerCell>
-                    );
-                  })}
-                </StyledTrackerRow>
-              );
-            })}
-          </StyledTrackerTableBody>
-        </StyledTrackerContentTable>
-      </StyledTrackerContentWrapper>
+                          <StyledTrackerEffectParamField
+                            id={`cell_${rowIndex}_${rowChannelId}_effectparam`}
+                            $active={isEffectParamActive}
+                            ref={isEffectParamActive ? activeFieldRef : null}
+                            data-fieldid={fieldCount + 3}
+                            $selected={selectedTrackerFieldSet.has(
+                              fieldCount + 3,
+                            )}
+                          >
+                            {renderEffectParam(cell.effectparam)}
+                          </StyledTrackerEffectParamField>
+                        </StyledTrackerCell>
+                      );
+                    })}
+                  </StyledTrackerRow>
+                );
+              })}
+            </StyledTrackerTableBody>
+          </StyledTrackerContentTable>
+        </StyledTrackerScrollCanvas>
+      </StyledTrackerScrollWrapper>
       <TrackerKeyboard
         fieldType={currentFocus}
         octaveOffset={octaveOffset}

@@ -2,10 +2,6 @@ import styled, { css } from "styled-components";
 import { StyledButton } from "ui/buttons/style";
 
 export const StyledMobileToolbar = styled.div`
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
   display: flex;
   height: calc(60px + env(safe-area-inset-bottom));
   align-items: center;
@@ -17,7 +13,7 @@ export const StyledMobileToolbar = styled.div`
   background: ${(props) => props.theme.colors.background};
   z-index: 10000;
 
-  padding-bottom: calc(env(safe-area-inset-bottom));
+  padding-bottom: calc(5px + env(safe-area-inset-bottom));
 
   ${StyledButton} {
     height: 100%;
@@ -129,7 +125,8 @@ export const StyledMobileOverlay = styled.div<{
   ${(props) =>
     props.$fullHeight
       ? css`
-          top: 37px;
+          top: 0px;
+          left: 0px;
           height: auto;
           max-height: none;
         `

@@ -30,6 +30,7 @@ export const StyledPianoRollScrollWrapper = styled.div`
 export const StyledPianoRollScrollCanvas = styled.div`
   position: relative;
   height: ${PIANO_ROLL_CELL_SIZE * TOTAL_NOTES + 60}px;
+  max-width: 0;
 `;
 
 export const StyledPianoRollScrollLeftWrapper = styled.div`

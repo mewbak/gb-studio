@@ -46,16 +46,15 @@ import {
   StyledSafeMarginBottom,
 } from "gbs-music-web/components/style";
 import { ChannelsView } from "components/music/navigator/ChannelsView";
+import { Portal } from "ui/layout/Portal";
 
 const Wrapper = styled.div`
   display: flex;
   min-height: 0;
-  box-sizing: border-box;
-  position: fixed;
-  left: 0px;
-  right: 0px;
-  top: 40px;
-  bottom: 0px;
+  flex-grow: 1;
+  overflow: hidden;
+  background: red;
+  outline: 10px solid blue;
 `;
 
 const defaultPaneLayout: SplitPaneLayout[] = [
@@ -434,15 +433,17 @@ export const StandaloneMusicPage = ({
           <div
             id="song-document"
             style={{
+              // height: "100%",
               flex: "1 1 0",
               minWidth: 0,
+              minHeight: 0,
               overflow: "hidden",
               background: themeContext?.colors.background,
               color: themeContext?.colors.text,
               // position: "relative",
               display: "flex",
               flexDirection: "column",
-              position: isCompactLayout ? "fixed" : "relative",
+              // position: isCompactLayout ? "fixed" : "relative",
               top: isCompactLayout ? 40 : 0,
               bottom: view === "roll" ? 60 : 0,
               left: 0,
@@ -469,6 +470,62 @@ export const StandaloneMusicPage = ({
             </div>
             <SplitPaneVerticalDivider />
             <SongDocument musicAsset={viewSong} />
+
+            {isCompactLayout && view === "roll" && (
+              <StyledMobileToolbar>
+                <StyledMobileToolbarButton
+                  $isActive={mobileView === "channels"}
+                  onClick={() => {
+                    setMobileView(
+                      mobileView !== "channels" ? "channels" : "none",
+                    );
+                  }}
+                >
+                  Channels
+                </StyledMobileToolbarButton>
+                <StyledMobileToolbarButton
+                  $isActive={mobileView === "instruments"}
+                  onClick={() => {
+                    setMobileView(
+                      mobileView !== "instruments" ? "instruments" : "none",
+                    );
+                  }}
+                >
+                  Instruments
+                </StyledMobileToolbarButton>
+                <StyledMobileToolbarButton
+                  $isActive={mobileView === "sequence"}
+                  onClick={() => {
+                    setMobileView(
+                      mobileView !== "sequence" ? "sequence" : "none",
+                    );
+                  }}
+                >
+                  Sequence
+                </StyledMobileToolbarButton>
+                <StyledMobileToolbarButton
+                  $isActive={mobileView === "notes"}
+                  onClick={() => {
+                    setMobileView(mobileView !== "notes" ? "notes" : "none");
+                  }}
+                >
+                  Notes
+                </StyledMobileToolbarButton>
+                {/* <StyledMobileToolbarButton
+                $isActive={view === "tracker"}
+                onClick={() => {
+                  setMobileView("none");
+                  dispatch(
+                    trackerActions.setView(
+                      view === "tracker" ? "roll" : "tracker",
+                    ),
+                  );
+                }}
+              >
+                Tracker
+              </StyledMobileToolbarButton> */}
+              </StyledMobileToolbar>
+            )}
 
             {/* {isCompactLayout && (
               <div
@@ -517,7 +574,7 @@ export const StandaloneMusicPage = ({
             {/* {isCompactLayout && <StyledMobileToolbarSpacer />} */}
 
             {!isCompactLayout && (
-              <StyledSafeMarginBottom>
+              <>
                 <SplitPaneVerticalDivider />
                 <SplitPaneHeader
                   onToggle={togglePatternsPanel}
@@ -542,7 +599,7 @@ export const StandaloneMusicPage = ({
                       }}
                     />
                   ))}
-              </StyledSafeMarginBottom>
+              </>
             )}
           </div>
 
@@ -642,62 +699,6 @@ export const StandaloneMusicPage = ({
                 {status === "loaded" && <SongEditor />}
               </div>
             </>
-          )}
-
-          {isCompactLayout && view === "roll" && (
-            <StyledMobileToolbar>
-              <StyledMobileToolbarButton
-                $isActive={mobileView === "channels"}
-                onClick={() => {
-                  setMobileView(
-                    mobileView !== "channels" ? "channels" : "none",
-                  );
-                }}
-              >
-                Channels
-              </StyledMobileToolbarButton>
-              <StyledMobileToolbarButton
-                $isActive={mobileView === "instruments"}
-                onClick={() => {
-                  setMobileView(
-                    mobileView !== "instruments" ? "instruments" : "none",
-                  );
-                }}
-              >
-                Instruments
-              </StyledMobileToolbarButton>
-              <StyledMobileToolbarButton
-                $isActive={mobileView === "sequence"}
-                onClick={() => {
-                  setMobileView(
-                    mobileView !== "sequence" ? "sequence" : "none",
-                  );
-                }}
-              >
-                Sequence
-              </StyledMobileToolbarButton>
-              <StyledMobileToolbarButton
-                $isActive={mobileView === "notes"}
-                onClick={() => {
-                  setMobileView(mobileView !== "notes" ? "notes" : "none");
-                }}
-              >
-                Notes
-              </StyledMobileToolbarButton>
-              {/* <StyledMobileToolbarButton
-                $isActive={view === "tracker"}
-                onClick={() => {
-                  setMobileView("none");
-                  dispatch(
-                    trackerActions.setView(
-                      view === "tracker" ? "roll" : "tracker",
-                    ),
-                  );
-                }}
-              >
-                Tracker
-              </StyledMobileToolbarButton> */}
-            </StyledMobileToolbar>
           )}
         </>
       )}

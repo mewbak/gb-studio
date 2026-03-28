@@ -99,13 +99,6 @@ const StyledTrackerEffectButtons = styled.div`
   gap: 10px;
 `;
 
-const StyledTrackerButtonGroup = styled.div`
-  display: flex;
-  gap: 10px;
-  width: max-content;
-  flex-grow: 1;
-`;
-
 const StyledTrackerKeyboardNotes = styled.div`
   overflow-x: auto;
   overflow-y: hidden;
@@ -123,6 +116,15 @@ const StyledTrackerKeyboardNotesInner = styled.div`
   height: 100%;
   box-sizing: border-box;
   padding-bottom: calc(10px + env(safe-area-inset-bottom));
+  max-width: 0;
+`;
+
+const StyledTrackerKeyboardNotesRow = styled.div`
+  display: flex;
+  gap: 10px;
+  width: max-content;
+  flex-grow: 1;
+  padding-right: 10px;
 `;
 
 const NOTE_NAMES = [
@@ -255,7 +257,7 @@ export const TrackerKeyboard = ({
         <StyledTrackerKeyboardNotes>
           <StyledTrackerKeyboardNotesInner>
             {Array.from({ length: 3 }).map((_, octave) => (
-              <StyledTrackerButtonGroup key={octave}>
+              <StyledTrackerKeyboardNotesRow key={octave}>
                 {NOTE_NAMES.map((note, noteIndex) => (
                   <Button
                     key={noteIndex + octave * OCTAVE_SIZE}
@@ -271,7 +273,7 @@ export const TrackerKeyboard = ({
                     {MIN_OCTAVE + (octave + octaveOffset)}
                   </Button>
                 ))}
-              </StyledTrackerButtonGroup>
+              </StyledTrackerKeyboardNotesRow>
             ))}
           </StyledTrackerKeyboardNotesInner>
         </StyledTrackerKeyboardNotes>

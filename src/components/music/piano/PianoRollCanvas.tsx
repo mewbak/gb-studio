@@ -1780,9 +1780,7 @@ export const PianoRollCanvas = ({
 
   return (
     <StyledPianoRollScrollWrapper ref={mergeRefs(scrollRef, wrapperEl)}>
-      <StyledPianoRollScrollCanvas
-        style={{ minWidth: PIANO_ROLL_PIANO_WIDTH + documentWidth }}
-      >
+      <StyledPianoRollScrollCanvas>
         <PianoRollSequenceBar
           song={song}
           playbackOrder={playbackOrder}
