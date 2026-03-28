@@ -444,7 +444,7 @@ export const StandaloneMusicPage = ({
               flexDirection: "column",
               position: isCompactLayout ? "fixed" : "relative",
               top: isCompactLayout ? 40 : 0,
-              bottom: 60,
+              bottom: view === "roll" ? 60 : 0,
               left: 0,
 
               // left: "env(safe-area-inset-bottom)",
@@ -644,7 +644,7 @@ export const StandaloneMusicPage = ({
             </>
           )}
 
-          {isCompactLayout && (
+          {isCompactLayout && view === "roll" && (
             <StyledMobileToolbar>
               <StyledMobileToolbarButton
                 $isActive={mobileView === "channels"}
@@ -684,7 +684,7 @@ export const StandaloneMusicPage = ({
               >
                 Notes
               </StyledMobileToolbarButton>
-              <StyledMobileToolbarButton
+              {/* <StyledMobileToolbarButton
                 $isActive={view === "tracker"}
                 onClick={() => {
                   setMobileView("none");
@@ -696,7 +696,7 @@ export const StandaloneMusicPage = ({
                 }}
               >
                 Tracker
-              </StyledMobileToolbarButton>
+              </StyledMobileToolbarButton> */}
             </StyledMobileToolbar>
           )}
         </>
