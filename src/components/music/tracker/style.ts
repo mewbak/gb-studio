@@ -136,7 +136,7 @@ export const StyledTrackerHeaderCell = styled.th<StyledTrackerHeaderCellProps>`
     props.$type === "patternIndex" &&
     css`
       padding: 0px;
-      width: 55px;
+      width: 50px;
       text-align: center;
     `}
 

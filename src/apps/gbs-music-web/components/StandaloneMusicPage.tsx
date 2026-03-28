@@ -458,16 +458,7 @@ export const StandaloneMusicPage = ({
               zIndex: 0,
             }}
           >
-            <div
-              style={{
-                position: "relative",
-                height: "60px",
-                flexShrink: 0,
-                // zIndex: 0,
-              }}
-            >
-              <SongEditorToolsPanel musicAsset={viewSong} />
-            </div>
+            <SongEditorToolsPanel musicAsset={viewSong} />
             <SplitPaneVerticalDivider />
             <SongDocument musicAsset={viewSong} />
 

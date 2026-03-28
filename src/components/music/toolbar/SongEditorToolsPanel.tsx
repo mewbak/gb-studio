@@ -29,6 +29,8 @@ import { MusicAsset } from "shared/lib/resources/types";
 import SongExportForm from "components/music/form/SongExportForm";
 import l10n from "shared/lib/lang/l10n";
 import { InstrumentSelectButton } from "components/music/form/InstrumentSelectButton";
+import { StyledFloatingPanel } from "ui/panels/style";
+import { StyledButton } from "ui/buttons/style";
 
 interface OctaveOffsetOptions {
   value: number;
@@ -44,19 +46,9 @@ interface SongEditorToolsPanelProps {
   musicAsset?: MusicAsset;
 }
 
-const FloatingPanelSwitchView = styled(FloatingPanel)`
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  z-index: 10;
-`;
+const FloatingPanelFiles = styled(FloatingPanel)``;
 
 const FloatingPanelTools = styled(FloatingPanel)`
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  z-index: 10;
-
   .OctaveSelect,
   .StepSelect {
     width: 50px;
@@ -66,6 +58,25 @@ const FloatingPanelTools = styled(FloatingPanel)`
 const ExportButtonWrapper = styled.div`
   position: relative;
   flex-shrink: 0;
+`;
+
+const SongToolsPanel = styled.div`
+  display: flex;
+  padding: 10px;
+  box-sizing: border-box;
+  justify-content: space-between;
+
+  @media (max-width: 900px) {
+    background: ${(props) => props.theme.colors.panel.background};
+    padding: 5px;
+    ${StyledFloatingPanel} {
+      border-color: transparent;
+      background: transparent;
+      ${StyledButton} {
+        border-radius: 4px;
+      }
+    }
+  }
 `;
 
 const SongEditorToolsPanel = ({ musicAsset }: SongEditorToolsPanelProps) => {
@@ -298,76 +309,10 @@ const SongEditorToolsPanel = ({ musicAsset }: SongEditorToolsPanelProps) => {
   }, [song, playerReady, exporting]);
 
   return (
-    <>
-      <FloatingPanelSwitchView>
-        <Button
-          variant="transparent"
-          disabled={!musicAsset || !modified}
-          onClick={saveSong}
-          title={l10n("FIELD_SAVE")}
-        >
-          <SaveIcon />
-        </Button>
-        <ExportButtonWrapper>
-          <Button
-            variant="transparent"
-            disabled={!song || !playerReady || exporting}
-            title={l10n("TOOLBAR_EXPORT_AS")}
-            onClick={onOpenExportPanel}
-            active={showExportPanel}
-          >
-            <ExportIcon />
-          </Button>
-          {showExportPanel && musicAsset && (
-            <>
-              <MenuOverlay onClick={onCloseExportPanel} />
-              <RelativePortal pin="top-left" offsetY={10} zIndex={10001}>
-                <SongExportForm name={musicAsset.filename} />
-              </RelativePortal>
-            </>
-          )}
-        </ExportButtonWrapper>
-
-        {/* <Button
-          variant="transparent"
-          onClick={toggleView}
-          title={
-            view === "roll"
-              ? l10n("TOOL_TRACKER_VIEW")
-              : l10n("TOOL_PIANO_ROLL_VIEW")
-          }
-        >
-          {view === "roll" ? <TrackerIcon /> : themePianoIcon}
-        </Button> */}
-      </FloatingPanelSwitchView>
-
+    <SongToolsPanel>
       <FloatingPanelTools>
-        {/* <FloatingPanelDivider /> */}
-        {/* <Button
-          variant="transparent"
-          disabled={!playerReady || exporting}
-          onClick={togglePlay}
-          title={getPlayButtonLabel(play, playbackFromStart)}
-        >
-          {play ? (
-            <PauseIcon />
-          ) : playbackFromStart ? (
-            <PlayStartIcon />
-          ) : (
-            <PlayIcon />
-          )}
-        </Button>
-        <Button
-          variant="transparent"
-          disabled={!playerReady || exporting}
-          onClick={stopPlayback}
-          title={l10n("FIELD_STOP")}
-        >
-          <StopIcon />
-        </Button> */}
         {view === "roll" && (
           <>
-            {/* <FloatingPanelDivider /> */}
             <Button
               variant="transparent"
               onClick={() => setTool("pencil")}
@@ -439,7 +384,49 @@ const SongEditorToolsPanel = ({ musicAsset }: SongEditorToolsPanelProps) => {
           </>
         )}
       </FloatingPanelTools>
-    </>
+
+      <FloatingPanelFiles>
+        <Button
+          variant="transparent"
+          disabled={!musicAsset || !modified}
+          onClick={saveSong}
+          title={l10n("FIELD_SAVE")}
+        >
+          <SaveIcon />
+        </Button>
+        <ExportButtonWrapper>
+          <Button
+            variant="transparent"
+            disabled={!song || !playerReady || exporting}
+            title={l10n("TOOLBAR_EXPORT_AS")}
+            onClick={onOpenExportPanel}
+            active={showExportPanel}
+          >
+            <ExportIcon />
+          </Button>
+          {showExportPanel && musicAsset && (
+            <>
+              <MenuOverlay onClick={onCloseExportPanel} />
+              <RelativePortal pin="top-left" offsetY={10} zIndex={10001}>
+                <SongExportForm name={musicAsset.filename} />
+              </RelativePortal>
+            </>
+          )}
+        </ExportButtonWrapper>
+
+        {/* <Button
+          variant="transparent"
+          onClick={toggleView}
+          title={
+            view === "roll"
+              ? l10n("TOOL_TRACKER_VIEW")
+              : l10n("TOOL_PIANO_ROLL_VIEW")
+          }
+        >
+          {view === "roll" ? <TrackerIcon /> : themePianoIcon}
+        </Button> */}
+      </FloatingPanelFiles>
+    </SongToolsPanel>
   );
 };
 
