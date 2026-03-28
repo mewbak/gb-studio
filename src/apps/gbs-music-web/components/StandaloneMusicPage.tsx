@@ -47,6 +47,7 @@ import {
 } from "gbs-music-web/components/style";
 import { ChannelsView } from "components/music/navigator/ChannelsView";
 import { Portal } from "ui/layout/Portal";
+import { MusicWebChannelsBar } from "gbs-music-web/components/MusicWebChannelsBar";
 
 const Wrapper = styled.div`
   display: flex;
@@ -462,7 +463,8 @@ export const StandaloneMusicPage = ({
             <SplitPaneVerticalDivider />
             <SongDocument musicAsset={viewSong} />
 
-            {isCompactLayout && view === "roll" && (
+            {isCompactLayout && view === "roll" && <MusicWebChannelsBar />}
+            {/* {isCompactLayout && view === "roll" && (
               <StyledMobileToolbar>
                 <StyledMobileToolbarButton
                   $isActive={mobileView === "channels"}
@@ -502,21 +504,9 @@ export const StandaloneMusicPage = ({
                 >
                   Notes
                 </StyledMobileToolbarButton>
-                {/* <StyledMobileToolbarButton
-                $isActive={view === "tracker"}
-                onClick={() => {
-                  setMobileView("none");
-                  dispatch(
-                    trackerActions.setView(
-                      view === "tracker" ? "roll" : "tracker",
-                    ),
-                  );
-                }}
-              >
-                Tracker
-              </StyledMobileToolbarButton> */}
+            
               </StyledMobileToolbar>
-            )}
+            )} */}
 
             {/* {isCompactLayout && (
               <div

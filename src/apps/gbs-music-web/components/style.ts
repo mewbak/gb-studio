@@ -3,17 +3,19 @@ import { StyledButton } from "ui/buttons/style";
 
 export const StyledMobileToolbar = styled.div`
   display: flex;
-  height: calc(60px + env(safe-area-inset-bottom));
+
+  height: calc(50px + env(safe-area-inset-bottom));
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  gap: 10px;
-  padding: 5px 10px;
+  // gap: 10px;
+  // padding: 5px 10px;
   box-sizing: border-box;
   background: ${(props) => props.theme.colors.background};
   z-index: 10000;
-
-  padding-bottom: calc(5px + env(safe-area-inset-bottom));
+  background: red;
+  background: ${(props) => props.theme.colors.toolbar.background};
+  border-top: 1px solid ${(props) => props.theme.colors.toolbar.border};
 
   ${StyledButton} {
     height: 100%;
@@ -30,24 +32,19 @@ export const StyledMobileToolbar = styled.div`
 export const StyledMobileToolbarButton = styled.button<{
   $isActive?: boolean;
 }>`
-  user-select: none;
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-  font-family:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
-    sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-  font-size: ${(props) => props.theme.typography.fontSize};
-  border-radius: ${(props) => props.theme.borderRadius}px;
-  height: 28px;
-  min-width: 24px;
-  white-space: nowrap;
-  padding: 0px 10px;
-  box-sizing: border-box;
-  font-weight: normal;
-  border-width: 1px;
-  overflow: hidden;
-  flex-shrink: 0;
+  flex-grow: 1;
+  height: 100%;
+  border-radius: 0;
+  border: 0;
+  background: transparent;
+  padding-bottom: calc(5px + env(safe-area-inset-bottom));
+  padding-top: 5px;
+  border-right: 1px solid ${(props) => props.theme.colors.toolbar.border};
+  color: ${(props) => props.theme.colors.button.text};
+
+  &:last-child {
+    border-right: 0;
+  }
 
   svg {
     height: 17px;
@@ -55,6 +52,7 @@ export const StyledMobileToolbarButton = styled.button<{
     max-width: 100%;
     max-height: 100%;
     min-width: 17px;
+    margin: 0;
     fill: ${(props) => props.theme.colors.button.text};
     opacity: ${(props) => (props.disabled ? 0.3 : 1)};
   }
