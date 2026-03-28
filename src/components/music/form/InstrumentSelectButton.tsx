@@ -15,7 +15,9 @@ interface WrapperProps {
   $includeInfo?: boolean;
 }
 
-const Wrapper = styled.div<WrapperProps>``;
+const Wrapper = styled.div<WrapperProps>`
+  position: relative;
+`;
 
 const ButtonCover = styled.div`
   position: absolute;
@@ -175,9 +177,9 @@ export const InstrumentSelectButton: FC<InstrumentSelectProps> = ({
       </StyledButton>
       {isOpen && <ButtonCover onMouseDown={delayedButtonFocus} />}
 
-      <div style={{ position: "absolute", top: "100%", left: "100%" }}>
+      <div style={{ position: "absolute", top: "100%", left: "0%" }}>
         {isOpen && (
-          <RelativePortal pin="top-right">
+          <RelativePortal pin="top-left">
             <SelectMenu>
               <InstrumentSelect
                 name={name}
