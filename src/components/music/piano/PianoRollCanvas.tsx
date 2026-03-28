@@ -1781,117 +1781,119 @@ export const PianoRollCanvas = ({
   return (
     <StyledPianoRollScrollWrapper ref={mergeRefs(scrollRef, wrapperEl)}>
       <StyledPianoRollScrollCanvas>
-        <PianoRollSequenceBar
-          song={song}
-          playbackOrder={playbackOrder}
-          playbackRow={playbackRow}
-        />
-        <StyledPianoRollScrollLeftWrapper>
-          <PianoKeyboard hoverNote={hoverNote} onPlayNote={onPianoNote} />
-          <StyledPianoRollScrollLeftFXSpacer>
-            <FXIcon />
-          </StyledPianoRollScrollLeftFXSpacer>
-        </StyledPianoRollScrollLeftWrapper>
-        <StyledPianoRollScrollContentWrapper
-          ref={documentRef}
-          style={{
-            width: documentWidth,
-            cursor:
-              dragPreviewState.type === "dragging"
-                ? dragPreviewState.clone
-                  ? "copy"
-                  : "move"
-                : "auto",
-            touchAction: tool === "selection" ? "none" : "auto",
-          }}
-          onContextMenu={onSelectionContextMenu}
-          onMouseDown={!playing ? handleMouseDown : undefined}
-          onTouchStart={!playing ? handleTouchStart : undefined}
-          onTouchMove={!playing ? handleTouchMove : undefined}
-          onTouchEnd={!playing ? handleTouchEnd : undefined}
-          onTouchCancel={!playing ? handleTouchCancel : undefined}
-        >
-          <StyledPianoRollPatternsWrapper>
+        <div style={{ minWidth: PIANO_ROLL_PIANO_WIDTH + documentWidth }}>
+          <PianoRollSequenceBar
+            song={song}
+            playbackOrder={playbackOrder}
+            playbackRow={playbackRow}
+          />
+          <StyledPianoRollScrollLeftWrapper>
+            <PianoKeyboard hoverNote={hoverNote} onPlayNote={onPianoNote} />
+            <StyledPianoRollScrollLeftFXSpacer>
+              <FXIcon />
+            </StyledPianoRollScrollLeftFXSpacer>
+          </StyledPianoRollScrollLeftWrapper>
+          <StyledPianoRollScrollContentWrapper
+            ref={documentRef}
+            style={{
+              width: documentWidth,
+              cursor:
+                dragPreviewState.type === "dragging"
+                  ? dragPreviewState.clone
+                    ? "copy"
+                    : "move"
+                  : "auto",
+              touchAction: tool === "selection" ? "none" : "auto",
+            }}
+            onContextMenu={onSelectionContextMenu}
+            onMouseDown={!playing ? handleMouseDown : undefined}
+            onTouchStart={!playing ? handleTouchStart : undefined}
+            onTouchMove={!playing ? handleTouchMove : undefined}
+            onTouchEnd={!playing ? handleTouchEnd : undefined}
+            onTouchCancel={!playing ? handleTouchCancel : undefined}
+          >
+            <StyledPianoRollPatternsWrapper>
+              {song.sequence.map((p, i) => (
+                <PianoRollPatternBlock
+                  key={`roll_pattern_${i}:${p}`}
+                  patternId={p}
+                  sequenceId={i}
+                  displayChannels={displayChannels}
+                  isDragging={dragPreviewState.type === "dragging"}
+                />
+              ))}
+            </StyledPianoRollPatternsWrapper>
+            <StyledAddPatternWrapper
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              onTouchStart={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              style={{
+                height: (wrapperSize.height ?? 0) - 61,
+              }}
+            >
+              <StyledAddPatternButton
+                onClick={onAddSequence}
+                title={l10n("FIELD_ADD_PATTERN")}
+              >
+                <PlusIcon />
+              </StyledAddPatternButton>
+            </StyledAddPatternWrapper>
+            {dragPreviewState.type === "dragging" &&
+              previewNotes.map((previewNote) => (
+                <StyledPianoRollNote
+                  key={`preview_${previewNote.key}`}
+                  $isSelected
+                  $instrument={previewNote.instrument}
+                  style={{
+                    left: previewNote.left,
+                    top: previewNote.top,
+                    zIndex: 2,
+                  }}
+                />
+              ))}
+            {pastedPattern &&
+              pastePreviewNotes.map((previewNote) => (
+                <StyledPianoRollNote
+                  key={`paste_preview_${previewNote.key}`}
+                  $isSelected
+                  $instrument={previewNote.instrument}
+                  style={{
+                    left: previewNote.left,
+                    top: previewNote.top,
+                    zIndex: 2,
+                  }}
+                />
+              ))}
+            {selectionRect && (
+              <Selection
+                style={{
+                  left: selectionRect.x,
+                  top: selectionRect.y,
+                  width: selectionRect.width,
+                  height: selectionRect.height,
+                }}
+              />
+            )}
+          </StyledPianoRollScrollContentWrapper>
+          <StyledPianoRollScrollBottomWrapper
+            style={{ minWidth: PIANO_ROLL_PIANO_WIDTH + documentWidth }}
+          >
+            <StyledPianoRollScrollHeaderFooterSpacer />
             {song.sequence.map((p, i) => (
-              <PianoRollPatternBlock
-                key={`roll_pattern_${i}:${p}`}
+              <PianoRollEffectRow
+                key={`roll_pattern_effects_${i}:${p}`}
                 patternId={p}
                 sequenceId={i}
-                displayChannels={displayChannels}
-                isDragging={dragPreviewState.type === "dragging"}
+                channelId={selectedChannel}
               />
             ))}
-          </StyledPianoRollPatternsWrapper>
-          <StyledAddPatternWrapper
-            onMouseDown={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-            }}
-            onTouchStart={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-            }}
-            style={{
-              height: (wrapperSize.height ?? 0) - 61,
-            }}
-          >
-            <StyledAddPatternButton
-              onClick={onAddSequence}
-              title={l10n("FIELD_ADD_PATTERN")}
-            >
-              <PlusIcon />
-            </StyledAddPatternButton>
-          </StyledAddPatternWrapper>
-          {dragPreviewState.type === "dragging" &&
-            previewNotes.map((previewNote) => (
-              <StyledPianoRollNote
-                key={`preview_${previewNote.key}`}
-                $isSelected
-                $instrument={previewNote.instrument}
-                style={{
-                  left: previewNote.left,
-                  top: previewNote.top,
-                  zIndex: 2,
-                }}
-              />
-            ))}
-          {pastedPattern &&
-            pastePreviewNotes.map((previewNote) => (
-              <StyledPianoRollNote
-                key={`paste_preview_${previewNote.key}`}
-                $isSelected
-                $instrument={previewNote.instrument}
-                style={{
-                  left: previewNote.left,
-                  top: previewNote.top,
-                  zIndex: 2,
-                }}
-              />
-            ))}
-          {selectionRect && (
-            <Selection
-              style={{
-                left: selectionRect.x,
-                top: selectionRect.y,
-                width: selectionRect.width,
-                height: selectionRect.height,
-              }}
-            />
-          )}
-        </StyledPianoRollScrollContentWrapper>
-        <StyledPianoRollScrollBottomWrapper
-          style={{ minWidth: PIANO_ROLL_PIANO_WIDTH + documentWidth }}
-        >
-          <StyledPianoRollScrollHeaderFooterSpacer />
-          {song.sequence.map((p, i) => (
-            <PianoRollEffectRow
-              key={`roll_pattern_effects_${i}:${p}`}
-              patternId={p}
-              sequenceId={i}
-              channelId={selectedChannel}
-            />
-          ))}
-        </StyledPianoRollScrollBottomWrapper>
+          </StyledPianoRollScrollBottomWrapper>
+        </div>
       </StyledPianoRollScrollCanvas>
       {selectionContextMenuElement}
     </StyledPianoRollScrollWrapper>
