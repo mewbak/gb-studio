@@ -41,9 +41,6 @@ const StyledTrackerKeyboard = styled.div<{ $open?: boolean }>`
   max-height: ${(props) => (props.$open ? "240px" : "0px")};
   box-sizing: border-box;
 
-  box-shadow: ${(props) =>
-    props.$open ? "0px 2px 50px rgba(0, 0, 0, 0.2)" : "none"};
-
   button {
     min-width: 50px;
     min-height: 40px;
