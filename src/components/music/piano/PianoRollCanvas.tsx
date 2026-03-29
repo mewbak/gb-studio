@@ -158,16 +158,9 @@ export const PianoRollCanvas = ({
   const tool = useAppSelector((state) => state.tracker.tool);
 
   const toolRef = useRef(tool);
-  const prevDrawToolRef = useRef(tool);
 
   useEffect(() => {
     toolRef.current = tool;
-  }, [tool]);
-
-  useEffect(() => {
-    if (tool === "pencil" || tool === "eraser") {
-      prevDrawToolRef.current = tool;
-    }
   }, [tool]);
 
   const selectedInstrumentId = useAppSelector(
@@ -1164,8 +1157,6 @@ export const PianoRollCanvas = ({
           input.modifiers,
           selectedPatternCells,
         );
-
-        dispatch(trackerActions.setTool(prevDrawToolRef.current));
 
         return input.isTouch;
       }
