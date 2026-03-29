@@ -395,6 +395,26 @@ export const StyledPianoRollNote = styled.div<StyledPianoRollNoteProps>`
     `}
 `;
 
+export const StyledPianoRollNoteTouchBlocker = styled.div<{
+  $isSelected: boolean;
+}>`
+  position: absolute;
+  background: blue;
+  opacity: 0.5;
+  touch-action: none;
+  z-index: 10000;
+
+  ${({ $isSelected }) => {
+    const pad = $isSelected ? 20 : 10;
+    return `
+      left: -${pad}px;
+      top: -${pad}px;
+      width: ${PIANO_ROLL_CELL_SIZE + pad * 2}px;
+      height: ${PIANO_ROLL_CELL_SIZE + pad * 2}px;
+    `;
+  }}
+`;
+
 interface StyledPianoRollEffectCellProps {
   $isSelected?: boolean;
   $instrument?: number;

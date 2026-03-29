@@ -1,7 +1,11 @@
 import React from "react";
 import { PatternCell } from "shared/lib/uge/types";
 import { PIANO_ROLL_CELL_SIZE, TOTAL_NOTES } from "consts";
-import { StyledPianoRollNote, StyledPatternChannelNotes } from "./style";
+import {
+  StyledPianoRollNote,
+  StyledPatternChannelNotes,
+  StyledPianoRollNoteTouchBlocker,
+} from "./style";
 import { PatternCellAddress } from "shared/lib/uge/editor/types";
 
 interface PatternChannelNotesProps {
@@ -71,22 +75,11 @@ export const PatternChannelNotes = React.memo(
                   left,
                   bottom: noteBottom(cell.note),
                 }}
-              />
-              {isActive && (
-                <div
-                  style={{
-                    position: "absolute",
-                    background: "red",
-                    left: left - 10,
-                    bottom: noteBottom(cell.note) - 10,
-                    width: PIANO_ROLL_CELL_SIZE + 20,
-                    height: PIANO_ROLL_CELL_SIZE + 20,
-                    opacity: 0.5,
-                    touchAction: "none",
-                    zIndex: 10000,
-                  }}
-                />
-              )}
+              >
+                {isActive && (
+                  <StyledPianoRollNoteTouchBlocker $isSelected={isSelected} />
+                )}
+              </StyledPianoRollNote>
               {cell.effectcode === ARPEGGIO_CODE && (
                 <>
                   <StyledPianoRollNote

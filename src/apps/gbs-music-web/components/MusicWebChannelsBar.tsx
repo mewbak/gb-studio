@@ -15,30 +15,8 @@ const StyledChannelIcon = styled.div<{ channel: number }>`
   justify-content: center;
 
   && svg {
-    fill: ${(props) => props.theme.colors.highlight};
     width: 20px;
     height: 20px;
-
-    ${(props) =>
-      props.channel === 0 &&
-      css`
-        fill: rgb(71, 153, 190);
-      `}
-    ${(props) =>
-      props.channel === 1 &&
-      css`
-        fill: #4375c8;
-      `}
-    ${(props) =>
-      props.channel === 2 &&
-      css`
-        fill: #3f5bc8;
-      `}
-    ${(props) =>
-      props.channel === 3 &&
-      css`
-        fill: #3d3dcd;
-      `}
   }
 `;
 
