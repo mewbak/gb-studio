@@ -1,16 +1,18 @@
 import { MIN_OCTAVE, OCTAVE_SIZE } from "consts";
-import React from "react";
-import styled from "styled-components";
+import React, { useState } from "react";
+import styled, { css } from "styled-components";
 import { KeyWhen } from "renderer/lib/keybindings/keyBindings";
 import { ButtonGroup } from "ui/buttons/ButtonGroup";
 import { FlexGrow } from "ui/spacing/Spacing";
-import { DotsIcon, SettingsIcon } from "ui/icons/Icons";
+import { SettingsIcon } from "ui/icons/Icons";
 import { Button } from "ui/buttons/Button";
+import { StyledButton } from "ui/buttons/style";
 
 export type VirtualTrackerKey =
   | {
       type: "navigation";
       direction: "up" | "down" | "left" | "right";
+      shiftKey: boolean;
     }
   | {
       type: "number";
@@ -24,6 +26,10 @@ export type VirtualTrackerKey =
       type: "transpose";
       direction: "up" | "down";
       size: "octave" | "note";
+    }
+  | {
+      type: "transposeField";
+      direction: "up" | "down";
     }
   | {
       type: "removeRow";
@@ -62,11 +68,6 @@ const StyledTrackerKeyboard = styled.div<{ $open?: boolean }>`
     min-width: 50px;
     min-height: 40px;
     white-space: nowrap;
-    // background: ${(props) => props.theme.colors.panel.background};
-    // border-radius: 4px;
-    // border: 1px solid ${(props) => props.theme.colors.panel.border};
-    border-bottom: 5px solid ${(props) => props.theme.colors.button.border};
-    // color: ${(props) => props.theme.colors.text};
     font-weight: bold;
     font-size: 15px;
     height: auto;
@@ -84,20 +85,44 @@ const StyledTrackerNavigationButtons = styled.div`
     ${(props) => props.theme.colors.sidebar.header.border};
 `;
 
-const StyledTrackerInstrumentButtons = styled.div`
-  background: ${(props) => props.theme.colors.sidebar.background};
-  padding: 10px;
-  padding-bottom: calc(10px + env(safe-area-inset-bottom));
-  flex-grow: 1;
+const StyledTrackerSectionButtons = styled.div`
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
+  background: red;
+  flex-grow: 1;
+`;
 
-  button {
-    width: calc((100% - 30px) / 4);
-  }
-
+const StyledTrackerKeyboardActions = styled.div<{ $overflow: boolean }>`
+  position: relative;
+  display: flex;
+  background: ${(props) => props.theme.colors.sidebar.background};
+  flex-direction: column;
+  min-height: 0;
+  padding: 10px;
+  z-index: 10;
   gap: 10px;
+
+  ${(props) =>
+    props.$overflow &&
+    css`
+      &:before {
+        content: "";
+        position: absolute;
+        width: 50px;
+        left: -50px;
+        top: 0px;
+        bottom: 0px;
+        pointer-events: none;
+        background: linear-gradient(
+          to left,
+          ${(props) => props.theme.colors.sidebar.background},
+          transparent 100%
+        );
+      }
+    `}
+
+  &&& > * {
+    height: 50px;
+  }
 `;
 
 const StyledTrackerEffectButtons = styled.div`
@@ -106,8 +131,9 @@ const StyledTrackerEffectButtons = styled.div`
   padding-bottom: calc(10px + env(safe-area-inset-bottom));
   flex-grow: 1;
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
+  // flex-wrap: wrap;
+  // justify-content: center;
+  flex-direction: column;
 
   button {
     width: calc((100% - 50px) / 6);
@@ -142,6 +168,20 @@ const StyledTrackerKeyboardNotesRow = styled.div`
   width: max-content;
   flex-grow: 1;
   padding-right: 10px;
+  padding-right: 50px;
+`;
+
+const StyledTrackerKeyboardButtonsRow = styled.div`
+  display: flex;
+  gap: 10px;
+  flex-grow: 1;
+  padding-right: 10px;
+
+  & ${StyledButton} {
+    flex-grow: 1;
+    min-width: 0;
+    padding: 0 20px;
+  }
 `;
 
 const NOTE_NAMES = [
@@ -165,6 +205,7 @@ export const TrackerKeyboard = ({
   open,
   onKeyPressed,
 }: TrackerKeyboardProps) => {
+  const [shiftKey, setShiftKey] = useState(false);
   return (
     <StyledTrackerKeyboard
       $open={open}
@@ -182,7 +223,7 @@ export const TrackerKeyboard = ({
           <Button
             type="button"
             onMouseDown={() => {
-              onKeyPressed({ type: "navigation", direction: "left" });
+              onKeyPressed({ type: "navigation", direction: "left", shiftKey });
             }}
           >
             ←
@@ -191,7 +232,7 @@ export const TrackerKeyboard = ({
           <Button
             type="button"
             onMouseDown={() => {
-              onKeyPressed({ type: "navigation", direction: "up" });
+              onKeyPressed({ type: "navigation", direction: "up", shiftKey });
             }}
           >
             ↑
@@ -200,7 +241,7 @@ export const TrackerKeyboard = ({
           <Button
             type="button"
             onMouseDown={() => {
-              onKeyPressed({ type: "navigation", direction: "down" });
+              onKeyPressed({ type: "navigation", direction: "down", shiftKey });
             }}
           >
             ↓
@@ -209,7 +250,11 @@ export const TrackerKeyboard = ({
           <Button
             type="button"
             onMouseDown={() => {
-              onKeyPressed({ type: "navigation", direction: "right" });
+              onKeyPressed({
+                type: "navigation",
+                direction: "right",
+                shiftKey,
+              });
             }}
           >
             →
@@ -218,11 +263,12 @@ export const TrackerKeyboard = ({
 
         <Button
           type="button"
+          variant={shiftKey ? "primary" : "normal"}
           onMouseDown={() => {
-            onKeyPressed({ type: "navigation", direction: "right" });
+            setShiftKey((value) => !value);
           }}
         >
-          <DotsIcon />
+          ⇧
         </Button>
 
         <FlexGrow />
@@ -230,112 +276,197 @@ export const TrackerKeyboard = ({
         <Button
           type="button"
           onMouseDown={() => {
-            onKeyPressed({ type: "navigation", direction: "right" });
+            console.log("SONG SETTINGS");
           }}
         >
           <SettingsIcon />
         </Button>
       </StyledTrackerNavigationButtons>
 
-      {fieldType === "instrumentColumnFocus" && (
-        <StyledTrackerInstrumentButtons>
-          {Array.from({ length: 10 }).map((_, n) => (
-            <Button
-              key={n}
-              type="button"
-              onMouseDown={() => {
-                onKeyPressed({ type: "number", value: n });
-              }}
-            >
-              {n.toString(10)}
-            </Button>
-          ))}
-        </StyledTrackerInstrumentButtons>
-      )}
+      <StyledTrackerSectionButtons>
+        {shiftKey ? (
+          <StyledTrackerEffectButtons>
+            <StyledTrackerKeyboardButtonsRow>
+              <Button
+                onMouseDown={() => {
+                  onKeyPressed({
+                    type: "transposeField",
+                    direction: "up",
+                  });
+                }}
+              >
+                +
+              </Button>
+              <Button
+                onMouseDown={() => {
+                  onKeyPressed({
+                    type: "transpose",
+                    direction: "up",
+                    size: "octave",
+                  });
+                }}
+              >
+                + Octave
+              </Button>
+              <Button
+                onMouseDown={() => {
+                  onKeyPressed({
+                    type: "transpose",
+                    direction: "up",
+                    size: "note",
+                  });
+                }}
+              >
+                + Semitone
+              </Button>
+            </StyledTrackerKeyboardButtonsRow>
+            <StyledTrackerKeyboardButtonsRow>
+              <Button
+                onMouseDown={() => {
+                  onKeyPressed({
+                    type: "transposeField",
+                    direction: "down",
+                  });
+                }}
+              >
+                -
+              </Button>
+              <Button
+                onMouseDown={() => {
+                  onKeyPressed({
+                    type: "transpose",
+                    direction: "down",
+                    size: "octave",
+                  });
+                }}
+              >
+                - Octave
+              </Button>
+              <Button
+                onMouseDown={() => {
+                  onKeyPressed({
+                    type: "transpose",
+                    direction: "down",
+                    size: "note",
+                  });
+                }}
+              >
+                - Semitone
+              </Button>
+            </StyledTrackerKeyboardButtonsRow>
+            <StyledTrackerKeyboardButtonsRow>
+              <Button
+                onMouseDown={() => {
+                  onKeyPressed({
+                    type: "insertRow",
+                  });
+                }}
+              >
+                Insert Row
+              </Button>
+              <Button
+                onMouseDown={() => {
+                  onKeyPressed({
+                    type: "removeRow",
+                  });
+                }}
+              >
+                Remove Row
+              </Button>
+            </StyledTrackerKeyboardButtonsRow>
+          </StyledTrackerEffectButtons>
+        ) : (
+          <>
+            {(fieldType === "instrumentColumnFocus" ||
+              fieldType === "effectCodeColumnFocus" ||
+              fieldType === "effectParamColumnFocus") && (
+              <StyledTrackerEffectButtons>
+                <StyledTrackerKeyboardButtonsRow>
+                  {Array.from({ length: 5 }).map((_, n) => (
+                    <Button
+                      key={n}
+                      type="button"
+                      onMouseDown={() => {
+                        onKeyPressed({ type: "number", value: n });
+                      }}
+                    >
+                      {n.toString(16).toUpperCase()}
+                    </Button>
+                  ))}
+                </StyledTrackerKeyboardButtonsRow>
+                <StyledTrackerKeyboardButtonsRow>
+                  {Array.from({ length: 5 }).map((_, n) => (
+                    <Button
+                      key={n}
+                      type="button"
+                      onMouseDown={() => {
+                        onKeyPressed({ type: "number", value: n + 5 });
+                      }}
+                    >
+                      {(n + 5).toString(16).toUpperCase()}
+                    </Button>
+                  ))}
+                </StyledTrackerKeyboardButtonsRow>
+                <StyledTrackerKeyboardButtonsRow>
+                  {Array.from({ length: 6 }).map((_, n) => (
+                    <Button
+                      key={n}
+                      type="button"
+                      onMouseDown={() => {
+                        onKeyPressed({ type: "number", value: n + 10 });
+                      }}
+                    >
+                      {(n + 10).toString(16).toUpperCase()}
+                    </Button>
+                  ))}
+                </StyledTrackerKeyboardButtonsRow>
+              </StyledTrackerEffectButtons>
+            )}
 
-      {(fieldType === "effectCodeColumnFocus" ||
-        fieldType === "effectParamColumnFocus") && (
-        <StyledTrackerEffectButtons>
-          {Array.from({ length: 16 }).map((_, n) => (
-            <Button
-              key={n}
-              type="button"
-              onMouseDown={() => {
-                onKeyPressed({ type: "number", value: n });
-              }}
-            >
-              {n.toString(16).toUpperCase()}
-            </Button>
-          ))}
-        </StyledTrackerEffectButtons>
-      )}
+            {fieldType === "noteColumnFocus" && (
+              <StyledTrackerKeyboardNotes>
+                <StyledTrackerKeyboardNotesInner>
+                  {Array.from({ length: 3 }).map((_, octave) => (
+                    <StyledTrackerKeyboardNotesRow key={octave}>
+                      {NOTE_NAMES.map((note, noteIndex) => (
+                        <Button
+                          key={noteIndex + octave * OCTAVE_SIZE}
+                          type="button"
+                          onMouseDown={() => {
+                            onKeyPressed({
+                              type: "note",
+                              value: noteIndex + octave * OCTAVE_SIZE,
+                            });
+                          }}
+                        >
+                          {note}
+                          {MIN_OCTAVE + (octave + octaveOffset)}
+                        </Button>
+                      ))}
+                    </StyledTrackerKeyboardNotesRow>
+                  ))}
+                </StyledTrackerKeyboardNotesInner>
+              </StyledTrackerKeyboardNotes>
+            )}
+          </>
+        )}
 
-      {fieldType === "noteColumnFocus" && (
-        <StyledTrackerKeyboardNotes>
-          <StyledTrackerKeyboardNotesInner>
-            {Array.from({ length: 3 }).map((_, octave) => (
-              <StyledTrackerKeyboardNotesRow key={octave}>
-                {octave === 0 && (
-                  <Button
-                    type="button"
-                    onMouseDown={() => {
-                      onKeyPressed({
-                        type: "transpose",
-                        direction: "up",
-                        size: "octave",
-                      });
-                    }}
-                  >
-                    O+
-                  </Button>
-                )}
-                {octave === 1 && (
-                  <Button
-                    type="button"
-                    onMouseDown={() => {
-                      onKeyPressed({
-                        type: "transpose",
-                        direction: "down",
-                        size: "octave",
-                      });
-                    }}
-                  >
-                    O-
-                  </Button>
-                )}
-                {octave === 2 && (
-                  <Button
-                    type="button"
-                    onMouseDown={() => {
-                      onKeyPressed({
-                        type: "note",
-                        value: null,
-                      });
-                    }}
-                  >
-                    ⌫
-                  </Button>
-                )}
-                {NOTE_NAMES.map((note, noteIndex) => (
-                  <Button
-                    key={noteIndex + octave * OCTAVE_SIZE}
-                    type="button"
-                    onMouseDown={() => {
-                      onKeyPressed({
-                        type: "note",
-                        value: noteIndex + octave * OCTAVE_SIZE,
-                      });
-                    }}
-                  >
-                    {note}
-                    {MIN_OCTAVE + (octave + octaveOffset)}
-                  </Button>
-                ))}
-              </StyledTrackerKeyboardNotesRow>
-            ))}
-          </StyledTrackerKeyboardNotesInner>
-        </StyledTrackerKeyboardNotes>
-      )}
+        <StyledTrackerKeyboardActions
+          $overflow={fieldType === "noteColumnFocus" && !shiftKey}
+        >
+          <Button
+            type="button"
+            onMouseDown={() => {
+              onKeyPressed({
+                type: "note",
+                value: null,
+              });
+            }}
+          >
+            ⌫
+          </Button>
+        </StyledTrackerKeyboardActions>
+      </StyledTrackerSectionButtons>
     </StyledTrackerKeyboard>
   );
 };

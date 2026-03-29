@@ -1171,7 +1171,7 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
       }
 
       if (virtualKey.type === "navigation") {
-        moveActiveField(virtualKey.direction, false);
+        moveActiveField(virtualKey.direction, virtualKey.shiftKey);
         tableRef.current?.focus();
         return;
       }
@@ -1198,11 +1198,36 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
         tableRef.current?.focus();
         return;
       }
+
+      if (virtualKey.type === "transposeField") {
+        dispatch(
+          trackerDocumentActions.transposeTrackerFields({
+            patternId,
+            selectedTrackerFields: selectedTrackerFieldsRef.current,
+            direction: virtualKey.direction,
+          }),
+        );
+        tableRef.current?.focus();
+        return;
+      }
+
+      if (virtualKey.type === "insertRow" || virtualKey.type === "removeRow") {
+        dispatch(
+          trackerDocumentActions.shiftTrackerFields({
+            patternId,
+            selectedTrackerFields: selectedTrackerFieldsRef.current,
+            direction: virtualKey.type === "insertRow" ? "insert" : "delete",
+          }),
+        );
+        tableRef.current?.focus();
+        return;
+      }
     },
     [
       applyTrackerInput,
       dispatch,
       moveActiveField,
+      patternId,
       setActiveField,
       setSingleFieldSelection,
     ],
