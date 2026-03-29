@@ -72,6 +72,10 @@ export type InteractionState =
       origin: GridPoint;
       delta: DragDelta;
       startedFromSelection: boolean;
+      clickPlacement?: {
+        cellAddress: PatternCellAddress;
+        noteIndex: number;
+      };
     }
   | {
       type: "paint";

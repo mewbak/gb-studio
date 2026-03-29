@@ -49,7 +49,7 @@ import {
 } from "./helpers";
 import { PianoRollSequenceBar } from "./PianoRollSequenceBar";
 import { Selection } from "ui/document/Selection";
-import { FXIcon, PlusIcon } from "ui/icons/Icons";
+import { CaretRightIcon, FXIcon, PlusIcon } from "ui/icons/Icons";
 import useResizeObserver from "ui/hooks/use-resize-observer";
 import l10n from "shared/lib/lang/l10n";
 import { mergeRefs } from "ui/hooks/merge-refs";
@@ -86,6 +86,7 @@ import {
 const TOUCH_TAP_MAX_MOVEMENT = 10;
 const TWO_FINGER_TAP_MAX_DURATION = 300;
 const TWO_FINGER_TAP_MAX_MOVEMENT = 24;
+const DRAG_START_TOLERANCE_PX = 20;
 
 interface PianoRollCanvasProps {
   song: Song;
@@ -346,6 +347,53 @@ export const PianoRollCanvas = ({
             ? a.rowId - b.rowId
             : a.channelId - b.channelId,
       );
+    },
+    [selectedChannel],
+  );
+
+  const findNearbySelectedCell = useCallback(
+    (clientX: number, clientY: number): PatternCellAddress | undefined => {
+      if (!documentRef.current) {
+        return undefined;
+      }
+
+      const rect = documentRef.current.getBoundingClientRect();
+      const localX = clientX - rect.left;
+      const localY = clientY - rect.top;
+
+      const song = songRef.current;
+      const selectedCells = selectedPatternCellsRef.current;
+
+      for (const selectedCell of selectedCells) {
+        if (selectedCell.channelId !== selectedChannel) {
+          continue;
+        }
+
+        const patternId = song.sequence[selectedCell.sequenceId];
+        const cell =
+          song.patterns[patternId]?.[selectedCell.rowId]?.[
+            selectedCell.channelId
+          ];
+
+        if (!cell || cell.note === null) {
+          continue;
+        }
+
+        const absRow = toAbsRow(selectedCell.sequenceId, selectedCell.rowId);
+        const left = absRow * PIANO_ROLL_CELL_SIZE;
+        const top = noteToRow(cell.note) * PIANO_ROLL_CELL_SIZE;
+
+        if (
+          localX >= left - DRAG_START_TOLERANCE_PX &&
+          localX < left + PIANO_ROLL_CELL_SIZE + DRAG_START_TOLERANCE_PX &&
+          localY >= top - DRAG_START_TOLERANCE_PX &&
+          localY < top + PIANO_ROLL_CELL_SIZE + DRAG_START_TOLERANCE_PX
+        ) {
+          return selectedCell;
+        }
+      }
+
+      return undefined;
     },
     [selectedChannel],
   );
@@ -719,6 +767,10 @@ export const PianoRollCanvas = ({
       note: number,
       startedFromSelection: boolean,
       modifiers: PointerModifiers,
+      clickPlacement?: {
+        cellAddress: PatternCellAddress;
+        noteIndex: number;
+      },
     ) => {
       interactionRef.current = {
         type: "dragNote",
@@ -732,6 +784,7 @@ export const PianoRollCanvas = ({
           notes: 0,
         },
         startedFromSelection,
+        clickPlacement,
       };
 
       resetPointerPreviewState();
@@ -886,11 +939,13 @@ export const PianoRollCanvas = ({
             clone: interaction.modifiers.clone,
           }),
         );
+      } else if (interaction.clickPlacement) {
+        commitPlacedNote(interaction.clickPlacement);
       }
     }
 
     resetPointerInteractionState();
-  }, [dispatch, resetPointerInteractionState]);
+  }, [dispatch, resetPointerInteractionState, commitPlacedNote]);
 
   const handlePointerDown = useCallback(
     (input: PointerDownInput): boolean => {
@@ -930,6 +985,10 @@ export const PianoRollCanvas = ({
           selectedCell.rowId === patternRow &&
           selectedCell.channelId === selectedChannel,
       );
+      const nearbySelectedCell =
+        cell && cell.note === noteIndex
+          ? undefined
+          : findNearbySelectedCell(input.clientX, input.clientY);
 
       if (pastedPattern) {
         commitPastedPatternAt(sequenceId, patternRow, noteIndex);
@@ -947,6 +1006,29 @@ export const PianoRollCanvas = ({
           beginDragNoteInteraction(absRow, cell.note, false, input.modifiers);
 
           return input.isTouch;
+        }
+
+        if (nearbySelectedCell) {
+          const nearbyPatternId = song.sequence[nearbySelectedCell.sequenceId];
+          const nearbyCell =
+            song.patterns[nearbyPatternId]?.[nearbySelectedCell.rowId]?.[
+              nearbySelectedCell.channelId
+            ];
+
+          if (nearbyCell?.note !== null && nearbyCell?.note !== undefined) {
+            beginDragNoteInteraction(
+              toAbsRow(nearbySelectedCell.sequenceId, nearbySelectedCell.rowId),
+              nearbyCell.note,
+              true,
+              input.modifiers,
+              {
+                cellAddress: clickedCellAddress,
+                noteIndex,
+              },
+            );
+
+            return input.isTouch;
+          }
         }
 
         if (
@@ -1053,6 +1135,29 @@ export const PianoRollCanvas = ({
           return input.isTouch;
         }
 
+        if (nearbySelectedCell) {
+          const nearbyPatternId = song.sequence[nearbySelectedCell.sequenceId];
+          const nearbyCell =
+            song.patterns[nearbyPatternId]?.[nearbySelectedCell.rowId]?.[
+              nearbySelectedCell.channelId
+            ];
+
+          if (nearbyCell?.note !== null && nearbyCell?.note !== undefined) {
+            beginDragNoteInteraction(
+              toAbsRow(nearbySelectedCell.sequenceId, nearbySelectedCell.rowId),
+              nearbyCell.note,
+              true,
+              input.modifiers,
+              {
+                cellAddress: clickedCellAddress,
+                noteIndex,
+              },
+            );
+
+            return input.isTouch;
+          }
+        }
+
         beginSelectionBoxInteraction(
           input.pageX,
           input.pageY,
@@ -1074,6 +1179,7 @@ export const PianoRollCanvas = ({
       commitPastedPatternAt,
       commitPlacedNote,
       dispatch,
+      findNearbySelectedCell,
       pastedPattern,
       resetPointerPreviewState,
       selectClickedCell,
@@ -1791,6 +1897,7 @@ export const PianoRollCanvas = ({
             <PianoKeyboard hoverNote={hoverNote} onPlayNote={onPianoNote} />
             <StyledPianoRollScrollLeftFXSpacer>
               <FXIcon />
+              <CaretRightIcon />
             </StyledPianoRollScrollLeftFXSpacer>
           </StyledPianoRollScrollLeftWrapper>
           <StyledPianoRollScrollContentWrapper
