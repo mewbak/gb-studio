@@ -63,6 +63,16 @@ export const transposePatternCellNote = (
     return;
   }
 
+  if (Math.abs(noteDelta) === OCTAVE_SIZE) {
+    const noteClass = cell.note % OCTAVE_SIZE;
+    const min = noteClass;
+    const max =
+      noteClass + Math.floor((71 - noteClass) / OCTAVE_SIZE) * OCTAVE_SIZE;
+    const next = cell.note + noteDelta;
+    cell.note = clamp(next, min, max);
+    return;
+  }
+
   cell.note = clamp(cell.note + noteDelta, 0, 71);
 };
 

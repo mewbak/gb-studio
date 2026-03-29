@@ -1190,8 +1190,8 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
         dispatch(
           trackerDocumentActions.transposeAbsoluteCells({
             patternCells: selectedPatternCellsRef.current,
-            direction: "up",
-            size: "octave",
+            direction: virtualKey.direction,
+            size: virtualKey.size,
           }),
         );
 
