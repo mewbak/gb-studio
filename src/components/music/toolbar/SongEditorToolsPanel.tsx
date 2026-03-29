@@ -68,6 +68,8 @@ const SongToolsPanel = styled.div`
 
   @media (max-width: 900px) {
     background: ${(props) => props.theme.colors.panel.background};
+    border-bottom: 1px solid ${(props) => props.theme.colors.panel.border};
+
     padding: 5px;
     ${StyledFloatingPanel} {
       border-color: transparent;

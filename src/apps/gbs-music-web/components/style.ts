@@ -8,14 +8,14 @@ export const StyledMobileToolbar = styled.div`
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  // gap: 10px;
-  // padding: 5px 10px;
+  gap: 10px;
+  padding: 5px 10px;
   box-sizing: border-box;
   background: ${(props) => props.theme.colors.background};
   z-index: 10000;
   background: red;
-  background: ${(props) => props.theme.colors.toolbar.background};
-  border-top: 1px solid ${(props) => props.theme.colors.toolbar.border};
+  background: ${(props) => props.theme.colors.panel.background};
+  border-top: 1px solid ${(props) => props.theme.colors.panel.border};
 
   ${StyledButton} {
     height: 100%;
@@ -33,18 +33,20 @@ export const StyledMobileToolbarButton = styled.button<{
   $isActive?: boolean;
 }>`
   flex-grow: 1;
-  height: 100%;
-  border-radius: 0;
+  // height: 100%;
+  height: 40px;
+  border-radius: 4px;
   border: 0;
   background: transparent;
   padding-bottom: calc(5px + env(safe-area-inset-bottom));
   padding-top: 5px;
-  border-right: 1px solid ${(props) => props.theme.colors.toolbar.border};
+  // border-right: 1px solid ${(props) => props.theme.colors.toolbar.border};
   color: ${(props) => props.theme.colors.button.text};
 
-  &:last-child {
-    border-right: 0;
-  }
+  // &:last-child {
+  //   border-right: 0;
+  // }
+  font-weight: bold;
 
   svg {
     height: 17px;
@@ -60,7 +62,7 @@ export const StyledMobileToolbarButton = styled.button<{
   ${(props) =>
     props.$isActive &&
     css`
-      background: red;
+      background: ${(props) => props.theme.colors.panel.selectedBackground};
     `}
 `;
 

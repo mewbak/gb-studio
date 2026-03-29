@@ -6,6 +6,8 @@ import {
 import { channels } from "shared/lib/music/constants";
 import styled, { css } from "styled-components";
 import { DutyIcon, WaveIcon, NoiseIcon, SettingsIcon } from "ui/icons/Icons";
+import { useAppDispatch, useAppSelector } from "store/hooks";
+import trackerActions from "store/features/tracker/trackerActions";
 
 const StyledChannelIcon = styled.div<{ channel: number }>`
   display: flex;
@@ -46,22 +48,31 @@ const StyledChannelLabel = styled.div`
 `;
 
 export const MusicWebChannelsBar = () => {
+  const dispatch = useAppDispatch();
+  const selectedChannel = useAppSelector(
+    (state) => state.tracker.selectedChannel,
+  );
   return (
     <StyledMobileToolbar>
       {channels.map((channel) => (
-        <StyledMobileToolbarButton>
+        <StyledMobileToolbarButton
+          $isActive={selectedChannel === channel.index}
+          onClick={() => {
+            dispatch(trackerActions.setSelectedChannel(channel.index));
+          }}
+        >
           <StyledChannelIcon channel={channel.index}>
             {channel.type === "duty" && <DutyIcon />}
             {channel.type === "wave" && <WaveIcon />}
             {channel.type === "noise" && <NoiseIcon />}
           </StyledChannelIcon>
-          <StyledChannelLabel>{channel.name}</StyledChannelLabel>
+          {/* <StyledChannelLabel>{channel.name}</StyledChannelLabel> */}
         </StyledMobileToolbarButton>
       ))}
 
       <StyledMobileToolbarButton>
         <SettingsIcon />
-        <StyledChannelLabel>Config</StyledChannelLabel>
+        {/* <StyledChannelLabel>Config</StyledChannelLabel> */}
       </StyledMobileToolbarButton>
 
       {/* <StyledMobileToolbarButton
