@@ -100,6 +100,7 @@ const StyledTrackerKeyboardActions = styled.div<{ $overflow: boolean }>`
   padding: 10px;
   z-index: 10;
   gap: 10px;
+  padding-bottom: calc(10px + env(safe-area-inset-bottom));
 
   ${(props) =>
     props.$overflow &&
@@ -121,7 +122,7 @@ const StyledTrackerKeyboardActions = styled.div<{ $overflow: boolean }>`
     `}
 
   &&& > * {
-    height: 50px;
+    height: calc((100% - 20px) / 3);
   }
 `;
 
@@ -180,7 +181,7 @@ const StyledTrackerKeyboardButtonsRow = styled.div`
   & ${StyledButton} {
     flex-grow: 1;
     min-width: 0;
-    padding: 0 20px;
+    padding: 0 5px;
   }
 `;
 
@@ -306,7 +307,7 @@ export const TrackerKeyboard = ({
                   });
                 }}
               >
-                + Octave
+                + Oct
               </Button>
               <Button
                 onMouseDown={() => {
@@ -317,7 +318,7 @@ export const TrackerKeyboard = ({
                   });
                 }}
               >
-                + Semitone
+                + Semi
               </Button>
             </StyledTrackerKeyboardButtonsRow>
             <StyledTrackerKeyboardButtonsRow>
@@ -340,7 +341,7 @@ export const TrackerKeyboard = ({
                   });
                 }}
               >
-                - Octave
+                - Oct
               </Button>
               <Button
                 onMouseDown={() => {
@@ -351,7 +352,7 @@ export const TrackerKeyboard = ({
                   });
                 }}
               >
-                - Semitone
+                - Semi
               </Button>
             </StyledTrackerKeyboardButtonsRow>
             <StyledTrackerKeyboardButtonsRow>
