@@ -399,7 +399,6 @@ export const StyledPianoRollNoteTouchBlocker = styled.div<{
   $isSelected: boolean;
 }>`
   position: absolute;
-  background: blue;
   opacity: 0.5;
   touch-action: none;
   z-index: 10000;
