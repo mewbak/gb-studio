@@ -78,7 +78,13 @@ export const downloadExportedSong = async (
     document.body.appendChild(link);
     link.click();
     link.remove();
-    window.URL.revokeObjectURL(url);
+    requestAnimationFrame(() => window.URL.revokeObjectURL(url));
+    // Don't revoke immediately
+    // fixes issue on iOS where playback fails because file has been
+    // removed before player is reached
+    window.setTimeout(() => {
+      window.URL.revokeObjectURL(url);
+    }, 60000);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     let displayMessage = message;
