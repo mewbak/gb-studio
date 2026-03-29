@@ -1,9 +1,9 @@
 import { MIN_OCTAVE, OCTAVE_SIZE } from "consts";
 import React from "react";
-import styled, { css } from "styled-components";
+import styled from "styled-components";
 import { KeyWhen } from "renderer/lib/keybindings/keyBindings";
 import { ButtonGroup } from "ui/buttons/ButtonGroup";
-import { FixedSpacer, FlexGrow } from "ui/spacing/Spacing";
+import { FlexGrow } from "ui/spacing/Spacing";
 import { DotsIcon, SettingsIcon } from "ui/icons/Icons";
 import { Button } from "ui/buttons/Button";
 
@@ -14,11 +14,28 @@ export type VirtualTrackerKey =
     }
   | {
       type: "number";
-      value: number;
+      value: number | null;
     }
   | {
       type: "note";
-      value: number;
+      value: number | null;
+    }
+  | {
+      type: "transpose";
+      direction: "up" | "down";
+      size: "octave" | "note";
+    }
+  | {
+      type: "removeRow";
+    }
+  | {
+      type: "insertRow";
+    }
+  | {
+      type: "changeInstrument";
+    }
+  | {
+      type: "interpolate";
     };
 
 interface TrackerKeyboardProps {
@@ -258,6 +275,47 @@ export const TrackerKeyboard = ({
           <StyledTrackerKeyboardNotesInner>
             {Array.from({ length: 3 }).map((_, octave) => (
               <StyledTrackerKeyboardNotesRow key={octave}>
+                {octave === 0 && (
+                  <Button
+                    type="button"
+                    onMouseDown={() => {
+                      onKeyPressed({
+                        type: "transpose",
+                        direction: "up",
+                        size: "octave",
+                      });
+                    }}
+                  >
+                    O+
+                  </Button>
+                )}
+                {octave === 1 && (
+                  <Button
+                    type="button"
+                    onMouseDown={() => {
+                      onKeyPressed({
+                        type: "transpose",
+                        direction: "down",
+                        size: "octave",
+                      });
+                    }}
+                  >
+                    O-
+                  </Button>
+                )}
+                {octave === 2 && (
+                  <Button
+                    type="button"
+                    onMouseDown={() => {
+                      onKeyPressed({
+                        type: "note",
+                        value: null,
+                      });
+                    }}
+                  >
+                    ⌫
+                  </Button>
+                )}
                 {NOTE_NAMES.map((note, noteIndex) => (
                   <Button
                     key={noteIndex + octave * OCTAVE_SIZE}

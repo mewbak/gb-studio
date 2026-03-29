@@ -82,7 +82,7 @@ const getRowIndexFromField = (field: number) => Math.floor(field / 4);
 
 type TrackerInput =
   | { type: "keyboard"; code: string }
-  | { type: "hex"; value: number };
+  | { type: "hex"; value: number | null };
 
 export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
   const dispatch = useAppDispatch();
@@ -1185,9 +1185,23 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
         tableRef.current?.focus();
         return;
       }
+
+      if (virtualKey.type === "transpose") {
+        dispatch(
+          trackerDocumentActions.transposeAbsoluteCells({
+            patternCells: selectedPatternCellsRef.current,
+            direction: "up",
+            size: "octave",
+          }),
+        );
+
+        tableRef.current?.focus();
+        return;
+      }
     },
     [
       applyTrackerInput,
+      dispatch,
       moveActiveField,
       setActiveField,
       setSingleFieldSelection,
