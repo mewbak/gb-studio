@@ -1222,6 +1222,17 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
         tableRef.current?.focus();
         return;
       }
+
+      if (virtualKey.type === "clear") {
+        dispatch(
+          trackerDocumentActions.clearTrackerFields({
+            patternId,
+            selectedTrackerFields: selectedTrackerFieldsRef.current,
+          }),
+        );
+        tableRef.current?.focus();
+        return;
+      }
     },
     [
       applyTrackerInput,

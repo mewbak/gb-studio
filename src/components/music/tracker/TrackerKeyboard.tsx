@@ -38,6 +38,9 @@ export type VirtualTrackerKey =
       type: "insertRow";
     }
   | {
+      type: "clear";
+    }
+  | {
       type: "changeInstrument";
     }
   | {
@@ -76,6 +79,20 @@ const StyledTrackerKeyboard = styled.div<{ $open?: boolean }>`
     height: auto;
     touch-action: manipulation;
     user-select: none;
+  }
+
+  ${StyledButton} {
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+
+    * {
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+    }
   }
 `;
 
@@ -539,10 +556,16 @@ export const TrackerKeyboard = ({
           <Button
             type="button"
             onMouseDown={() => {
-              onKeyPressed({
-                type: "note",
-                value: null,
-              });
+              onKeyPressed(
+                shiftKey
+                  ? {
+                      type: "clear",
+                    }
+                  : {
+                      type: "note",
+                      value: null,
+                    },
+              );
             }}
           >
             ⌫
