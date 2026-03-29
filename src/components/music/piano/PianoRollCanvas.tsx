@@ -82,6 +82,7 @@ import {
   SelectionRect,
   TwoFingerTapState,
 } from "components/music/piano/types";
+import { FixedSpacer } from "ui/spacing/Spacing";
 
 const TOUCH_TAP_MAX_MOVEMENT = 10;
 const TWO_FINGER_TAP_MAX_DURATION = 300;
@@ -1888,6 +1889,7 @@ export const PianoRollCanvas = ({
             <PianoKeyboard hoverNote={hoverNote} onPlayNote={onPianoNote} />
             <StyledPianoRollScrollLeftFXSpacer>
               <FXIcon />
+              <FixedSpacer width={5} />
               <CaretRightIcon />
             </StyledPianoRollScrollLeftFXSpacer>
           </StyledPianoRollScrollLeftWrapper>
