@@ -1,5 +1,5 @@
 import { MIN_OCTAVE, OCTAVE_SIZE } from "consts";
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import styled, { css } from "styled-components";
 import { KeyWhen } from "renderer/lib/keybindings/keyBindings";
 import { ButtonGroup } from "ui/buttons/ButtonGroup";
@@ -51,6 +51,9 @@ interface TrackerKeyboardProps {
   onKeyPressed: (e: VirtualTrackerKey) => void;
 }
 
+const NAV_REPEAT_INITIAL_DELAY = 300;
+const NAV_REPEAT_INTERVAL = 100;
+
 const StyledTrackerKeyboard = styled.div<{ $open?: boolean }>`
   display: flex;
   flex-direction: column;
@@ -71,6 +74,8 @@ const StyledTrackerKeyboard = styled.div<{ $open?: boolean }>`
     font-weight: bold;
     font-size: 15px;
     height: auto;
+    touch-action: manipulation;
+    user-select: none;
   }
 `;
 
@@ -132,8 +137,6 @@ const StyledTrackerEffectButtons = styled.div`
   padding-bottom: calc(10px + env(safe-area-inset-bottom));
   flex-grow: 1;
   display: flex;
-  // flex-wrap: wrap;
-  // justify-content: center;
   flex-direction: column;
 
   button {
@@ -168,7 +171,6 @@ const StyledTrackerKeyboardNotesRow = styled.div`
   gap: 10px;
   width: max-content;
   flex-grow: 1;
-  padding-right: 10px;
   padding-right: 50px;
 `;
 
@@ -200,6 +202,76 @@ const NOTE_NAMES = [
   "B-",
 ] as const;
 
+type RepeatHandlers = {
+  onPointerDown: React.PointerEventHandler<HTMLButtonElement>;
+  onPointerUp: React.PointerEventHandler<HTMLButtonElement>;
+  onPointerCancel: React.PointerEventHandler<HTMLButtonElement>;
+  onPointerLeave: React.PointerEventHandler<HTMLButtonElement>;
+};
+
+const useRepeatPress = (
+  callback: () => void,
+  initialDelay = NAV_REPEAT_INITIAL_DELAY,
+  repeatInterval = NAV_REPEAT_INTERVAL,
+): RepeatHandlers => {
+  const timeoutRef = useRef<number | null>(null);
+  const intervalRef = useRef<number | null>(null);
+
+  const stop = useCallback(() => {
+    if (timeoutRef.current !== null) {
+      window.clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+
+    if (intervalRef.current !== null) {
+      window.clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  }, []);
+
+  const start = useCallback<React.PointerEventHandler<HTMLButtonElement>>(
+    (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      callback();
+
+      stop();
+
+      timeoutRef.current = window.setTimeout(() => {
+        intervalRef.current = window.setInterval(() => {
+          callback();
+        }, repeatInterval);
+      }, initialDelay);
+    },
+    [callback, initialDelay, repeatInterval, stop],
+  );
+
+  useEffect(() => stop, [stop]);
+
+  return {
+    onPointerDown: start,
+    onPointerUp: stop,
+    onPointerCancel: stop,
+    onPointerLeave: stop,
+  };
+};
+
+type RepeatButtonProps = {
+  children: React.ReactNode;
+  onRepeatPress: () => void;
+};
+
+const RepeatButton = ({ children, onRepeatPress }: RepeatButtonProps) => {
+  const repeatHandlers = useRepeatPress(onRepeatPress);
+
+  return (
+    <Button type="button" {...repeatHandlers}>
+      {children}
+    </Button>
+  );
+};
+
 export const TrackerKeyboard = ({
   fieldType,
   octaveOffset,
@@ -207,6 +279,7 @@ export const TrackerKeyboard = ({
   onKeyPressed,
 }: TrackerKeyboardProps) => {
   const [shiftKey, setShiftKey] = useState(false);
+
   return (
     <StyledTrackerKeyboard
       $open={open}
@@ -221,36 +294,44 @@ export const TrackerKeyboard = ({
     >
       <StyledTrackerNavigationButtons>
         <ButtonGroup>
-          <Button
-            type="button"
-            onMouseDown={() => {
-              onKeyPressed({ type: "navigation", direction: "left", shiftKey });
+          <RepeatButton
+            onRepeatPress={() => {
+              onKeyPressed({
+                type: "navigation",
+                direction: "left",
+                shiftKey,
+              });
             }}
           >
             ←
-          </Button>
+          </RepeatButton>
 
-          <Button
-            type="button"
-            onMouseDown={() => {
-              onKeyPressed({ type: "navigation", direction: "up", shiftKey });
+          <RepeatButton
+            onRepeatPress={() => {
+              onKeyPressed({
+                type: "navigation",
+                direction: "up",
+                shiftKey,
+              });
             }}
           >
             ↑
-          </Button>
+          </RepeatButton>
 
-          <Button
-            type="button"
-            onMouseDown={() => {
-              onKeyPressed({ type: "navigation", direction: "down", shiftKey });
+          <RepeatButton
+            onRepeatPress={() => {
+              onKeyPressed({
+                type: "navigation",
+                direction: "down",
+                shiftKey,
+              });
             }}
           >
             ↓
-          </Button>
+          </RepeatButton>
 
-          <Button
-            type="button"
-            onMouseDown={() => {
+          <RepeatButton
+            onRepeatPress={() => {
               onKeyPressed({
                 type: "navigation",
                 direction: "right",
@@ -259,7 +340,7 @@ export const TrackerKeyboard = ({
             }}
           >
             →
-          </Button>
+          </RepeatButton>
         </ButtonGroup>
 
         <Button
