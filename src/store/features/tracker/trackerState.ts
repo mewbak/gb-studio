@@ -6,6 +6,7 @@ import { MAX_EXPORT_LOOPS, MIN_EXPORT_LOOPS } from "shared/lib/music/constants";
 import {
   addNewSongFile,
   loadSongFile,
+  moveAbsoluteCellsComplete,
   saveSongFile,
 } from "store/features/trackerDocument/trackerDocumentState";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
@@ -324,6 +325,10 @@ const trackerSlice = createSlice({
           state.selectedSongId = action.payload.data.id;
         },
       )
+      // After dragging cells, set selection to new location
+      .addCase(moveAbsoluteCellsComplete, (state, action) => {
+        state.selectedPatternCells = action.payload.newSelection;
+      })
       .addMatcher(
         (action: UnknownAction): action is UnknownAction =>
           action.type.startsWith("trackerDocument/") &&
