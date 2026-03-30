@@ -421,14 +421,16 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
           note: newNote,
           instrument: instrument,
         });
-        setActiveField(editingField + TRACKER_ROW_SIZE * currentEditStep);
+        const nextField = editingField + TRACKER_ROW_SIZE * currentEditStep;
+        setActiveField(nextField);
+        setSingleFieldSelection(nextField);
       } else {
         editPatternCell({
           note: newNote,
         });
       }
     },
-    [editPatternCell, setActiveField],
+    [editPatternCell, setActiveField, setSingleFieldSelection],
   );
 
   const editInstrumentField = useCallback(
