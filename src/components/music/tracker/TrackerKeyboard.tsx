@@ -4,7 +4,7 @@ import styled, { css } from "styled-components";
 import { KeyWhen } from "renderer/lib/keybindings/keyBindings";
 import { ButtonGroup } from "ui/buttons/ButtonGroup";
 import { FlexGrow } from "ui/spacing/Spacing";
-import { SettingsIcon } from "ui/icons/Icons";
+import { RedoIcon, SettingsIcon, UndoIcon } from "ui/icons/Icons";
 import { Button } from "ui/buttons/Button";
 import { StyledButton } from "ui/buttons/style";
 
@@ -41,10 +41,10 @@ export type VirtualTrackerKey =
       type: "clear";
     }
   | {
-      type: "changeInstrument";
+      type: "undo";
     }
   | {
-      type: "interpolate";
+      type: "redo";
     };
 
 interface TrackerKeyboardProps {
@@ -409,7 +409,8 @@ export const TrackerKeyboard = ({
                   });
                 }}
               >
-                +
+                +<br />
+                Val
               </Button>
               <Button
                 onPointerDown={() => {
@@ -420,7 +421,8 @@ export const TrackerKeyboard = ({
                   });
                 }}
               >
-                + Oct
+                +<br />
+                Oct
               </Button>
               <Button
                 onPointerDown={() => {
@@ -431,7 +433,17 @@ export const TrackerKeyboard = ({
                   });
                 }}
               >
-                + Semi
+                +<br />
+                Semi
+              </Button>
+              <Button
+                onPointerDown={() => {
+                  onKeyPressed({
+                    type: "undo",
+                  });
+                }}
+              >
+                <UndoIcon />
               </Button>
             </StyledTrackerKeyboardButtonsRow>
             <StyledTrackerKeyboardButtonsRow>
@@ -443,7 +455,8 @@ export const TrackerKeyboard = ({
                   });
                 }}
               >
-                -
+                -<br />
+                Val
               </Button>
               <Button
                 onPointerDown={() => {
@@ -454,7 +467,8 @@ export const TrackerKeyboard = ({
                   });
                 }}
               >
-                - Oct
+                -<br />
+                Oct
               </Button>
               <Button
                 onPointerDown={() => {
@@ -465,7 +479,17 @@ export const TrackerKeyboard = ({
                   });
                 }}
               >
-                - Semi
+                -<br />
+                Semi
+              </Button>
+              <Button
+                onPointerDown={() => {
+                  onKeyPressed({
+                    type: "redo",
+                  });
+                }}
+              >
+                <RedoIcon />
               </Button>
             </StyledTrackerKeyboardButtonsRow>
             <StyledTrackerKeyboardButtonsRow>

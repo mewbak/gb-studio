@@ -37,6 +37,8 @@ import {
   TRACKER_CHANNEL_FIELDS,
   TRACKER_ROW_SIZE,
   TRACKER_PATTERN_LENGTH,
+  TRACKER_UNDO,
+  TRACKER_REDO,
 } from "consts";
 import { useContextMenu } from "ui/hooks/use-context-menu";
 import {
@@ -1353,6 +1355,14 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
         );
         tableRef.current?.focus();
         return;
+      }
+
+      if (virtualKey.type === "undo") {
+        dispatch({ type: TRACKER_UNDO });
+      }
+
+      if (virtualKey.type === "redo") {
+        dispatch({ type: TRACKER_REDO });
       }
     },
     [
