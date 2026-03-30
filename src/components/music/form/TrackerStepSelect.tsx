@@ -25,7 +25,7 @@ export const TrackerStepSelect: FC<TrackerStepSelectProps> = ({
 }) => {
   const options: TrackerStepOption[] = useMemo(
     () =>
-      Array.from({ length: 64 }).map((_, i) => ({
+      Array.from({ length: 17 }).map((_, i) => ({
         value: i,
         label: `${l10n("FIELD_STEP")} ${i}`,
       })),
