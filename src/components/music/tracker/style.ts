@@ -249,7 +249,7 @@ export const StyledTrackerCell = styled.td<StyledTrackerCellProps>`
   border-color: ${(props) => props.theme.colors.tracker.border};
   border-style: solid;
   margin: 0;
-  height: 25px;
+  height: 28px;
   justify-content: center;
   align-items: center;
   text-align: center;
@@ -271,10 +271,10 @@ export const StyledTrackerCell = styled.td<StyledTrackerCellProps>`
               content: "";
               position: absolute;
               top: 0px;
-              right: -12.5px;
-              border-top: 12.5px solid transparent;
-              border-bottom: 12.5px solid transparent;
-              border-left: 12.5px solid ${props.theme.colors.highlight};
+              right: -14px;
+              border-top: 14px solid transparent;
+              border-bottom: 14px solid transparent;
+              border-left: 14px solid ${props.theme.colors.highlight};
             }
           }
           ${StyledTrackerField} {
