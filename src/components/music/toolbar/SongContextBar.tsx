@@ -85,7 +85,7 @@ const StyledSongContextBarTimerPart = styled.div`
 
 const StyledSongContextBarTimerPartLabel = styled.div`
   font-size: 8px;
-  @media (max-width: 900px) {
+  @media (max-width: 360px) {
     font-size: 7px;
   }
 `;
