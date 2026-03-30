@@ -97,7 +97,6 @@ export const PatternCellSelectionEditor = () => {
 
   return (
     <>
-      <FormSectionTitle>NOTES</FormSectionTitle>
       <FormRow>
         <Label>Pitch</Label>
       </FormRow>

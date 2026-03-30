@@ -108,7 +108,6 @@ export const StyledMobileOverlay = styled.div<{
   left: 0;
   right: 0;
   bottom: 0;
-  // overflow: auto;
   background: ${(props) => props.theme.colors.sidebar.background};
   z-index: ${(props) => (props.$open ? "1001" : "1000")};
   transition: transform 200ms ease-in-out;
@@ -116,7 +115,7 @@ export const StyledMobileOverlay = styled.div<{
   transform: translateY(${(props) => (props.$open ? "0" : "100%")});
   pointer-events: ${(props) => (props.$open ? "auto" : "none")};
 
-  padding-bottom: calc(60px + env(safe-area-inset-bottom));
+  padding-bottom: calc(0px + env(safe-area-inset-bottom));
 
   box-sizing: border-box;
   box-shadow: ${(props) =>

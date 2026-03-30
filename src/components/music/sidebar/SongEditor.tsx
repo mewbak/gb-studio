@@ -1,5 +1,5 @@
 import React from "react";
-import { FormContainer } from "ui/form/layout/FormLayout";
+import { FormContainer, FormSectionTitle } from "ui/form/layout/FormLayout";
 import { Sidebar } from "ui/sidebars/Sidebar";
 import { SongMetadataEditor } from "./SongMetadataEditor";
 import { useAppSelector } from "store/hooks";
@@ -23,7 +23,10 @@ export const SongEditor = () => {
       <FormContainer>
         <div style={{ marginTop: -1 }}>
           {sidebarView === "cell" && selectedPatternCells.length > 0 ? (
-            <PatternCellSelectionEditor />
+            <>
+              <FormSectionTitle>NOTES</FormSectionTitle>
+              <PatternCellSelectionEditor />
+            </>
           ) : (
             <InstrumentEditor />
           )}
