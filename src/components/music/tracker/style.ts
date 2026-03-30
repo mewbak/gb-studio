@@ -27,7 +27,7 @@ interface StyledTrackerContentTableProps {
 }
 
 export const StyledTrackerContentTable = styled.table<StyledTrackerContentTableProps>`
-  width: 600px;
+  min-width: 640px;
   display: table;
   border-collapse: separate;
   border-spacing: 0;
@@ -396,4 +396,5 @@ export const StyledAddPatternWrapper = styled.div`
   left: 0px;
   height: 90px;
   border-top: 1px solid ${(props) => props.theme.colors.sidebar.border};
+  max-width: 640px;
 `;

@@ -58,8 +58,6 @@ import {
 import { SongTrackerPattern } from "components/music/tracker/SongTrackerPattern";
 import l10n from "shared/lib/lang/l10n";
 import { PlusIcon } from "ui/icons/Icons";
-import useResizeObserver from "ui/hooks/use-resize-observer";
-import { mergeRefs } from "ui/hooks/merge-refs";
 
 interface SongTrackerProps {
   sequenceId: number;
@@ -156,8 +154,6 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
       ),
     [activeField],
   );
-
-  const [wrapperEl, wrapperSize] = useResizeObserver<HTMLDivElement>();
 
   useEffect(() => {
     patternRef.current = pattern;
@@ -1424,7 +1420,7 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
 
   return (
     <StyledTrackerWrapper>
-      <StyledTrackerScrollWrapper ref={mergeRefs(scrollRef, wrapperEl)}>
+      <StyledTrackerScrollWrapper ref={scrollRef}>
         <StyledTrackerScrollCanvas>
           {song?.sequence.map((sequencePatternId, renderSequenceId) => {
             const selectedTrackerFieldSetForPattern =
@@ -1467,9 +1463,6 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
           onTouchStart={(e) => {
             e.preventDefault();
             e.stopPropagation();
-          }}
-          style={{
-            width: wrapperSize.width ?? 0,
           }}
         >
           <StyledAddPatternButton
