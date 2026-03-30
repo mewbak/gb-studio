@@ -56,6 +56,7 @@ interface TrackerKeyboardProps {
 
 const NAV_REPEAT_INITIAL_DELAY = 300;
 const NAV_REPEAT_INTERVAL = 100;
+const DRAG_NOTES_THRESHOLD = 10;
 
 const StyledTrackerKeyboard = styled.div<{ $open?: boolean }>`
   display: flex;
@@ -70,6 +71,8 @@ const StyledTrackerKeyboard = styled.div<{ $open?: boolean }>`
   max-height: ${(props) => (props.$open ? "182px" : "0px")};
 
   box-sizing: border-box;
+
+  touch-action: manipulation;
 
   ${StyledButton} {
     user-select: none;
@@ -307,18 +310,14 @@ export const TrackerKeyboard = ({
 }: TrackerKeyboardProps) => {
   const [shiftKey, setShiftKey] = useState(false);
 
+  const touchStartX = useRef(-1);
+
   return (
     <StyledTrackerKeyboard
       $open={open}
       onTouchEnd={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-      }}
-      onPointerDown={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-      }}
-      onMouseUp={(e) => {
+        // Prevent double tap causing
+        // text loupe to appear on iOS
         e.preventDefault();
         e.stopPropagation();
       }}
@@ -570,11 +569,23 @@ export const TrackerKeyboard = ({
                         <Button
                           key={noteIndex + octave * OCTAVE_SIZE}
                           type="button"
-                          onPointerDown={() => {
-                            onKeyPressed({
-                              type: "note",
-                              value: noteIndex + octave * OCTAVE_SIZE,
-                            });
+                          onPointerDown={(e) => {
+                            // Track click start x to prevent
+                            // creating note if scrolling notes div
+                            touchStartX.current = e.clientX;
+                          }}
+                          onPointerUp={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const touchMoveDistanceX = Math.abs(
+                              touchStartX.current - e.clientX,
+                            );
+                            if (touchMoveDistanceX < DRAG_NOTES_THRESHOLD) {
+                              onKeyPressed({
+                                type: "note",
+                                value: noteIndex + octave * OCTAVE_SIZE,
+                              });
+                            }
                           }}
                         >
                           {note}
