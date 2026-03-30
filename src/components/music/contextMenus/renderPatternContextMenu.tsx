@@ -17,9 +17,6 @@ const renderPatternContextMenu = ({
   orderIndex,
   orderLength,
 }: PatternContextMenuProps) => {
-  if (orderLength <= 1) {
-    return [];
-  }
   return [
     ...(orderIndex > 0
       ? [
@@ -90,19 +87,52 @@ const renderPatternContextMenu = ({
           >
             {l10n("FIELD_MOVE_END")}
           </MenuItem>,
+          <MenuDivider key="div-insert" />,
         ]
       : []),
-    <MenuDivider key="div-delete" />,
     <MenuItem
-      key="delete"
+      key="insertBefore"
       onClick={() => {
         dispatch(
-          trackerDocumentActions.removeSequence({ sequenceIndex: orderIndex }),
+          trackerDocumentActions.insertSequence({
+            sequenceIndex: orderIndex,
+            position: "before",
+          }),
         );
       }}
     >
-      {l10n("MENU_PATTERN_DELETE")}
+      {l10n("FIELD_INSERT_PATTERN_BEFORE")}
     </MenuItem>,
+    <MenuItem
+      key="insertAfter"
+      onClick={() => {
+        dispatch(
+          trackerDocumentActions.insertSequence({
+            sequenceIndex: orderIndex,
+            position: "after",
+          }),
+        );
+      }}
+    >
+      {l10n("FIELD_INSERT_PATTERN_AFTER")}
+    </MenuItem>,
+    ...(orderLength > 1
+      ? [
+          <MenuDivider key="div-delete" />,
+          <MenuItem
+            key="delete"
+            onClick={() => {
+              dispatch(
+                trackerDocumentActions.removeSequence({
+                  sequenceIndex: orderIndex,
+                }),
+              );
+            }}
+          >
+            {l10n("MENU_PATTERN_DELETE")}
+          </MenuItem>,
+        ]
+      : []),
   ];
 };
 

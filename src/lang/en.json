@@ -1337,6 +1337,8 @@
   "FIELD_INSERT_ROW": "Insert Row",
   "FIELD_DELETE_ROW": "Delete Row",
   "FIELD_INSTRUMENT": "Instrument",
+  "FIELD_INSERT_PATTERN_BEFORE": "Insert Pattern Before",
+  "FIELD_INSERT_PATTERN_AFTER": "Insert Pattern After",
 
   "// 7": "Asset Viewer ---------------------------------------------",
   "ASSET_SEARCH": "Search...",

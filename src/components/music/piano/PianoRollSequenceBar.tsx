@@ -69,19 +69,13 @@ const PianoRollSequenceBarPattern = ({
       onContextMenu={onContextMenu}
     >
       <StyledPianoRollSequenceHeaderText>
-        {orderLength > 1 ? (
-          <DropdownButton
-            variant="transparent"
-            label={`${l10n("FIELD_PATTERN")} ${String(patternIndex).padStart(2, "0")}`}
-            onMouseDown={(e) => e.stopPropagation()}
-          >
-            {getContextMenu()}
-          </DropdownButton>
-        ) : (
-          <span>
-            {l10n("FIELD_PATTERN")} {String(patternIndex).padStart(2, "0")}
-          </span>
-        )}
+        <DropdownButton
+          variant="transparent"
+          label={`${l10n("FIELD_PATTERN")} ${String(patternIndex).padStart(2, "0")}`}
+          onMouseDown={(e) => e.stopPropagation()}
+        >
+          {getContextMenu()}
+        </DropdownButton>
       </StyledPianoRollSequenceHeaderText>
       {contextMenuElement}
     </StyledPianoRollSequenceHeaderPattern>

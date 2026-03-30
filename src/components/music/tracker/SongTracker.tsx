@@ -1407,7 +1407,12 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
     (e: React.MouseEvent<HTMLButtonElement>) => {
       e.preventDefault();
       e.stopPropagation();
-      dispatch(trackerDocumentActions.addSequence());
+      dispatch(
+        trackerDocumentActions.insertSequence({
+          sequenceIndex: songRef.current?.sequence.length ?? 0,
+          position: "after",
+        }),
+      );
     },
     [dispatch],
   );

@@ -126,7 +126,7 @@ const SequenceEditorFwd = ({
 
   const [selectHasFocus, setSelectHasFocus] = useState(false);
   const sequenceId = useAppSelector((state) => state.tracker.selectedSequence);
-  const prevSequenceLength = useRef(sequence?.length ?? 0);
+  const sequenceLengthRef = useRef(sequence?.length ?? 0);
 
   const setSequenceId = useCallback(
     (sequenceId: number) => {
@@ -138,17 +138,16 @@ const SequenceEditorFwd = ({
 
   useEffect(() => {
     if (sequence) {
-      const sequenceItemAdded = prevSequenceLength.current < sequence.length;
       const sequenceItemAboveMax = sequenceId >= sequence?.length;
       const sequenceItemBelowMin = sequenceId < 0;
 
-      if (sequenceItemAdded || sequenceItemAboveMax) {
+      if (sequenceItemAboveMax) {
         setSequenceId(sequence.length - 1);
       } else if (sequenceItemBelowMin) {
         setSequenceId(0);
       }
 
-      prevSequenceLength.current = sequence.length;
+      sequenceLengthRef.current = sequence.length;
     }
   }, [dispatch, sequence, sequenceId, setSequenceId]);
 
@@ -175,7 +174,12 @@ const SequenceEditorFwd = ({
     ]);
 
   const onAddSequence = useCallback(() => {
-    dispatch(trackerDocumentActions.addSequence());
+    dispatch(
+      trackerDocumentActions.insertSequence({
+        sequenceIndex: sequenceLengthRef.current,
+        position: "after",
+      }),
+    );
   }, [dispatch]);
 
   const onRemoveSequence = useCallback(() => {
@@ -191,29 +195,8 @@ const SequenceEditorFwd = ({
       }
 
       dispatch(trackerDocumentActions.moveSequence({ fromIndex, toIndex }));
-
-      let newSelectedIndex = sequenceId;
-      if (sequenceId === fromIndex) {
-        newSelectedIndex = toIndex;
-      } else if (
-        fromIndex < toIndex &&
-        sequenceId > fromIndex &&
-        sequenceId <= toIndex
-      ) {
-        newSelectedIndex = sequenceId - 1;
-      } else if (
-        fromIndex > toIndex &&
-        sequenceId >= toIndex &&
-        sequenceId < fromIndex
-      ) {
-        newSelectedIndex = sequenceId + 1;
-      }
-
-      if (newSelectedIndex !== sequenceId) {
-        setSequenceId(newSelectedIndex);
-      }
     },
-    [dispatch, sequenceId, setSequenceId],
+    [dispatch],
   );
 
   const sequenceItems = useMemo<SequenceListItem[]>(

@@ -1850,7 +1850,12 @@ export const PianoRollCanvas = ({
     (e: React.MouseEvent<HTMLButtonElement>) => {
       e.preventDefault();
       e.stopPropagation();
-      dispatch(trackerDocumentActions.addSequence());
+      dispatch(
+        trackerDocumentActions.insertSequence({
+          sequenceIndex: songRef.current.sequence.length,
+          position: "after",
+        }),
+      );
     },
     [dispatch],
   );

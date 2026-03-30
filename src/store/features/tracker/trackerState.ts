@@ -211,7 +211,6 @@ const trackerSlice = createSlice({
       state.selectedInstrument = action.payload;
       state.sidebarView = "instrument";
     },
-
     setSelectedSequence: (state, action: PayloadAction<number>) => {
       state.selectedSequence = action.payload;
     },
@@ -328,6 +327,10 @@ const trackerSlice = createSlice({
       // After dragging cells, set selection to new location
       .addCase(moveAbsoluteCellsComplete, (state, action) => {
         state.selectedPatternCells = action.payload.newSelection;
+      })
+      .addCase(trackerDocumentActions.insertSequence, (state, action) => {
+        const offset = action.payload.position === "after" ? 1 : 0;
+        state.selectedSequence = action.payload.sequenceIndex + offset;
       })
       .addMatcher(
         (action: UnknownAction): action is UnknownAction =>

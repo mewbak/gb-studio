@@ -65,23 +65,18 @@ export const SongTrackerPattern = memo(
               type="patternIndex"
               sequencePatternId={sequencePatternId}
             >
-              {orderLength > 1 ? (
-                <DropdownButton
-                  variant="transparent"
-                  label={String(sequencePatternId).padStart(2, "0")}
-                >
-                  {renderPatternContextMenu({
-                    dispatch,
-                    patternIndex: sequencePatternId,
-                    orderIndex: renderSequenceId,
-                    orderLength,
-                  })}
-                </DropdownButton>
-              ) : (
-                String(sequencePatternId).padStart(2, "0")
-              )}
+              <DropdownButton
+                variant="transparent"
+                label={String(sequencePatternId).padStart(2, "0")}
+              >
+                {renderPatternContextMenu({
+                  dispatch,
+                  patternIndex: sequencePatternId,
+                  orderIndex: renderSequenceId,
+                  orderLength,
+                })}
+              </DropdownButton>
             </TrackerHeaderCell>
-
             <TrackerHeaderCell
               type="channel"
               channel={0}

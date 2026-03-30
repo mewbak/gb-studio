@@ -1706,24 +1706,42 @@ const trackerSlice = createSlice({
         };
       }
     },
-    addSequence: (state) => {
+    insertSequence: (
+      state,
+      action: PayloadAction<{
+        sequenceIndex: number;
+        position: "before" | "after";
+      }>,
+    ) => {
       if (!state.song) {
         return;
       }
 
+      const { sequenceIndex, position } = action.payload;
+
       const newPatterns = [...state.song.patterns];
       const pattern = [];
-      for (let n = 0; n < 64; n++)
+
+      for (let n = 0; n < 64; n++) {
         pattern.push([
           createPatternCell(),
           createPatternCell(),
           createPatternCell(),
           createPatternCell(),
         ]);
+      }
+
       newPatterns.push(pattern);
+      const newPatternIndex = newPatterns.length - 1;
 
       const newSequence = [...state.song.sequence];
-      newSequence.push(newPatterns.length - 1);
+
+      const rawInsertAt =
+        position === "before" ? sequenceIndex : sequenceIndex + 1;
+
+      const insertAt = Math.max(0, Math.min(rawInsertAt, newSequence.length));
+
+      newSequence.splice(insertAt, 0, newPatternIndex);
 
       state.song = {
         ...state.song,
