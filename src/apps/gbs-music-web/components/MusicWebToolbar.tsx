@@ -27,7 +27,7 @@ import { StyledButton } from "ui/buttons/style";
 declare const VERSION: string;
 declare const COMMITHASH: string;
 
-const COMPACT_LAYOUT_BREAKPOINT = 900;
+const COMPACT_LAYOUT_BREAKPOINT = 590;
 
 const Wrapper = styled.div`
   ${StyledButton} {

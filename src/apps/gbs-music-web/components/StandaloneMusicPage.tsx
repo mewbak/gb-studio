@@ -64,7 +64,7 @@ const defaultPaneLayout: SplitPaneLayout[] = [
   { type: "fixed", size: 485 },
 ];
 
-const COMPACT_LAYOUT_BREAKPOINT = 900;
+const COMPACT_LAYOUT_BREAKPOINT = 840;
 
 type MobileViewType =
   | "none"
