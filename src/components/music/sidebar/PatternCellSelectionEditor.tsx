@@ -222,90 +222,92 @@ export const PatternCellSelectionEditor = () => {
         />
       )}
       <FormDivider />
-      <FormRow>
-        <div>
-          <Label>{l10n("FIELD_SEMITONE")}</Label>
-          <ButtonGroup>
-            <Button
-              onClick={(e) => {
-                e.preventDefault();
-                dispatch(
-                  trackerDocumentActions.transposeAbsoluteCells({
-                    patternCells: selectedPatternCells,
-                    direction: "down",
-                    size: "note",
-                  }),
-                );
-              }}
-            >
-              -
-            </Button>
-            <Button
-              onClick={(e) => {
-                e.preventDefault();
-                dispatch(
-                  trackerDocumentActions.transposeAbsoluteCells({
-                    patternCells: selectedPatternCells,
-                    direction: "up",
-                    size: "note",
-                  }),
-                );
-              }}
-            >
-              +
-            </Button>
-          </ButtonGroup>
-        </div>
-        <div>
-          <Label>{l10n("FIELD_OCTAVE")}</Label>
-          <ButtonGroup>
-            <Button
-              onClick={(e) => {
-                e.preventDefault();
-                dispatch(
-                  trackerDocumentActions.transposeAbsoluteCells({
-                    patternCells: selectedPatternCells,
-                    direction: "down",
-                    size: "octave",
-                  }),
-                );
-              }}
-            >
-              -
-            </Button>
-            <Button
-              onClick={(e) => {
-                e.preventDefault();
-                dispatch(
-                  trackerDocumentActions.transposeAbsoluteCells({
-                    patternCells: selectedPatternCells,
-                    direction: "up",
-                    size: "octave",
-                  }),
-                );
-              }}
-            >
-              +
-            </Button>
-          </ButtonGroup>
-        </div>
-        {selectedPatternCells.length > 1 && (
-          <div style={{ display: "flex", alignItems: "flex-end" }}>
-            <Button
-              onClick={(e) => {
-                e.preventDefault();
-                dispatch(
-                  trackerDocumentActions.interpolateAbsoluteCells({
-                    patternCells: selectedPatternCells,
-                  }),
-                );
-              }}
-            >
-              {l10n("FIELD_INTERPOLATE")}
-            </Button>
+      {sharedNote.type !== "none" && (
+        <FormRow>
+          <div>
+            <Label>{l10n("FIELD_SEMITONE")}</Label>
+            <ButtonGroup>
+              <Button
+                onClick={(e) => {
+                  e.preventDefault();
+                  dispatch(
+                    trackerDocumentActions.transposeAbsoluteCells({
+                      patternCells: selectedPatternCells,
+                      direction: "down",
+                      size: "note",
+                    }),
+                  );
+                }}
+              >
+                -
+              </Button>
+              <Button
+                onClick={(e) => {
+                  e.preventDefault();
+                  dispatch(
+                    trackerDocumentActions.transposeAbsoluteCells({
+                      patternCells: selectedPatternCells,
+                      direction: "up",
+                      size: "note",
+                    }),
+                  );
+                }}
+              >
+                +
+              </Button>
+            </ButtonGroup>
           </div>
-        )}
-      </FormRow>
+          <div>
+            <Label>{l10n("FIELD_OCTAVE")}</Label>
+            <ButtonGroup>
+              <Button
+                onClick={(e) => {
+                  e.preventDefault();
+                  dispatch(
+                    trackerDocumentActions.transposeAbsoluteCells({
+                      patternCells: selectedPatternCells,
+                      direction: "down",
+                      size: "octave",
+                    }),
+                  );
+                }}
+              >
+                -
+              </Button>
+              <Button
+                onClick={(e) => {
+                  e.preventDefault();
+                  dispatch(
+                    trackerDocumentActions.transposeAbsoluteCells({
+                      patternCells: selectedPatternCells,
+                      direction: "up",
+                      size: "octave",
+                    }),
+                  );
+                }}
+              >
+                +
+              </Button>
+            </ButtonGroup>
+          </div>
+          {selectedPatternCells.length > 1 && (
+            <div style={{ display: "flex", alignItems: "flex-end" }}>
+              <Button
+                onClick={(e) => {
+                  e.preventDefault();
+                  dispatch(
+                    trackerDocumentActions.interpolateAbsoluteCells({
+                      patternCells: selectedPatternCells,
+                    }),
+                  );
+                }}
+              >
+                {l10n("FIELD_INTERPOLATE")}
+              </Button>
+            </div>
+          )}
+        </FormRow>
+      )}
     </>
   );
 };
