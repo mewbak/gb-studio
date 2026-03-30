@@ -171,7 +171,12 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const currentFocus = useMemo(
-    () => getFieldColumnFocus(activeField ?? 0),
+    () =>
+      getFieldColumnFocus(
+        activeField !== undefined
+          ? getLocalFieldFromGlobalField(activeField)
+          : 0,
+      ),
     [activeField],
   );
 
@@ -327,9 +332,11 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
       return;
     }
 
+    const localField = getLocalFieldFromGlobalField(activeField);
     const newChannelId = toValidChannelId(
-      Math.floor((activeField % TRACKER_ROW_SIZE) / TRACKER_CHANNEL_FIELDS),
+      Math.floor((localField % TRACKER_ROW_SIZE) / TRACKER_CHANNEL_FIELDS),
     );
+
     dispatch(trackerActions.setSelectedChannel(newChannelId));
   }, [activeField, dispatch, patternId, sequenceId]);
 
@@ -569,55 +576,55 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
         getSequenceIdFromGlobalField(currentActiveField);
       const currentLocalField =
         getLocalFieldFromGlobalField(currentActiveField);
-
-      const key =
-        direction === "left"
-          ? "ArrowLeft"
-          : direction === "right"
-            ? "ArrowRight"
-            : direction === "up"
-              ? "ArrowUp"
-              : "ArrowDown";
-
-      let movedField = getMovedField(currentLocalField, key, false);
+      const currentPos = fieldToPosition(currentLocalField);
 
       let nextSequenceId = currentSequenceId;
-      let nextLocalField: number | null = movedField;
+      let nextX = currentPos.x;
+      let nextY = currentPos.y;
 
-      if (movedField === null) {
-        const pos = fieldToPosition(currentLocalField);
-
-        if (direction === "up" && currentSequenceId > 0) {
-          nextSequenceId = currentSequenceId - 1;
-          nextLocalField =
-            (TRACKER_PATTERN_LENGTH - 1) * TRACKER_ROW_SIZE + pos.x;
-        } else if (
-          direction === "down" &&
-          currentSequenceId < sequenceLength - 1
-        ) {
-          nextSequenceId = currentSequenceId + 1;
-          nextLocalField = pos.x;
-        } else if (direction === "left" && currentSequenceId > 0) {
-          nextSequenceId = currentSequenceId - 1;
-          nextLocalField =
-            (TRACKER_PATTERN_LENGTH - 1) * TRACKER_ROW_SIZE +
-            (TRACKER_ROW_SIZE - 1);
-        } else if (
-          direction === "right" &&
-          currentSequenceId < sequenceLength - 1
-        ) {
-          nextSequenceId = currentSequenceId + 1;
-          nextLocalField = 0;
+      if (direction === "left") {
+        if (currentPos.x > 0) {
+          nextX -= 1;
+        } else if (currentSequenceId > 0) {
+          nextSequenceId -= 1;
+          nextX = TRACKER_ROW_SIZE - 1;
+          nextY = TRACKER_PATTERN_LENGTH - 1;
+        } else {
+          return false;
+        }
+      } else if (direction === "right") {
+        if (currentPos.x < TRACKER_ROW_SIZE - 1) {
+          nextX += 1;
+        } else if (currentSequenceId < sequenceLength - 1) {
+          nextSequenceId += 1;
+          nextX = 0;
+          nextY = 0;
+        } else {
+          return false;
+        }
+      } else if (direction === "up") {
+        if (currentPos.y > 0) {
+          nextY -= 1;
+        } else if (currentSequenceId > 0) {
+          nextSequenceId -= 1;
+          nextY = TRACKER_PATTERN_LENGTH - 1;
+        } else {
+          return false;
+        }
+      } else if (direction === "down") {
+        if (currentPos.y < TRACKER_PATTERN_LENGTH - 1) {
+          nextY += 1;
+        } else if (currentSequenceId < sequenceLength - 1) {
+          nextSequenceId += 1;
+          nextY = 0;
         } else {
           return false;
         }
       }
 
-      if (nextLocalField === null) {
-        return false;
-      }
-
-      const newLocalField = normalizeFieldIndex(nextLocalField);
+      const newLocalField = normalizeFieldIndex(
+        nextY * TRACKER_ROW_SIZE + nextX,
+      );
       const newActiveField = getGlobalField(nextSequenceId, newLocalField);
 
       if (
@@ -630,7 +637,7 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
 
           if (!currentSelectionRect) {
             setSelectionOrigin({
-              ...fieldToPosition(currentLocalField),
+              ...currentPos,
               sequenceId: currentSequenceId,
             });
           }
@@ -644,14 +651,16 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
           );
         } else {
           setSelectionOrigin({
-            ...fieldToPosition(newLocalField),
+            x: nextX,
+            y: nextY,
             sequenceId: nextSequenceId,
           });
           setSelectionRect(undefined);
         }
       } else {
         setSelectionOrigin({
-          ...fieldToPosition(newLocalField),
+          x: nextX,
+          y: nextY,
           sequenceId: nextSequenceId,
         });
         setSelectionRect(undefined);
@@ -672,7 +681,9 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
       }
       console.log("APPLY TRACKER INPUT A ", input);
 
-      const currentFocus = getFieldColumnFocus(currentActiveField);
+      const currentFocus = getFieldColumnFocus(
+        getLocalFieldFromGlobalField(currentActiveField),
+      );
       if (!currentFocus) {
         return false;
       }
@@ -1158,9 +1169,10 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
 
   const onFocus = useCallback(() => {
     if (activeFieldValueRef.current === undefined) {
-      setActiveField(0);
+      const firstField = getGlobalField(sequenceId, 0);
+      setActiveField(firstField);
     }
-  }, [setActiveField]);
+  }, [sequenceId, setActiveField]);
 
   const onCopy = useCallback(
     (e: ClipboardEvent) => {
@@ -1303,8 +1315,9 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
   const handleVirtualKeyPressed = useCallback(
     (virtualKey: VirtualTrackerKey) => {
       if (activeFieldValueRef.current === undefined) {
-        setActiveField(0);
-        setSingleFieldSelection(0);
+        const firstField = getGlobalField(sequenceId, 0);
+        setActiveField(firstField);
+        setSingleFieldSelection(firstField);
       }
 
       if (virtualKey.type === "navigation") {
@@ -1390,8 +1403,11 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
     const firstField = getGlobalField(sequenceId, 0);
     setActiveField(firstField);
     setSingleFieldSelection(firstField);
-    tableRef.current?.focus({ preventScroll: true });
   }, [sequenceId, setActiveField, setSingleFieldSelection]);
+
+  useLayoutEffect(() => {
+    tableRef.current?.focus({ preventScroll: true });
+  }, [activeField, activeSequenceId]);
 
   return (
     <StyledTrackerWrapper>
