@@ -215,6 +215,8 @@ interface StyledTrackerRowProps {
 }
 
 export const StyledTrackerRow = styled.tr<StyledTrackerRowProps>`
+  background-color: ${(props) => props.theme.colors.tracker.background};
+
   ${(props) =>
     props.$isStepMarker
       ? css`
@@ -223,6 +225,7 @@ export const StyledTrackerRow = styled.tr<StyledTrackerRowProps>`
           }
         `
       : ""}
+
   ${(props) =>
     props.$isActive
       ? css`
@@ -250,8 +253,6 @@ export const StyledTrackerCell = styled.td<StyledTrackerCellProps>`
   justify-content: center;
   align-items: center;
   text-align: center;
-
-  background-color: ${(props) => props.theme.colors.tracker.background};
 
   ${(props) =>
     props.$isPlaying

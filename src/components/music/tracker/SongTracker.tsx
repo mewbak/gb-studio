@@ -78,7 +78,7 @@ const renderCounter = (n: number): string => {
   return n?.toString().padStart(2, "0") || "__";
 };
 
-const getRowIndexFromField = (field: number) => Math.floor(field / 4);
+const getRowIndexFromField = (field: number) => Math.floor(field / 16);
 
 type TrackerInput =
   | { type: "keyboard"; code: string }
