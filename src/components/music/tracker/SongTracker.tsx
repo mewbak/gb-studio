@@ -54,7 +54,12 @@ import {
 import renderPatternContextMenu from "components/music/contextMenus/renderPatternContextMenu";
 import renderTrackerContextMenu from "components/music/contextMenus/renderTrackerContextMenu";
 import { DropdownButton } from "ui/buttons/DropdownButton";
-import { OCTAVE_SIZE, TRACKER_CHANNEL_FIELDS, TRACKER_ROW_SIZE } from "consts";
+import {
+  OCTAVE_SIZE,
+  TRACKER_CHANNEL_FIELDS,
+  TRACKER_ROW_SIZE,
+  TRACKER_PATTERN_LENGTH,
+} from "consts";
 import { useContextMenu } from "ui/hooks/use-context-menu";
 import {
   copyTrackerFields,
@@ -78,7 +83,25 @@ const renderCounter = (n: number): string => {
   return n?.toString().padStart(2, "0") || "__";
 };
 
-const getRowIndexFromField = (field: number) => Math.floor(field / 16);
+const PATTERN_FIELD_COUNT = TRACKER_PATTERN_LENGTH * TRACKER_ROW_SIZE;
+
+const getSequenceIdFromGlobalField = (field: number) =>
+  Math.floor(field / PATTERN_FIELD_COUNT);
+
+const getLocalFieldFromGlobalField = (field: number) =>
+  field % PATTERN_FIELD_COUNT;
+
+const getGlobalField = (sequenceId: number, localField: number) =>
+  sequenceId * PATTERN_FIELD_COUNT + localField;
+
+const getRowIndexFromLocalField = (field: number) =>
+  Math.floor(field / TRACKER_ROW_SIZE);
+
+const getPatternIdAtSequence = (song: Song | null, sequenceId: number) =>
+  song?.sequence[sequenceId] ?? 0;
+
+const getRowIndexFromField = (field: number) =>
+  getRowIndexFromLocalField(getLocalFieldFromGlobalField(field));
 
 type TrackerInput =
   | { type: "keyboard"; code: string }
@@ -108,19 +131,27 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
 
   const tableRef = useRef<HTMLTableSectionElement>(null);
 
-  const patternId = song?.sequence[sequenceId] ?? 0;
-  const pattern = song?.patterns[patternId];
-
   const [selectionOrigin, setSelectionOriginState] = useState<
-    Position | undefined
+    (Position & { sequenceId: number }) | undefined
   >();
   const [selectionRect, setSelectionRectState] = useState<
     SelectionRect | undefined
   >();
+
   const [activeField, setActiveFieldState] = useState<number | undefined>();
   const [playbackState, setPlaybackState] = useState<[number, number]>([0, 0]);
 
-  const selectionOriginRef = useRef<Position | undefined>(undefined);
+  const activeSequenceId =
+    activeField !== undefined
+      ? getSequenceIdFromGlobalField(activeField)
+      : sequenceId;
+
+  const patternId = getPatternIdAtSequence(song, activeSequenceId);
+  const pattern = song?.patterns[patternId];
+
+  const selectionOriginRef = useRef<
+    (Position & { sequenceId: number }) | undefined
+  >(undefined);
   const selectionRectRef = useRef<SelectionRect | undefined>(undefined);
   const activeFieldValueRef = useRef<number | undefined>(undefined);
 
@@ -174,10 +205,13 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
     channelIdRef.current = channelId;
   }, [channelId]);
 
-  const setSelectionOrigin = useCallback((value: Position | undefined) => {
-    selectionOriginRef.current = value;
-    setSelectionOriginState(value);
-  }, []);
+  const setSelectionOrigin = useCallback(
+    (value: (Position & { sequenceId: number }) | undefined) => {
+      selectionOriginRef.current = value;
+      setSelectionOriginState(value);
+    },
+    [],
+  );
 
   const setSelectionRect = useCallback((value: SelectionRect | undefined) => {
     selectionRectRef.current = value;
@@ -198,7 +232,13 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
 
   const setSingleFieldSelection = useCallback(
     (field: number) => {
-      setSelectionOrigin(fieldToPosition(field));
+      const localField = getLocalFieldFromGlobalField(field);
+      const fieldSequenceId = getSequenceIdFromGlobalField(field);
+
+      setSelectionOrigin({
+        ...fieldToPosition(localField),
+        sequenceId: fieldSequenceId,
+      });
       setSelectionRect(undefined);
     },
     [setSelectionOrigin, setSelectionRect],
@@ -210,15 +250,29 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
       if (!origin) {
         return;
       }
-      setSelectionRect(buildSelectionRect(origin, field));
+
+      const fieldSequenceId = getSequenceIdFromGlobalField(field);
+      if (fieldSequenceId !== origin.sequenceId) {
+        return;
+      }
+
+      const localField = getLocalFieldFromGlobalField(field);
+      setSelectionRect(
+        buildSelectionRect({ x: origin.x, y: origin.y }, localField),
+      );
     },
     [setSelectionRect],
   );
 
-  const selectedTrackerFields = useMemo(
-    () => getSelectedTrackerFields(selectionRect, selectionOrigin),
-    [selectionOrigin, selectionRect],
-  );
+  const selectedTrackerFields = useMemo(() => {
+    if (!selectionOrigin) {
+      return [];
+    }
+    return getSelectedTrackerFields(selectionRect, {
+      x: selectionOrigin.x,
+      y: selectionOrigin.y,
+    });
+  }, [selectionOrigin, selectionRect]);
 
   const selectedTrackerFieldSet = useMemo(
     () => new Set(selectedTrackerFields),
@@ -227,8 +281,12 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
 
   const selectedPatternCells = useMemo(
     () =>
-      trackerFieldsToPatternCells(sequenceId, patternId, selectedTrackerFields),
-    [sequenceId, patternId, selectedTrackerFields],
+      trackerFieldsToPatternCells(
+        selectionOrigin?.sequenceId ?? activeSequenceId,
+        patternId,
+        selectedTrackerFields,
+      ),
+    [activeSequenceId, patternId, selectedTrackerFields, selectionOrigin],
   );
 
   useEffect(() => {
@@ -285,46 +343,52 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
       }
 
       const fieldId = e.target.dataset.fieldid;
+      const fieldSequenceId = e.target.dataset.sequenceid;
       const rowId = e.target.dataset.row;
+      const rowSequenceId = e.target.dataset.sequenceid;
 
-      if (fieldId !== undefined) {
+      if (fieldId !== undefined && fieldSequenceId !== undefined) {
         const parsedField = parseInt(fieldId, 10);
+        const parsedSequenceId = parseInt(fieldSequenceId, 10);
         const normalizedField = normalizeFieldIndex(parsedField);
+        const globalField = getGlobalField(parsedSequenceId, normalizedField);
 
         isMouseDownRef.current = true;
 
-        if (e.shiftKey && selectionOriginRef.current) {
+        if (
+          e.shiftKey &&
+          selectionOriginRef.current &&
+          selectionOriginRef.current.sequenceId === parsedSequenceId
+        ) {
           isSelectingRef.current = true;
-          setActiveField(normalizedField);
-          updateSelectionToField(normalizedField);
+          setActiveField(globalField);
+          updateSelectionToField(globalField);
         } else {
           isSelectingRef.current = false;
-          setActiveField(normalizedField);
-          setSingleFieldSelection(normalizedField);
+          setActiveField(globalField);
+          setSingleFieldSelection(globalField);
         }
         return;
       }
 
-      if (rowId !== undefined) {
+      if (rowId !== undefined && rowSequenceId !== undefined) {
         const row = parseInt(rowId, 10);
+        const parsedSequenceId = parseInt(rowSequenceId, 10);
 
         dispatch(
-          trackerActions.setDefaultStartPlaybackPosition([sequenceId, row]),
+          trackerActions.setDefaultStartPlaybackPosition([
+            parsedSequenceId,
+            row,
+          ]),
         );
         API.music.sendToMusicWindow({
           action: "position",
-          position: [sequenceId, row],
+          position: [parsedSequenceId, row],
         });
         return;
       }
     },
-    [
-      dispatch,
-      sequenceId,
-      setActiveField,
-      setSingleFieldSelection,
-      updateSelectionToField,
-    ],
+    [dispatch, setActiveField, setSingleFieldSelection, updateSelectionToField],
   );
 
   const handleMouseUp = useCallback((e: MouseEvent) => {
@@ -347,14 +411,17 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
       }
 
       const fieldId = e.target.dataset.fieldid;
-      if (fieldId === undefined) {
+      const fieldSequenceId = e.target.dataset.sequenceid;
+      if (fieldId === undefined || fieldSequenceId === undefined) {
         return;
       }
 
       const parsedField = parseInt(fieldId, 10);
+      const parsedSequenceId = parseInt(fieldSequenceId, 10);
       const normalizedField = normalizeFieldIndex(parsedField);
+      const globalField = getGlobalField(parsedSequenceId, normalizedField);
 
-      updateSelectionToField(normalizedField);
+      updateSelectionToField(globalField);
     },
     [updateSelectionToField],
   );
@@ -369,8 +436,9 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
         return;
       }
 
-      const rowId = Math.floor(editingField / 16);
-      const channelId = Math.floor(editingField / 4) % 4;
+      const localField = getLocalFieldFromGlobalField(editingField);
+      const rowId = Math.floor(localField / TRACKER_ROW_SIZE);
+      const channelId = Math.floor(localField / TRACKER_CHANNEL_FIELDS) % 4;
 
       dispatch(
         trackerDocumentActions.editPatternCell({
@@ -491,10 +559,16 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
     (direction: "up" | "down" | "left" | "right", extendSelection: boolean) => {
       const currentActiveField = activeFieldValueRef.current;
       const currentSelectionRect = selectionRectRef.current;
+      const sequenceLength = songRef.current?.sequence.length ?? 0;
 
-      if (currentActiveField === undefined) {
+      if (currentActiveField === undefined || sequenceLength <= 0) {
         return false;
       }
+
+      const currentSequenceId =
+        getSequenceIdFromGlobalField(currentActiveField);
+      const currentLocalField =
+        getLocalFieldFromGlobalField(currentActiveField);
 
       const key =
         direction === "left"
@@ -505,35 +579,82 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
               ? "ArrowUp"
               : "ArrowDown";
 
-      const movedField = getMovedField(
-        currentActiveField,
-        key,
-        extendSelection,
-      );
+      let movedField = getMovedField(currentLocalField, key, false);
+
+      let nextSequenceId = currentSequenceId;
+      let nextLocalField: number | null = movedField;
 
       if (movedField === null) {
+        const pos = fieldToPosition(currentLocalField);
+
+        if (direction === "up" && currentSequenceId > 0) {
+          nextSequenceId = currentSequenceId - 1;
+          nextLocalField =
+            (TRACKER_PATTERN_LENGTH - 1) * TRACKER_ROW_SIZE + pos.x;
+        } else if (
+          direction === "down" &&
+          currentSequenceId < sequenceLength - 1
+        ) {
+          nextSequenceId = currentSequenceId + 1;
+          nextLocalField = pos.x;
+        } else if (direction === "left" && currentSequenceId > 0) {
+          nextSequenceId = currentSequenceId - 1;
+          nextLocalField =
+            (TRACKER_PATTERN_LENGTH - 1) * TRACKER_ROW_SIZE +
+            (TRACKER_ROW_SIZE - 1);
+        } else if (
+          direction === "right" &&
+          currentSequenceId < sequenceLength - 1
+        ) {
+          nextSequenceId = currentSequenceId + 1;
+          nextLocalField = 0;
+        } else {
+          return false;
+        }
+      }
+
+      if (nextLocalField === null) {
         return false;
       }
 
-      const newActiveField = normalizeFieldIndex(movedField);
+      const newLocalField = normalizeFieldIndex(nextLocalField);
+      const newActiveField = getGlobalField(nextSequenceId, newLocalField);
 
-      if (extendSelection) {
+      if (
+        extendSelection &&
+        selectionOriginRef.current &&
+        selectionOriginRef.current.sequenceId === nextSequenceId
+      ) {
         if (!isSelectingRef.current) {
           isSelectingRef.current = true;
 
           if (!currentSelectionRect) {
-            setSelectionOrigin(fieldToPosition(currentActiveField));
+            setSelectionOrigin({
+              ...fieldToPosition(currentLocalField),
+              sequenceId: currentSequenceId,
+            });
           }
         }
 
-        const origin =
-          selectionOriginRef.current ?? fieldToPosition(currentActiveField);
+        const origin = selectionOriginRef.current;
 
-        setSelectionRect(buildSelectionRect(origin, newActiveField));
+        if (origin && origin.sequenceId === nextSequenceId) {
+          setSelectionRect(
+            buildSelectionRect({ x: origin.x, y: origin.y }, newLocalField),
+          );
+        } else {
+          setSelectionOrigin({
+            ...fieldToPosition(newLocalField),
+            sequenceId: nextSequenceId,
+          });
+          setSelectionRect(undefined);
+        }
       } else {
-        const origin = fieldToPosition(newActiveField);
-        setSelectionOrigin(origin);
-        setSelectionRect(buildSelectionRect(origin, newActiveField));
+        setSelectionOrigin({
+          ...fieldToPosition(newLocalField),
+          sequenceId: nextSequenceId,
+        });
+        setSelectionRect(undefined);
       }
 
       setActiveField(newActiveField);
@@ -932,21 +1053,30 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
       selectionRectRef.current.height === 0;
 
     const currentChannelId = channelIdRef.current;
+    const currentSequenceId =
+      activeFieldValueRef.current !== undefined
+        ? getSequenceIdFromGlobalField(activeFieldValueRef.current)
+        : sequenceId;
 
     if (noSelection) {
       const offset = TRACKER_CHANNEL_FIELDS * currentChannelId;
-      setSelectionOrigin({ x: offset, y: 0 });
+      setSelectionOrigin({ x: offset, y: 0, sequenceId: currentSequenceId });
       setSelectionRect({
         x: offset,
         y: 0,
         width: 3,
-        height: 63,
+        height: TRACKER_PATTERN_LENGTH - 1,
       });
     } else {
-      setSelectionOrigin({ x: 0, y: 0 });
-      setSelectionRect({ x: 0, y: 0, width: 15, height: 63 });
+      setSelectionOrigin({ x: 0, y: 0, sequenceId: currentSequenceId });
+      setSelectionRect({
+        x: 0,
+        y: 0,
+        width: TRACKER_ROW_SIZE - 1,
+        height: TRACKER_PATTERN_LENGTH - 1,
+      });
     }
-  }, [setSelectionOrigin, setSelectionRect]);
+  }, [sequenceId, setSelectionOrigin, setSelectionRect]);
 
   useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);
@@ -1257,16 +1387,222 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
   }, [sequenceId, clearSelection]);
 
   useLayoutEffect(() => {
-    setActiveField(0);
-    setSingleFieldSelection(0);
+    const firstField = getGlobalField(sequenceId, 0);
+    setActiveField(firstField);
+    setSingleFieldSelection(firstField);
     tableRef.current?.focus({ preventScroll: true });
-  }, [setActiveField, setSingleFieldSelection]);
+  }, [sequenceId, setActiveField, setSingleFieldSelection]);
 
   return (
     <StyledTrackerWrapper>
       <StyledTrackerScrollWrapper ref={scrollRef}>
         <StyledTrackerScrollCanvas>
-          <StyledTrackerContentTable $type="pattern">
+          {song?.sequence.map((sequencePatternId, renderSequenceId) => {
+            const renderPattern = song.patterns[sequencePatternId];
+            const isActivePattern = renderSequenceId === activeSequenceId;
+
+            return (
+              <StyledTrackerContentTable $type="pattern" key={renderSequenceId}>
+                <StyledTrackerTableHeader
+                  style={{
+                    background: `linear-gradient(0deg, hsl(${patternHue(sequencePatternId)}deg 100% 70%) 0%, hsl(${patternHue(sequencePatternId)}deg 100% 80%) 100%)`,
+                    borderColor: `hsl(${patternHue(sequencePatternId)}deg 80% 50% / 30%)`,
+                  }}
+                >
+                  <StyledTrackerTableHeaderRow>
+                    <TrackerHeaderCell type="patternIndex">
+                      {orderLength > 1 ? (
+                        <DropdownButton
+                          variant="transparent"
+                          label={String(sequencePatternId).padStart(2, "0")}
+                        >
+                          {renderPatternContextMenu({
+                            dispatch,
+                            patternIndex: sequencePatternId,
+                            orderIndex: renderSequenceId,
+                            orderLength,
+                          })}
+                        </DropdownButton>
+                      ) : (
+                        String(sequencePatternId).padStart(2, "0")
+                      )}
+                    </TrackerHeaderCell>
+                    <TrackerHeaderCell
+                      type="channel"
+                      channel={0}
+                      muted={channelStatus[0] && soloChannel === -1}
+                      solo={soloChannel === 0}
+                    >
+                      Duty 1
+                    </TrackerHeaderCell>
+                    <TrackerHeaderCell
+                      type="channel"
+                      channel={1}
+                      muted={channelStatus[1] && soloChannel === -1}
+                      solo={soloChannel === 1}
+                    >
+                      Duty 2
+                    </TrackerHeaderCell>
+                    <TrackerHeaderCell
+                      type="channel"
+                      channel={2}
+                      muted={channelStatus[2] && soloChannel === -1}
+                      solo={soloChannel === 2}
+                    >
+                      Wave
+                    </TrackerHeaderCell>
+                    <TrackerHeaderCell
+                      type="channel"
+                      channel={3}
+                      muted={channelStatus[3] && soloChannel === -1}
+                      solo={soloChannel === 3}
+                    >
+                      Noise
+                    </TrackerHeaderCell>
+                  </StyledTrackerTableHeaderRow>
+                </StyledTrackerTableHeader>
+
+                <StyledTrackerTableBody
+                  ref={isActivePattern ? tableRef : null}
+                  tabIndex={isActivePattern ? 0 : -1}
+                  onFocus={onFocus}
+                  onContextMenu={onSelectionContextMenu}
+                >
+                  {renderPattern?.map(
+                    (row: PatternCell[], rowIndex: number) => {
+                      const rowFieldBase = rowIndex * TRACKER_ROW_SIZE;
+                      const isPlaying =
+                        playbackState[0] === renderSequenceId &&
+                        playbackState[1] === rowIndex;
+                      const isStepMarker = rowIndex % 8 === 0;
+
+                      const activeLocalField =
+                        activeField !== undefined &&
+                        getSequenceIdFromGlobalField(activeField) ===
+                          renderSequenceId
+                          ? getLocalFieldFromGlobalField(activeField)
+                          : undefined;
+
+                      const isActive =
+                        activeLocalField !== undefined &&
+                        getRowIndexFromLocalField(activeLocalField) ===
+                          rowIndex;
+
+                      return (
+                        <StyledTrackerRow
+                          key={rowIndex}
+                          $isStepMarker={isStepMarker}
+                          $isActive={isActive}
+                        >
+                          <StyledTrackerCell
+                            $isPlaying={isPlaying}
+                            $isMuted={false}
+                            data-row={rowIndex}
+                            data-sequenceid={renderSequenceId}
+                          >
+                            <StyledTrackerRowIndexField
+                              id={`cell_${renderSequenceId}_${rowIndex}`}
+                            >
+                              {renderCounter(rowIndex)}
+                            </StyledTrackerRowIndexField>
+                          </StyledTrackerCell>
+
+                          {row.map((cell, rowChannelId) => {
+                            const localField =
+                              rowFieldBase +
+                              rowChannelId * TRACKER_CHANNEL_FIELDS;
+
+                            const isThisPatternSelected =
+                              selectionOrigin?.sequenceId === renderSequenceId;
+
+                            const isNoteActive =
+                              activeLocalField === localField;
+                            const isInstrumentActive =
+                              activeLocalField === localField + 1;
+                            const isEffectCodeActive =
+                              activeLocalField === localField + 2;
+                            const isEffectParamActive =
+                              activeLocalField === localField + 3;
+
+                            return (
+                              <StyledTrackerCell
+                                $isMuted={channelStatus[rowChannelId]}
+                                key={rowChannelId}
+                              >
+                                <StyledTrackerNoteField
+                                  id={`cell_${renderSequenceId}_${rowIndex}_${rowChannelId}_note`}
+                                  $active={isNoteActive}
+                                  ref={isNoteActive ? activeFieldRef : null}
+                                  data-sequenceid={renderSequenceId}
+                                  data-fieldid={localField}
+                                  $selected={
+                                    isThisPatternSelected &&
+                                    selectedTrackerFieldSet.has(localField)
+                                  }
+                                >
+                                  {renderNote(cell.note)}
+                                </StyledTrackerNoteField>
+
+                                <StyledTrackerInstrumentField
+                                  id={`cell_${renderSequenceId}_${rowIndex}_${rowChannelId}_instrument`}
+                                  $active={isInstrumentActive}
+                                  ref={
+                                    isInstrumentActive ? activeFieldRef : null
+                                  }
+                                  data-sequenceid={renderSequenceId}
+                                  data-fieldid={localField + 1}
+                                  $selected={
+                                    isThisPatternSelected &&
+                                    selectedTrackerFieldSet.has(localField + 1)
+                                  }
+                                >
+                                  {renderInstrument(cell.instrument)}
+                                </StyledTrackerInstrumentField>
+
+                                <StyledTrackerEffectCodeField
+                                  id={`cell_${renderSequenceId}_${rowIndex}_${rowChannelId}_effectcode`}
+                                  $active={isEffectCodeActive}
+                                  ref={
+                                    isEffectCodeActive ? activeFieldRef : null
+                                  }
+                                  data-sequenceid={renderSequenceId}
+                                  data-fieldid={localField + 2}
+                                  $selected={
+                                    isThisPatternSelected &&
+                                    selectedTrackerFieldSet.has(localField + 2)
+                                  }
+                                >
+                                  {renderEffect(cell.effectcode)}
+                                </StyledTrackerEffectCodeField>
+
+                                <StyledTrackerEffectParamField
+                                  id={`cell_${renderSequenceId}_${rowIndex}_${rowChannelId}_effectparam`}
+                                  $active={isEffectParamActive}
+                                  ref={
+                                    isEffectParamActive ? activeFieldRef : null
+                                  }
+                                  data-sequenceid={renderSequenceId}
+                                  data-fieldid={localField + 3}
+                                  $selected={
+                                    isThisPatternSelected &&
+                                    selectedTrackerFieldSet.has(localField + 3)
+                                  }
+                                >
+                                  {renderEffectParam(cell.effectparam)}
+                                </StyledTrackerEffectParamField>
+                              </StyledTrackerCell>
+                            );
+                          })}
+                        </StyledTrackerRow>
+                      );
+                    },
+                  )}
+                </StyledTrackerTableBody>
+              </StyledTrackerContentTable>
+            );
+          })}
+
+          {/* <StyledTrackerContentTable $type="pattern">
             <StyledTrackerTableHeader
               style={{
                 background: `linear-gradient(0deg, hsl(${patternHue(patternId)}deg 100% 70%) 0%, hsl(${patternHue(patternId)}deg 100% 80%) 100%)`,
@@ -1420,7 +1756,7 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
                 );
               })}
             </StyledTrackerTableBody>
-          </StyledTrackerContentTable>
+          </StyledTrackerContentTable> */}
         </StyledTrackerScrollCanvas>
       </StyledTrackerScrollWrapper>
       <TrackerKeyboard
