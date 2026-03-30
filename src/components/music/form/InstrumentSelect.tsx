@@ -115,7 +115,7 @@ export const InstrumentSelect: FC<InstrumentSelectProps> = ({
             label:
               String(instrument.index + 1).padStart(2, "0") +
               ": " +
-              +(instrument.name || `Wave ${instrument.index + 1}`),
+              (instrument.name || `Wave ${instrument.index + 1}`),
           }));
           break;
         case 3:
@@ -124,7 +124,7 @@ export const InstrumentSelect: FC<InstrumentSelectProps> = ({
             label:
               String(instrument.index + 1).padStart(2, "0") +
               ": " +
-              +(instrument.name || `Noise ${instrument.index + 1}`),
+              (instrument.name || `Noise ${instrument.index + 1}`),
           }));
           break;
       }
