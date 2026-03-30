@@ -356,3 +356,44 @@ export const StyledTrackerEffectParamField = styled(StyledTrackerField)`
   color: ${(props) => props.theme.colors.tracker.effectParam};
   padding-left: 1px;
 `;
+
+export const StyledAddPatternButton = styled.button`
+  display: flex;
+  color: ${(props) => props.theme.colors.panel.text};
+  background: ${(props) => props.theme.colors.panel.background};
+  border: 1px solid ${(props) => props.theme.colors.panel.border};
+  border-radius: 4px;
+  padding: 0;
+  border-radius: 3px;
+  width: 200px;
+  height: 50px;
+  align-items: center;
+  justify-content: center;
+
+  svg {
+    fill: ${(props) => props.theme.colors.panel.icon};
+    width: 20px;
+    height: 20px;
+    max-width: 20px;
+    max-height: 20px;
+  }
+
+  &:hover {
+    background: ${(props) => props.theme.colors.panel.hoverBackground};
+  }
+
+  &:active {
+    background: ${(props) => props.theme.colors.panel.activeBackground};
+  }
+`;
+
+export const StyledAddPatternWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  position: sticky;
+  left: 0px;
+  height: 90px;
+  border-top: 1px solid ${(props) => props.theme.colors.sidebar.border};
+`;

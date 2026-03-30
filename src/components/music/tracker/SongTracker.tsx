@@ -17,6 +17,8 @@ import {
   StyledTrackerWrapper,
   StyledTrackerScrollWrapper,
   StyledTrackerScrollCanvas,
+  StyledAddPatternWrapper,
+  StyledAddPatternButton,
 } from "./style";
 import {
   buildSelectionRect,
@@ -54,6 +56,10 @@ import {
   VirtualTrackerKey,
 } from "components/music/tracker/TrackerKeyboard";
 import { SongTrackerPattern } from "components/music/tracker/SongTrackerPattern";
+import l10n from "shared/lib/lang/l10n";
+import { PlusIcon } from "ui/icons/Icons";
+import useResizeObserver from "ui/hooks/use-resize-observer";
+import { mergeRefs } from "ui/hooks/merge-refs";
 
 interface SongTrackerProps {
   sequenceId: number;
@@ -150,6 +156,8 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
       ),
     [activeField],
   );
+
+  const [wrapperEl, wrapperSize] = useResizeObserver<HTMLDivElement>();
 
   useEffect(() => {
     patternRef.current = pattern;
@@ -1383,6 +1391,15 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
     ],
   );
 
+  const onAddSequence = useCallback(
+    (e: React.MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
+      dispatch(trackerDocumentActions.addSequence());
+    },
+    [dispatch],
+  );
+
   useLayoutEffect(() => {
     // If sequence id changes clear the current selection
     clearSelection();
@@ -1407,7 +1424,7 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
 
   return (
     <StyledTrackerWrapper>
-      <StyledTrackerScrollWrapper ref={scrollRef}>
+      <StyledTrackerScrollWrapper ref={mergeRefs(scrollRef, wrapperEl)}>
         <StyledTrackerScrollCanvas>
           {song?.sequence.map((sequencePatternId, renderSequenceId) => {
             const selectedTrackerFieldSetForPattern =
@@ -1442,6 +1459,26 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
             );
           })}
         </StyledTrackerScrollCanvas>
+        <StyledAddPatternWrapper
+          onMouseDown={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+          onTouchStart={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+          style={{
+            width: wrapperSize.width ?? 0,
+          }}
+        >
+          <StyledAddPatternButton
+            onClick={onAddSequence}
+            title={l10n("FIELD_ADD_PATTERN")}
+          >
+            <PlusIcon />
+          </StyledAddPatternButton>
+        </StyledAddPatternWrapper>
       </StyledTrackerScrollWrapper>
       <TrackerKeyboard
         fieldType={currentFocus}
