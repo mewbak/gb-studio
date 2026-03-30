@@ -442,7 +442,12 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
       const el = activeFieldRef.current;
       let newValue = value;
 
-      if (value !== null && el.innerText !== ".." && el.innerText !== "15") {
+      if (
+        value !== null &&
+        value <= 9 &&
+        el.innerText !== ".." &&
+        el.innerText !== "15"
+      ) {
         newValue = 10 * parseInt(el.innerText[1], 10) + value;
         if (newValue > 15) {
           newValue = 15;
