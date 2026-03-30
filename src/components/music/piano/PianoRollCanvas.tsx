@@ -962,6 +962,14 @@ export const PianoRollCanvas = ({
         return false;
       }
 
+      dispatch(
+        trackerActions.setHover({
+          note: noteIndex,
+          column: patternRow,
+          sequenceId,
+        }),
+      );
+
       const patternId = song.sequence[sequenceId];
       const absRow = toAbsRow(sequenceId, patternRow);
       const cell = song.patterns[patternId][patternRow][selectedChannel];
