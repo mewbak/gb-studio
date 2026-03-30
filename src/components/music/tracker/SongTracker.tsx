@@ -410,11 +410,14 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
 
   const editPatternCell = useCallback(
     (changes: Partial<PatternCell>) => {
-      console.log("EDIT PATTERN CELL", changes);
       const editingField = activeFieldValueRef.current;
       const currentPatternId = patternIdRef.current;
 
-      if (editingField === undefined) {
+      const sequenceLength = songRef?.current?.sequence.length ?? 0;
+      const maxField =
+        sequenceLength * TRACKER_PATTERN_LENGTH * TRACKER_ROW_SIZE - 1;
+
+      if (editingField === undefined || editingField > maxField) {
         return;
       }
 
@@ -457,9 +460,19 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
       const currentOctaveOffset = octaveOffsetRef.current;
       const currentEditStep = editStepRef.current;
 
-      if (editingField === undefined) {
+      const sequenceLength = songRef?.current?.sequence.length ?? 0;
+      const maxField =
+        sequenceLength * TRACKER_PATTERN_LENGTH * TRACKER_ROW_SIZE - 1;
+
+      if (editingField === undefined || editingField > maxField) {
         return;
       }
+
+      const fieldOffset = editingField % TRACKER_ROW_SIZE;
+      const maxChannelField =
+        sequenceLength * TRACKER_PATTERN_LENGTH * TRACKER_ROW_SIZE -
+        TRACKER_ROW_SIZE +
+        fieldOffset;
 
       const instrument = selectedInstrumentIdRef.current;
 
@@ -471,7 +484,10 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
           note: newNote,
           instrument: instrument,
         });
-        const nextField = editingField + TRACKER_ROW_SIZE * currentEditStep;
+        const nextField = Math.min(
+          editingField + TRACKER_ROW_SIZE * currentEditStep,
+          maxChannelField,
+        );
         setActiveField(nextField);
         setSingleFieldSelection(nextField);
       } else {
