@@ -201,6 +201,10 @@ const StyledTrackerKeyboardNotesRow = styled.div`
   width: max-content;
   flex-grow: 1;
   padding-right: 50px;
+
+  ${StyledButton} {
+    width: 50px;
+  }
 `;
 
 const StyledTrackerKeyboardButtonsRow = styled.div`
