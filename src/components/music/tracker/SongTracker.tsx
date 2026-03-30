@@ -585,6 +585,9 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
       if (direction === "left") {
         if (currentPos.x > 0) {
           nextX -= 1;
+        } else if (currentPos.y > 0) {
+          nextX = TRACKER_ROW_SIZE - 1;
+          nextY -= 1;
         } else if (currentSequenceId > 0) {
           nextSequenceId -= 1;
           nextX = TRACKER_ROW_SIZE - 1;
@@ -595,6 +598,9 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
       } else if (direction === "right") {
         if (currentPos.x < TRACKER_ROW_SIZE - 1) {
           nextX += 1;
+        } else if (currentPos.y < TRACKER_PATTERN_LENGTH - 1) {
+          nextX = 0;
+          nextY += 1;
         } else if (currentSequenceId < sequenceLength - 1) {
           nextSequenceId += 1;
           nextX = 0;
