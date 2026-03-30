@@ -16,10 +16,13 @@ type InstrumentOption = {
   label: string;
 };
 
+// In option use 1-index so that searching
+// by number isn't off by one
+// convert to/from 0-index on read value in and onChange
 const defaultInstrumentOptions = Array(15)
   .fill("")
   .map((_, i) => ({
-    value: i,
+    value: i + 1,
     label: `Instrument ${i + 1}`,
   })) as InstrumentOption[];
 
@@ -99,20 +102,29 @@ export const InstrumentSelect: FC<InstrumentSelectProps> = ({
         case 0:
         case 1:
           instruments = song?.duty_instruments.map((instrument) => ({
-            value: instrument.index,
-            label: instrument.name || `Duty ${instrument.index + 1}`,
+            value: instrument.index + 1,
+            label:
+              String(instrument.index + 1).padStart(2, "0") +
+              ": " +
+              (instrument.name || `Duty ${instrument.index + 1}`),
           }));
           break;
         case 2:
           instruments = song?.wave_instruments.map((instrument) => ({
-            value: instrument.index,
-            label: instrument.name || `Wave ${instrument.index + 1}`,
+            value: instrument.index + 1,
+            label:
+              String(instrument.index + 1).padStart(2, "0") +
+              ": " +
+              +(instrument.name || `Wave ${instrument.index + 1}`),
           }));
           break;
         case 3:
           instruments = song?.noise_instruments.map((instrument) => ({
-            value: instrument.index,
-            label: instrument.name || `Noise ${instrument.index + 1}`,
+            value: instrument.index + 1,
+            label:
+              String(instrument.index + 1).padStart(2, "0") +
+              ": " +
+              +(instrument.name || `Noise ${instrument.index + 1}`),
           }));
           break;
       }
@@ -123,7 +135,7 @@ export const InstrumentSelect: FC<InstrumentSelectProps> = ({
   }, [selectedChannel, song]);
 
   useEffect(() => {
-    setCurrentInstrument(options.find((v) => v.value === value));
+    setCurrentInstrument(options.find((v) => v.value - 1 === value));
   }, [options, value]);
 
   useEffect(() => {
@@ -139,10 +151,13 @@ export const InstrumentSelect: FC<InstrumentSelectProps> = ({
 
   const onSelectChange = (newValue: SingleValue<InstrumentOption>) => {
     if (newValue) {
-      onChange?.(newValue.value);
+      // Change back to 0-indexed
+      const value = newValue.value - 1;
+
+      onChange?.(value);
       playPreview({
         note,
-        instrumentId: newValue.value,
+        instrumentId: value,
         effectCode,
         effectParam,
       });
@@ -158,9 +173,9 @@ export const InstrumentSelect: FC<InstrumentSelectProps> = ({
       formatOptionLabel={(option: InstrumentOption) => {
         return (
           <OptionLabelWithPreview
-            preview={<LabelColor $instrument={Number(option.value)} />}
+            preview={<LabelColor $instrument={Number(option.value - 1)} />}
           >
-            {String(option.value + 1).padStart(2, "0")}: {option.label}
+            {option.label}
           </OptionLabelWithPreview>
         );
       }}
@@ -172,9 +187,8 @@ export const InstrumentSelect: FC<InstrumentSelectProps> = ({
             </SingleValueWithPreview>
           ) : (
             <SingleValueWithPreview
-              preview={<LabelColor $instrument={Number(value)} />}
+              preview={<LabelColor $instrument={Number((value ?? 1) - 1)} />}
             >
-              {String((currentValue?.value ?? 0) + 1).padStart(2, "0")}:{" "}
               {currentValue?.label}
             </SingleValueWithPreview>
           ),
