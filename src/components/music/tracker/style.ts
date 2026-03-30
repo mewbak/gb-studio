@@ -29,7 +29,8 @@ interface StyledTrackerContentTableProps {
 export const StyledTrackerContentTable = styled.table<StyledTrackerContentTableProps>`
   width: 600px;
   display: table;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
 
   ${(props) =>
     props.$type === "pattern" &&
@@ -249,17 +250,32 @@ export const StyledTrackerCell = styled.td<StyledTrackerCellProps>`
   border-style: solid;
   margin: 0;
   height: 25px;
-  padding: 0;
   justify-content: center;
   align-items: center;
   text-align: center;
+  padding: 0 11px;
+
+  &:first-child {
+    background-color: ${(props) => props.theme.colors.tracker.background};
+  }
 
   ${(props) =>
     props.$isPlaying
       ? css`
           && {
+            position: relative;
             background-color: ${props.theme.colors.highlight};
             color: ${props.theme.colors.highlightText};
+
+            &:after {
+              content: "";
+              position: absolute;
+              top: 0px;
+              right: -12.5px;
+              border-top: 12.5px solid transparent;
+              border-bottom: 12.5px solid transparent;
+              border-left: 12.5px solid ${props.theme.colors.highlight};
+            }
           }
           ${StyledTrackerField} {
             color: ${props.theme.colors.highlightText};
