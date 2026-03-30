@@ -70,7 +70,7 @@ const StyledSongContextBarTimer = styled.div<{ disabled: boolean }>`
       opacity: 0.5;
     `}
 
-  @media (max-width: 900px) {
+  @media (max-width: 360px) {
     font-size: 10px;
     padding: 0 5px;
     gap: 2px;
