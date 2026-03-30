@@ -137,8 +137,13 @@ export const StyledTrackerHeaderCell = styled.th<StyledTrackerHeaderCellProps>`
     props.$type === "patternIndex" &&
     css`
       padding: 0px;
-      width: 50px;
+      width: 52px;
+      min-width: 52px;
       text-align: center;
+      padding: 0;
+      position: sticky;
+      left: 0px;
+      z-index: 1;
     `}
 
   ${(props) =>
@@ -256,6 +261,7 @@ export const StyledTrackerCell = styled.td<StyledTrackerCellProps>`
   padding: 0 11px;
 
   &:first-child {
+    padding: 0px;
     background-color: ${(props) => props.theme.colors.tracker.background};
   }
 

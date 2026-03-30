@@ -61,7 +61,10 @@ export const SongTrackerPattern = memo(
           }}
         >
           <StyledTrackerTableHeaderRow>
-            <TrackerHeaderCell type="patternIndex">
+            <TrackerHeaderCell
+              type="patternIndex"
+              sequencePatternId={sequencePatternId}
+            >
               {orderLength > 1 ? (
                 <DropdownButton
                   variant="transparent"
