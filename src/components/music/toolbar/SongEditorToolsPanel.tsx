@@ -31,11 +31,7 @@ import l10n from "shared/lib/lang/l10n";
 import { InstrumentSelectButton } from "components/music/form/InstrumentSelectButton";
 import { StyledFloatingPanel } from "ui/panels/style";
 import { StyledButton } from "ui/buttons/style";
-
-interface OctaveOffsetOptions {
-  value: number;
-  label: string;
-}
+import { OctaveOffsetSelectButton } from "components/music/form/OctaveOffsetSelectButton";
 
 interface StepOption {
   value: number;
@@ -49,7 +45,6 @@ interface SongEditorToolsPanelProps {
 const FloatingPanelFiles = styled(FloatingPanel)``;
 
 const FloatingPanelTools = styled(FloatingPanel)`
-  .OctaveSelect,
   .StepSelect {
     width: 50px;
   }
@@ -106,15 +101,6 @@ const SongEditorToolsPanel = ({ musicAsset }: SongEditorToolsPanelProps) => {
   const [playbackFromStart, setPlaybackFromStart] = useState(false);
   const exporting = useAppSelector((state) => state.tracker.exporting);
   const [showExportPanel, setShowExportPanel] = useState(false);
-
-  const octaveOffsetOptions: OctaveOffsetOptions[] = useMemo(
-    () =>
-      [0, 1, 2, 3].map((i) => ({
-        value: i,
-        label: `${l10n("FIELD_OCTAVE")} ${i + 3}`,
-      })),
-    [],
-  );
 
   const stepOptions: StepOption[] = useMemo(
     () =>
@@ -351,16 +337,10 @@ const SongEditorToolsPanel = ({ musicAsset }: SongEditorToolsPanelProps) => {
         {view === "tracker" && (
           <>
             <FloatingPanelDivider />
-            <Select
-              className="OctaveSelect"
-              classNamePrefix="CustomSelect--Left CustomSelect--WidthAuto"
-              value={octaveOffsetOptions.find((i) => i.value === octaveOffset)}
-              options={octaveOffsetOptions}
-              onChange={(newValue: SingleValue<OctaveOffsetOptions>) => {
-                if (newValue) {
-                  setOctaveOffset(newValue.value);
-                }
-              }}
+            <OctaveOffsetSelectButton
+              value={octaveOffset}
+              onChange={setOctaveOffset}
+              name={"octaveOffset"}
             />
             <FloatingPanelDivider />
             <Select
