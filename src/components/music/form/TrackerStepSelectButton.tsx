@@ -36,7 +36,7 @@ const LabelWrapper = styled.div`
   align-items: center;
   font-size: 15px;
   font-weight: bold;
-  width: 25px;
+  width: 22px;
 `;
 
 const TriggerButton = React.forwardRef<
