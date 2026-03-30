@@ -69,10 +69,15 @@ const StyledSongContextBarTimer = styled.div<{ disabled: boolean }>`
     css`
       opacity: 0.5;
     `}
+
+  @media (max-width: 900px) {
+    font-size: 10px;
+    padding: 0 5px;
+    gap: 2px;
+  }
 `;
 
 const StyledSongContextBarTimerPart = styled.div`
-  flex:grow: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -80,6 +85,9 @@ const StyledSongContextBarTimerPart = styled.div`
 
 const StyledSongContextBarTimerPartLabel = styled.div`
   font-size: 8px;
+  @media (max-width: 900px) {
+    font-size: 7px;
+  }
 `;
 
 const getPlayButtonLabel = (play: boolean, playbackFromStart: boolean) => {

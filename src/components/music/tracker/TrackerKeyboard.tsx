@@ -67,19 +67,9 @@ const StyledTrackerKeyboard = styled.div<{ $open?: boolean }>`
   height: 600px;
   transition: max-height 200ms ease-in-out;
   pointer-events: ${(props) => (props.$open ? "auto" : "none")};
-  max-height: ${(props) => (props.$open ? "240px" : "0px")};
-  box-sizing: border-box;
+  max-height: ${(props) => (props.$open ? "182px" : "0px")};
 
-  button {
-    min-width: 50px;
-    min-height: 40px;
-    white-space: nowrap;
-    font-weight: bold;
-    font-size: 15px;
-    height: auto;
-    touch-action: manipulation;
-    user-select: none;
-  }
+  box-sizing: border-box;
 
   ${StyledButton} {
     user-select: none;
@@ -88,10 +78,30 @@ const StyledTrackerKeyboard = styled.div<{ $open?: boolean }>`
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
 
+    min-width: 50px;
+    white-space: nowrap;
+
     * {
       user-select: none;
       -webkit-user-select: none;
       -webkit-touch-callout: none;
+    }
+  }
+
+  @media (max-width: 900px) {
+    max-height: ${(props) => (props.$open ? "240px" : "0px")};
+
+    ${StyledButton} {
+      font-size: 15px;
+      font-weight: bold;
+      height: auto;
+      min-height: 40px;
+    }
+  }
+
+  @media (max-width: 340px) {
+    ${StyledButton} {
+      min-width: 40px;
     }
   }
 `;
@@ -109,7 +119,6 @@ const StyledTrackerNavigationButtons = styled.div`
 
 const StyledTrackerSectionButtons = styled.div`
   display: flex;
-  background: red;
   flex-grow: 1;
 `;
 
@@ -164,7 +173,7 @@ const StyledTrackerEffectButtons = styled.div`
 `;
 
 const StyledTrackerKeyboardNotes = styled.div`
-  overflow-x: auto;
+  overflow-x: scroll;
   overflow-y: hidden;
   background: ${(props) => props.theme.colors.sidebar.background};
   flex-grow: 1;
@@ -196,6 +205,7 @@ const StyledTrackerKeyboardButtonsRow = styled.div`
   gap: 10px;
   flex-grow: 1;
   padding-right: 10px;
+  max-width: 515px;
 
   & ${StyledButton} {
     flex-grow: 1;
@@ -300,7 +310,11 @@ export const TrackerKeyboard = ({
   return (
     <StyledTrackerKeyboard
       $open={open}
-      onMouseDown={(e) => {
+      onTouchEnd={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      }}
+      onPointerDown={(e) => {
         e.preventDefault();
         e.stopPropagation();
       }}
@@ -363,7 +377,8 @@ export const TrackerKeyboard = ({
         <Button
           type="button"
           variant={shiftKey ? "primary" : "normal"}
-          onMouseDown={() => {
+          onPointerDown={(e) => {
+            e.preventDefault();
             setShiftKey((value) => !value);
           }}
         >
@@ -374,7 +389,7 @@ export const TrackerKeyboard = ({
 
         <Button
           type="button"
-          onMouseDown={() => {
+          onPointerDown={() => {
             console.log("SONG SETTINGS");
           }}
         >
@@ -387,7 +402,7 @@ export const TrackerKeyboard = ({
           <StyledTrackerEffectButtons>
             <StyledTrackerKeyboardButtonsRow>
               <Button
-                onMouseDown={() => {
+                onPointerDown={() => {
                   onKeyPressed({
                     type: "transposeField",
                     direction: "up",
@@ -397,7 +412,7 @@ export const TrackerKeyboard = ({
                 +
               </Button>
               <Button
-                onMouseDown={() => {
+                onPointerDown={() => {
                   onKeyPressed({
                     type: "transpose",
                     direction: "up",
@@ -408,7 +423,7 @@ export const TrackerKeyboard = ({
                 + Oct
               </Button>
               <Button
-                onMouseDown={() => {
+                onPointerDown={() => {
                   onKeyPressed({
                     type: "transpose",
                     direction: "up",
@@ -421,7 +436,7 @@ export const TrackerKeyboard = ({
             </StyledTrackerKeyboardButtonsRow>
             <StyledTrackerKeyboardButtonsRow>
               <Button
-                onMouseDown={() => {
+                onPointerDown={() => {
                   onKeyPressed({
                     type: "transposeField",
                     direction: "down",
@@ -431,7 +446,7 @@ export const TrackerKeyboard = ({
                 -
               </Button>
               <Button
-                onMouseDown={() => {
+                onPointerDown={() => {
                   onKeyPressed({
                     type: "transpose",
                     direction: "down",
@@ -442,7 +457,7 @@ export const TrackerKeyboard = ({
                 - Oct
               </Button>
               <Button
-                onMouseDown={() => {
+                onPointerDown={() => {
                   onKeyPressed({
                     type: "transpose",
                     direction: "down",
@@ -455,7 +470,7 @@ export const TrackerKeyboard = ({
             </StyledTrackerKeyboardButtonsRow>
             <StyledTrackerKeyboardButtonsRow>
               <Button
-                onMouseDown={() => {
+                onPointerDown={() => {
                   onKeyPressed({
                     type: "insertRow",
                   });
@@ -464,7 +479,7 @@ export const TrackerKeyboard = ({
                 Insert Row
               </Button>
               <Button
-                onMouseDown={() => {
+                onPointerDown={() => {
                   onKeyPressed({
                     type: "removeRow",
                   });
@@ -485,7 +500,7 @@ export const TrackerKeyboard = ({
                     <Button
                       key={n}
                       type="button"
-                      onMouseDown={() => {
+                      onPointerDown={() => {
                         onKeyPressed({ type: "number", value: n });
                       }}
                     >
@@ -498,7 +513,7 @@ export const TrackerKeyboard = ({
                     <Button
                       key={n}
                       type="button"
-                      onMouseDown={() => {
+                      onPointerDown={() => {
                         onKeyPressed({ type: "number", value: n + 5 });
                       }}
                     >
@@ -511,7 +526,7 @@ export const TrackerKeyboard = ({
                     <Button
                       key={n}
                       type="button"
-                      onMouseDown={() => {
+                      onPointerDown={() => {
                         onKeyPressed({ type: "number", value: n + 10 });
                       }}
                     >
@@ -531,7 +546,7 @@ export const TrackerKeyboard = ({
                         <Button
                           key={noteIndex + octave * OCTAVE_SIZE}
                           type="button"
-                          onMouseDown={() => {
+                          onPointerDown={() => {
                             onKeyPressed({
                               type: "note",
                               value: noteIndex + octave * OCTAVE_SIZE,
@@ -555,7 +570,7 @@ export const TrackerKeyboard = ({
         >
           <Button
             type="button"
-            onMouseDown={() => {
+            onPointerDown={() => {
               onKeyPressed(
                 shiftKey
                   ? {
