@@ -292,11 +292,6 @@ export const InstrumentEditor = () => {
     return null;
   }
 
-  console.log(
-    "resolvedInstrument.instrument.subpattern",
-    resolvedInstrument.instrument.subpattern.length,
-  );
-
   return (
     <>
       <FormSection>
