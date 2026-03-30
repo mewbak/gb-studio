@@ -336,9 +336,9 @@ export const createProjectWindow = async () => {
   projectWindow = new BrowserWindow({
     x: projectWindowState.x,
     y: projectWindowState.y,
-    width: Math.max(640, projectWindowState.width),
+    width: Math.max(900, projectWindowState.width),
     height: Math.max(600, projectWindowState.height),
-    minWidth: 640,
+    minWidth: 900,
     minHeight: 600,
     titleBarStyle: "hiddenInset",
     fullscreenable: true,
