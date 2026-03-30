@@ -14,21 +14,21 @@ export interface ButtonProps
   readonly active?: boolean;
 }
 
-export const Button = ({
-  id,
-  size = "medium",
-  variant = "normal",
-  active,
-  ...props
-}: ButtonProps) => {
-  return (
-    <StyledButton
-      id={id}
-      $size={size}
-      $variant={variant}
-      $active={active}
-      data-is-active={active}
-      {...props}
-    />
-  );
-};
+export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  (
+    { id, size = "medium", variant = "normal", active, ...props }: ButtonProps,
+    ref,
+  ) => {
+    return (
+      <StyledButton
+        ref={ref}
+        id={id}
+        $size={size}
+        $variant={variant}
+        $active={active}
+        data-is-active={active}
+        {...props}
+      />
+    );
+  },
+);
