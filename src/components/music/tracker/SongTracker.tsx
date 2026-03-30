@@ -1310,7 +1310,7 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
 
       if (virtualKey.type === "navigation") {
         moveActiveField(virtualKey.direction, virtualKey.shiftKey);
-        tableRef.current?.focus();
+        tableRef.current?.focus({ preventScroll: true });
         return;
       }
 
@@ -1320,7 +1320,7 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
           value: virtualKey.value,
         });
 
-        tableRef.current?.focus();
+        tableRef.current?.focus({ preventScroll: true });
         return;
       }
 
@@ -1333,7 +1333,7 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
           }),
         );
 
-        tableRef.current?.focus();
+        tableRef.current?.focus({ preventScroll: true });
         return;
       }
 
@@ -1345,7 +1345,7 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
             direction: virtualKey.direction,
           }),
         );
-        tableRef.current?.focus();
+        tableRef.current?.focus({ preventScroll: true });
         return;
       }
 
@@ -1357,7 +1357,7 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
             direction: virtualKey.type === "insertRow" ? "insert" : "delete",
           }),
         );
-        tableRef.current?.focus();
+        tableRef.current?.focus({ preventScroll: true });
         return;
       }
 
@@ -1368,7 +1368,7 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
             selectedTrackerFields: selectedTrackerFieldsRef.current,
           }),
         );
-        tableRef.current?.focus();
+        tableRef.current?.focus({ preventScroll: true });
         return;
       }
 
