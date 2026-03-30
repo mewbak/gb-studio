@@ -1,7 +1,8 @@
-import React, { FC, useMemo } from "react";
-import { Select, SelectCommonProps } from "ui/form/Select";
+import React, { FC, useCallback, useMemo } from "react";
+import { OptionLabelWithInfo, Select, SelectCommonProps } from "ui/form/Select";
 import { SingleValue } from "react-select";
 import l10n from "shared/lib/lang/l10n";
+import { MIN_OCTAVE } from "consts";
 
 export interface OctaveOffsetOption {
   value: number;
@@ -37,17 +38,31 @@ export const OctaveOffsetSelect: FC<OctaveOffsetSelectProps> = ({
     [options, value],
   );
 
-  const onSelectChange = (newValue: SingleValue<OctaveOffsetOption>) => {
-    if (newValue) {
-      onChange?.(newValue.value);
-    }
-  };
+  const onSelectChange = useCallback(
+    (newValue: SingleValue<OctaveOffsetOption>) => {
+      if (newValue) {
+        onChange?.(newValue.value);
+      }
+    },
+    [onChange],
+  );
+
+  const formatOptionLabel = useCallback((option: OctaveOffsetOption) => {
+    return (
+      <OptionLabelWithInfo
+        info={`C${option.value + MIN_OCTAVE} - B${option.value + MIN_OCTAVE + 2}`}
+      >
+        {option.label}
+      </OptionLabelWithInfo>
+    );
+  }, []);
 
   return (
     <Select
       value={currentValue}
       options={options}
       onChange={onSelectChange}
+      formatOptionLabel={formatOptionLabel}
       {...selectProps}
     />
   );
