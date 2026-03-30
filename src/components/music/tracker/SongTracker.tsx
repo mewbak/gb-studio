@@ -8,33 +8,14 @@ import React, {
 } from "react";
 import { Song, PatternCell } from "shared/lib/uge/types";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
-import { TrackerHeaderCell } from "./TrackerHeaderCell";
-import {
-  patternHue,
-  renderEffect,
-  renderEffectParam,
-  renderInstrument,
-  renderNote,
-} from "components/music/helpers";
 import { getKeys } from "renderer/lib/keybindings/keyBindings";
 import trackerActions from "store/features/tracker/trackerActions";
 import API from "renderer/lib/api";
 import { MusicDataReceivePacket } from "shared/lib/music/types";
 import { useAppDispatch, useAppSelector } from "store/hooks";
 import {
-  StyledTrackerContentTable,
-  StyledTrackerTableHeader,
-  StyledTrackerTableHeaderRow,
   StyledTrackerWrapper,
-  StyledTrackerTableBody,
   StyledTrackerScrollWrapper,
-  StyledTrackerRow,
-  StyledTrackerCell,
-  StyledTrackerRowIndexField,
-  StyledTrackerNoteField,
-  StyledTrackerInstrumentField,
-  StyledTrackerEffectCodeField,
-  StyledTrackerEffectParamField,
   StyledTrackerScrollCanvas,
 } from "./style";
 import {
@@ -50,9 +31,7 @@ import {
   TRACKER_INDEX_WIDTH,
   trackerFieldsToPatternCells,
 } from "./helpers";
-import renderPatternContextMenu from "components/music/contextMenus/renderPatternContextMenu";
 import renderTrackerContextMenu from "components/music/contextMenus/renderTrackerContextMenu";
-import { DropdownButton } from "ui/buttons/DropdownButton";
 import {
   OCTAVE_SIZE,
   TRACKER_CHANNEL_FIELDS,
@@ -72,15 +51,12 @@ import {
   TrackerKeyboard,
   VirtualTrackerKey,
 } from "components/music/tracker/TrackerKeyboard";
+import { SongTrackerPattern } from "components/music/tracker/SongTrackerPattern";
 
 interface SongTrackerProps {
   sequenceId: number;
   song: Song | null;
 }
-
-const renderCounter = (n: number): string => {
-  return n?.toString().padStart(2, "0") || "__";
-};
 
 const PATTERN_FIELD_COUNT = TRACKER_PATTERN_LENGTH * TRACKER_ROW_SIZE;
 
@@ -92,9 +68,6 @@ const getLocalFieldFromGlobalField = (field: number) =>
 
 const getGlobalField = (sequenceId: number, localField: number) =>
   sequenceId * PATTERN_FIELD_COUNT + localField;
-
-const getRowIndexFromLocalField = (field: number) =>
-  Math.floor(field / TRACKER_ROW_SIZE);
 
 const getPatternIdAtSequence = (song: Song | null, sequenceId: number) =>
   song?.sequence[sequenceId] ?? 0;
@@ -1406,212 +1379,42 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
     tableRef.current?.focus({ preventScroll: true });
   }, [activeSequenceId]);
 
+  const selectedSequenceId = selectionOrigin?.sequenceId;
+
   return (
     <StyledTrackerWrapper>
       <StyledTrackerScrollWrapper ref={scrollRef}>
         <StyledTrackerScrollCanvas>
           {song?.sequence.map((sequencePatternId, renderSequenceId) => {
-            const renderPattern = song.patterns[sequencePatternId];
-            const isActivePattern = renderSequenceId === activeSequenceId;
+            const selectedTrackerFieldSetForPattern =
+              selectedSequenceId === renderSequenceId
+                ? selectedTrackerFieldSet
+                : undefined;
+            const activeLocalFieldForPattern =
+              activeField !== undefined &&
+              getSequenceIdFromGlobalField(activeField) === renderSequenceId
+                ? getLocalFieldFromGlobalField(activeField)
+                : undefined;
 
             return (
-              <StyledTrackerContentTable $type="pattern" key={renderSequenceId}>
-                <StyledTrackerTableHeader
-                  style={{
-                    background: `linear-gradient(0deg, hsl(${patternHue(sequencePatternId)}deg 100% 70%) 0%, hsl(${patternHue(sequencePatternId)}deg 100% 80%) 100%)`,
-                    borderColor: `hsl(${patternHue(sequencePatternId)}deg 80% 50% / 30%)`,
-                  }}
-                >
-                  <StyledTrackerTableHeaderRow>
-                    <TrackerHeaderCell type="patternIndex">
-                      {orderLength > 1 ? (
-                        <DropdownButton
-                          variant="transparent"
-                          label={String(sequencePatternId).padStart(2, "0")}
-                        >
-                          {renderPatternContextMenu({
-                            dispatch,
-                            patternIndex: sequencePatternId,
-                            orderIndex: renderSequenceId,
-                            orderLength,
-                          })}
-                        </DropdownButton>
-                      ) : (
-                        String(sequencePatternId).padStart(2, "0")
-                      )}
-                    </TrackerHeaderCell>
-                    <TrackerHeaderCell
-                      type="channel"
-                      channel={0}
-                      muted={channelStatus[0] && soloChannel === -1}
-                      solo={soloChannel === 0}
-                    >
-                      Duty 1
-                    </TrackerHeaderCell>
-                    <TrackerHeaderCell
-                      type="channel"
-                      channel={1}
-                      muted={channelStatus[1] && soloChannel === -1}
-                      solo={soloChannel === 1}
-                    >
-                      Duty 2
-                    </TrackerHeaderCell>
-                    <TrackerHeaderCell
-                      type="channel"
-                      channel={2}
-                      muted={channelStatus[2] && soloChannel === -1}
-                      solo={soloChannel === 2}
-                    >
-                      Wave
-                    </TrackerHeaderCell>
-                    <TrackerHeaderCell
-                      type="channel"
-                      channel={3}
-                      muted={channelStatus[3] && soloChannel === -1}
-                      solo={soloChannel === 3}
-                    >
-                      Noise
-                    </TrackerHeaderCell>
-                  </StyledTrackerTableHeaderRow>
-                </StyledTrackerTableHeader>
-
-                <StyledTrackerTableBody
-                  ref={isActivePattern ? tableRef : null}
-                  tabIndex={isActivePattern ? 0 : -1}
-                  onFocus={onFocus}
-                  onContextMenu={onSelectionContextMenu}
-                >
-                  {renderPattern?.map(
-                    (row: PatternCell[], rowIndex: number) => {
-                      const rowFieldBase = rowIndex * TRACKER_ROW_SIZE;
-                      const isPlaying =
-                        playbackState[0] === renderSequenceId &&
-                        playbackState[1] === rowIndex;
-                      const isStepMarker = rowIndex % 8 === 0;
-
-                      const activeLocalField =
-                        activeField !== undefined &&
-                        getSequenceIdFromGlobalField(activeField) ===
-                          renderSequenceId
-                          ? getLocalFieldFromGlobalField(activeField)
-                          : undefined;
-
-                      const isActive =
-                        activeLocalField !== undefined &&
-                        getRowIndexFromLocalField(activeLocalField) ===
-                          rowIndex;
-
-                      return (
-                        <StyledTrackerRow
-                          key={rowIndex}
-                          $isStepMarker={isStepMarker}
-                          $isActive={isActive}
-                        >
-                          <StyledTrackerCell
-                            $isPlaying={isPlaying}
-                            $isMuted={false}
-                            data-row={rowIndex}
-                            data-sequenceid={renderSequenceId}
-                          >
-                            <StyledTrackerRowIndexField
-                              id={`cell_${renderSequenceId}_${rowIndex}`}
-                            >
-                              {renderCounter(rowIndex)}
-                            </StyledTrackerRowIndexField>
-                          </StyledTrackerCell>
-
-                          {row.map((cell, rowChannelId) => {
-                            const localField =
-                              rowFieldBase +
-                              rowChannelId * TRACKER_CHANNEL_FIELDS;
-
-                            const isThisPatternSelected =
-                              selectionOrigin?.sequenceId === renderSequenceId;
-
-                            const isNoteActive =
-                              activeLocalField === localField;
-                            const isInstrumentActive =
-                              activeLocalField === localField + 1;
-                            const isEffectCodeActive =
-                              activeLocalField === localField + 2;
-                            const isEffectParamActive =
-                              activeLocalField === localField + 3;
-
-                            return (
-                              <StyledTrackerCell
-                                $isMuted={channelStatus[rowChannelId]}
-                                key={rowChannelId}
-                              >
-                                <StyledTrackerNoteField
-                                  id={`cell_${renderSequenceId}_${rowIndex}_${rowChannelId}_note`}
-                                  $active={isNoteActive}
-                                  ref={isNoteActive ? activeFieldRef : null}
-                                  data-sequenceid={renderSequenceId}
-                                  data-fieldid={localField}
-                                  $selected={
-                                    isThisPatternSelected &&
-                                    selectedTrackerFieldSet.has(localField)
-                                  }
-                                >
-                                  {renderNote(cell.note)}
-                                </StyledTrackerNoteField>
-
-                                <StyledTrackerInstrumentField
-                                  id={`cell_${renderSequenceId}_${rowIndex}_${rowChannelId}_instrument`}
-                                  $active={isInstrumentActive}
-                                  ref={
-                                    isInstrumentActive ? activeFieldRef : null
-                                  }
-                                  data-sequenceid={renderSequenceId}
-                                  data-fieldid={localField + 1}
-                                  $selected={
-                                    isThisPatternSelected &&
-                                    selectedTrackerFieldSet.has(localField + 1)
-                                  }
-                                >
-                                  {renderInstrument(cell.instrument)}
-                                </StyledTrackerInstrumentField>
-
-                                <StyledTrackerEffectCodeField
-                                  id={`cell_${renderSequenceId}_${rowIndex}_${rowChannelId}_effectcode`}
-                                  $active={isEffectCodeActive}
-                                  ref={
-                                    isEffectCodeActive ? activeFieldRef : null
-                                  }
-                                  data-sequenceid={renderSequenceId}
-                                  data-fieldid={localField + 2}
-                                  $selected={
-                                    isThisPatternSelected &&
-                                    selectedTrackerFieldSet.has(localField + 2)
-                                  }
-                                >
-                                  {renderEffect(cell.effectcode)}
-                                </StyledTrackerEffectCodeField>
-
-                                <StyledTrackerEffectParamField
-                                  id={`cell_${renderSequenceId}_${rowIndex}_${rowChannelId}_effectparam`}
-                                  $active={isEffectParamActive}
-                                  ref={
-                                    isEffectParamActive ? activeFieldRef : null
-                                  }
-                                  data-sequenceid={renderSequenceId}
-                                  data-fieldid={localField + 3}
-                                  $selected={
-                                    isThisPatternSelected &&
-                                    selectedTrackerFieldSet.has(localField + 3)
-                                  }
-                                >
-                                  {renderEffectParam(cell.effectparam)}
-                                </StyledTrackerEffectParamField>
-                              </StyledTrackerCell>
-                            );
-                          })}
-                        </StyledTrackerRow>
-                      );
-                    },
-                  )}
-                </StyledTrackerTableBody>
-              </StyledTrackerContentTable>
+              <SongTrackerPattern
+                key={renderSequenceId}
+                song={song}
+                sequencePatternId={sequencePatternId}
+                renderSequenceId={renderSequenceId}
+                activeSequenceId={activeSequenceId}
+                activeLocalField={activeLocalFieldForPattern}
+                selectedTrackerFieldSet={selectedTrackerFieldSetForPattern}
+                playbackState={playbackState}
+                channelStatus={channelStatus}
+                soloChannel={soloChannel}
+                orderLength={orderLength}
+                dispatch={dispatch}
+                tableRef={tableRef}
+                activeFieldRef={activeFieldRef}
+                onFocus={onFocus}
+                onSelectionContextMenu={onSelectionContextMenu}
+              />
             );
           })}
         </StyledTrackerScrollCanvas>
