@@ -1233,16 +1233,23 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
     return -1;
   }, [channelStatus]);
 
+  const playbackSequence = playbackState[0];
   const playbackRow = playbackState[1];
 
   useLayoutEffect(() => {
     if (scrollRef.current && playing) {
       const rect = scrollRef.current.getBoundingClientRect();
       const halfHeight = rect.height * 0.5;
+
       scrollRef.current.scrollTop =
-        TRACKER_HEADER_HEIGHT + playbackRow * TRACKER_CELL_HEIGHT - halfHeight;
+        playbackSequence *
+          (TRACKER_HEADER_HEIGHT +
+            TRACKER_CELL_HEIGHT * TRACKER_PATTERN_LENGTH) +
+        TRACKER_HEADER_HEIGHT +
+        playbackRow * TRACKER_CELL_HEIGHT -
+        halfHeight;
     }
-  }, [playing, playbackRow]);
+  }, [playing, playbackRow, playbackSequence]);
 
   const sequenceLength = song?.sequence.length ?? 0;
   const playbackOrder = playbackState[0];
