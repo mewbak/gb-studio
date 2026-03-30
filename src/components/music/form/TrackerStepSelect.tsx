@@ -3,12 +3,12 @@ import { Select, SelectCommonProps } from "ui/form/Select";
 import { SingleValue } from "react-select";
 import l10n from "shared/lib/lang/l10n";
 
-export interface OctaveOffsetOption {
+export interface TrackerStepOption {
   value: number;
   label: string;
 }
 
-interface OctaveOffsetSelectProps extends SelectCommonProps {
+interface TrackerStepSelectProps extends SelectCommonProps {
   name: string;
   value?: number;
   onChange?: (newValue: number) => void;
@@ -18,16 +18,16 @@ interface OctaveOffsetSelectProps extends SelectCommonProps {
   effectParam?: number;
 }
 
-export const OctaveOffsetSelect: FC<OctaveOffsetSelectProps> = ({
+export const TrackerStepSelect: FC<TrackerStepSelectProps> = ({
   value,
   onChange,
   ...selectProps
 }) => {
-  const options: OctaveOffsetOption[] = useMemo(
+  const options: TrackerStepOption[] = useMemo(
     () =>
-      [0, 1, 2, 3].map((i) => ({
+      Array.from({ length: 64 }).map((_, i) => ({
         value: i,
-        label: `${l10n("FIELD_OCTAVE")} ${i + 3}`,
+        label: `${l10n("FIELD_STEP")} ${i}`,
       })),
     [],
   );
@@ -37,7 +37,7 @@ export const OctaveOffsetSelect: FC<OctaveOffsetSelectProps> = ({
     [options, value],
   );
 
-  const onSelectChange = (newValue: SingleValue<OctaveOffsetOption>) => {
+  const onSelectChange = (newValue: SingleValue<TrackerStepOption>) => {
     if (newValue) {
       onChange?.(newValue.value);
     }

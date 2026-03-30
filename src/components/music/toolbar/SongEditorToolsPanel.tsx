@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import {
   SaveIcon,
@@ -19,12 +13,10 @@ import trackerActions from "store/features/tracker/trackerActions";
 import { Button } from "ui/buttons/Button";
 import { MenuOverlay } from "ui/menu/Menu";
 import { saveSongFile } from "store/features/trackerDocument/trackerDocumentState";
-import { Select } from "ui/form/Select";
 import { RelativePortal } from "ui/layout/RelativePortal";
 import { PianoRollToolType } from "store/features/tracker/trackerState";
 import API from "renderer/lib/api";
 import { useAppDispatch, useAppSelector } from "store/hooks";
-import { SingleValue } from "react-select";
 import { MusicAsset } from "shared/lib/resources/types";
 import SongExportForm from "components/music/form/SongExportForm";
 import l10n from "shared/lib/lang/l10n";
@@ -32,11 +24,7 @@ import { InstrumentSelectButton } from "components/music/form/InstrumentSelectBu
 import { StyledFloatingPanel } from "ui/panels/style";
 import { StyledButton } from "ui/buttons/style";
 import { OctaveOffsetSelectButton } from "components/music/form/OctaveOffsetSelectButton";
-
-interface StepOption {
-  value: number;
-  label: string;
-}
+import { TrackerStepSelectButton } from "components/music/form/TrackerStepSelectButton";
 
 interface SongEditorToolsPanelProps {
   musicAsset?: MusicAsset;
@@ -101,15 +89,6 @@ const SongEditorToolsPanel = ({ musicAsset }: SongEditorToolsPanelProps) => {
   const [playbackFromStart, setPlaybackFromStart] = useState(false);
   const exporting = useAppSelector((state) => state.tracker.exporting);
   const [showExportPanel, setShowExportPanel] = useState(false);
-
-  const stepOptions: StepOption[] = useMemo(
-    () =>
-      Array.from({ length: 64 }).map((_, i) => ({
-        value: i,
-        label: `${l10n("FIELD_STEP")} ${i}`,
-      })),
-    [],
-  );
 
   const togglePlay = useCallback(() => {
     if (!playerReady) return;
@@ -343,16 +322,10 @@ const SongEditorToolsPanel = ({ musicAsset }: SongEditorToolsPanelProps) => {
               name={"octaveOffset"}
             />
             <FloatingPanelDivider />
-            <Select
-              className="StepSelect"
-              classNamePrefix="CustomSelect--Left CustomSelect--WidthAuto"
-              value={stepOptions.find((i) => i.value === editStep)}
-              options={stepOptions}
-              onChange={(newValue: SingleValue<StepOption>) => {
-                if (newValue) {
-                  setEditStep(newValue.value);
-                }
-              }}
+            <TrackerStepSelectButton
+              value={editStep}
+              onChange={setEditStep}
+              name="editStep"
             />
             <FloatingPanelDivider />
 
