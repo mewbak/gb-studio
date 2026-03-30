@@ -32,7 +32,7 @@ export const PianoKeyboard = ({
   onPlayNote,
 }: PianoKeyboardProps) => {
   const keyboardRef = useRef<HTMLDivElement | null>(null);
-  const lastTouchedNoteRef = useRef<number | null>(null);
+  const activeTouchesRef = useRef(new Map<number, number | null>());
 
   const getNoteFromTouch = useCallback((touch: React.Touch | Touch) => {
     const element = document.elementFromPoint(
@@ -52,52 +52,57 @@ export const PianoKeyboard = ({
     return Number.isNaN(noteNumber) ? null : noteNumber;
   }, []);
 
-  const playTouchedNote = useCallback(
-    (touch: React.Touch | Touch) => {
-      const noteNumber = getNoteFromTouch(touch);
-      if (noteNumber === null) {
-        return;
-      }
+  const handleTouchStart = useCallback(
+    (e: React.TouchEvent<HTMLDivElement>) => {
+      e.preventDefault();
 
-      if (lastTouchedNoteRef.current !== noteNumber) {
-        lastTouchedNoteRef.current = noteNumber;
-        onPlayNote(noteNumber);
+      for (const touch of Array.from(e.changedTouches)) {
+        const noteNumber = getNoteFromTouch(touch);
+        activeTouchesRef.current.set(touch.identifier, noteNumber);
+
+        if (noteNumber !== null) {
+          onPlayNote(noteNumber);
+        }
       }
     },
     [getNoteFromTouch, onPlayNote],
   );
 
-  const handleTouchStart = useCallback(
-    (e: React.TouchEvent<HTMLDivElement>) => {
-      if (e.touches.length === 0) {
-        return;
-      }
-
-      e.preventDefault();
-      playTouchedNote(e.touches[0]);
-    },
-    [playTouchedNote],
-  );
-
   const handleTouchMove = useCallback(
     (e: React.TouchEvent<HTMLDivElement>) => {
-      if (e.touches.length === 0) {
-        return;
-      }
-
       e.preventDefault();
-      playTouchedNote(e.touches[0]);
+
+      for (const touch of Array.from(e.changedTouches)) {
+        const previousNote = activeTouchesRef.current.get(touch.identifier);
+        const noteNumber = getNoteFromTouch(touch);
+
+        if (noteNumber !== previousNote) {
+          activeTouchesRef.current.set(touch.identifier, noteNumber);
+          if (noteNumber !== null) {
+            onPlayNote(noteNumber);
+          }
+        }
+      }
     },
-    [playTouchedNote],
+    [getNoteFromTouch, onPlayNote],
   );
 
-  const handleTouchEnd = useCallback(() => {
-    lastTouchedNoteRef.current = null;
+  const handleTouchEnd = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    for (const touch of Array.from(e.changedTouches)) {
+      activeTouchesRef.current.delete(touch.identifier);
+    }
   }, []);
 
-  const handleTouchCancel = useCallback(() => {
-    lastTouchedNoteRef.current = null;
-  }, []);
+  const handleTouchCancel = useCallback(
+    (e: React.TouchEvent<HTMLDivElement>) => {
+      for (const touch of Array.from(e.changedTouches)) {
+        activeTouchesRef.current.delete(touch.identifier);
+      }
+    },
+    [],
+  );
 
   const isDraggingRef = useRef(false);
 
