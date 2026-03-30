@@ -954,7 +954,7 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
 
     const visibleTop = scrollRect.top + TRACKER_HEADER_HEIGHT;
     const visibleBottom = scrollRect.bottom - 30;
-    const visibleLeft = scrollRect.left + TRACKER_INDEX_WIDTH;
+    const visibleLeft = scrollRect.left + TRACKER_INDEX_WIDTH + 30;
     const visibleRight = scrollRect.right - 30;
 
     if (fieldRect.top < visibleTop) {
@@ -1148,11 +1148,13 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
     };
   }, [onSelectAll, subpatternEditorFocus]);
 
+  const hasHadFocus = useRef(false);
   const onFocus = useCallback(() => {
     if (activeFieldValueRef.current === undefined) {
       const firstField = getGlobalField(sequenceId, 0);
       setActiveField(firstField);
     }
+    hasHadFocus.current = true;
   }, [sequenceId, setActiveField]);
 
   const onCopy = useCallback(
@@ -1376,7 +1378,12 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
   }, [sequenceId, setActiveField, setSingleFieldSelection]);
 
   useLayoutEffect(() => {
-    tableRef.current?.focus({ preventScroll: true });
+    if (hasHadFocus.current) {
+      requestAnimationFrame(() => {
+        tableRef.current?.focus({ preventScroll: true });
+      });
+      tableRef.current?.focus({ preventScroll: true });
+    }
   }, [activeSequenceId]);
 
   const selectedSequenceId = selectionOrigin?.sequenceId;
