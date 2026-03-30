@@ -165,7 +165,7 @@ const GlobalStyle = createGlobalStyle`
   body .CustomSelect__menu {
     z-index: 100;
     min-width: 100px;
-
+    max-width: calc(100vw - 20px);
     right: 0;
   }
 
