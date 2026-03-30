@@ -349,6 +349,8 @@ const SongEditorToolsPanel = ({ musicAsset }: SongEditorToolsPanelProps) => {
         >
           <SaveIcon />
         </Button>
+        <FloatingPanelDivider />
+
         <ExportButtonWrapper>
           <Button
             variant="transparent"
@@ -360,12 +362,12 @@ const SongEditorToolsPanel = ({ musicAsset }: SongEditorToolsPanelProps) => {
             <ExportIcon />
           </Button>
           {showExportPanel && musicAsset && (
-            <>
+            <div style={{ position: "absolute", top: "100%", left: "100%" }}>
               <MenuOverlay onClick={onCloseExportPanel} />
-              <RelativePortal pin="top-left" offsetY={10} zIndex={10001}>
+              <RelativePortal pin="top-right" offsetY={5} zIndex={10001}>
                 <SongExportForm name={musicAsset.filename} />
               </RelativePortal>
-            </>
+            </div>
           )}
         </ExportButtonWrapper>
 
