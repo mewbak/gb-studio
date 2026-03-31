@@ -169,6 +169,14 @@ const SongEditorToolsPanel = ({ musicAsset }: SongEditorToolsPanelProps) => {
     [dispatch],
   );
 
+  const toggleTool = useCallback(() => {
+    if (tool === "pencil") {
+      dispatch(trackerActions.setTool("eraser"));
+    } else {
+      dispatch(trackerActions.setTool("pencil"));
+    }
+  }, [dispatch, tool]);
+
   const onKeyDown = useCallback(
     (e: KeyboardEvent) => {
       if (e.target && (e.target as Node).nodeName === "INPUT") {
@@ -200,6 +208,10 @@ const SongEditorToolsPanel = ({ musicAsset }: SongEditorToolsPanelProps) => {
       if (view !== "roll") {
         return;
       }
+      if (e.code === "KeyT") {
+        e.preventDefault();
+        toggleTool();
+      }
       if (!subpatternEditorFocus) {
         if (e.code === "Digit1") {
           setSelectedInstrumentId(0);
@@ -230,6 +242,7 @@ const SongEditorToolsPanel = ({ musicAsset }: SongEditorToolsPanelProps) => {
       saveSong,
       toggleView,
       togglePlay,
+      toggleTool,
       setSelectedInstrumentId,
     ],
   );
@@ -370,18 +383,6 @@ const SongEditorToolsPanel = ({ musicAsset }: SongEditorToolsPanelProps) => {
             </div>
           )}
         </ExportButtonWrapper>
-
-        {/* <Button
-          variant="transparent"
-          onClick={toggleView}
-          title={
-            view === "roll"
-              ? l10n("TOOL_TRACKER_VIEW")
-              : l10n("TOOL_PIANO_ROLL_VIEW")
-          }
-        >
-          {view === "roll" ? <TrackerIcon /> : themePianoIcon}
-        </Button> */}
       </FloatingPanelFiles>
     </SongToolsPanel>
   );
