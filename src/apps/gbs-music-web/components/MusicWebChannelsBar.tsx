@@ -2,13 +2,11 @@ import React from "react";
 import {
   StyledMobileToolbar,
   StyledMobileToolbarButton,
+  StyledMobileToolbarDivider,
 } from "gbs-music-web/components/style";
 import { channels } from "shared/lib/music/constants";
-import styled, { css } from "styled-components";
+import styled from "styled-components";
 import {
-  DutyIcon,
-  WaveIcon,
-  NoiseIcon,
   SettingsIcon,
   FXIcon,
   Duty1Icon,
@@ -30,11 +28,6 @@ const StyledChannelIcon = styled.div<{ channel: number }>`
   }
 `;
 
-const StyledChannelLabel = styled.div`
-  margin-top: 3px;
-  font-size: 11px;
-`;
-
 interface MusicWebChannelsBarProps {
   onOpenFX: () => void;
 }
@@ -53,7 +46,7 @@ export const MusicWebChannelsBar = ({ onOpenFX }: MusicWebChannelsBarProps) => {
       {channels.map((channel) => (
         <StyledMobileToolbarButton
           $isActive={selectedChannel === channel.index}
-          onClick={() => {
+          onPointerDown={() => {
             dispatch(trackerActions.setSelectedChannel(channel.index));
           }}
         >
@@ -63,9 +56,10 @@ export const MusicWebChannelsBar = ({ onOpenFX }: MusicWebChannelsBarProps) => {
             {channel.index === 2 && <Wave3Icon />}
             {channel.index === 3 && <Noise4Icon />}
           </StyledChannelIcon>
-          {/* <StyledChannelLabel>{channel.name}</StyledChannelLabel> */}
         </StyledMobileToolbarButton>
       ))}
+
+      <StyledMobileToolbarDivider />
 
       <StyledMobileToolbarButton
         $isAvailable={selectedPatternCells.length > 0}
@@ -76,54 +70,7 @@ export const MusicWebChannelsBar = ({ onOpenFX }: MusicWebChannelsBarProps) => {
 
       <StyledMobileToolbarButton>
         <SettingsIcon />
-        {/* <StyledChannelLabel>Config</StyledChannelLabel> */}
       </StyledMobileToolbarButton>
-
-      {/* <StyledMobileToolbarButton
-        $isActive={mobileView === "channels"}
-        onClick={() => {
-          setMobileView(mobileView !== "channels" ? "channels" : "none");
-        }}
-      >
-        Channels
-      </StyledMobileToolbarButton>
-      <StyledMobileToolbarButton
-        $isActive={mobileView === "instruments"}
-        onClick={() => {
-          setMobileView(mobileView !== "instruments" ? "instruments" : "none");
-        }}
-      >
-        Instruments
-      </StyledMobileToolbarButton>
-      <StyledMobileToolbarButton
-        $isActive={mobileView === "sequence"}
-        onClick={() => {
-          setMobileView(mobileView !== "sequence" ? "sequence" : "none");
-        }}
-      >
-        Sequence
-      </StyledMobileToolbarButton>
-      <StyledMobileToolbarButton
-        $isActive={mobileView === "notes"}
-        onClick={() => {
-          setMobileView(mobileView !== "notes" ? "notes" : "none");
-        }}
-      >
-        Notes
-      </StyledMobileToolbarButton> */}
-      {/* <StyledMobileToolbarButton
-                  $isActive={view === "tracker"}
-                  onClick={() => {
-                    setMobileView("none");
-                    dispatch(
-                      trackerActions.setView(
-                        view === "tracker" ? "roll" : "tracker",
-                      ),
-                    );
-                  }}
-                >
-                  Tracker
-                </StyledMobileToolbarButton> */}
     </StyledMobileToolbar>
   );
 };

@@ -73,6 +73,14 @@ export const StyledMobileToolbarButton = styled.button<{
     `}
 `;
 
+export const StyledMobileToolbarDivider = styled.div`
+  background: ${(props) => props.theme.colors.panel.divider};
+  min-width: 1px;
+  min-height: 1px;
+  align-self: stretch;
+  margin: 5px 5px;
+`;
+
 export const StyledMobileInstrumentsView = styled.div`
   position: fixed;
   top: 0;
