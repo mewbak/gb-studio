@@ -96,7 +96,9 @@ export const SongMetadataEditor = () => {
         </SidebarColumn>
         <SidebarColumn>
           <FormRow>
-            <Label htmlFor="ticks_per_row">{l10n("FIELD_TEMPO")}</Label>
+            <Label htmlFor="ticks_per_row">
+              {l10n("FIELD_TEMPO")} ({l10n("FIELD_TICKS_PER_ROW")})
+            </Label>
           </FormRow>
           <FormRow>
             <InputGroup>
@@ -112,7 +114,10 @@ export const SongMetadataEditor = () => {
                 title={l10n("FIELD_TEMPO_TOOLTIP")}
               />
               <InputGroupAppend>
-                <InputGroupLabel htmlFor="ticks_per_row">
+                <InputGroupLabel
+                  htmlFor="ticks_per_row"
+                  style={{ minWidth: 70, justifyContent: "flex-end" }}
+                >
                   ~{Math.round(getBPM(song.ticks_per_row))} BPM
                 </InputGroupLabel>
               </InputGroupAppend>
