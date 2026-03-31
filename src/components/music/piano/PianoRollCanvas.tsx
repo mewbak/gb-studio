@@ -1203,7 +1203,9 @@ export const PianoRollCanvas = ({
       const interaction = interactionRef.current;
 
       if (
-        (input.updateHover || interaction.type === "dragNote") &&
+        (input.updateHover ||
+          interaction.type === "dragNote" ||
+          interaction.type === "selectionBox") &&
         (noteIndex !== hoverNoteRef.current ||
           patternRow !== hoverColumnRef.current ||
           sequenceId !== hoverSequenceIdRef.current)
@@ -1391,24 +1393,33 @@ export const PianoRollCanvas = ({
 
         const nextSelectionRect = { x, y, width, height };
 
-        interactionRef.current = {
-          ...interaction,
-          box: {
-            ...interaction.box,
-            rect: nextSelectionRect,
-          },
-        };
+        // Selection box has changed from previous call
+        // so update selected cells
+        if (
+          nextSelectionRect.x !== interaction.box.rect.x ||
+          nextSelectionRect.y !== interaction.box.rect.y ||
+          nextSelectionRect.width !== interaction.box.rect.width ||
+          nextSelectionRect.height !== interaction.box.rect.height
+        ) {
+          interactionRef.current = {
+            ...interaction,
+            box: {
+              ...interaction.box,
+              rect: nextSelectionRect,
+            },
+          };
 
-        setSelectionRect(nextSelectionRect);
+          setSelectionRect(nextSelectionRect);
 
-        const selectedCells = selectCellsInRange(
-          interaction.modifiers.addToSelection
-            ? selectedPatternCellsRef.current
-            : [],
-          nextSelectionRect,
-        );
+          const selectedCells = selectCellsInRange(
+            interaction.modifiers.addToSelection
+              ? selectedPatternCellsRef.current
+              : [],
+            nextSelectionRect,
+          );
 
-        dispatch(trackerActions.setSelectedPatternCells(selectedCells));
+          dispatch(trackerActions.setSelectedPatternCells(selectedCells));
+        }
 
         return input.shouldPreventDefault;
       }
