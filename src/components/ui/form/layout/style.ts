@@ -136,6 +136,10 @@ export const StyledFormHeader = styled.div<StyledFormHeaderProps>`
           }
         `
       : ""}
+
+  @media (max-width: 840px) {
+    height: 52px;
+  }
 `;
 
 // #endregion FormHeader

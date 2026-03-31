@@ -40,15 +40,13 @@ import { PatternCellSelectionEditor } from "components/music/sidebar/PatternCell
 import {
   StyledMobileOverlay,
   StyledMobileOverlayClose,
+  StyledMobileOverlayCloseButton,
   StyledMobileOverlayContent,
-  StyledMobileToolbar,
-  StyledMobileToolbarButton,
-  StyledSafeMarginBottom,
 } from "gbs-music-web/components/style";
-import { ChannelsView } from "components/music/navigator/ChannelsView";
-import { Portal } from "ui/layout/Portal";
 import { MusicWebChannelsBar } from "gbs-music-web/components/MusicWebChannelsBar";
 import { MusicWebChannelPane } from "gbs-music-web/components/MusicWebChannelPane";
+import { CloseIcon } from "ui/icons/Icons";
+import { MusicWebSettingPane } from "gbs-music-web/components/MusicWebSettingsPane";
 
 const Wrapper = styled.div`
   display: flex;
@@ -606,6 +604,11 @@ export const StandaloneMusicPage = ({
                 $open={mobileView === "instruments"}
                 $fullHeight
               >
+                <StyledMobileOverlayClose
+                  onClick={() => {
+                    setMobileView("none");
+                  }}
+                />
                 <StyledMobileOverlayContent>
                   <InstrumentEditor />
                 </StyledMobileOverlayContent>
@@ -618,6 +621,25 @@ export const StandaloneMusicPage = ({
                   }}
                 />
                 <MusicWebChannelPane />
+              </StyledMobileOverlay>
+
+              <StyledMobileOverlay
+                $open={mobileView === "settings"}
+                $fullHeight
+              >
+                <StyledMobileOverlayClose
+                  onClick={() => {
+                    setMobileView("none");
+                  }}
+                />
+                <StyledMobileOverlayCloseButton
+                  onClick={() => {
+                    setMobileView("none");
+                  }}
+                >
+                  <CloseIcon />
+                </StyledMobileOverlayCloseButton>
+                <MusicWebSettingPane />
               </StyledMobileOverlay>
 
               <StyledMobileOverlay $open={mobileView === "sequence"}>

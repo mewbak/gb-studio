@@ -135,7 +135,7 @@ export const StyledMobileOverlay = styled.div<{
 
   box-sizing: border-box;
   box-shadow: ${(props) =>
-    props.$open ? "0px 2px 50px rgba(0, 0, 0, 0.8)" : "none"};
+    props.$open ? "0px -10px 10px rgba(0, 0, 0, 0.3)" : "none"};
 
   border: 1px solid ${(props) => props.theme.colors.sidebar.border};
   border-bottom: 0;
@@ -143,9 +143,13 @@ export const StyledMobileOverlay = styled.div<{
   ${(props) =>
     props.$fullHeight
       ? css`
-          top: 0px;
+          top: 20px;
           height: auto;
           max-height: none;
+          transition: transform 300ms ease-in-out;
+          border-top-left-radius: 12px;
+          border-top-right-radius: 12px;
+          padding-top: 0px;
         `
       : css`
           top: auto;
@@ -154,7 +158,19 @@ export const StyledMobileOverlay = styled.div<{
           border-top-left-radius: 12px;
           border-top-right-radius: 12px;
           padding-top: 12px;
+
+          &:before {
+            content: "";
+            display: block;
+            width: 40px;
+            height: 4px;
+            background: ${(props) => props.theme.colors.sidebar.border};
+            margin: 0px auto;
+            margin-bottom: 10px;
+            border-radius: 16px;
+          }
         `}
+
   ${(props) =>
     !props.$open &&
     css`
@@ -162,17 +178,6 @@ export const StyledMobileOverlay = styled.div<{
         display: none;
       }
     `};
-
-  &:before {
-    content: "";
-    display: block;
-    width: 40px;
-    height: 4px;
-    background: ${(props) => props.theme.colors.sidebar.border};
-    margin: 0px auto;
-    margin-bottom: 10px;
-    border-radius: 16px;
-  }
 `;
 
 export const StyledMobileOverlayClose = styled.div`
@@ -181,6 +186,25 @@ export const StyledMobileOverlayClose = styled.div`
   width: 100%;
   background: transparent;
   height: 100vh;
+`;
+
+export const StyledMobileOverlayCloseButton = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 5px;
+  right: 10px;
+  border-radius: 30px;
+  width: 40px;
+  height: 40px;
+
+  background: ${(props) => props.theme.colors.list.activeBackground};
+
+  svg {
+    fill: ${(props) => props.theme.colors.button.text};
+    max-width: 15px;
+  }
 `;
 
 export const StyledMobileOverlayContent = styled.div`

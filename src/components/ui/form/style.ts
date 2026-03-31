@@ -40,6 +40,7 @@ export const StyledInput = styled.input<StyledInputProps>`
 
   @media (max-width: 840px) {
     height: 38px;
+    font-size: 14px;
   }
 `;
 
