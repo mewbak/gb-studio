@@ -933,7 +933,10 @@ export const PianoRollCanvas = ({
             clone: interaction.modifiers.clone,
           }),
         );
-      } else if (interaction.clickPlacement) {
+      } else if (
+        interaction.clickPlacement &&
+        toolRef.current !== "selection"
+      ) {
         commitPlacedNote(interaction.clickPlacement);
       }
     }
