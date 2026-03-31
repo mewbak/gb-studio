@@ -105,8 +105,8 @@ export const StyledMobileOverlay = styled.div<{
   $fullHeight?: boolean;
 }>`
   position: fixed;
-  left: 0;
-  right: 0;
+  left: -1px;
+  right: -1px;
   bottom: 0;
   background: ${(props) => props.theme.colors.sidebar.background};
   z-index: ${(props) => (props.$open ? "1001" : "1000")};
@@ -119,13 +119,15 @@ export const StyledMobileOverlay = styled.div<{
 
   box-sizing: border-box;
   box-shadow: ${(props) =>
-    props.$open ? "0px 2px 50px rgba(0, 0, 0, 0.2)" : "none"};
+    props.$open ? "0px 2px 50px rgba(0, 0, 0, 0.8)" : "none"};
+
+  border: 1px solid ${(props) => props.theme.colors.sidebar.border};
+  border-bottom: 0;
 
   ${(props) =>
     props.$fullHeight
       ? css`
           top: 0px;
-          left: 0px;
           height: auto;
           max-height: none;
         `
@@ -136,7 +138,6 @@ export const StyledMobileOverlay = styled.div<{
           border-top-left-radius: 12px;
           border-top-right-radius: 12px;
           padding-top: 12px;
-          border-top: 1px solid ${(props) => props.theme.colors.sidebar.border};
         `}
   ${(props) =>
     !props.$open &&
@@ -145,6 +146,17 @@ export const StyledMobileOverlay = styled.div<{
         display: none;
       }
     `};
+
+  &:before {
+    content: "";
+    display: block;
+    width: 40px;
+    height: 4px;
+    background: ${(props) => props.theme.colors.sidebar.border};
+    margin: 0px auto;
+    margin-bottom: 10px;
+    border-radius: 16px;
+  }
 `;
 
 export const StyledMobileOverlayClose = styled.div`
