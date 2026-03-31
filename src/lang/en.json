@@ -1339,6 +1339,7 @@
   "FIELD_INSTRUMENT": "Instrument",
   "FIELD_INSERT_PATTERN_BEFORE": "Insert Pattern Before",
   "FIELD_INSERT_PATTERN_AFTER": "Insert Pattern After",
+  "FIELD_CHANNEL": "Channel",
 
   "// 7": "Asset Viewer ---------------------------------------------",
   "ASSET_SEARCH": "Search...",

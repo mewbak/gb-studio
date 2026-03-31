@@ -48,6 +48,7 @@ import {
 import { ChannelsView } from "components/music/navigator/ChannelsView";
 import { Portal } from "ui/layout/Portal";
 import { MusicWebChannelsBar } from "gbs-music-web/components/MusicWebChannelsBar";
+import { MusicWebChannelPane } from "gbs-music-web/components/MusicWebChannelPane";
 
 const Wrapper = styled.div`
   display: flex;
@@ -72,7 +73,8 @@ type MobileViewType =
   | "notes"
   | "channels"
   | "sequence"
-  | "instruments";
+  | "instruments"
+  | "settings";
 
 interface StandaloneMusicPageProps {
   onCreateSong?: () => void;
@@ -279,6 +281,18 @@ export const StandaloneMusicPage = ({
     setMobileView("notes");
   }, []);
 
+  const openChannelPanel = useCallback(
+    (channelId: 0 | 1 | 2 | 3) => {
+      dispatch(trackerActions.setSelectedChannel(channelId));
+      setMobileView("channels");
+    },
+    [dispatch],
+  );
+
+  const openSettingsPanel = useCallback(() => {
+    setMobileView("settings");
+  }, []);
+
   const [playbackState, setPlaybackState] = useState<[number, number]>([0, 0]);
 
   const startPlaybackPosition = useAppSelector(
@@ -345,7 +359,8 @@ export const StandaloneMusicPage = ({
       setMobileView("notes");
     } else if (
       sidebarView === "instrument" &&
-      mobileViewRef.current === "notes"
+      (mobileViewRef.current === "notes" ||
+        mobileViewRef.current === "channels")
     ) {
       setMobileView("instruments");
     }
@@ -459,7 +474,11 @@ export const StandaloneMusicPage = ({
             <SongDocument musicAsset={viewSong} />
 
             {isCompactLayout && view === "roll" && (
-              <MusicWebChannelsBar onOpenFX={openPatternsPanel} />
+              <MusicWebChannelsBar
+                onOpenChannel={openChannelPanel}
+                onOpenFX={openPatternsPanel}
+                onOpenSettings={openSettingsPanel}
+              />
             )}
             {/* {isCompactLayout && view === "roll" && (
               <StyledMobileToolbar>
@@ -598,17 +617,7 @@ export const StandaloneMusicPage = ({
                     setMobileView("none");
                   }}
                 />
-                {/* <StyledMobilePaneHeader>
-              <Button
-                variant="transparent"
-                onClick={() => {
-                  setMobileView("none");
-                }}
-              >
-                <CloseIcon />
-              </Button>
-            </StyledMobilePaneHeader> */}
-                <ChannelsView />
+                <MusicWebChannelPane />
               </StyledMobileOverlay>
 
               <StyledMobileOverlay $open={mobileView === "sequence"}>

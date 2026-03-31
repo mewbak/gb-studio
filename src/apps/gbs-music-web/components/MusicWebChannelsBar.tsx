@@ -29,10 +29,16 @@ const StyledChannelIcon = styled.div<{ channel: number }>`
 `;
 
 interface MusicWebChannelsBarProps {
+  onOpenChannel: (channelId: 0 | 1 | 2 | 3) => void;
   onOpenFX: () => void;
+  onOpenSettings: () => void;
 }
 
-export const MusicWebChannelsBar = ({ onOpenFX }: MusicWebChannelsBarProps) => {
+export const MusicWebChannelsBar = ({
+  onOpenChannel,
+  onOpenFX,
+  onOpenSettings,
+}: MusicWebChannelsBarProps) => {
   const dispatch = useAppDispatch();
   const selectedChannel = useAppSelector(
     (state) => state.tracker.selectedChannel,
@@ -47,7 +53,7 @@ export const MusicWebChannelsBar = ({ onOpenFX }: MusicWebChannelsBarProps) => {
         <StyledMobileToolbarButton
           $isActive={selectedChannel === channel.index}
           onPointerDown={() => {
-            dispatch(trackerActions.setSelectedChannel(channel.index));
+            onOpenChannel(channel.index);
           }}
         >
           <StyledChannelIcon channel={channel.index}>
@@ -68,7 +74,7 @@ export const MusicWebChannelsBar = ({ onOpenFX }: MusicWebChannelsBarProps) => {
         <FXIcon />
       </StyledMobileToolbarButton>
 
-      <StyledMobileToolbarButton>
+      <StyledMobileToolbarButton onClick={onOpenSettings}>
         <SettingsIcon />
       </StyledMobileToolbarButton>
     </StyledMobileToolbar>
