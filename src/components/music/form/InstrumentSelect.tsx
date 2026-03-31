@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useState } from "react";
+import React, { FC, useCallback, useEffect, useState } from "react";
 import { useAppSelector } from "store/hooks";
 import styled from "styled-components";
 import {
@@ -7,7 +7,7 @@ import {
   SingleValueWithPreview,
   SelectCommonProps,
 } from "ui/form/Select";
-import { SingleValue } from "react-select";
+import { createFilter, FilterOptionOption, SingleValue } from "react-select";
 import l10n from "shared/lib/lang/l10n";
 import { useMusicNotePreview } from "components/music/hooks/useMusicNotePreview";
 
@@ -16,13 +16,10 @@ type InstrumentOption = {
   label: string;
 };
 
-// In option use 1-index so that searching
-// by number isn't off by one
-// convert to/from 0-index on read value in and onChange
 const defaultInstrumentOptions = Array(15)
   .fill("")
   .map((_, i) => ({
-    value: i + 1,
+    value: i,
     label: `Instrument ${i + 1}`,
   })) as InstrumentOption[];
 
@@ -102,7 +99,7 @@ export const InstrumentSelect: FC<InstrumentSelectProps> = ({
         case 0:
         case 1:
           instruments = song?.duty_instruments.map((instrument) => ({
-            value: instrument.index + 1,
+            value: instrument.index,
             label:
               String(instrument.index + 1).padStart(2, "0") +
               ": " +
@@ -111,7 +108,7 @@ export const InstrumentSelect: FC<InstrumentSelectProps> = ({
           break;
         case 2:
           instruments = song?.wave_instruments.map((instrument) => ({
-            value: instrument.index + 1,
+            value: instrument.index,
             label:
               String(instrument.index + 1).padStart(2, "0") +
               ": " +
@@ -120,7 +117,7 @@ export const InstrumentSelect: FC<InstrumentSelectProps> = ({
           break;
         case 3:
           instruments = song?.noise_instruments.map((instrument) => ({
-            value: instrument.index + 1,
+            value: instrument.index,
             label:
               String(instrument.index + 1).padStart(2, "0") +
               ": " +
@@ -135,7 +132,7 @@ export const InstrumentSelect: FC<InstrumentSelectProps> = ({
   }, [selectedChannel, song]);
 
   useEffect(() => {
-    setCurrentInstrument(options.find((v) => v.value - 1 === value));
+    setCurrentInstrument(options.find((v) => v.value === value));
   }, [options, value]);
 
   useEffect(() => {
@@ -151,8 +148,7 @@ export const InstrumentSelect: FC<InstrumentSelectProps> = ({
 
   const onSelectChange = (newValue: SingleValue<InstrumentOption>) => {
     if (newValue) {
-      // Change back to 0-indexed
-      const value = newValue.value - 1;
+      const value = newValue.value;
 
       onChange?.(value);
       playPreview({
@@ -164,6 +160,25 @@ export const InstrumentSelect: FC<InstrumentSelectProps> = ({
     }
   };
 
+  const filterOption = useCallback(
+    (item: FilterOptionOption<InstrumentOption>, searchTerm: string) => {
+      const trimmedSearchTerm = searchTerm.toLocaleUpperCase().trim();
+      const isNumberSearch = !!trimmedSearchTerm.match(/^[0-9]+$/);
+      // Search for a number within instrument range
+      // only show instruments with matching ids
+      if (isNumberSearch && parseInt(trimmedSearchTerm, 10) <= 15) {
+        return String(item.value + 1)
+          .padStart(2, "0")
+          .includes(trimmedSearchTerm);
+      }
+      // Otherwise search text of labels
+      const searchParts = trimmedSearchTerm.split(" ");
+      const labelUppercase = item.label.toLocaleUpperCase();
+      return searchParts.every((part) => labelUppercase.includes(part));
+    },
+    [],
+  );
+
   return (
     <Select
       classNamePrefix="CustomSelect--Left CustomSelect--WidthAuto"
@@ -173,7 +188,7 @@ export const InstrumentSelect: FC<InstrumentSelectProps> = ({
       formatOptionLabel={(option: InstrumentOption) => {
         return (
           <OptionLabelWithPreview
-            preview={<LabelColor $instrument={Number(option.value - 1)} />}
+            preview={<LabelColor $instrument={Number(option.value)} />}
           >
             {option.label}
           </OptionLabelWithPreview>
@@ -187,12 +202,13 @@ export const InstrumentSelect: FC<InstrumentSelectProps> = ({
             </SingleValueWithPreview>
           ) : (
             <SingleValueWithPreview
-              preview={<LabelColor $instrument={Number((value ?? 1) - 1)} />}
+              preview={<LabelColor $instrument={Number(value ?? 1)} />}
             >
               {currentValue?.label}
             </SingleValueWithPreview>
           ),
       }}
+      filterOption={filterOption}
       {...selectProps}
     />
   );
