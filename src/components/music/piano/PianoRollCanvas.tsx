@@ -69,7 +69,10 @@ import {
   paintAbsoluteCells,
   pasteInPlace,
 } from "store/features/trackerDocument/trackerDocumentState";
-import { pasteAbsoluteCells } from "store/features/tracker/trackerState";
+import {
+  pasteAbsoluteCells,
+  PianoRollToolType,
+} from "store/features/tracker/trackerState";
 import { PatternCellAddress } from "shared/lib/uge/editor/types";
 import { useMusicNotePreview } from "components/music/hooks/useMusicNotePreview";
 import {
@@ -1687,9 +1690,15 @@ export const PianoRollCanvas = ({
     [dispatch, playPreview, selectedInstrumentId],
   );
 
-  const togglePencilEraserTool = useCallback(() => {
-    dispatch(trackerActions.setTool(tool === "eraser" ? "pencil" : "eraser"));
-  }, [dispatch, tool]);
+  const cycleSelectedTool = useCallback(() => {
+    let nextTool: PianoRollToolType = "pencil";
+    if (toolRef.current === "pencil") {
+      nextTool = "eraser";
+    } else if (toolRef.current === "eraser") {
+      nextTool = "selection";
+    }
+    dispatch(trackerActions.setTool(nextTool));
+  }, [dispatch]);
 
   const resetTwoFingerTapGesture = useCallback(() => {
     twoFingerTapRef.current = { type: "idle" };
@@ -1841,7 +1850,7 @@ export const PianoRollCanvas = ({
 
         if (isTwoFingerTap) {
           e.preventDefault();
-          togglePencilEraserTool();
+          cycleSelectedTool();
         }
         return;
       }
@@ -1876,7 +1885,7 @@ export const PianoRollCanvas = ({
       commitPlacedNote,
       handlePointerEnd,
       resetTwoFingerTapGesture,
-      togglePencilEraserTool,
+      cycleSelectedTool,
     ],
   );
 
