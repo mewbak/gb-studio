@@ -150,7 +150,7 @@ const useNestedMenu = (
       if (itemIndex !== parentMenuIndex) {
         closeTimer.current = setTimeout(() => {
           setParentMenuIndex(itemIndex);
-        }, 300);
+        }, 500);
       }
     },
     [parentMenuIndex],

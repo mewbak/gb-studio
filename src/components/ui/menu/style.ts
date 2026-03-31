@@ -64,6 +64,13 @@ export const StyledMenu = styled.div`
   padding: 4px 0;
   font-weight: normal;
   line-height: 15px;
+
+  max-height: calc(100vh - 80px);
+  overflow: auto;
+
+  @media (max-width: 840px) {
+    min-width: 140px;
+  }
 `;
 
 // #endregion Menu
@@ -80,6 +87,8 @@ export const StyledMenuItem = styled.div<StyledMenuItemProps>`
   padding: 5px 10px;
   font-size: ${(props) => props.theme.typography.menuFontSize};
   white-space: nowrap;
+  flex-shrink: 0;
+  touch-action: manipulation;
 
   &:hover,
   &:focus {
@@ -104,6 +113,12 @@ export const StyledMenuItem = styled.div<StyledMenuItemProps>`
           box-shadow: none;
         `
       : ""}
+
+  @media (max-width: 840px) {
+    height: 38px;
+    font-size: 14px;
+    box-sizing: border-box;
+  }
 `;
 
 export const StyledMenuItemIcon = styled.div`
