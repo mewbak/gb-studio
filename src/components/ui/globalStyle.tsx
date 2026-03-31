@@ -209,6 +209,13 @@ const GlobalStyle = createGlobalStyle`
     color: ${(props) => props.theme.colors.input.text};
   }
 
+  @media (max-width: 840px) {
+    body .CustomSelect__option {
+      padding: 10px;
+      font-size: 14px;
+    }
+  }
+
   .label--red {
     background: #e20e2b;
   }

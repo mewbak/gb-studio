@@ -173,6 +173,10 @@ export const StyledTrackerHeaderCell = styled.th<StyledTrackerHeaderCellProps>`
     border-color: transparent;
     color: #000;
     font-weight: bold;
+
+    @media (max-width: 840px) {
+      height: 22px;
+    }
   }
 
   ${StyledButtonGroup} {
