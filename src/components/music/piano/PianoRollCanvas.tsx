@@ -1655,6 +1655,13 @@ export const PianoRollCanvas = ({
           }),
         );
       }
+      dispatch(
+        trackerActions.setHover({
+          note: noteIndex,
+          column: hoverColumnRef.current,
+          sequenceId: hoverSequenceIdRef.current,
+        }),
+      );
     },
     [dispatch, playPreview, selectedInstrumentId],
   );
