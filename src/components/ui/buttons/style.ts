@@ -45,6 +45,7 @@ export const StyledButton = styled.button<StyledButtonProps>`
   }
 
   @media (max-width: 840px) {
+    min-width: 38px;
     height: 38px;
   }
 
