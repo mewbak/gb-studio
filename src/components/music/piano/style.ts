@@ -664,6 +664,10 @@ export const StyledPianoRollCrosshair = styled.div`
   ${StyledPianoRollScrollCanvas}:hover & {
     opacity: 1;
   }
+
+  @media (max-width: 840px) {
+    opacity: 1;
+  }
 `;
 
 export const StyledPianoRollCrosshairHorizontal = styled.div`

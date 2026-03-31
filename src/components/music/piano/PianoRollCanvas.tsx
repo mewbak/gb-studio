@@ -1210,13 +1210,23 @@ export const PianoRollCanvas = ({
           patternRow !== hoverColumnRef.current ||
           sequenceId !== hoverSequenceIdRef.current)
       ) {
-        dispatch(
-          trackerActions.setHover({
-            note: noteIndex,
-            column: patternRow,
-            sequenceId,
-          }),
-        );
+        if (scrollRef.current) {
+          const rect = scrollRef.current.getBoundingClientRect();
+          if (
+            input.clientX > rect.left &&
+            input.clientX < rect.right &&
+            input.clientY > rect.top &&
+            input.clientY < rect.bottom
+          ) {
+            dispatch(
+              trackerActions.setHover({
+                note: noteIndex,
+                column: patternRow,
+                sequenceId,
+              }),
+            );
+          }
+        }
       }
 
       if (pastedPattern) {
