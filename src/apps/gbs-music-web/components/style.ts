@@ -31,6 +31,7 @@ export const StyledMobileToolbar = styled.div`
 
 export const StyledMobileToolbarButton = styled.button<{
   $isActive?: boolean;
+  $isAvailable?: boolean;
 }>`
   flex-grow: 1;
   // height: 100%;
@@ -63,6 +64,12 @@ export const StyledMobileToolbarButton = styled.button<{
     props.$isActive &&
     css`
       background: ${(props) => props.theme.colors.panel.selectedBackground};
+    `}
+
+  ${(props) =>
+    props.$isAvailable === false &&
+    css`
+      opacity: 0.1;
     `}
 `;
 

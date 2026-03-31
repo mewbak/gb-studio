@@ -275,6 +275,10 @@ export const StandaloneMusicPage = ({
     setPatternsPanelOpen((value) => !value);
   }, []);
 
+  const openPatternsPanel = useCallback(() => {
+    setMobileView("notes");
+  }, []);
+
   const [playbackState, setPlaybackState] = useState<[number, number]>([0, 0]);
 
   const startPlaybackPosition = useAppSelector(
@@ -463,7 +467,9 @@ export const StandaloneMusicPage = ({
             <SplitPaneVerticalDivider />
             <SongDocument musicAsset={viewSong} />
 
-            {isCompactLayout && view === "roll" && <MusicWebChannelsBar />}
+            {isCompactLayout && view === "roll" && (
+              <MusicWebChannelsBar onOpenFX={openPatternsPanel} />
+            )}
             {/* {isCompactLayout && view === "roll" && (
               <StyledMobileToolbar>
                 <StyledMobileToolbarButton

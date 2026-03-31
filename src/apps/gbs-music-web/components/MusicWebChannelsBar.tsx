@@ -5,7 +5,13 @@ import {
 } from "gbs-music-web/components/style";
 import { channels } from "shared/lib/music/constants";
 import styled, { css } from "styled-components";
-import { DutyIcon, WaveIcon, NoiseIcon, SettingsIcon } from "ui/icons/Icons";
+import {
+  DutyIcon,
+  WaveIcon,
+  NoiseIcon,
+  SettingsIcon,
+  FXIcon,
+} from "ui/icons/Icons";
 import { useAppDispatch, useAppSelector } from "store/hooks";
 import trackerActions from "store/features/tracker/trackerActions";
 
@@ -25,11 +31,19 @@ const StyledChannelLabel = styled.div`
   font-size: 11px;
 `;
 
-export const MusicWebChannelsBar = () => {
+interface MusicWebChannelsBarProps {
+  onOpenFX: () => void;
+}
+
+export const MusicWebChannelsBar = ({ onOpenFX }: MusicWebChannelsBarProps) => {
   const dispatch = useAppDispatch();
   const selectedChannel = useAppSelector(
     (state) => state.tracker.selectedChannel,
   );
+  const selectedPatternCells = useAppSelector(
+    (state) => state.tracker.selectedPatternCells,
+  );
+
   return (
     <StyledMobileToolbar>
       {channels.map((channel) => (
@@ -47,6 +61,13 @@ export const MusicWebChannelsBar = () => {
           {/* <StyledChannelLabel>{channel.name}</StyledChannelLabel> */}
         </StyledMobileToolbarButton>
       ))}
+
+      <StyledMobileToolbarButton
+        $isAvailable={selectedPatternCells.length > 0}
+        onClick={selectedPatternCells.length > 0 ? onOpenFX : undefined}
+      >
+        <FXIcon />
+      </StyledMobileToolbarButton>
 
       <StyledMobileToolbarButton>
         <SettingsIcon />
