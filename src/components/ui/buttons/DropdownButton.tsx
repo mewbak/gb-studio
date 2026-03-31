@@ -118,36 +118,61 @@ export const DropdownButton: FC<DropdownButtonProps & ButtonProps> = React.memo(
 
     // Handle listening for clicks and auto-hiding the menu
     useEffect(() => {
-      // This function is designed to handle every click
-      const handleEveryClick = (event: MouseEvent) => {
-        // Ignore if the menu isn't open
-        if (!isOpen) {
+      if (!isOpen) {
+        return;
+      }
+
+      const shouldCloseFromTarget = (target: EventTarget | null) => {
+        if (!(target instanceof Node)) {
+          return false;
+        }
+
+        const clickedInsideMenu =
+          menuRef.current?.contains(target) ||
+          subMenuRef.current?.contains(target);
+
+        const clickedButton = buttonRef.current?.contains(target);
+
+        return !clickedInsideMenu && !clickedButton;
+      };
+
+      const handleMouseDownCapture = (event: MouseEvent) => {
+        if (!shouldCloseFromTarget(event.target)) {
           return;
         }
 
-        // Make this happen asynchronously
-        setTimeout(() => {
-          // Type guard
-          if (!(event.target instanceof Element)) {
-            return;
-          }
-
-          // Ignore if we're clicking inside the menu
-          if (event.target.closest('[role="menu"]') instanceof Element) {
-            return;
-          }
-
-          // Hide dropdown
-          closeMenu();
-        }, 10);
+        closeMenu();
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
       };
 
-      // Add listener
-      document.addEventListener("click", handleEveryClick);
+      const handleTouchStartCapture = (event: TouchEvent) => {
+        if (!shouldCloseFromTarget(event.target)) {
+          return;
+        }
 
-      // Return function to remove listener
-      return () => document.removeEventListener("click", handleEveryClick);
-    }, [closeMenu, isOpen]);
+        closeMenu();
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+      };
+
+      document.addEventListener("mousedown", handleMouseDownCapture, true);
+      document.addEventListener("touchstart", handleTouchStartCapture, {
+        capture: true,
+        passive: false,
+      });
+
+      return () => {
+        document.removeEventListener("mousedown", handleMouseDownCapture, true);
+        document.removeEventListener(
+          "touchstart",
+          handleTouchStartCapture,
+          true,
+        );
+      };
+    }, [isOpen, closeMenu]);
 
     // Disable scroll when the menu is opened, and revert back when the menu is closed
     useEffect(() => {
