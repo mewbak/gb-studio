@@ -6,8 +6,9 @@ import {
   OptionLabelWithPreview,
   SingleValueWithPreview,
   SelectCommonProps,
+  Option,
 } from "ui/form/Select";
-import { createFilter, FilterOptionOption, SingleValue } from "react-select";
+import { SingleValue } from "react-select";
 import l10n from "shared/lib/lang/l10n";
 import { useMusicNotePreview } from "components/music/hooks/useMusicNotePreview";
 
@@ -160,24 +161,21 @@ export const InstrumentSelect: FC<InstrumentSelectProps> = ({
     }
   };
 
-  const filterOption = useCallback(
-    (item: FilterOptionOption<InstrumentOption>, searchTerm: string) => {
-      const trimmedSearchTerm = searchTerm.toLocaleUpperCase().trim();
-      const isNumberSearch = !!trimmedSearchTerm.match(/^[0-9]+$/);
-      // Search for a number within instrument range
-      // only show instruments with matching ids
-      if (isNumberSearch && parseInt(trimmedSearchTerm, 10) <= 15) {
-        return String(item.value + 1)
-          .padStart(2, "0")
-          .includes(trimmedSearchTerm);
-      }
-      // Otherwise search text of labels
-      const searchParts = trimmedSearchTerm.split(" ");
-      const labelUppercase = item.label.toLocaleUpperCase();
-      return searchParts.every((part) => labelUppercase.includes(part));
-    },
-    [],
-  );
+  const filterOption = useCallback((item: Option, searchTerm: string) => {
+    const trimmedSearchTerm = searchTerm.toLocaleUpperCase().trim();
+    const isNumberSearch = !!trimmedSearchTerm.match(/^[0-9]+$/);
+    // Search for a number within instrument range
+    // only show instruments with matching ids
+    if (isNumberSearch && parseInt(trimmedSearchTerm, 10) <= 15) {
+      return String(item.value + 1)
+        .padStart(2, "0")
+        .includes(trimmedSearchTerm);
+    }
+    // Otherwise search text of labels
+    const searchParts = trimmedSearchTerm.split(" ");
+    const labelUppercase = item.label.toLocaleUpperCase();
+    return searchParts.every((part) => labelUppercase.includes(part));
+  }, []);
 
   return (
     <Select
