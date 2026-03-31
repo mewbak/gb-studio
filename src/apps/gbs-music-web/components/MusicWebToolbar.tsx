@@ -67,7 +67,7 @@ const AboutModal = styled.div`
   position: fixed;
   top: 50%;
   left: 50%;
-  width: min(420px, calc(100vw - 32px));
+  width: min(300px, calc(100vw - 32px));
   transform: translate(-50%, -50%);
   background: ${(props) => props.theme.colors.card.background};
   color: ${(props) => props.theme.colors.card.text};
