@@ -11,6 +11,10 @@ import {
   NoiseIcon,
   SettingsIcon,
   FXIcon,
+  Duty1Icon,
+  Duty2Icon,
+  Noise4Icon,
+  Wave3Icon,
 } from "ui/icons/Icons";
 import { useAppDispatch, useAppSelector } from "store/hooks";
 import trackerActions from "store/features/tracker/trackerActions";
@@ -54,9 +58,10 @@ export const MusicWebChannelsBar = ({ onOpenFX }: MusicWebChannelsBarProps) => {
           }}
         >
           <StyledChannelIcon channel={channel.index}>
-            {channel.type === "duty" && <DutyIcon />}
-            {channel.type === "wave" && <WaveIcon />}
-            {channel.type === "noise" && <NoiseIcon />}
+            {channel.index === 0 && <Duty1Icon />}
+            {channel.index === 1 && <Duty2Icon />}
+            {channel.index === 2 && <Wave3Icon />}
+            {channel.index === 3 && <Noise4Icon />}
           </StyledChannelIcon>
           {/* <StyledChannelLabel>{channel.name}</StyledChannelLabel> */}
         </StyledMobileToolbarButton>

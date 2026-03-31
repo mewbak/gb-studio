@@ -25,6 +25,10 @@ import {
   NoiseIcon,
   WaveIcon,
   DutyIcon,
+  Duty1Icon,
+  Duty2Icon,
+  Wave3Icon,
+  Noise4Icon,
 } from "ui/icons/Icons";
 import { ButtonGroup } from "ui/buttons/ButtonGroup";
 import { FixedSpacer } from "ui/spacing/Spacing";
@@ -67,34 +71,10 @@ const StyledVisiblityIcon = styled.div`
 
 const StyledChannelIcon = styled.div<{ channel: number }>`
   svg {
-    fill: ${(props) => props.theme.colors.highlight};
+    fill: ${(props) => props.theme.colors.text};
     width: 20px;
     height: 20px;
     margin-right: 10px;
-
-    // -webkit-filter: drop-shadow(1px 1px 2px rgba(71, 153, 190, 0.9));
-    // filter: drop-shadow(1px 1px 2px rgba(71, 153, 190, 0.9));
-
-    ${(props) =>
-      props.channel === 0 &&
-      css`
-        fill: rgb(71, 153, 190);
-      `}
-    ${(props) =>
-      props.channel === 1 &&
-      css`
-        fill: #4375c8;
-      `}
-    ${(props) =>
-      props.channel === 2 &&
-      css`
-        fill: #3f5bc8;
-      `}
-    ${(props) =>
-      props.channel === 3 &&
-      css`
-        fill: #3d3dcd;
-      `}
   }
 `;
 
@@ -189,22 +169,18 @@ const Row = ({ index, style, data }: ChannelNavigatorRowProps) => {
           alignItems: "center",
           boxSizing: "border-box",
           fontSize: 11,
-          fontWeight: selectedChannel === item.index ? "bold" : "normal",
-          // color:
-          //   selectedChannel === item.index
-          //     ? themeContext?.colors.highlight
-          //     : themeContext?.colors.text,
           borderBottom: `1px solid ${themeContext?.colors.sidebar.border}`,
           background:
             selectedChannel === item.index
               ? themeContext?.colors.list.selectedBackground
-              : "transparent", //."linear-gradient(0deg,rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.1) 100%)",
+              : "transparent",
         }}
       >
         <StyledChannelIcon channel={item.index}>
-          {item.type === "duty" && <DutyIcon />}
-          {item.type === "wave" && <WaveIcon />}
-          {item.type === "noise" && <NoiseIcon />}
+          {item.index === 0 && <Duty1Icon />}
+          {item.index === 1 && <Duty2Icon />}
+          {item.index === 2 && <Wave3Icon />}
+          {item.index === 3 && <Noise4Icon />}
         </StyledChannelIcon>
 
         <div
