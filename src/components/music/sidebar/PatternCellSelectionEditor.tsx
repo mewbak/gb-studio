@@ -1,9 +1,5 @@
 import React, { useCallback, useMemo } from "react";
-import {
-  FormDivider,
-  FormRow,
-  FormSectionTitle,
-} from "ui/form/layout/FormLayout";
+import { FormDivider, FormRow } from "ui/form/layout/FormLayout";
 import { useAppDispatch, useAppSelector } from "store/hooks";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
 import { Button } from "ui/buttons/Button";
@@ -17,7 +13,7 @@ import { EffectCodeSelect } from "components/music/form/EffectCodeSelect";
 import { PatternCellAddress } from "shared/lib/uge/editor/types";
 import { PatternCell, Song } from "shared/lib/uge/types";
 import { EffectParamsForm } from "components/music/form/EffectParamsForm";
-import { InstrumentIcon } from "ui/icons/Icons";
+import { InstrumentIcon, TrashIcon } from "ui/icons/Icons";
 import trackerActions from "store/features/tracker/trackerActions";
 import { channelIdToInstrumentType } from "components/music/helpers";
 import { InputGroup, InputGroupAppend } from "ui/form/InputGroup";
@@ -221,90 +217,115 @@ export const PatternCellSelectionEditor = () => {
         />
       )}
       <FormDivider />
-      {sharedNote.type !== "none" && (
+      {(sharedNote.type !== "none" || sharedEffectCode.type !== "none") && (
         <FormRow>
-          <div>
-            <Label>{l10n("FIELD_SEMITONE")}</Label>
-            <ButtonGroup>
-              <Button
-                onClick={(e) => {
-                  e.preventDefault();
-                  dispatch(
-                    trackerDocumentActions.transposeAbsoluteCells({
-                      patternCells: selectedPatternCells,
-                      direction: "down",
-                      size: "note",
-                    }),
-                  );
-                }}
-              >
-                -
-              </Button>
-              <Button
-                onClick={(e) => {
-                  e.preventDefault();
-                  dispatch(
-                    trackerDocumentActions.transposeAbsoluteCells({
-                      patternCells: selectedPatternCells,
-                      direction: "up",
-                      size: "note",
-                    }),
-                  );
-                }}
-              >
-                +
-              </Button>
-            </ButtonGroup>
-          </div>
-          <div>
-            <Label>{l10n("FIELD_OCTAVE")}</Label>
-            <ButtonGroup>
-              <Button
-                onClick={(e) => {
-                  e.preventDefault();
-                  dispatch(
-                    trackerDocumentActions.transposeAbsoluteCells({
-                      patternCells: selectedPatternCells,
-                      direction: "down",
-                      size: "octave",
-                    }),
-                  );
-                }}
-              >
-                -
-              </Button>
-              <Button
-                onClick={(e) => {
-                  e.preventDefault();
-                  dispatch(
-                    trackerDocumentActions.transposeAbsoluteCells({
-                      patternCells: selectedPatternCells,
-                      direction: "up",
-                      size: "octave",
-                    }),
-                  );
-                }}
-              >
-                +
-              </Button>
-            </ButtonGroup>
-          </div>
-          {selectedPatternCells.length > 1 && (
-            <div style={{ display: "flex", alignItems: "flex-end" }}>
-              <Button
-                onClick={(e) => {
-                  e.preventDefault();
-                  dispatch(
-                    trackerDocumentActions.interpolateAbsoluteCells({
-                      patternCells: selectedPatternCells,
-                    }),
-                  );
-                }}
-              >
-                {l10n("FIELD_INTERPOLATE")}
-              </Button>
-            </div>
+          {sharedNote.type !== "none" && (
+            <>
+              <div>
+                <Label>{l10n("FIELD_SEMITONE")}</Label>
+                <ButtonGroup>
+                  <Button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      dispatch(
+                        trackerDocumentActions.transposeAbsoluteCells({
+                          patternCells: selectedPatternCells,
+                          direction: "down",
+                          size: "note",
+                        }),
+                      );
+                    }}
+                  >
+                    -
+                  </Button>
+                  <Button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      dispatch(
+                        trackerDocumentActions.transposeAbsoluteCells({
+                          patternCells: selectedPatternCells,
+                          direction: "up",
+                          size: "note",
+                        }),
+                      );
+                    }}
+                  >
+                    +
+                  </Button>
+                </ButtonGroup>
+              </div>
+              <div>
+                <Label>{l10n("FIELD_OCTAVE")}</Label>
+                <ButtonGroup>
+                  <Button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      dispatch(
+                        trackerDocumentActions.transposeAbsoluteCells({
+                          patternCells: selectedPatternCells,
+                          direction: "down",
+                          size: "octave",
+                        }),
+                      );
+                    }}
+                  >
+                    -
+                  </Button>
+                  <Button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      dispatch(
+                        trackerDocumentActions.transposeAbsoluteCells({
+                          patternCells: selectedPatternCells,
+                          direction: "up",
+                          size: "octave",
+                        }),
+                      );
+                    }}
+                  >
+                    +
+                  </Button>
+                </ButtonGroup>
+              </div>
+              {selectedPatternCells.length > 1 && (
+                <div style={{ display: "flex", alignItems: "flex-end" }}>
+                  <Button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      dispatch(
+                        trackerDocumentActions.interpolateAbsoluteCells({
+                          patternCells: selectedPatternCells,
+                        }),
+                      );
+                    }}
+                  >
+                    {l10n("FIELD_INTERPOLATE")}
+                  </Button>
+                </div>
+              )}
+            </>
           )}
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "flex-end",
+              alignItems: "flex-end",
+              flexGrow: 1,
+            }}
+          >
+            <Button
+              onClick={(e) => {
+                e.preventDefault();
+                dispatch(
+                  trackerDocumentActions.clearAbsoluteCells({
+                    patternCells: selectedPatternCells,
+                  }),
+                );
+              }}
+            >
+              <TrashIcon />
+            </Button>
+          </div>
         </FormRow>
       )}
     </>
