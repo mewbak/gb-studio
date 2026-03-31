@@ -1384,11 +1384,11 @@ export const PianoRollCanvas = ({
         const y = Math.min(interaction.box.origin.y, y2);
         const width = Math.max(
           PIANO_ROLL_CELL_SIZE,
-          Math.abs(interaction.box.origin.x - x2),
+          Math.abs(interaction.box.origin.x - x2) + PIANO_ROLL_CELL_SIZE,
         );
         const height = Math.max(
           PIANO_ROLL_CELL_SIZE,
-          Math.abs(interaction.box.origin.y - y2),
+          Math.abs(interaction.box.origin.y - y2) + PIANO_ROLL_CELL_SIZE,
         );
 
         const nextSelectionRect = { x, y, width, height };
