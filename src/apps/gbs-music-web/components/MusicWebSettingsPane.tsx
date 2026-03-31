@@ -13,7 +13,6 @@ import l10n from "shared/lib/lang/l10n";
 
 const ViewButtonLabel = styled.div<{ $isActive: boolean }>`
   display: flex;
-  flex-grow: 1;
   align-items: center;
 
   svg {
