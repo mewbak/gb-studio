@@ -48,6 +48,7 @@ const StyledChannelIcon = styled.div`
 
   && svg {
     background: ${(props) => props.theme.colors.input.background};
+    border: 1px solid ${(props) => props.theme.colors.input.border};
     border-radius: 4px;
     padding: 4px;
     width: 40px;

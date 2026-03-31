@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   StyledMobileToolbar,
   StyledMobileToolbarButton,
@@ -13,11 +13,13 @@ import {
   Duty2Icon,
   Noise4Icon,
   Wave3Icon,
+  ChannelSoloIcon,
+  ChannelMuteIcon,
 } from "ui/icons/Icons";
 import { useAppDispatch, useAppSelector } from "store/hooks";
 import trackerActions from "store/features/tracker/trackerActions";
 
-const StyledChannelIcon = styled.div<{ channel: number }>`
+const StyledChannelIcon = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
@@ -25,6 +27,17 @@ const StyledChannelIcon = styled.div<{ channel: number }>`
   && svg {
     width: 20px;
     height: 20px;
+  }
+`;
+
+const StyledChannelStatusIcon = styled.div`
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  && svg {
+    width: 12px;
+    height: 12px;
+    fill: ${(props) => props.theme.colors.highlight};
   }
 `;
 
@@ -39,13 +52,23 @@ export const MusicWebChannelsBar = ({
   onOpenFX,
   onOpenSettings,
 }: MusicWebChannelsBarProps) => {
-  const dispatch = useAppDispatch();
   const selectedChannel = useAppSelector(
     (state) => state.tracker.selectedChannel,
   );
   const selectedPatternCells = useAppSelector(
     (state) => state.tracker.selectedPatternCells,
   );
+
+  const channelStatus = useAppSelector((state) => state.tracker.channelStatus);
+
+  const soloChannel = useMemo(() => {
+    const firstUnmuted = channelStatus.findIndex((x) => !x);
+    const lastUnmuted = channelStatus.findLastIndex((x) => !x);
+    if (firstUnmuted !== -1 && firstUnmuted === lastUnmuted) {
+      return firstUnmuted;
+    }
+    return -1;
+  }, [channelStatus]);
 
   return (
     <StyledMobileToolbar>
@@ -56,12 +79,22 @@ export const MusicWebChannelsBar = ({
             onOpenChannel(channel.index);
           }}
         >
-          <StyledChannelIcon channel={channel.index}>
+          <StyledChannelIcon>
             {channel.index === 0 && <Duty1Icon />}
             {channel.index === 1 && <Duty2Icon />}
             {channel.index === 2 && <Wave3Icon />}
             {channel.index === 3 && <Noise4Icon />}
           </StyledChannelIcon>
+          {channel.index === soloChannel && (
+            <StyledChannelStatusIcon>
+              <ChannelSoloIcon />
+            </StyledChannelStatusIcon>
+          )}
+          {!!(soloChannel === -1 && channelStatus[channel.index]) && (
+            <StyledChannelStatusIcon>
+              <ChannelMuteIcon />
+            </StyledChannelStatusIcon>
+          )}
         </StyledMobileToolbarButton>
       ))}
 

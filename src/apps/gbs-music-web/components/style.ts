@@ -33,6 +33,7 @@ export const StyledMobileToolbarButton = styled.button<{
   $isActive?: boolean;
   $isAvailable?: boolean;
 }>`
+  position: relative;
   flex-grow: 1;
   // height: 100%;
   height: 40px;
