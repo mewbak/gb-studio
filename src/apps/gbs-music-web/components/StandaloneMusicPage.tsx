@@ -438,27 +438,18 @@ export const StandaloneMusicPage = ({
           <div
             id="song-document"
             style={{
-              // height: "100%",
               flex: "1 1 0",
               minWidth: 0,
               minHeight: 0,
               overflow: "hidden",
               background: themeContext?.colors.background,
               color: themeContext?.colors.text,
-              // position: "relative",
               display: "flex",
               flexDirection: "column",
-              // position: isCompactLayout ? "fixed" : "relative",
               top: isCompactLayout ? 40 : 0,
               bottom: view === "roll" ? 60 : 0,
               left: 0,
-
-              // left: "env(safe-area-inset-bottom)",
-              // height: "calc(100vh - 200px)",
-              // minHeight: "-webkit-fill-available",
               boxSizing: "border-box",
-              // boxShadow: "10px -10px 20px inset rgba(255,0,0,0.5)",
-              // borderBottom: "10px solid green",
               right: 0,
               zIndex: 0,
             }}
