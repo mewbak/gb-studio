@@ -143,23 +143,30 @@ export const RelativePortal: FC<RelativePortalProps> = ({
     <>
       <Pin ref={pinRef} />
       <Portal>
-        {portalState.type === "ready" && (
+        <div
+          style={
+            portalState.type === "ready"
+              ? {
+                  position: "fixed",
+                  left: portalState.x,
+                  top: portalState.y,
+                  zIndex,
+                }
+              : {
+                  position: "fixed",
+                  left: 0,
+                  top: 0,
+                  zIndex,
+                }
+          }
+        >
           <div
-            style={{
-              position: "fixed",
-              left: portalState.x,
-              top: portalState.y,
-              zIndex,
-            }}
+            ref={contentsRef}
+            style={pin !== "parent-edge" ? pinStyles[pin] : undefined}
           >
-            <div
-              ref={contentsRef}
-              style={pin !== "parent-edge" ? pinStyles[pin] : undefined}
-            >
-              {children}
-            </div>
+            {children}
           </div>
-        )}
+        </div>
       </Portal>
     </>
   );
