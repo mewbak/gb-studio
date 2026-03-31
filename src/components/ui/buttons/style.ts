@@ -44,6 +44,10 @@ export const StyledButton = styled.button<StyledButtonProps>`
     opacity: ${(props) => (props.disabled ? 0.3 : 1)};
   }
 
+  @media (max-width: 840px) {
+    height: 38px;
+  }
+
   ${(props) => (props.$size === "small" ? smallStyles : "")}
   ${(props) => (props.$size === "large" ? largeStyles : "")}
   ${(props) => (props.$variant === "normal" ? normalStyles : "")}
@@ -88,6 +92,10 @@ const normalStyles = css<StyledButtonProps>`
 
   &:active {
     background: ${(props) => props.theme.colors.button.activeBackground};
+  }
+
+  @media (max-width: 840px) {
+    height: 38px;
   }
 `;
 
