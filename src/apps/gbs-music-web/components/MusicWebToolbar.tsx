@@ -23,6 +23,7 @@ import useWindowSize from "ui/hooks/use-window-size";
 import trackerActions from "store/features/tracker/trackerActions";
 import { useAppDispatch, useAppSelector } from "store/hooks";
 import { StyledButton } from "ui/buttons/style";
+import { TRACKER_REDO, TRACKER_UNDO } from "consts";
 
 declare const VERSION: string;
 declare const COMMITHASH: string;
@@ -143,6 +144,14 @@ export const MusicWebToolbar = ({
     dispatch(trackerActions.setViewAndSave("roll"));
   }, [dispatch]);
 
+  const onUndo = useCallback(() => {
+    dispatch({ type: TRACKER_UNDO });
+  }, [dispatch]);
+
+  const onRedo = useCallback(() => {
+    dispatch({ type: TRACKER_REDO });
+  }, [dispatch]);
+
   const fileMenu = useMemo(() => {
     return [
       <MenuItem onClick={onCreateSong}>{l10n("TOOL_ADD_SONG_LABEL")}</MenuItem>,
@@ -163,6 +172,13 @@ export const MusicWebToolbar = ({
         : []),
     ];
   }, [onCreateSong, onImportSong, onOpenDirectoryWorkspace]);
+
+  const editMenu = useMemo(() => {
+    return [
+      <MenuItem onClick={onUndo}>{l10n("MENU_UNDO")}</MenuItem>,
+      <MenuItem onClick={onRedo}>{l10n("MENU_REDO")}</MenuItem>,
+    ];
+  }, [onRedo, onUndo]);
 
   const viewMenu = useMemo(
     () => [
@@ -234,6 +250,8 @@ export const MusicWebToolbar = ({
               title={l10n("MENU_SETTINGS")}
             >
               <MenuItem subMenu={fileMenu}>{l10n("MENU_FILE")}</MenuItem>
+              <MenuDivider />
+              <MenuItem subMenu={editMenu}>{l10n("MENU_EDIT")}</MenuItem>
               <MenuDivider />
               <MenuItem subMenu={viewMenu}>{l10n("MENU_VIEW")}</MenuItem>
               <MenuItem subMenu={themeMenu}>{l10n("MENU_THEME")}</MenuItem>
