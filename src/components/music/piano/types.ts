@@ -48,6 +48,13 @@ export type PendingPencilNote = {
 export type TwoFingerTapState =
   | { type: "idle" }
   | {
+      type: "init";
+      startedAt: number;
+      startX: number;
+      startY: number;
+      movedTooFar: boolean;
+    }
+  | {
       type: "tracking";
       startedAt: number;
       startMidpointX: number;
@@ -71,7 +78,10 @@ export type InteractionState =
       modifiers: PointerModifiers;
       origin: GridPoint;
       delta: DragDelta;
-      startedFromSelection: boolean;
+      startPointer: {
+        clientX: number;
+        clientY: number;
+      };
       clickPlacement?: {
         cellAddress: PatternCellAddress;
         noteIndex: number;
@@ -100,24 +110,3 @@ export type DragPreviewState =
       clone: boolean;
       delta: DragDelta;
     };
-
-export type PointerDownInput = {
-  isTouch: boolean;
-  clientX: number;
-  clientY: number;
-  pageX: number;
-  pageY: number;
-  modifiers: PointerModifiers;
-  isPrimaryAction: boolean;
-  isEraseAction: boolean;
-};
-
-export type PointerMoveInput = {
-  clientX: number;
-  clientY: number;
-  pageX: number;
-  pageY: number;
-  modifiers: PointerModifiers;
-  updateHover: boolean;
-  shouldPreventDefault: boolean;
-};
