@@ -625,7 +625,7 @@ export const StandaloneMusicPage = ({
 
               <StyledMobileOverlay
                 $open={mobileView === "settings"}
-                $fullHeight
+                // $fullHeight
               >
                 <StyledMobileOverlayClose
                   onClick={() => {

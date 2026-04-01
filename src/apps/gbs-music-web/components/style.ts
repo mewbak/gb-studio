@@ -193,7 +193,7 @@ export const StyledMobileOverlayCloseButton = styled.div`
   align-items: center;
   justify-content: center;
   position: absolute;
-  top: 5px;
+  top: 20px;
   right: 10px;
   border-radius: 30px;
   width: 40px;
