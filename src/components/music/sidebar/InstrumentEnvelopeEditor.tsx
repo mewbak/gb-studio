@@ -25,6 +25,8 @@ const StyledEnvelopeField = styled.div`
   align-items: center;
   flex-grow: 1;
   margin-bottom: 10px;
+  width: 33%;
+  flex-shrink: 0;
   > * {
     width: auto;
   }

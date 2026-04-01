@@ -16,6 +16,9 @@ import { playDutyNotePreview } from "components/music/helpers";
 import { Alert, AlertItem } from "ui/alerts/Alert";
 import { InstrumentEnvelopeEditor } from "components/music/sidebar/InstrumentEnvelopeEditor";
 import { InstrumentEnvelopePreview } from "components/music/sidebar/InstrumentEnvelopePreview";
+import { Knob } from "ui/form/Knob";
+import { Label } from "ui/form/Label";
+import { Slider } from "ui/form/Slider";
 
 const dutyOptions = [
   {
@@ -222,21 +225,22 @@ export const InstrumentDutyEditor = ({
             menuPlacement="top"
           />
         </FormField>
-      </FormRow>
-      {Number(instrument.frequency_sweep_time) !== 0 && (
-        <FormRow>
-          <SliderField
-            name="frequency_sweep_shift"
+        {Number(instrument.frequency_sweep_time) !== 0 && (
+          <FormField
+            name="frequency_sweep_time"
             label={l10n("FIELD_SWEEP_SHIFT")}
-            value={instrument.frequency_sweep_shift || 0}
-            min={-7}
-            max={7}
-            onChange={(value) => {
-              onChangeField("frequency_sweep_shift")(value || 0);
-            }}
-          />
-        </FormRow>
-      )}
+          >
+            <Slider
+              value={instrument.frequency_sweep_shift || 0}
+              min={-7}
+              max={7}
+              onChange={(value) => {
+                onChangeField("frequency_sweep_shift")(value || 0);
+              }}
+            />
+          </FormField>
+        )}
+      </FormRow>
       {Number(instrument.frequency_sweep_time) !== 0 &&
         selectedChannel === 1 && (
           <FormRow>
