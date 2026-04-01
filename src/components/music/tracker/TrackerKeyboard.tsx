@@ -4,13 +4,7 @@ import styled, { css } from "styled-components";
 import { KeyWhen } from "renderer/lib/keybindings/keyBindings";
 import { ButtonGroup } from "ui/buttons/ButtonGroup";
 import { FlexGrow } from "ui/spacing/Spacing";
-import {
-  CaretDownIcon,
-  CaretUpIcon,
-  RedoIcon,
-  SettingsIcon,
-  UndoIcon,
-} from "ui/icons/Icons";
+import { CaretDownIcon, CaretUpIcon, SettingsIcon } from "ui/icons/Icons";
 import { Button } from "ui/buttons/Button";
 import { StyledButton } from "ui/buttons/style";
 import useWindowSize from "ui/hooks/use-window-size";
@@ -476,15 +470,6 @@ export const TrackerKeyboard = ({
                 +<br />
                 Semi
               </Button>
-              <Button
-                onPointerDown={() => {
-                  onKeyPressed({
-                    type: "undo",
-                  });
-                }}
-              >
-                <UndoIcon />
-              </Button>
             </StyledTrackerKeyboardButtonsRow>
             <StyledTrackerKeyboardButtonsRow>
               <Button
@@ -521,15 +506,6 @@ export const TrackerKeyboard = ({
               >
                 -<br />
                 Semi
-              </Button>
-              <Button
-                onPointerDown={() => {
-                  onKeyPressed({
-                    type: "redo",
-                  });
-                }}
-              >
-                <RedoIcon />
               </Button>
             </StyledTrackerKeyboardButtonsRow>
             <StyledTrackerKeyboardButtonsRow>

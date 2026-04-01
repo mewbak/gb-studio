@@ -143,13 +143,23 @@ export const StyledMobileOverlay = styled.div<{
   ${(props) =>
     props.$fullHeight
       ? css`
-          top: 20px;
+          top: 40px;
           height: auto;
-          max-height: none;
-          transition: transform 300ms ease-in-out;
+          max-height: 100dvh;
           border-top-left-radius: 12px;
           border-top-right-radius: 12px;
-          padding-top: 0px;
+          padding-top: 12px;
+
+          &:before {
+            content: "";
+            display: block;
+            width: 40px;
+            height: 4px;
+            background: ${(props) => props.theme.colors.sidebar.border};
+            margin: 0px auto;
+            margin-bottom: 10px;
+            border-radius: 16px;
+          }
         `
       : css`
           top: auto;

@@ -627,13 +627,6 @@ export const StandaloneMusicPage = ({
                     setMobileOverlayView("none");
                   }}
                 />
-                <StyledMobileOverlayCloseButton
-                  onClick={() => {
-                    setMobileOverlayView("none");
-                  }}
-                >
-                  <CloseIcon />
-                </StyledMobileOverlayCloseButton>
                 <MusicWebSettingPane />
               </StyledMobileOverlay>
 
@@ -643,16 +636,6 @@ export const StandaloneMusicPage = ({
                     setMobileOverlayView("none");
                   }}
                 />
-                {/* <StyledMobilePaneHeader>
-              <Button
-                variant="transparent"
-                onClick={() => {
-                  setMobileOverlayView("none");
-                }}
-              >
-                <CloseIcon />
-              </Button>
-            </StyledMobilePaneHeader> */}
                 {songDocument && (
                   <SequenceEditor
                     direction="horizontal"
