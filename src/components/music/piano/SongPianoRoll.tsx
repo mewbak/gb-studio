@@ -7,11 +7,10 @@ import { PianoRollCanvas } from "./PianoRollCanvas";
 import API from "renderer/lib/api";
 
 interface SongPianoRollProps {
-  sequenceId: number;
   song: Song | null;
 }
 
-export const SongPianoRoll = ({ song, sequenceId }: SongPianoRollProps) => {
+export const SongPianoRoll = ({ song }: SongPianoRollProps) => {
   const playing = useAppSelector((state) => state.tracker.playing);
   const startPlaybackPosition = useAppSelector(
     (state) => state.tracker.startPlaybackPosition,
@@ -54,7 +53,6 @@ export const SongPianoRoll = ({ song, sequenceId }: SongPianoRollProps) => {
       {song && (
         <PianoRollCanvas
           song={song}
-          sequenceId={sequenceId}
           playbackOrder={playbackState[0]}
           playbackRow={playbackState[1]}
         />

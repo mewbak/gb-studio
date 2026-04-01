@@ -111,9 +111,7 @@ const SongDocument = ({ musicAsset }: { musicAsset: MusicAsset }) => {
       {view === "tracker" && (
         <SongTracker sequenceId={sequenceId} song={songDocument} />
       )}
-      {view === "roll" && (
-        <SongPianoRoll sequenceId={sequenceId} song={songDocument} />
-      )}
+      {view === "roll" && <SongPianoRoll song={songDocument} />}
       <UgePlayer data={songDocument} />
     </>
   );
