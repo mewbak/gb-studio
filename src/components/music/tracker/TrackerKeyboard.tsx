@@ -4,9 +4,16 @@ import styled, { css } from "styled-components";
 import { KeyWhen } from "renderer/lib/keybindings/keyBindings";
 import { ButtonGroup } from "ui/buttons/ButtonGroup";
 import { FlexGrow } from "ui/spacing/Spacing";
-import { RedoIcon, SettingsIcon, UndoIcon } from "ui/icons/Icons";
+import {
+  CaretDownIcon,
+  CaretUpIcon,
+  RedoIcon,
+  SettingsIcon,
+  UndoIcon,
+} from "ui/icons/Icons";
 import { Button } from "ui/buttons/Button";
 import { StyledButton } from "ui/buttons/style";
+import useWindowSize from "ui/hooks/use-window-size";
 
 export type VirtualTrackerKey =
   | {
@@ -45,6 +52,12 @@ export type VirtualTrackerKey =
     }
   | {
       type: "redo";
+    }
+  | {
+      type: "settings";
+    }
+  | {
+      type: "toggle";
     };
 
 interface TrackerKeyboardProps {
@@ -57,6 +70,8 @@ interface TrackerKeyboardProps {
 const NAV_REPEAT_INITIAL_DELAY = 300;
 const NAV_REPEAT_INTERVAL = 100;
 const DRAG_NOTES_THRESHOLD = 10;
+
+const COMPACT_LAYOUT_BREAKPOINT = 840;
 
 const StyledTrackerKeyboard = styled.div<{ $open?: boolean }>`
   display: flex;
@@ -91,8 +106,10 @@ const StyledTrackerKeyboard = styled.div<{ $open?: boolean }>`
     }
   }
 
-  @media (max-width: 900px) {
-    max-height: ${(props) => (props.$open ? "240px" : "0px")};
+  @media (max-width: 840px) {
+    max-height: ${(props) =>
+      props.$open ? "240px" : "calc(50px + env(safe-area-inset-bottom))"};
+    pointer-events: auto;
 
     ${StyledButton} {
       font-size: 15px;
@@ -109,7 +126,7 @@ const StyledTrackerKeyboard = styled.div<{ $open?: boolean }>`
   }
 `;
 
-const StyledTrackerNavigationButtons = styled.div`
+const StyledTrackerNavigationButtons = styled.div<{ $open?: boolean }>`
   display: flex;
   gap: 10px;
   padding: 5px 10px;
@@ -118,6 +135,12 @@ const StyledTrackerNavigationButtons = styled.div`
   border-top: 1px solid ${(props) => props.theme.colors.sidebar.header.border};
   border-bottom: 1px solid
     ${(props) => props.theme.colors.sidebar.header.border};
+
+  @media (max-width: 840px) {
+    transition: padding-bottom 200ms ease-in-out;
+    padding-bottom: ${(props) =>
+      props.$open ? "5px" : "calc(40px + env(safe-area-inset-bottom))"};
+  }
 `;
 
 const StyledTrackerSectionButtons = styled.div`
@@ -322,6 +345,11 @@ export const TrackerKeyboard = ({
 
   const touchStartX = useRef(-1);
 
+  const windowSize = useWindowSize();
+  const windowWidth = windowSize.width || 0;
+  const isCompactLayout =
+    windowWidth > 0 && windowWidth <= COMPACT_LAYOUT_BREAKPOINT;
+
   return (
     <StyledTrackerKeyboard
       $open={open}
@@ -332,7 +360,7 @@ export const TrackerKeyboard = ({
         e.stopPropagation();
       }}
     >
-      <StyledTrackerNavigationButtons>
+      <StyledTrackerNavigationButtons $open={open}>
         <ButtonGroup>
           <RepeatButton
             onRepeatPress={() => {
@@ -398,11 +426,14 @@ export const TrackerKeyboard = ({
 
         <Button
           type="button"
+          variant="transparent"
           onPointerDown={() => {
-            console.log("SONG SETTINGS");
+            onKeyPressed({
+              type: "toggle",
+            });
           }}
         >
-          <SettingsIcon />
+          {open ? <CaretDownIcon /> : <CaretUpIcon />}
         </Button>
       </StyledTrackerNavigationButtons>
 
@@ -637,6 +668,20 @@ export const TrackerKeyboard = ({
           >
             ⌫
           </Button>
+          <FlexGrow />
+
+          {isCompactLayout && (
+            <Button
+              type="button"
+              onPointerDown={() => {
+                onKeyPressed({
+                  type: "settings",
+                });
+              }}
+            >
+              <SettingsIcon />
+            </Button>
+          )}
         </StyledTrackerKeyboardActions>
       </StyledTrackerSectionButtons>
     </StyledTrackerKeyboard>

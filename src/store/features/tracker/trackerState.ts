@@ -24,6 +24,14 @@ export type TrackerSidebarViewType = "instrument" | "cell";
 
 export type SubpatternEditorMode = "simple" | "tracker";
 
+export type MobileOverlayView =
+  | "none"
+  | "notes"
+  | "channels"
+  | "instruments"
+  | "settings"
+  | "sequence";
+
 interface SelectedInstrument {
   id: string;
   type: InstrumentType;
@@ -89,6 +97,7 @@ export interface TrackerState {
   pastedPattern: PatternCell[][] | null;
   sidebarView: TrackerSidebarViewType;
   showVirtualKeyboard: boolean;
+  mobileOverlayView: MobileOverlayView;
 }
 
 export const initialState: TrackerState = {
@@ -131,6 +140,7 @@ export const initialState: TrackerState = {
   pastedPattern: null,
   sidebarView: "instrument",
   showVirtualKeyboard: false,
+  mobileOverlayView: "none",
 };
 
 const trackerSlice = createSlice({
@@ -229,6 +239,7 @@ const trackerSlice = createSlice({
     ) => {
       if (state.selectedEffectCell !== action.payload) {
         state.selectedEffectCell = action.payload;
+        state.mobileOverlayView = "notes";
       }
     },
     setSubpatternEditorFocus: (state, _action: PayloadAction<boolean>) => {
@@ -281,6 +292,10 @@ const trackerSlice = createSlice({
     setShowVirtualKeyboard: (state, action: PayloadAction<boolean>) => {
       state.showVirtualKeyboard = action.payload;
     },
+
+    setMobileOverlayView: (state, action: PayloadAction<MobileOverlayView>) => {
+      state.mobileOverlayView = action.payload;
+    },
   },
   extraReducers: (builder) =>
     builder
@@ -331,6 +346,9 @@ const trackerSlice = createSlice({
       .addCase(trackerDocumentActions.insertSequence, (state, action) => {
         const offset = action.payload.position === "after" ? 1 : 0;
         state.selectedSequence = action.payload.sequenceIndex + offset;
+      })
+      .addCase(trackerDocumentActions.clearAbsoluteCells, (state) => {
+        state.mobileOverlayView = "none";
       })
       .addMatcher(
         (action: UnknownAction): action is UnknownAction =>

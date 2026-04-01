@@ -1261,6 +1261,14 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
       if (virtualKey.type === "redo") {
         dispatch({ type: TRACKER_REDO });
       }
+
+      if (virtualKey.type === "settings") {
+        dispatch(trackerActions.setMobileOverlayView("settings"));
+      }
+
+      if (virtualKey.type === "toggle") {
+        dispatch(trackerActions.setShowVirtualKeyboard(!showVirtualKeyboard));
+      }
     },
     [
       applyTrackerInput,
@@ -1270,6 +1278,7 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
       sequenceId,
       setActiveField,
       setSingleFieldSelection,
+      showVirtualKeyboard,
     ],
   );
 

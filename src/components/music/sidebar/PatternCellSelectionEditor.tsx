@@ -83,6 +83,7 @@ export const PatternCellSelectionEditor = () => {
           type: channelIdToInstrumentType(firstChannelId),
         }),
       );
+      dispatch(trackerActions.setMobileOverlayView("instruments"));
     }
   }, [
     dispatch,
