@@ -1,6 +1,7 @@
 import React from "react";
 import l10n from "shared/lib/lang/l10n";
 import { CheckboxField } from "ui/form/CheckboxField";
+import { Knob } from "ui/form/Knob";
 import { FormRow } from "ui/form/layout/FormLayout";
 import { SliderField } from "ui/form/SliderField";
 
@@ -35,7 +36,17 @@ export const InstrumentLengthForm = ({
         />
       </FormRow>
       <FormRow>
-        <SliderField
+        <Knob
+          value={value || 0}
+          min={value ? min : 0}
+          max={max}
+          sensitivity={3}
+          onChange={(value) => {
+            onChange(value || 0);
+          }}
+        />
+
+        {/* <SliderField
           name="length"
           value={value || 0}
           min={value ? min : 0}
@@ -43,7 +54,7 @@ export const InstrumentLengthForm = ({
           onChange={(value) => {
             onChange(value || 0);
           }}
-        />
+        /> */}
       </FormRow>
     </>
   );

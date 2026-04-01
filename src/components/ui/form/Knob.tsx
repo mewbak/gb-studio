@@ -1,5 +1,4 @@
 import React, {
-  FC,
   KeyboardEvent,
   PointerEvent as ReactPointerEvent,
   useCallback,
@@ -71,7 +70,7 @@ const describeArc = (
 ) => {
   const start = polarToCartesian(x, y, radius, endAngle);
   const end = polarToCartesian(x, y, radius, startAngle);
-  const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+  const largeArcFlag = Math.abs(endAngle - startAngle) <= 180 ? "0" : "1";
 
   return [
     "M",
@@ -110,8 +109,8 @@ const KnobButton = styled.button<KnobButtonProps>`
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
+  width: 60px;
+  height: 60px;
   padding: 0;
   margin: 0;
   border: 0;
@@ -246,7 +245,6 @@ export const Knob = ({
 
   const commitValue = useCallback(
     (nextValue: number) => {
-      //   console.log("ONCHANGE", clampAndSnap(nextValue, min, max, step));
       emitValueIfChanged(nextValue);
     },
     [emitValueIfChanged],
@@ -300,8 +298,6 @@ export const Knob = ({
       return;
     }
 
-    console.log("HERE FOCUS");
-
     input.focus();
 
     const length = input.value.length;
@@ -343,9 +339,6 @@ export const Knob = ({
       );
 
       setOverlayValue(nextValue);
-
-      console.log("ONCHANGE:B", nextValue);
-
       emitValueIfChanged(nextValue);
     };
 
@@ -374,7 +367,7 @@ export const Knob = ({
       window.removeEventListener("pointerup", finishDrag);
       window.removeEventListener("pointercancel", finishDrag);
     };
-  }, [isDragging, max, min, onChange, sensitivity, step]);
+  }, [emitValueIfChanged, isDragging, max, min, sensitivity, step]);
 
   const onPointerDown = useCallback(
     (event: ReactPointerEvent<HTMLButtonElement>) => {
@@ -383,8 +376,6 @@ export const Knob = ({
       }
 
       event.currentTarget.focus();
-      console.log("SET FOCUS", event.currentTarget);
-      console.log("FOCUS WAS", document.activeElement);
 
       pointerIdRef.current = event.pointerId;
       dragStartXRef.current = event.clientX;
@@ -397,8 +388,6 @@ export const Knob = ({
 
       event.currentTarget.setPointerCapture(event.pointerId);
       event.preventDefault();
-
-      console.log("FOCUS STILL WAS", document.activeElement);
     },
     [isEditing, safeValue],
   );
@@ -505,23 +494,41 @@ export const Knob = ({
   const normalized = normalizeValue(safeValue, min, max);
   const valueAngle = KNOB_START_ANGLE + normalized * KNOB_SWEEP;
 
+  const isBipolar = min < 0 && max > 0;
+  const zeroNormalized = isBipolar ? normalizeValue(0, min, max) : 0;
+  const zeroAngle = KNOB_START_ANGLE + zeroNormalized * KNOB_SWEEP;
+
   const trackColor = themeContext?.colors.input.border ?? "#888";
   const fillColor = themeContext?.colors.highlight ?? "#fff";
   const pointerColor = themeContext?.colors.text ?? "#fff";
 
+  const buttonBackground = describeArc(30, 30, 25, -179, 180);
+
   const arcBackground = describeArc(
-    22,
-    22,
-    15,
+    30,
+    30,
+    25,
     KNOB_START_ANGLE,
     KNOB_END_ANGLE,
   );
-  const arcValue = describeArc(22, 22, 15, KNOB_START_ANGLE, valueAngle);
 
-  const pointerLength = 10;
+  const arcValue = isBipolar
+    ? safeValue === 0
+      ? null
+      : safeValue < 0
+        ? describeArc(30, 30, 26, valueAngle, zeroAngle)
+        : describeArc(30, 30, 26, zeroAngle, valueAngle)
+    : describeArc(30, 30, 26, KNOB_START_ANGLE, valueAngle);
+
+  const pointerLength = 15;
   const pointerRadians = ((valueAngle - 90) * Math.PI) / 180;
-  const pointerX = 22 + pointerLength * Math.cos(pointerRadians);
-  const pointerY = 22 + pointerLength * Math.sin(pointerRadians);
+  const pointerX = 30 + pointerLength * Math.cos(pointerRadians);
+  const pointerY = 30 + pointerLength * Math.sin(pointerRadians);
+  const pointerX2 = 30 + 20 * Math.cos(pointerRadians);
+  const pointerY2 = 30 + 20 * Math.sin(pointerRadians);
+
+  const zeroMarkerInner = polarToCartesian(30, 30, 20, zeroAngle);
+  const zeroMarkerOuter = polarToCartesian(30, 30, 28, zeroAngle);
 
   return (
     <Root>
@@ -542,33 +549,67 @@ export const Knob = ({
         onPointerDown={onPointerDown}
         onKeyDown={onKeyDown}
         onDoubleClick={beginEditingWithCurrentValue}
-        className="focus-visible"
       >
-        <KnobSvg width="44" height="44" viewBox="0 0 44 44" aria-hidden="true">
+        <KnobSvg width="60" height="60" viewBox="0 0 60 60" aria-hidden="true">
+          <circle
+            cx={30}
+            cy={30}
+            r={23}
+            fill="none"
+            stroke={trackColor}
+            strokeWidth="1"
+          />
+
           <path
             d={arcBackground}
             fill="none"
             stroke={trackColor}
-            strokeWidth="3"
-            strokeLinecap="round"
+            strokeWidth="5"
+            strokeLinecap="square"
           />
-          <path
-            d={arcValue}
+
+          {arcValue && (
+            <path
+              d={arcValue}
+              fill="none"
+              stroke={fillColor}
+              strokeWidth="4"
+              strokeLinecap="square"
+            />
+          )}
+
+          <circle
+            cx={30}
+            cy={30}
+            r={24}
             fill="none"
-            stroke={fillColor}
-            strokeWidth="3"
-            strokeLinecap="round"
+            stroke="#000000"
+            strokeWidth="1"
           />
+
+          {isBipolar && (
+            <line
+              x1={zeroMarkerInner.x}
+              y1={zeroMarkerInner.y}
+              x2={zeroMarkerOuter.x}
+              y2={zeroMarkerOuter.y}
+              stroke="#000000"
+              strokeWidth="4"
+              strokeLinecap="square"
+            />
+          )}
+
           <line
-            x1="22"
-            y1="22"
-            x2={pointerX}
-            y2={pointerY}
+            x1={pointerX}
+            y1={pointerY}
+            x2={pointerX2}
+            y2={pointerY2}
             stroke={pointerColor}
             strokeWidth="2"
             strokeLinecap="round"
           />
-          <circle cx="22" cy="22" r="2" fill={pointerColor} />
+
+          {/* <circle cx="30" cy="30" r="2" fill={pointerColor} /> */}
         </KnobSvg>
 
         {isEditing && (

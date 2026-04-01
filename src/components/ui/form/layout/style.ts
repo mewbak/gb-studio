@@ -226,6 +226,12 @@ export const StyledFormSectionTitle = styled.div<StyledFormSectionTitleProps>`
           margin-bottom: 0;
         `
       : ""}
+      
+
+  @media (max-width: 840px) {
+    font-size: 14px;
+    height: 40px;
+  }
 `;
 
 // #endregion FormSectionTitle

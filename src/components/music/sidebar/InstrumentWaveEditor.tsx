@@ -14,6 +14,7 @@ import { testNotes } from "./helpers";
 import throttle from "lodash/throttle";
 import { NOTE_C5 } from "consts";
 import { playWaveNotePreview } from "components/music/helpers";
+import { Knob } from "ui/form/Knob";
 
 const volumeOptions = [
   {
@@ -134,6 +135,19 @@ export const InstrumentWaveEditor = ({
               e && onChangeFieldSelect("volume")(e)
             }
           />
+          <Knob
+            value={parseInt(selectedVolume?.value || "0", 10)}
+            min={0}
+            max={3}
+            onChange={(value) => {
+              onChangeFieldSelect("volume")({
+                value: String(value),
+                label: String(value),
+              });
+            }}
+          />
+          [{parseInt(selectedVolume?.value || "0", 10)}] [
+          {JSON.stringify(selectedVolume)}]
         </FormField>
       </FormRow>
 

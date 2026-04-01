@@ -1,20 +1,19 @@
-import React, { useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { castEventToBool } from "renderer/lib/helpers/castEventValue";
 import l10n from "shared/lib/lang/l10n";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
-import { SubPatternCell, NoiseInstrument } from "shared/lib/uge/types";
+import { NoiseInstrument } from "shared/lib/uge/types";
 import { CheckboxField } from "ui/form/CheckboxField";
 import { FormDivider, FormField, FormRow } from "ui/form/layout/FormLayout";
-import { InstrumentLengthForm } from "components/music/form/InstrumentLengthForm";
-import { InstrumentVolumeEditor } from "./InstrumentVolumeEditor";
-import { NoiseMacroEditorForm } from "components/music/form/NoiseMacroEditorForm";
 import { Button } from "ui/buttons/Button";
-import { cloneDeep, throttle } from "lodash";
+import { throttle } from "lodash";
 import { useAppDispatch } from "store/hooks";
 import { ButtonGroup } from "ui/buttons/ButtonGroup";
 import { testNotes } from "./helpers";
 import { NOTE_C5 } from "consts";
 import { playNoiseNotePreview } from "components/music/helpers";
+import { InstrumentEnvelopeEditor } from "components/music/sidebar/InstrumentEnvelopeEditor";
+import { InstrumentEnvelopePreview } from "components/music/sidebar/InstrumentEnvelopePreview";
 
 interface InstrumentNoiseEditorProps {
   id: string;
@@ -25,6 +24,14 @@ export const InstrumentNoiseEditor = ({
   instrument,
 }: InstrumentNoiseEditorProps) => {
   const dispatch = useAppDispatch();
+
+  const instrumentId = instrument?.index;
+
+  const instrumentRef = useRef(instrument);
+
+  useEffect(() => {
+    instrumentRef.current = instrument;
+  }, [instrument]);
 
   const throttledTestInstrument = useRef(
     throttle(
@@ -42,65 +49,72 @@ export const InstrumentNoiseEditor = ({
     };
   }, [throttledTestInstrument]);
 
-  if (!instrument) return <></>;
-
-  const onChangeField =
+  const onChangeField = useCallback(
     <T extends keyof NoiseInstrument>(key: T) =>
-    (editValue: NoiseInstrument[T]) => {
-      dispatch(
-        trackerDocumentActions.editNoiseInstrument({
-          instrumentId: instrument.index,
-          changes: {
-            [key]: editValue,
-          },
-        }),
-      );
-      const newValue = { ...instrument, [key]: editValue };
-      throttledTestInstrument(newValue);
-    };
-
-  const onChangeSubpattern = (macros: number[]) => {
-    const newSubPattern = cloneDeep(instrument.subpattern);
-    macros.forEach((value, i) => {
-      newSubPattern[i].note = value + 36;
-    });
-
-    dispatch(
-      trackerDocumentActions.editSubPattern({
-        instrumentId: instrument.index,
-        instrumentType: "noise",
-        subpattern: newSubPattern,
-      }),
-    );
-  };
-
-  const onTestInstrument = (note: number) => () => {
-    playNoiseNotePreview(note, instrument, 0, 0);
-  };
-
-  const noiseMacros = !instrument.subpattern_enabled
-    ? []
-    : instrument.subpattern
-        // .slice(0, 6)
-        .map((subpatternCell: SubPatternCell) =>
-          subpatternCell && subpatternCell.note ? subpatternCell.note - 36 : 0,
+      (editValue: NoiseInstrument[T]) => {
+        if (instrumentId === undefined || !instrumentRef.current) {
+          return;
+        }
+        dispatch(
+          trackerDocumentActions.editNoiseInstrument({
+            instrumentId,
+            changes: {
+              [key]: editValue,
+            },
+          }),
         );
+        const newValue = { ...instrumentRef.current, [key]: editValue };
+        throttledTestInstrument(newValue);
+      },
+    [dispatch, instrumentId, throttledTestInstrument],
+  );
+
+  const onChangeEnvelopeLength = useMemo(
+    () => onChangeField("length"),
+    [onChangeField],
+  );
+
+  const onChangeEnvelopeVolume = useMemo(
+    () => onChangeField("initial_volume"),
+    [onChangeField],
+  );
+
+  const onChangeEnvelopeSweep = useMemo(
+    () => onChangeField("volume_sweep_change"),
+    [onChangeField],
+  );
+
+  const onTestInstrument = useCallback(
+    (note: number) => () => {
+      if (!instrument) {
+        return;
+      }
+      playNoiseNotePreview(note, instrument, 0, 0);
+    },
+    [instrument],
+  );
+
+  if (!instrument) {
+    return null;
+  }
 
   return (
     <>
-      <InstrumentLengthForm
-        value={instrument.length}
-        onChange={onChangeField("length")}
-      />
-
-      <FormDivider />
-
-      <InstrumentVolumeEditor
-        initialVolume={instrument.initial_volume}
-        volumeSweepChange={instrument.volume_sweep_change}
+      <InstrumentEnvelopeEditor
+        volume={instrument.initial_volume}
+        sweep={instrument.volume_sweep_change}
         length={instrument.length}
-        onChange={onChangeField}
+        onChangeVolume={onChangeEnvelopeVolume}
+        onChangeSweep={onChangeEnvelopeSweep}
+        onChangeLength={onChangeEnvelopeLength}
       />
+      <FormRow>
+        <InstrumentEnvelopePreview
+          volume={instrument.initial_volume}
+          sweep={instrument.volume_sweep_change}
+          length={instrument.length}
+        />
+      </FormRow>
 
       <FormDivider />
 
@@ -116,18 +130,6 @@ export const InstrumentNoiseEditor = ({
           }}
         />
       </FormRow>
-
-      {/* Disable the noise macro preview for now. In the future it should edit the subpattern visually  */}
-      {false ? ( // {instrument.noise_macro ? (
-        <>
-          <NoiseMacroEditorForm
-            macros={noiseMacros}
-            onChange={onChangeSubpattern}
-          />
-        </>
-      ) : (
-        ""
-      )}
 
       <FormDivider />
 

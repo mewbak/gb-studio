@@ -64,14 +64,6 @@ const StyledMenuItem = styled.div`
   span {
     flex-grow: 1;
   }
-
-  ${InputGroup} {
-    width: 50%;
-  }
-
-  ${StyledButtonGroup} {
-    width: 50%;
-  }
 `;
 
 const StyledMenuCaret = styled.div`

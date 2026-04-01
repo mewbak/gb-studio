@@ -1,42 +1,19 @@
 import React, { useContext, useEffect, useRef } from "react";
-import l10n from "shared/lib/lang/l10n";
 import { ThemeContext } from "styled-components";
-import { Knob } from "ui/form/Knob";
-import { Label } from "ui/form/Label";
-import { FormRow } from "ui/form/layout/FormLayout";
-import { SliderField } from "ui/form/SliderField";
 
-type EditableInstrument = {
-  initial_volume: number;
-  volume_sweep_change: number;
-};
-
-interface InstrumentVolumeEditorProps {
-  initialVolume: number;
-  volumeSweepChange: number;
+interface InstrumentEnvelopePreviewProps {
+  volume: number;
+  sweep: number;
   length: number | null;
-  onChange: <T extends keyof EditableInstrument>(
-    key: T,
-  ) => (editValue: EditableInstrument[T]) => void;
 }
 
 const PADDING = 10;
 
-// For UI preview flip positive values so the control feels symmetric
-// The value is flipped back before being stored after changes.
-const flipSweepChange = (value: number) => {
-  if (value <= 0) {
-    return value;
-  }
-  return 8 - value;
-};
-
-export const InstrumentVolumeEditor = ({
-  initialVolume,
-  volumeSweepChange,
+export const InstrumentEnvelopePreview = ({
+  volume,
+  sweep,
   length,
-  onChange,
-}: InstrumentVolumeEditorProps) => {
+}: InstrumentEnvelopePreviewProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const themeContext = useContext(ThemeContext);
 
@@ -56,7 +33,7 @@ export const InstrumentVolumeEditor = ({
     const drawHeight = canvas.height - PADDING * 2;
     const ctx = canvas.getContext("2d");
 
-    const normalisedVolume = initialVolume / 15;
+    const normalisedVolume = volume / 15;
     const secLength = length === null ? 1 : length / 256;
     const centerLineY = canvas.height - PADDING - (7 / 15) * drawHeight;
 
@@ -91,11 +68,11 @@ export const InstrumentVolumeEditor = ({
         canvas.height - PADDING - normalisedVolume * drawHeight,
       );
 
-      let localVolumeSweepChange;
-      if (volumeSweepChange < 0) {
+      let localsweep;
+      if (sweep < 0) {
         //fade down
-        localVolumeSweepChange = volumeSweepChange + 8;
-        const envLength = ((localVolumeSweepChange / 64) * initialVolume) / 2;
+        localsweep = sweep + 8;
+        const envLength = ((localsweep / 64) * volume) / 2;
 
         ctx.lineTo(
           PADDING + Math.min(envLength, secLength) * drawWidth,
@@ -106,10 +83,10 @@ export const InstrumentVolumeEditor = ({
               drawHeight,
         );
         ctx.lineTo(PADDING + secLength * drawWidth, canvas.height - PADDING);
-      } else if (volumeSweepChange > 0) {
+      } else if (sweep > 0) {
         //fade up
-        localVolumeSweepChange = 8 - volumeSweepChange;
-        const envLength = ((volumeSweepChange / 64) * (15 - initialVolume)) / 2;
+        localsweep = 8 - sweep;
+        const envLength = ((sweep / 64) * (15 - volume)) / 2;
 
         ctx.lineTo(
           PADDING + Math.min(envLength, secLength) * drawWidth,
@@ -154,65 +131,18 @@ export const InstrumentVolumeEditor = ({
       ctx.strokeStyle = defaultColor;
       ctx.stroke();
     }
-  }, [initialVolume, length, themeContext, volumeSweepChange]);
+  }, [volume, length, themeContext, sweep]);
 
   return (
-    <>
-      {/* <FormRow> */}
-      {/* <Label htmlFor="initialVolume">{l10n("FIELD_INITIAL_VOLUME")}</Label>
-        <Knob
-          value={initialVolume || 0}
-          min={0}
-          max={15}
-          onChange={(value) => {
-            onChange("initial_volume")(value || 0);
-          }}
-        /> */}
-      {/* <SliderField
-          name="initial_volume"
-          label={l10n("FIELD_INITIAL_VOLUME")}
-          value={initialVolume || 0}
-          min={0}
-          max={15}
-          onChange={(value) => {
-            onChange("initial_volume")(value || 0);
-          }}
-        /> */}
-      {/* </FormRow>
-      <FormRow> */}
-      {/* <Label htmlFor="sweepChange">{l10n("FIELD_VOLUME_SWEEP_CHANGE")}</Label>
-        <Knob
-          value={flipSweepChange(volumeSweepChange || 0)}
-          min={-7}
-          max={7}
-          onChange={(value) => {
-            onChange("volume_sweep_change")(flipSweepChange(value || 0));
-          }}
-        /> */}
-
-      {/* <SliderField
-          name="volume_sweep_change"
-          label={l10n("FIELD_VOLUME_SWEEP_CHANGE")}
-          value={flipSweepChange(volumeSweepChange || 0)}
-          min={-7}
-          max={7}
-          onChange={(value) => {
-            onChange("volume_sweep_change")(flipSweepChange(value || 0));
-          }}
-        /> */}
-      {/* </FormRow> */}
-      <FormRow>
-        <canvas
-          ref={canvasRef}
-          style={{
-            width: "100%",
-            height: "100px",
-            backgroundColor: "#000",
-            borderRadius: 4,
-          }}
-          height={100}
-        />
-      </FormRow>
-    </>
+    <canvas
+      ref={canvasRef}
+      style={{
+        width: "100%",
+        height: "100px",
+        backgroundColor: "#000",
+        borderRadius: 4,
+      }}
+      height={100}
+    />
   );
 };

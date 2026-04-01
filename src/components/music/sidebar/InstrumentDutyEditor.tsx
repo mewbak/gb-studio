@@ -1,11 +1,9 @@
-import React, { useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
 import { DutyInstrument } from "shared/lib/uge/types";
 import { FormDivider, FormField, FormRow } from "ui/form/layout/FormLayout";
 import { Select } from "ui/form/Select";
 import { SliderField } from "ui/form/SliderField";
-import { InstrumentLengthForm } from "components/music/form/InstrumentLengthForm";
-import { InstrumentVolumeEditor } from "./InstrumentVolumeEditor";
 import { Button } from "ui/buttons/Button";
 import l10n from "shared/lib/lang/l10n";
 import { useAppDispatch, useAppSelector } from "store/hooks";
@@ -16,6 +14,8 @@ import throttle from "lodash/throttle";
 import { NOTE_C5 } from "consts";
 import { playDutyNotePreview } from "components/music/helpers";
 import { Alert, AlertItem } from "ui/alerts/Alert";
+import { InstrumentEnvelopeEditor } from "components/music/sidebar/InstrumentEnvelopeEditor";
+import { InstrumentEnvelopePreview } from "components/music/sidebar/InstrumentEnvelopePreview";
 
 const dutyOptions = [
   {
@@ -84,13 +84,21 @@ export const InstrumentDutyEditor = ({
     (state) => state.tracker.selectedChannel,
   );
 
+  const instrumentId = instrument?.index;
+
+  const instrumentRef = useRef(instrument);
+
+  useEffect(() => {
+    instrumentRef.current = instrument;
+  }, [instrument]);
+
   const throttledTestInstrument = useRef(
     throttle(
       (instrument: DutyInstrument, channel: number) => {
         playDutyNotePreview(NOTE_C5, instrument, channel === 1 ? 1 : 0, 0, 0);
       },
-      250,
-      { leading: true, trailing: true },
+      500,
+      { trailing: true },
     ),
   ).current;
 
@@ -100,66 +108,109 @@ export const InstrumentDutyEditor = ({
     };
   }, [throttledTestInstrument]);
 
-  if (!instrument) return <></>;
-
   const selectedDuty = dutyOptions.find(
-    (i) => i.value === instrument.duty_cycle,
+    (i) => i.value === instrument?.duty_cycle,
   );
 
   const selectedSweepTime = sweepTimeOptions.find(
-    (i) => i.value === instrument.frequency_sweep_time,
+    (i) => i.value === instrument?.frequency_sweep_time,
   );
 
-  const onChangeField =
+  const onChangeField = useCallback(
     <T extends keyof DutyInstrument>(key: T) =>
-    (editValue: DutyInstrument[T]) => {
-      dispatch(
-        trackerDocumentActions.editDutyInstrument({
-          instrumentId: instrument.index,
-          changes: {
-            [key]: editValue,
-          },
-        }),
-      );
-      const newValue = { ...instrument, [key]: editValue };
-      throttledTestInstrument(newValue, selectedChannel);
-    };
-
-  const onChangeFieldSelect =
-    <T extends keyof DutyInstrument>(key: T) =>
-    (e: SingleValue<{ value: DutyInstrument[T]; label: string }>) => {
-      if (e) {
-        const editValue = e.value;
+      (editValue: DutyInstrument[T]) => {
+        if (instrumentId === undefined || !instrumentRef.current) {
+          return;
+        }
         dispatch(
           trackerDocumentActions.editDutyInstrument({
-            instrumentId: instrument.index,
+            instrumentId,
             changes: {
               [key]: editValue,
             },
           }),
         );
-        const newValue = { ...instrument, [key]: editValue };
+        const newValue = { ...instrumentRef.current, [key]: editValue };
         throttledTestInstrument(newValue, selectedChannel);
-      }
-    };
+      },
+    [dispatch, instrumentId, selectedChannel, throttledTestInstrument],
+  );
 
-  const onTestInstrument = (note: number) => () => {
-    playDutyNotePreview(note, instrument, selectedChannel === 1 ? 1 : 0, 0, 0);
-  };
+  const onChangeFieldSelect = useCallback(
+    <T extends keyof DutyInstrument>(key: T) =>
+      (e: SingleValue<{ value: DutyInstrument[T]; label: string }>) => {
+        if (instrumentId === undefined || !instrumentRef.current) {
+          return;
+        }
+        if (e) {
+          const editValue = e.value;
+          dispatch(
+            trackerDocumentActions.editDutyInstrument({
+              instrumentId,
+              changes: {
+                [key]: editValue,
+              },
+            }),
+          );
+          const newValue = { ...instrumentRef.current, [key]: editValue };
+          throttledTestInstrument(newValue, selectedChannel);
+        }
+      },
+    [dispatch, instrumentId, selectedChannel, throttledTestInstrument],
+  );
+
+  const onChangeEnvelopeLength = useMemo(
+    () => onChangeField("length"),
+    [onChangeField],
+  );
+
+  const onChangeEnvelopeVolume = useMemo(
+    () => onChangeField("initial_volume"),
+    [onChangeField],
+  );
+
+  const onChangeEnvelopeSweep = useMemo(
+    () => onChangeField("volume_sweep_change"),
+    [onChangeField],
+  );
+
+  const onTestInstrument = useCallback(
+    (note: number) => () => {
+      if (!instrument) {
+        return;
+      }
+      playDutyNotePreview(
+        note,
+        instrument,
+        selectedChannel === 1 ? 1 : 0,
+        0,
+        0,
+      );
+    },
+    [instrument, selectedChannel],
+  );
+
+  if (!instrument) {
+    return null;
+  }
 
   return (
     <>
-      <InstrumentLengthForm
-        value={instrument.length}
-        onChange={onChangeField("length")}
-      />
-      <FormDivider />
-      <InstrumentVolumeEditor
-        initialVolume={instrument.initial_volume}
-        volumeSweepChange={instrument.volume_sweep_change}
+      <InstrumentEnvelopeEditor
+        volume={instrument.initial_volume}
+        sweep={instrument.volume_sweep_change}
         length={instrument.length}
-        onChange={onChangeField}
+        onChangeVolume={onChangeEnvelopeVolume}
+        onChangeSweep={onChangeEnvelopeSweep}
+        onChangeLength={onChangeEnvelopeLength}
       />
+      <FormRow>
+        <InstrumentEnvelopePreview
+          volume={instrument.initial_volume}
+          sweep={instrument.volume_sweep_change}
+          length={instrument.length}
+        />
+      </FormRow>
       <FormDivider />
       <FormRow>
         <FormField name="frequency_sweep_time" label={l10n("FIELD_SWEEP_TIME")}>
