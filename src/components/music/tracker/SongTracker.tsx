@@ -811,9 +811,11 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
       return;
     }
 
-    isMouseDownRef.current = false;
-    isSelectingRef.current = false;
-    selectionOriginRef.current = undefined;
+    if (isMouseDownRef.current) {
+      isMouseDownRef.current = false;
+      isSelectingRef.current = false;
+      selectionOriginRef.current = undefined;
+    }
   }, []);
 
   // #endregion Mouse Event Handlers
