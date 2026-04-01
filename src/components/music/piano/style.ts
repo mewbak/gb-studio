@@ -486,26 +486,22 @@ export const StyledPianoRollEffectRow = styled.div`
 export const StyledPianoRollPlayhead = styled.div`
   pointer-events: none;
   z-index: 0;
-  width: ${PIANO_ROLL_CELL_SIZE - 1}px;
+  width: 2px;
   height: ${PIANO_ROLL_CELL_SIZE * TOTAL_NOTES + PIANO_ROLL_CELL_SIZE}px;
-  background-image: linear-gradient(
-    90deg,
-    ${(props) => props.theme.colors.highlight} 2px,
-    transparent 1px
-  );
+  background: ${(props) => props.theme.colors.highlight};
   background-position-y: ${PIANO_ROLL_CELL_SIZE}px;
   background-repeat-y: no-repeat;
   background-size: ${PIANO_ROLL_CELL_SIZE * 8}px
     ${PIANO_ROLL_CELL_SIZE * TOTAL_NOTES + PIANO_ROLL_CELL_SIZE}px;
   position: absolute;
-  top: 7px;
+  top: 6px;
   bottom: 0;
   left: ${PIANO_ROLL_PIANO_WIDTH}px;
 
   &:before {
     content: "";
     position: absolute;
-    top: 2px;
+    top: 0px;
     left: -${PIANO_ROLL_CELL_SIZE / 2 - 1}px;
     border-top: ${PIANO_ROLL_CELL_SIZE - 4}px solid transparent;
     border-top-color: ${(props) => props.theme.colors.highlight};
