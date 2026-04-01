@@ -236,6 +236,12 @@ const NOTE_NAMES = [
   "B-",
 ] as const;
 
+const NOTE_ROW_GROUPS = [
+  [0, 1, 2, 3], // C, C#, D, D#
+  [4, 5, 6, 7], // E, F, F#, G
+  [8, 9, 10, 11], // G#, A, A#, B
+] as const;
+
 type RepeatHandlers = {
   onPointerDown: React.PointerEventHandler<HTMLButtonElement>;
   onPointerUp: React.PointerEventHandler<HTMLButtonElement>;
@@ -567,35 +573,42 @@ export const TrackerKeyboard = ({
             {fieldType === "noteColumnFocus" && (
               <StyledTrackerKeyboardNotes>
                 <StyledTrackerKeyboardNotesInner>
-                  {Array.from({ length: 3 }).map((_, octave) => (
-                    <StyledTrackerKeyboardNotesRow key={octave}>
-                      {NOTE_NAMES.map((note, noteIndex) => (
-                        <Button
-                          key={noteIndex + octave * OCTAVE_SIZE}
-                          type="button"
-                          onPointerDown={(e) => {
-                            // Track click start x to prevent
-                            // creating note if scrolling notes div
-                            touchStartX.current = e.clientX;
-                          }}
-                          onPointerUp={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            const touchMoveDistanceX = Math.abs(
-                              touchStartX.current - e.clientX,
-                            );
-                            if (touchMoveDistanceX < DRAG_NOTES_THRESHOLD) {
-                              onKeyPressed({
-                                type: "note",
-                                value: noteIndex + octave * OCTAVE_SIZE,
-                              });
-                            }
-                          }}
-                        >
-                          {note}
-                          {MIN_OCTAVE + (octave + octaveOffset)}
-                        </Button>
-                      ))}
+                  {NOTE_ROW_GROUPS.map((noteGroup, rowIndex) => (
+                    <StyledTrackerKeyboardNotesRow key={rowIndex}>
+                      {Array.from({ length: 3 }).flatMap((_, octave) =>
+                        noteGroup.map((noteIndex) => {
+                          const key = noteIndex + octave * OCTAVE_SIZE;
+                          return (
+                            <Button
+                              key={key}
+                              type="button"
+                              onPointerDown={(e) => {
+                                // Track click start x to prevent
+                                // creating note if scrolling notes div
+                                touchStartX.current = e.clientX;
+                              }}
+                              onPointerUp={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+
+                                const touchMoveDistanceX = Math.abs(
+                                  touchStartX.current - e.clientX,
+                                );
+
+                                if (touchMoveDistanceX < DRAG_NOTES_THRESHOLD) {
+                                  onKeyPressed({
+                                    type: "note",
+                                    value: noteIndex + octave * OCTAVE_SIZE,
+                                  });
+                                }
+                              }}
+                            >
+                              {NOTE_NAMES[noteIndex]}
+                              {MIN_OCTAVE + octave + octaveOffset}
+                            </Button>
+                          );
+                        }),
+                      )}
                     </StyledTrackerKeyboardNotesRow>
                   ))}
                 </StyledTrackerKeyboardNotesInner>
