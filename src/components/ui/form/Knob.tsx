@@ -1,0 +1,588 @@
+import React, {
+  FC,
+  KeyboardEvent,
+  PointerEvent as ReactPointerEvent,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import styled, { ThemeContext, css } from "styled-components";
+
+interface KnobProps {
+  value: number;
+  min: number;
+  max: number;
+  step?: number;
+  labelledBy?: string;
+  ariaLabel?: string;
+  onChange?: (value: number) => void;
+  sensitivity?: number;
+  formatValue?: (value: number) => string;
+}
+
+type DragAxis = "horizontal" | "vertical" | null;
+
+const KNOB_START_ANGLE = -135;
+const KNOB_END_ANGLE = 135;
+const KNOB_SWEEP = KNOB_END_ANGLE - KNOB_START_ANGLE;
+const DEAD_ZONE_PX = 5;
+const PAGE_STEP_MULTIPLIER = 10;
+
+const clampAndSnap = (
+  value: number,
+  min: number,
+  max: number,
+  step: number,
+) => {
+  const clamped = Math.min(Math.max(value, min), max);
+  const snapped = Math.round((clamped - min) / step) * step + min;
+  return Number(snapped.toFixed(10));
+};
+
+const normalizeValue = (value: number, min: number, max: number) => {
+  if (max <= min) {
+    return 0;
+  }
+  return (value - min) / (max - min);
+};
+
+const polarToCartesian = (
+  centerX: number,
+  centerY: number,
+  radius: number,
+  angleDeg: number,
+) => {
+  const angleRad = ((angleDeg - 90) * Math.PI) / 180;
+  return {
+    x: centerX + radius * Math.cos(angleRad),
+    y: centerY + radius * Math.sin(angleRad),
+  };
+};
+
+const describeArc = (
+  x: number,
+  y: number,
+  radius: number,
+  startAngle: number,
+  endAngle: number,
+) => {
+  const start = polarToCartesian(x, y, radius, endAngle);
+  const end = polarToCartesian(x, y, radius, startAngle);
+  const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+
+  return [
+    "M",
+    start.x,
+    start.y,
+    "A",
+    radius,
+    radius,
+    0,
+    largeArcFlag,
+    0,
+    end.x,
+    end.y,
+  ].join(" ");
+};
+
+const canTypeDecimal = (step: number) => !Number.isInteger(step);
+
+const isDigitKey = (key: string) => /^[0-9]$/.test(key);
+
+const Root = styled.div`
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+interface KnobButtonProps {
+  $isDragging: boolean;
+  $isEditing: boolean;
+  $dragAxis: DragAxis;
+}
+
+const KnobButton = styled.button<KnobButtonProps>`
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  border-radius: 999px;
+  background: ${(props) => props.theme.colors.input.background};
+  border: 1px solid ${(props) => props.theme.colors.input.border};
+  color: ${(props) => props.theme.colors.text};
+  cursor: ${(props) => {
+    if (props.$isDragging) {
+      if (props.$dragAxis === "horizontal") {
+        return "ew-resize";
+      }
+      if (props.$dragAxis === "vertical") {
+        return "ns-resize";
+      }
+      return "move";
+    }
+    return "grab";
+  }};
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+
+  &:focus-visible {
+    outline: 2px solid ${(props) => props.theme.colors.highlight};
+    outline-offset: 2px;
+  }
+
+  ${(props) =>
+    props.$isDragging || props.$isEditing
+      ? css`
+          box-shadow: 0 0 0 1px ${props.theme.colors.highlight};
+        `
+      : ""}
+`;
+
+const KnobSvg = styled.svg`
+  display: block;
+  overflow: visible;
+  pointer-events: none;
+`;
+
+const ValueOverlay = styled.div`
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 6px);
+  transform: translateX(-50%);
+  pointer-events: none;
+  white-space: nowrap;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  line-height: 1.2;
+  z-index: 10;
+  background: ${(props) => props.theme.colors.panel.background};
+  color: ${(props) => props.theme.colors.panel.text};
+  border: 1px solid ${(props) => props.theme.colors.input.border};
+`;
+
+const EditInput = styled.input`
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 1px solid ${(props) => props.theme.colors.highlight};
+  border-radius: 999px;
+  background: ${(props) => props.theme.colors.input.background};
+  color: ${(props) => props.theme.colors.text};
+  text-align: center;
+  font-size: 12px;
+  outline: 0;
+  padding: 0 6px;
+  box-sizing: border-box;
+`;
+
+export const Knob = ({
+  value,
+  min,
+  max,
+  step = 1,
+  labelledBy,
+  ariaLabel,
+  onChange,
+  sensitivity = 0.25,
+  formatValue,
+}: KnobProps) => {
+  const themeContext = useContext(ThemeContext);
+
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const pointerIdRef = useRef<number | null>(null);
+  const dragStartXRef = useRef(0);
+  const dragStartYRef = useRef(0);
+  const dragStartValueRef = useRef(0);
+  const dragAxisRef = useRef<DragAxis>(null);
+
+  const [isDragging, setIsDragging] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [draftValue, setDraftValue] = useState("");
+  const [overlayValue, setOverlayValue] = useState<number | null>(null);
+  const [dragAxisState, setDragAxisState] = useState<DragAxis>(null);
+
+  const safeValue = clampAndSnap(value ?? 0, min, max, step);
+  const displayValue = overlayValue ?? safeValue;
+  const lastEmittedValueRef = useRef<number>(safeValue);
+
+  useEffect(() => {
+    lastEmittedValueRef.current = safeValue;
+  }, [safeValue]);
+
+  const displayText = useMemo(() => {
+    return formatValue ? formatValue(displayValue) : `${displayValue}`;
+  }, [displayValue, formatValue]);
+
+  const ariaValueText = useMemo(() => {
+    return formatValue ? formatValue(safeValue) : `${safeValue}`;
+  }, [formatValue, safeValue]);
+
+  const emitValueIfChanged = useCallback(
+    (nextValue: number) => {
+      const snapped = clampAndSnap(nextValue, min, max, step);
+
+      if (snapped === lastEmittedValueRef.current) {
+        return;
+      }
+
+      lastEmittedValueRef.current = snapped;
+      onChange?.(snapped);
+    },
+    [max, min, onChange, step],
+  );
+
+  const commitValue = useCallback(
+    (nextValue: number) => {
+      //   console.log("ONCHANGE", clampAndSnap(nextValue, min, max, step));
+      emitValueIfChanged(nextValue);
+    },
+    [emitValueIfChanged],
+  );
+
+  const beginEditing = useCallback((seed: string) => {
+    setDraftValue(seed);
+    setOverlayValue(null);
+    setIsDragging(false);
+    setIsEditing(true);
+    dragAxisRef.current = null;
+    setDragAxisState(null);
+  }, []);
+
+  const beginEditingWithCurrentValue = useCallback(() => {
+    beginEditing(String(safeValue));
+  }, [beginEditing, safeValue]);
+
+  const cancelEditing = useCallback(() => {
+    setDraftValue(String(safeValue));
+    setIsEditing(false);
+  }, [safeValue]);
+
+  const commitDraft = useCallback(() => {
+    const trimmed = draftValue.trim();
+
+    if (trimmed === "") {
+      setIsEditing(false);
+      return;
+    }
+
+    const parsed = Number(trimmed);
+
+    if (!Number.isFinite(parsed)) {
+      setDraftValue(String(safeValue));
+      setIsEditing(false);
+      return;
+    }
+
+    commitValue(parsed);
+    setIsEditing(false);
+  }, [commitValue, draftValue, safeValue]);
+
+  useEffect(() => {
+    if (!isEditing) {
+      return;
+    }
+
+    const input = inputRef.current;
+    if (!input) {
+      return;
+    }
+
+    console.log("HERE FOCUS");
+
+    input.focus();
+
+    const length = input.value.length;
+    input.setSelectionRange(length, length);
+  }, [isEditing]);
+
+  useEffect(() => {
+    if (!isDragging) {
+      return;
+    }
+
+    const handlePointerMove = (event: PointerEvent) => {
+      if (
+        pointerIdRef.current !== null &&
+        event.pointerId !== pointerIdRef.current
+      ) {
+        return;
+      }
+
+      const dx = event.clientX - dragStartXRef.current;
+      const dy = dragStartYRef.current - event.clientY;
+
+      if (dragAxisRef.current === null) {
+        if (Math.abs(dx) < DEAD_ZONE_PX && Math.abs(dy) < DEAD_ZONE_PX) {
+          return;
+        }
+
+        dragAxisRef.current =
+          Math.abs(dx) > Math.abs(dy) ? "horizontal" : "vertical";
+        setDragAxisState(dragAxisRef.current);
+      }
+
+      const primaryDelta = dragAxisRef.current === "horizontal" ? dx : dy;
+      const nextValue = clampAndSnap(
+        dragStartValueRef.current + primaryDelta * sensitivity * step,
+        min,
+        max,
+        step,
+      );
+
+      setOverlayValue(nextValue);
+
+      console.log("ONCHANGE:B", nextValue);
+
+      emitValueIfChanged(nextValue);
+    };
+
+    const finishDrag = (event?: PointerEvent) => {
+      if (
+        event &&
+        pointerIdRef.current !== null &&
+        event.pointerId !== pointerIdRef.current
+      ) {
+        return;
+      }
+
+      pointerIdRef.current = null;
+      dragAxisRef.current = null;
+      setDragAxisState(null);
+      setOverlayValue(null);
+      setIsDragging(false);
+    };
+
+    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointerup", finishDrag);
+    window.addEventListener("pointercancel", finishDrag);
+
+    return () => {
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", finishDrag);
+      window.removeEventListener("pointercancel", finishDrag);
+    };
+  }, [isDragging, max, min, onChange, sensitivity, step]);
+
+  const onPointerDown = useCallback(
+    (event: ReactPointerEvent<HTMLButtonElement>) => {
+      if (isEditing) {
+        return;
+      }
+
+      event.currentTarget.focus();
+      console.log("SET FOCUS", event.currentTarget);
+      console.log("FOCUS WAS", document.activeElement);
+
+      pointerIdRef.current = event.pointerId;
+      dragStartXRef.current = event.clientX;
+      dragStartYRef.current = event.clientY;
+      dragStartValueRef.current = safeValue;
+      dragAxisRef.current = null;
+      setDragAxisState(null);
+      setOverlayValue(safeValue);
+      setIsDragging(true);
+
+      event.currentTarget.setPointerCapture(event.pointerId);
+      event.preventDefault();
+
+      console.log("FOCUS STILL WAS", document.activeElement);
+    },
+    [isEditing, safeValue],
+  );
+
+  const onKeyDown = useCallback(
+    (event: KeyboardEvent<HTMLButtonElement>) => {
+      if (isEditing) {
+        return;
+      }
+
+      if (event.key === "ArrowUp" || event.key === "ArrowRight") {
+        event.preventDefault();
+        commitValue(safeValue + step);
+        return;
+      }
+
+      if (event.key === "ArrowDown" || event.key === "ArrowLeft") {
+        event.preventDefault();
+        commitValue(safeValue - step);
+        return;
+      }
+
+      if (event.key === "PageUp") {
+        event.preventDefault();
+        commitValue(safeValue + step * PAGE_STEP_MULTIPLIER);
+        return;
+      }
+
+      if (event.key === "PageDown") {
+        event.preventDefault();
+        commitValue(safeValue - step * PAGE_STEP_MULTIPLIER);
+        return;
+      }
+
+      if (event.key === "Home") {
+        event.preventDefault();
+        commitValue(min);
+        return;
+      }
+
+      if (event.key === "End") {
+        event.preventDefault();
+        commitValue(max);
+        return;
+      }
+
+      if (event.key === "Enter") {
+        event.preventDefault();
+        beginEditingWithCurrentValue();
+        return;
+      }
+
+      if (event.key === "Backspace" || event.key === "Delete") {
+        event.preventDefault();
+        beginEditing("");
+        return;
+      }
+
+      if (isDigitKey(event.key)) {
+        event.preventDefault();
+        beginEditing(event.key);
+        return;
+      }
+
+      if (event.key === "-" && min < 0) {
+        event.preventDefault();
+        beginEditing("-");
+        return;
+      }
+
+      if (event.key === "." && canTypeDecimal(step)) {
+        event.preventDefault();
+        beginEditing("0.");
+      }
+    },
+    [
+      beginEditing,
+      beginEditingWithCurrentValue,
+      commitValue,
+      isEditing,
+      max,
+      min,
+      safeValue,
+      step,
+    ],
+  );
+
+  const onInputKeyDown = useCallback(
+    (event: KeyboardEvent<HTMLInputElement>) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        commitDraft();
+        return;
+      }
+
+      if (event.key === "Escape") {
+        event.preventDefault();
+        cancelEditing();
+      }
+    },
+    [cancelEditing, commitDraft],
+  );
+
+  const normalized = normalizeValue(safeValue, min, max);
+  const valueAngle = KNOB_START_ANGLE + normalized * KNOB_SWEEP;
+
+  const trackColor = themeContext?.colors.input.border ?? "#888";
+  const fillColor = themeContext?.colors.highlight ?? "#fff";
+  const pointerColor = themeContext?.colors.text ?? "#fff";
+
+  const arcBackground = describeArc(
+    22,
+    22,
+    15,
+    KNOB_START_ANGLE,
+    KNOB_END_ANGLE,
+  );
+  const arcValue = describeArc(22, 22, 15, KNOB_START_ANGLE, valueAngle);
+
+  const pointerLength = 10;
+  const pointerRadians = ((valueAngle - 90) * Math.PI) / 180;
+  const pointerX = 22 + pointerLength * Math.cos(pointerRadians);
+  const pointerY = 22 + pointerLength * Math.sin(pointerRadians);
+
+  return (
+    <Root>
+      {(isDragging || isEditing) && <ValueOverlay>{displayText}</ValueOverlay>}
+
+      <KnobButton
+        type="button"
+        role="slider"
+        aria-labelledby={labelledBy}
+        aria-label={ariaLabel}
+        aria-valuemin={min}
+        aria-valuemax={max}
+        aria-valuenow={safeValue}
+        aria-valuetext={ariaValueText}
+        $isDragging={isDragging}
+        $isEditing={isEditing}
+        $dragAxis={dragAxisState}
+        onPointerDown={onPointerDown}
+        onKeyDown={onKeyDown}
+        onDoubleClick={beginEditingWithCurrentValue}
+        className="focus-visible"
+      >
+        <KnobSvg width="44" height="44" viewBox="0 0 44 44" aria-hidden="true">
+          <path
+            d={arcBackground}
+            fill="none"
+            stroke={trackColor}
+            strokeWidth="3"
+            strokeLinecap="round"
+          />
+          <path
+            d={arcValue}
+            fill="none"
+            stroke={fillColor}
+            strokeWidth="3"
+            strokeLinecap="round"
+          />
+          <line
+            x1="22"
+            y1="22"
+            x2={pointerX}
+            y2={pointerY}
+            stroke={pointerColor}
+            strokeWidth="2"
+            strokeLinecap="round"
+          />
+          <circle cx="22" cy="22" r="2" fill={pointerColor} />
+        </KnobSvg>
+
+        {isEditing && (
+          <EditInput
+            ref={inputRef}
+            value={draftValue}
+            inputMode={canTypeDecimal(step) ? "decimal" : "numeric"}
+            aria-label={ariaLabel ? `${ariaLabel} value` : "Knob value"}
+            onChange={(event) => setDraftValue(event.target.value)}
+            onBlur={commitDraft}
+            onKeyDown={onInputKeyDown}
+          />
+        )}
+      </KnobButton>
+    </Root>
+  );
+};

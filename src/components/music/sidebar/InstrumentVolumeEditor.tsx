@@ -1,6 +1,8 @@
 import React, { useContext, useEffect, useRef } from "react";
 import l10n from "shared/lib/lang/l10n";
 import { ThemeContext } from "styled-components";
+import { Knob } from "ui/form/Knob";
+import { Label } from "ui/form/Label";
 import { FormRow } from "ui/form/layout/FormLayout";
 import { SliderField } from "ui/form/SliderField";
 
@@ -157,7 +159,16 @@ export const InstrumentVolumeEditor = ({
   return (
     <>
       <FormRow>
-        <SliderField
+        <Label htmlFor="initialVolume">{l10n("FIELD_INITIAL_VOLUME")}</Label>
+        <Knob
+          value={initialVolume || 0}
+          min={0}
+          max={15}
+          onChange={(value) => {
+            onChange("initial_volume")(value || 0);
+          }}
+        />
+        {/* <SliderField
           name="initial_volume"
           label={l10n("FIELD_INITIAL_VOLUME")}
           value={initialVolume || 0}
@@ -166,10 +177,20 @@ export const InstrumentVolumeEditor = ({
           onChange={(value) => {
             onChange("initial_volume")(value || 0);
           }}
-        />
+        /> */}
       </FormRow>
       <FormRow>
-        <SliderField
+        <Label htmlFor="sweepChange">{l10n("FIELD_VOLUME_SWEEP_CHANGE")}</Label>
+        <Knob
+          value={flipSweepChange(volumeSweepChange || 0)}
+          min={-7}
+          max={7}
+          onChange={(value) => {
+            onChange("volume_sweep_change")(flipSweepChange(value || 0));
+          }}
+        />
+
+        {/* <SliderField
           name="volume_sweep_change"
           label={l10n("FIELD_VOLUME_SWEEP_CHANGE")}
           value={flipSweepChange(volumeSweepChange || 0)}
@@ -178,7 +199,7 @@ export const InstrumentVolumeEditor = ({
           onChange={(value) => {
             onChange("volume_sweep_change")(flipSweepChange(value || 0));
           }}
-        />
+        /> */}
       </FormRow>
       <FormRow>
         <canvas
