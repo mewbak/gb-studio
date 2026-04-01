@@ -498,11 +498,10 @@ export const Knob = ({
   const zeroNormalized = isBipolar ? normalizeValue(0, min, max) : 0;
   const zeroAngle = KNOB_START_ANGLE + zeroNormalized * KNOB_SWEEP;
 
+  const backgroundColor = themeContext?.colors.input.background ?? "#000";
   const trackColor = themeContext?.colors.input.border ?? "#888";
   const fillColor = themeContext?.colors.highlight ?? "#fff";
   const pointerColor = themeContext?.colors.text ?? "#fff";
-
-  const buttonBackground = describeArc(30, 30, 25, -179, 180);
 
   const arcBackground = describeArc(
     30,
@@ -527,7 +526,7 @@ export const Knob = ({
   const pointerX2 = 30 + 20 * Math.cos(pointerRadians);
   const pointerY2 = 30 + 20 * Math.sin(pointerRadians);
 
-  const zeroMarkerInner = polarToCartesian(30, 30, 20, zeroAngle);
+  const zeroMarkerInner = polarToCartesian(30, 30, 26, zeroAngle);
   const zeroMarkerOuter = polarToCartesian(30, 30, 28, zeroAngle);
 
   return (
@@ -551,15 +550,6 @@ export const Knob = ({
         onDoubleClick={beginEditingWithCurrentValue}
       >
         <KnobSvg width="60" height="60" viewBox="0 0 60 60" aria-hidden="true">
-          <circle
-            cx={30}
-            cy={30}
-            r={23}
-            fill="none"
-            stroke={trackColor}
-            strokeWidth="1"
-          />
-
           <path
             d={arcBackground}
             fill="none"
@@ -583,7 +573,7 @@ export const Knob = ({
             cy={30}
             r={24}
             fill="none"
-            stroke="#000000"
+            stroke={backgroundColor}
             strokeWidth="1"
           />
 
@@ -593,11 +583,32 @@ export const Knob = ({
               y1={zeroMarkerInner.y}
               x2={zeroMarkerOuter.x}
               y2={zeroMarkerOuter.y}
-              stroke="#000000"
+              stroke={backgroundColor}
               strokeWidth="4"
               strokeLinecap="square"
             />
           )}
+
+          {isBipolar && (
+            <line
+              x1={zeroMarkerInner.x}
+              y1={zeroMarkerInner.y}
+              x2={zeroMarkerOuter.x}
+              y2={zeroMarkerOuter.y}
+              stroke={trackColor}
+              strokeWidth="2"
+              strokeLinecap="square"
+            />
+          )}
+
+          <circle
+            cx={30}
+            cy={30}
+            r={23}
+            fill="none"
+            stroke={trackColor}
+            strokeWidth="1"
+          />
 
           <line
             x1={pointerX}
