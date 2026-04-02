@@ -1266,6 +1266,10 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
         dispatch(trackerActions.setMobileOverlayView("settings"));
       }
 
+      if (virtualKey.type === "editEffects") {
+        dispatch(trackerActions.setMobileOverlayView("notes"));
+      }
+
       if (virtualKey.type === "toggle") {
         dispatch(trackerActions.setShowVirtualKeyboard(!showVirtualKeyboard));
       }

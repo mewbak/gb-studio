@@ -4,7 +4,12 @@ import styled, { css } from "styled-components";
 import { KeyWhen } from "renderer/lib/keybindings/keyBindings";
 import { ButtonGroup } from "ui/buttons/ButtonGroup";
 import { FlexGrow } from "ui/spacing/Spacing";
-import { CaretDownIcon, CaretUpIcon, SettingsIcon } from "ui/icons/Icons";
+import {
+  CaretDownIcon,
+  CaretUpIcon,
+  FXIcon,
+  SettingsIcon,
+} from "ui/icons/Icons";
 import { Button } from "ui/buttons/Button";
 import { StyledButton } from "ui/buttons/style";
 import useWindowSize from "ui/hooks/use-window-size";
@@ -49,6 +54,9 @@ export type VirtualTrackerKey =
     }
   | {
       type: "settings";
+    }
+  | {
+      type: "editEffects";
     }
   | {
       type: "toggle";
@@ -644,7 +652,19 @@ export const TrackerKeyboard = ({
           >
             ⌫
           </Button>
-          <FlexGrow />
+
+          {isCompactLayout && (
+            <Button
+              type="button"
+              onPointerDown={() => {
+                onKeyPressed({
+                  type: "editEffects",
+                });
+              }}
+            >
+              <FXIcon />
+            </Button>
+          )}
 
           {isCompactLayout && (
             <Button
