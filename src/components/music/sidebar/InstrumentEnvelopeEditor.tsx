@@ -33,6 +33,12 @@ const StyledEnvelopeField = styled.div`
     align-items: center;
     text-align: center;
     justify-content: center;
+    height: auto;
+  }
+
+  &:first-child > *:first-child {
+    position: relative;
+    top: -1px;
   }
 
   > *:last-child {
