@@ -15,6 +15,10 @@ const RangeInner = styled.div`
   display: flex;
   width: 100%;
   height: 28px;
+
+  @media (max-width: 840px) {
+    height: 38px;
+  }
 `;
 
 const RangeTrack = styled.div`
@@ -27,6 +31,11 @@ const RangeTrack = styled.div`
   border: 1px solid ${(props) => props.theme.colors.input.border};
   box-sizing: border-box;
   padding: 0 14px;
+
+  @media (max-width: 840px) {
+    height: 38px;
+    padding: 0 18px;
+  }
 `;
 
 const RangeTrackFill = styled.div`
@@ -45,6 +54,17 @@ const RangeTrackFill = styled.div`
     left: -10px;
     background: ${(props) => props.theme.colors.highlight};
     border-radius: 20px;
+  }
+
+  @media (max-width: 840px) {
+    left: 18px;
+    right: 18px;
+
+    &:before {
+      width: 28px;
+      left: -14px;
+      border-radius: 32px;
+    }
   }
 `;
 
@@ -71,6 +91,11 @@ const RangeThumb = styled.div<RangeThumbProps>`
           border: 1px solid ${(props) => props.theme.colors.highlight};
         `
       : ""}
+
+  @media (max-width: 840px) {
+    width: 28px;
+    height: 28px;
+  }
 `;
 
 const clampAndSnap = (
