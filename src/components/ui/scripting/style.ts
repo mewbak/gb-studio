@@ -243,6 +243,12 @@ export const StyledScriptEventHeader = styled.div<StyledScriptEventHeaderProps>`
           cursor: not-allowed;
         `
       : ""}
+
+
+  @media (max-width: 840px) {
+    height: 38px;
+    font-size: 14px;
+  }
 `;
 
 interface StyledScriptEventHeaderCaretProps {

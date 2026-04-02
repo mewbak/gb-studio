@@ -45,6 +45,11 @@ export const ToggleButtonGroupWrapper = styled.div`
   & > *:last-child {
     border-right: 0px;
   }
+
+  @media (max-width: 840px) {
+    height: 38px;
+    font-size: 14px;
+  }
 `;
 
 const Option = styled.div`
