@@ -114,10 +114,12 @@ export const MusicWebSettingPane = () => {
 
   const setTrackerView = useCallback(() => {
     dispatch(trackerActions.setViewAndSave("tracker"));
+    dispatch(trackerActions.setMobileOverlayView("none"));
   }, [dispatch]);
 
   const setRollView = useCallback(() => {
     dispatch(trackerActions.setViewAndSave("roll"));
+    dispatch(trackerActions.setMobileOverlayView("none"));
   }, [dispatch]);
 
   const themeContext = useContext(ThemeContext);
