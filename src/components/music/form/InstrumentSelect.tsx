@@ -35,7 +35,6 @@ const LabelColor = styled.div<LabelColorProps>`
   border-radius: 2px;
   border: 1px solid black;
   flex-shrink: 0;
-  margin-left: 5px;
   background: ${(props) =>
     props.$instrument !== undefined
       ? `var(--instrument-${props.$instrument}-color)`

@@ -91,7 +91,6 @@ const PitchPreview = styled.div<PitchPreviewProps>`
   height: 12px;
   border-radius: 2px;
   flex-shrink: 0;
-  margin-left: 5px;
   border: 1px solid #ccc;
 
   ${(props) =>
