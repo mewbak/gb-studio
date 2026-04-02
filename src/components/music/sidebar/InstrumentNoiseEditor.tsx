@@ -4,12 +4,8 @@ import l10n from "shared/lib/lang/l10n";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
 import { NoiseInstrument } from "shared/lib/uge/types";
 import { CheckboxField } from "ui/form/CheckboxField";
-import { FormDivider, FormField, FormRow } from "ui/form/layout/FormLayout";
-import { Button } from "ui/buttons/Button";
+import { FormDivider, FormRow } from "ui/form/layout/FormLayout";
 import { useAppDispatch } from "store/hooks";
-import { ButtonGroup } from "ui/buttons/ButtonGroup";
-import { testNotes } from "./helpers";
-import { playNoiseNotePreview } from "components/music/helpers";
 import { InstrumentEnvelopeEditor } from "components/music/sidebar/InstrumentEnvelopeEditor";
 import { InstrumentEnvelopePreview } from "components/music/sidebar/InstrumentEnvelopePreview";
 
@@ -58,16 +54,6 @@ export const InstrumentNoiseEditor = ({
     [onChangeField],
   );
 
-  const onTestInstrument = useCallback(
-    (note: number) => () => {
-      if (!instrument) {
-        return;
-      }
-      playNoiseNotePreview(note, instrument, 0, 0);
-    },
-    [instrument],
-  );
-
   if (!instrument) {
     return null;
   }
@@ -103,27 +89,6 @@ export const InstrumentNoiseEditor = ({
             onChangeField("bit_count")(value);
           }}
         />
-      </FormRow>
-
-      <FormDivider />
-
-      <FormRow>
-        <FormField
-          name="test_instrument_C5"
-          label={l10n("FIELD_TEST_INSTRUMENT")}
-        >
-          <ButtonGroup>
-            {testNotes.map(({ label, value }) => (
-              <Button
-                key={`test_instrument_${label}`}
-                id={`test_instrument_${label}`}
-                onClick={onTestInstrument(value)}
-              >
-                {label}
-              </Button>
-            ))}
-          </ButtonGroup>
-        </FormField>
       </FormRow>
     </>
   );
