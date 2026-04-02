@@ -187,6 +187,17 @@ const EditInput = styled.input`
   box-sizing: border-box;
 `;
 
+const ShadowBorder = styled.div`
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  border-radius: 80px;
+  box-shadow:
+    0px 0px 3px 1px ${(props) => props.theme.colors.text} inset,
+    0px 2px 10px ${(props) => props.theme.colors.input.border};
+  opacity: 0.2;
+`;
+
 export const Knob = ({
   value,
   min,
@@ -517,7 +528,9 @@ export const Knob = ({
       : safeValue < 0
         ? describeArc(30, 30, 26, valueAngle, zeroAngle)
         : describeArc(30, 30, 26, zeroAngle, valueAngle)
-    : describeArc(30, 30, 26, KNOB_START_ANGLE, valueAngle);
+    : safeValue > min
+      ? describeArc(30, 30, 26, KNOB_START_ANGLE, valueAngle)
+      : null;
 
   const pointerLength = 15;
   const pointerRadians = ((valueAngle - 90) * Math.PI) / 180;
@@ -527,7 +540,7 @@ export const Knob = ({
   const pointerY2 = 30 + 20 * Math.sin(pointerRadians);
 
   const zeroMarkerInner = polarToCartesian(30, 30, 26, zeroAngle);
-  const zeroMarkerOuter = polarToCartesian(30, 30, 28, zeroAngle);
+  const zeroMarkerOuter = polarToCartesian(30, 30, 27, zeroAngle);
 
   return (
     <Root>
@@ -558,6 +571,15 @@ export const Knob = ({
             strokeLinecap="square"
           />
 
+          <circle
+            cx={30}
+            cy={30}
+            r={24}
+            fill="none"
+            stroke={backgroundColor}
+            strokeWidth="1"
+          />
+
           {arcValue && (
             <path
               d={arcValue}
@@ -568,15 +590,6 @@ export const Knob = ({
             />
           )}
 
-          <circle
-            cx={30}
-            cy={30}
-            r={24}
-            fill="none"
-            stroke={backgroundColor}
-            strokeWidth="1"
-          />
-
           {isBipolar && (
             <line
               x1={zeroMarkerInner.x}
@@ -585,18 +598,6 @@ export const Knob = ({
               y2={zeroMarkerOuter.y}
               stroke={backgroundColor}
               strokeWidth="4"
-              strokeLinecap="square"
-            />
-          )}
-
-          {isBipolar && (
-            <line
-              x1={zeroMarkerInner.x}
-              y1={zeroMarkerInner.y}
-              x2={zeroMarkerOuter.x}
-              y2={zeroMarkerOuter.y}
-              stroke={trackColor}
-              strokeWidth="2"
               strokeLinecap="square"
             />
           )}
@@ -619,9 +620,9 @@ export const Knob = ({
             strokeWidth="2"
             strokeLinecap="round"
           />
-
-          {/* <circle cx="30" cy="30" r="2" fill={pointerColor} /> */}
         </KnobSvg>
+
+        <ShadowBorder />
 
         {isEditing && (
           <EditInput
