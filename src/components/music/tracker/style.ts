@@ -176,7 +176,8 @@ export const StyledTrackerHeaderCell = styled.th<StyledTrackerHeaderCellProps>`
     font-weight: bold;
 
     @media (max-width: 840px) {
-      height: 22px;
+      min-width: 30px;
+      height: 30px;
     }
   }
 
