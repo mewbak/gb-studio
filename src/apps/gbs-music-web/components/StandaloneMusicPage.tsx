@@ -37,25 +37,17 @@ import { MusicDataReceivePacket } from "shared/lib/music/types";
 import { InstrumentEditor } from "components/music/sidebar/InstrumentEditor";
 import SongEditorToolsPanel from "components/music/toolbar/SongEditorToolsPanel";
 import { PatternCellSelectionEditor } from "components/music/sidebar/PatternCellSelectionEditor";
-import {
-  StyledMobileOverlay,
-  StyledMobileOverlayClose,
-  StyledMobileOverlayCloseButton,
-  StyledMobileOverlayContent,
-} from "gbs-music-web/components/style";
 import { MusicWebChannelsBar } from "gbs-music-web/components/MusicWebChannelsBar";
 import { MusicWebChannelPane } from "gbs-music-web/components/MusicWebChannelPane";
-import { CloseIcon } from "ui/icons/Icons";
 import { MusicWebSettingPane } from "gbs-music-web/components/MusicWebSettingsPane";
 import { MobileOverlayView } from "store/features/tracker/trackerState";
+import { MobileOverlay } from "gbs-music-web/components/MobileOverlay";
 
 const Wrapper = styled.div`
   display: flex;
   min-height: 0;
   flex-grow: 1;
   overflow: hidden;
-  background: red;
-  outline: 10px solid blue;
 `;
 
 const defaultPaneLayout: SplitPaneLayout[] = [
@@ -595,47 +587,42 @@ export const StandaloneMusicPage = ({
 
           {isCompactLayout && (
             <>
-              <StyledMobileOverlay
-                $open={mobileOverlayView === "instruments"}
-                $fullHeight
+              <MobileOverlay
+                open={mobileOverlayView === "instruments"}
+                fullHeight
+                onClose={() => {
+                  setMobileOverlayView("none");
+                }}
               >
-                <StyledMobileOverlayClose
-                  onClick={() => {
-                    setMobileOverlayView("none");
-                  }}
-                />
-                <StyledMobileOverlayContent>
-                  <InstrumentEditor />
-                </StyledMobileOverlayContent>
-              </StyledMobileOverlay>
+                {/* <StyledMobileOverlayContent> */}
+                <InstrumentEditor />
+                {/* </StyledMobileOverlayContent> */}
+              </MobileOverlay>
 
-              <StyledMobileOverlay $open={mobileOverlayView === "channels"}>
-                <StyledMobileOverlayClose
-                  onClick={() => {
-                    setMobileOverlayView("none");
-                  }}
-                />
+              <MobileOverlay
+                open={mobileOverlayView === "channels"}
+                onClose={() => {
+                  setMobileOverlayView("none");
+                }}
+              >
                 <MusicWebChannelPane />
-              </StyledMobileOverlay>
+              </MobileOverlay>
 
-              <StyledMobileOverlay
-                $open={mobileOverlayView === "settings"}
-                // $fullHeight
+              <MobileOverlay
+                open={mobileOverlayView === "settings"}
+                onClose={() => {
+                  setMobileOverlayView("none");
+                }}
               >
-                <StyledMobileOverlayClose
-                  onClick={() => {
-                    setMobileOverlayView("none");
-                  }}
-                />
                 <MusicWebSettingPane />
-              </StyledMobileOverlay>
+              </MobileOverlay>
 
-              <StyledMobileOverlay $open={mobileOverlayView === "sequence"}>
-                <StyledMobileOverlayClose
-                  onClick={() => {
-                    setMobileOverlayView("none");
-                  }}
-                />
+              <MobileOverlay
+                open={mobileOverlayView === "sequence"}
+                onClose={() => {
+                  setMobileOverlayView("none");
+                }}
+              >
                 {songDocument && (
                   <SequenceEditor
                     direction="horizontal"
@@ -644,28 +631,18 @@ export const StandaloneMusicPage = ({
                     playingSequence={playbackState[0]}
                   />
                 )}
-              </StyledMobileOverlay>
+              </MobileOverlay>
 
-              <StyledMobileOverlay $open={mobileOverlayView === "notes"}>
-                <StyledMobileOverlayClose
-                  onClick={() => {
-                    setMobileOverlayView("none");
-                  }}
-                />
-                <StyledMobileOverlayContent>
-                  {/* <StyledMobilePaneHeader>
-              <Button
-                variant="transparent"
-                onClick={() => {
+              <MobileOverlay
+                open={mobileOverlayView === "notes"}
+                onClose={() => {
                   setMobileOverlayView("none");
                 }}
               >
-                <CloseIcon />
-              </Button>
-            </StyledMobilePaneHeader> */}
-                  <PatternCellSelectionEditor />
-                </StyledMobileOverlayContent>
-              </StyledMobileOverlay>
+                {/* <StyledMobileOverlayContent> */}
+                <PatternCellSelectionEditor />
+                {/* </StyledMobileOverlayContent> */}
+              </MobileOverlay>
             </>
           )}
 
