@@ -46,6 +46,7 @@ export const StyledTrackerContentTable = styled.table<StyledTrackerContentTableP
     props.$type === "subpattern" &&
     css`
       width: 100%;
+      min-width: 0;
       max-width: 270px;
       & tr td:first-child {
         width: 56px;

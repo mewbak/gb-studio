@@ -11,7 +11,7 @@ import clamp from "shared/lib/helpers/clamp";
 interface WaveEditorFormProps {
   waveId: number;
   onChange: (newValue: { value: number; label: string }) => void;
-  onEditWave: (newWave: Uint8Array) => void;
+  // onEditWave: (newWave: Uint8Array) => void;
 }
 
 const PADDING = 10;
@@ -19,7 +19,7 @@ const PADDING = 10;
 export const WaveEditorForm = ({
   waveId,
   onChange,
-  onEditWave: onEditWaveCallback,
+  // onEditWave: onEditWaveCallback,
 }: WaveEditorFormProps) => {
   const dispatch = useAppDispatch();
 
@@ -39,7 +39,7 @@ export const WaveEditorForm = ({
         waveForm: newWave,
       }),
     );
-    onEditWaveCallback(newWave);
+    // onEditWaveCallback(newWave);
   };
 
   const canvasRef = useRef<HTMLCanvasElement>(null);

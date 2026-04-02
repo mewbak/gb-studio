@@ -33,21 +33,21 @@ export const InstrumentNoiseEditor = ({
     instrumentRef.current = instrument;
   }, [instrument]);
 
-  const throttledTestInstrument = useRef(
-    throttle(
-      (instrument: NoiseInstrument) => {
-        playNoiseNotePreview(NOTE_C5, instrument, 0, 0);
-      },
-      250,
-      { leading: true, trailing: true },
-    ),
-  ).current;
+  // const throttledTestInstrument = useRef(
+  //   throttle(
+  //     (instrument: NoiseInstrument) => {
+  //       playNoiseNotePreview(NOTE_C5, instrument, 0, 0);
+  //     },
+  //     250,
+  //     { leading: true, trailing: true },
+  //   ),
+  // ).current;
 
-  useEffect(() => {
-    return () => {
-      throttledTestInstrument.cancel();
-    };
-  }, [throttledTestInstrument]);
+  // useEffect(() => {
+  //   return () => {
+  //     throttledTestInstrument.cancel();
+  //   };
+  // }, [throttledTestInstrument]);
 
   const onChangeField = useCallback(
     <T extends keyof NoiseInstrument>(key: T) =>
@@ -63,10 +63,10 @@ export const InstrumentNoiseEditor = ({
             },
           }),
         );
-        const newValue = { ...instrumentRef.current, [key]: editValue };
-        throttledTestInstrument(newValue);
+        // const newValue = { ...instrumentRef.current, [key]: editValue };
+        // throttledTestInstrument(newValue);
       },
-    [dispatch, instrumentId, throttledTestInstrument],
+    [dispatch, instrumentId],
   );
 
   const onChangeEnvelopeLength = useMemo(

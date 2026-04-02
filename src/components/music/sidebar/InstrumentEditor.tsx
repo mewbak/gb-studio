@@ -1,6 +1,5 @@
 import React, { useCallback, useMemo, useState } from "react";
 import styled from "styled-components";
-
 import {
   FormRow,
   FormSection,
@@ -36,6 +35,7 @@ import {
   offsetToStoredPitch,
 } from "components/music/form/subpattern/helpers";
 import { createSubPatternCell } from "shared/lib/uge/song";
+import { InstrumentTester } from "components/music/form/InstrumentTester";
 
 type Instrument = DutyInstrument | NoiseInstrument | WaveInstrument;
 type InstrumentType = "duty" | "wave" | "noise";
@@ -51,6 +51,16 @@ const SubpatternSettings = styled.div`
   display: flex;
   gap: 10px;
   align-items: flex-start;
+`;
+
+const StyledStickyFooter = styled.div`
+  position: sticky;
+  bottom: 0;
+  background: ${(props) => props.theme.colors.sidebar.background};
+  border-top: 1px solid ${(props) => props.theme.colors.sidebar.border};
+  padding-top: 10px;
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-bottom: calc(10px + env(safe-area-inset-bottom));
 `;
 
 const instrumentTypeLabels: Record<InstrumentType, string> = {
@@ -453,6 +463,13 @@ export const InstrumentEditor = () => {
           />
         )
       ) : null}
+
+      <StyledStickyFooter>
+        <InstrumentTester
+          instrumentId={selectedInstrumentId}
+          instrumentType={instrumentType}
+        />
+      </StyledStickyFooter>
     </>
   );
 };

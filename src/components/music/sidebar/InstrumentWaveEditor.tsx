@@ -13,7 +13,6 @@ import { ButtonGroup } from "ui/buttons/ButtonGroup";
 import { testNotes } from "./helpers";
 import throttle from "lodash/throttle";
 import { NOTE_C5 } from "consts";
-import { playWaveNotePreview } from "components/music/helpers";
 import { Knob } from "ui/form/Knob";
 
 const volumeOptions = [
@@ -47,21 +46,21 @@ export const InstrumentWaveEditor = ({
 }: InstrumentWaveEditorProps) => {
   const dispatch = useAppDispatch();
 
-  const throttledTestInstrument = useRef(
-    throttle(
-      (instrument: WaveInstrument, waveForm: Uint8Array) => {
-        playWaveNotePreview(NOTE_C5, instrument, waveForm, 0, 0);
-      },
-      250,
-      { leading: true, trailing: true },
-    ),
-  ).current;
+  // const throttledTestInstrument = useRef(
+  //   throttle(
+  //     (instrument: WaveInstrument, waveForm: Uint8Array) => {
+  //       playWaveNotePreview(NOTE_C5, instrument, waveForm, 0, 0);
+  //     },
+  //     250,
+  //     { leading: true, trailing: true },
+  //   ),
+  // ).current;
 
-  useEffect(() => {
-    return () => {
-      throttledTestInstrument.cancel();
-    };
-  }, [throttledTestInstrument]);
+  // useEffect(() => {
+  //   return () => {
+  //     throttledTestInstrument.cancel();
+  //   };
+  // }, [throttledTestInstrument]);
 
   if (!instrument) return <></>;
 
@@ -80,8 +79,8 @@ export const InstrumentWaveEditor = ({
           },
         }),
       );
-      const newValue = { ...instrument, [key]: editValue };
-      throttledTestInstrument(newValue, waveForms[newValue.wave_index]);
+      // const newValue = { ...instrument, [key]: editValue };
+      // throttledTestInstrument(newValue, waveForms[newValue.wave_index]);
     };
 
   const onChangeFieldSelect =
@@ -96,23 +95,23 @@ export const InstrumentWaveEditor = ({
           },
         }),
       );
-      const newValue = { ...instrument, [key]: editValue };
-      throttledTestInstrument(newValue, waveForms[newValue.wave_index]);
+      // const newValue = { ...instrument, [key]: editValue };
+      // throttledTestInstrument(newValue, waveForms[newValue.wave_index]);
     };
 
-  const onChangeWave = (wave: Uint8Array) => {
-    throttledTestInstrument(instrument, wave);
-  };
+  // const onChangeWave = (wave: Uint8Array) => {
+  //   throttledTestInstrument(instrument, wave);
+  // };
 
-  const onTestInstrument = (note: number) => () => {
-    playWaveNotePreview(
-      note,
-      instrument,
-      waveForms[instrument.wave_index],
-      0,
-      0,
-    );
-  };
+  // const onTestInstrument = (note: number) => () => {
+  //   playWaveNotePreview(
+  //     note,
+  //     instrument,
+  //     waveForms[instrument.wave_index],
+  //     0,
+  //     0,
+  //   );
+  // };
 
   return (
     <>
@@ -155,12 +154,12 @@ export const InstrumentWaveEditor = ({
       <WaveEditorForm
         waveId={instrument.wave_index}
         onChange={onChangeFieldSelect("wave_index")}
-        onEditWave={onChangeWave}
+        // onEditWave={onChangeWave}
       />
 
-      <FormDivider />
+      {/* <FormDivider /> */}
 
-      <FormRow>
+      {/* <FormRow>
         <FormField
           name="test_instrument_C5"
           label={l10n("FIELD_TEST_INSTRUMENT")}
@@ -177,7 +176,7 @@ export const InstrumentWaveEditor = ({
             ))}
           </ButtonGroup>
         </FormField>
-      </FormRow>
+      </FormRow> */}
     </>
   );
 };

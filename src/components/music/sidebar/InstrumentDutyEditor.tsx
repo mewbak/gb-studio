@@ -2,57 +2,21 @@ import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
 import { DutyInstrument } from "shared/lib/uge/types";
 import { FormDivider, FormField, FormRow } from "ui/form/layout/FormLayout";
-import { Select } from "ui/form/Select";
-import { Button } from "ui/buttons/Button";
+// import { Button } from "ui/buttons/Button";
 import l10n from "shared/lib/lang/l10n";
 import { useAppDispatch, useAppSelector } from "store/hooks";
-import { SingleValue } from "react-select";
-import { ButtonGroup } from "ui/buttons/ButtonGroup";
-import { testNotes } from "./helpers";
-import throttle from "lodash/throttle";
-import { NOTE_C5 } from "consts";
-import { playDutyNotePreview } from "components/music/helpers";
+// import { ButtonGroup } from "ui/buttons/ButtonGroup";
+// import { testNotes } from "./helpers";
+// import throttle from "lodash/throttle";
+// import { NOTE_C5 } from "consts";
+// import { playDutyNotePreview } from "components/music/helpers";
 import { Alert, AlertItem } from "ui/alerts/Alert";
 import { InstrumentEnvelopeEditor } from "components/music/sidebar/InstrumentEnvelopeEditor";
 import { InstrumentEnvelopePreview } from "components/music/sidebar/InstrumentEnvelopePreview";
 import { Slider } from "ui/form/Slider";
 import { FlexGrow } from "ui/spacing/Spacing";
 import { DutyCycleSelect } from "components/music/form/DutyCycleSelect";
-
-const sweepTimeOptions = [
-  {
-    value: 0,
-    label: "Off",
-  },
-  {
-    value: 1,
-    label: "1/128Hz",
-  },
-  {
-    value: 2,
-    label: "2/128Hz",
-  },
-  {
-    value: 3,
-    label: "3/128Hz",
-  },
-  {
-    value: 4,
-    label: "4/128Hz",
-  },
-  {
-    value: 5,
-    label: "5/128Hz",
-  },
-  {
-    value: 6,
-    label: "6/128Hz",
-  },
-  {
-    value: 7,
-    label: "7/128Hz",
-  },
-];
+import { SweepTimeSelect } from "components/music/form/SweepTimeSelect";
 
 interface InstrumentDutyEditorProps {
   id: string;
@@ -75,25 +39,21 @@ export const InstrumentDutyEditor = ({
     instrumentRef.current = instrument;
   }, [instrument]);
 
-  const throttledTestInstrument = useRef(
-    throttle(
-      (instrument: DutyInstrument, channel: number) => {
-        playDutyNotePreview(NOTE_C5, instrument, channel === 1 ? 1 : 0, 0, 0);
-      },
-      500,
-      { trailing: true },
-    ),
-  ).current;
+  // const throttledTestInstrument = useRef(
+  //   throttle(
+  //     (instrument: DutyInstrument, channel: number) => {
+  //       playDutyNotePreview(NOTE_C5, instrument, channel === 1 ? 1 : 0, 0, 0);
+  //     },
+  //     500,
+  //     { trailing: true },
+  //   ),
+  // ).current;
 
-  useEffect(() => {
-    return () => {
-      throttledTestInstrument.cancel();
-    };
-  }, [throttledTestInstrument]);
-
-  const selectedSweepTime = sweepTimeOptions.find(
-    (i) => i.value === instrument?.frequency_sweep_time,
-  );
+  // useEffect(() => {
+  //   return () => {
+  //     throttledTestInstrument.cancel();
+  //   };
+  // }, [throttledTestInstrument]);
 
   const onChangeField = useCallback(
     <T extends keyof DutyInstrument>(key: T) =>
@@ -109,33 +69,10 @@ export const InstrumentDutyEditor = ({
             },
           }),
         );
-        const newValue = { ...instrumentRef.current, [key]: editValue };
-        throttledTestInstrument(newValue, selectedChannel);
+        // const newValue = { ...instrumentRef.current, [key]: editValue };
+        // throttledTestInstrument(newValue, selectedChannel);
       },
-    [dispatch, instrumentId, selectedChannel, throttledTestInstrument],
-  );
-
-  const onChangeFieldSelect = useCallback(
-    <T extends keyof DutyInstrument>(key: T) =>
-      (e: SingleValue<{ value: DutyInstrument[T]; label: string }>) => {
-        if (instrumentId === undefined || !instrumentRef.current) {
-          return;
-        }
-        if (e) {
-          const editValue = e.value;
-          dispatch(
-            trackerDocumentActions.editDutyInstrument({
-              instrumentId,
-              changes: {
-                [key]: editValue,
-              },
-            }),
-          );
-          const newValue = { ...instrumentRef.current, [key]: editValue };
-          throttledTestInstrument(newValue, selectedChannel);
-        }
-      },
-    [dispatch, instrumentId, selectedChannel, throttledTestInstrument],
+    [dispatch, instrumentId],
   );
 
   const onChangeEnvelopeLength = useMemo(
@@ -158,21 +95,43 @@ export const InstrumentDutyEditor = ({
     [onChangeField],
   );
 
-  const onTestInstrument = useCallback(
-    (note: number) => () => {
-      if (!instrument) {
-        return;
+  const onChangeSweepShift = useCallback(
+    (value: number) => {
+      if (Number(instrument?.frequency_sweep_time) === 0) {
+        onChangeField("frequency_sweep_time")(4);
       }
-      playDutyNotePreview(
-        note,
-        instrument,
-        selectedChannel === 1 ? 1 : 0,
-        0,
-        0,
-      );
+      onChangeField("frequency_sweep_shift")(value);
     },
-    [instrument, selectedChannel],
+    [instrument?.frequency_sweep_time, onChangeField],
   );
+
+  const onChangeSweepTime = useCallback(
+    (value: number) => {
+      if (value !== 0 && Number(instrument?.frequency_sweep_shift) === 0) {
+        onChangeField("frequency_sweep_shift")(7);
+      } else if (value === 0) {
+        onChangeField("frequency_sweep_shift")(0);
+      }
+      onChangeField("frequency_sweep_time")(value);
+    },
+    [instrument?.frequency_sweep_shift, onChangeField],
+  );
+
+  // const onTestInstrument = useCallback(
+  //   (note: number) => () => {
+  //     if (!instrument) {
+  //       return;
+  //     }
+  //     playDutyNotePreview(
+  //       note,
+  //       instrument,
+  //       selectedChannel === 1 ? 1 : 0,
+  //       0,
+  //       0,
+  //     );
+  //   },
+  //   [instrument, selectedChannel],
+  // );
 
   if (!instrument) {
     return null;
@@ -217,20 +176,14 @@ export const InstrumentDutyEditor = ({
             value={instrument.frequency_sweep_shift || 0}
             min={-7}
             max={7}
-            onChange={(value) => {
-              if (Number(instrument.frequency_sweep_time) === 0) {
-                onChangeField("frequency_sweep_time")(4);
-              }
-              onChangeField("frequency_sweep_shift")(value);
-            }}
+            onChange={onChangeSweepShift}
           />
         </FormField>
-        <FormField name="frequency_sweep_time" label={l10n("FIELD_SWEEP_TIME")}>
-          <Select
-            name="frequency_sweep_time"
-            value={selectedSweepTime}
-            options={sweepTimeOptions}
-            onChange={onChangeFieldSelect("frequency_sweep_time")}
+        <FormField name="frequencySweepTime" label={l10n("FIELD_SWEEP_TIME")}>
+          <SweepTimeSelect
+            name={"frequencySweepTime"}
+            value={instrument.frequency_sweep_time}
+            onChange={onChangeSweepTime}
             menuPlacement="top"
           />
         </FormField>
@@ -244,7 +197,7 @@ export const InstrumentDutyEditor = ({
           </FormRow>
         )}
       <FlexGrow />
-      <div style={{ position: "sticky", bottom: 0 }}>
+      {/* <div style={{ position: "sticky", bottom: 0 }}>
         <FormDivider />
         <FormRow>
           <FormField
@@ -264,7 +217,7 @@ export const InstrumentDutyEditor = ({
             </ButtonGroup>
           </FormField>
         </FormRow>
-      </div>
+      </div> */}
     </>
   );
 };
