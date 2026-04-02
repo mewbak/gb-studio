@@ -3,7 +3,6 @@ import trackerDocumentActions from "store/features/trackerDocument/trackerDocume
 import { DutyInstrument } from "shared/lib/uge/types";
 import { FormDivider, FormField, FormRow } from "ui/form/layout/FormLayout";
 import { Select } from "ui/form/Select";
-import { SliderField } from "ui/form/SliderField";
 import { Button } from "ui/buttons/Button";
 import l10n from "shared/lib/lang/l10n";
 import { useAppDispatch, useAppSelector } from "store/hooks";
@@ -16,29 +15,9 @@ import { playDutyNotePreview } from "components/music/helpers";
 import { Alert, AlertItem } from "ui/alerts/Alert";
 import { InstrumentEnvelopeEditor } from "components/music/sidebar/InstrumentEnvelopeEditor";
 import { InstrumentEnvelopePreview } from "components/music/sidebar/InstrumentEnvelopePreview";
-import { Knob } from "ui/form/Knob";
-import { Label } from "ui/form/Label";
 import { Slider } from "ui/form/Slider";
 import { FlexGrow } from "ui/spacing/Spacing";
-
-const dutyOptions = [
-  {
-    value: 0,
-    label: "12.5%",
-  },
-  {
-    value: 1,
-    label: "25%",
-  },
-  {
-    value: 2,
-    label: "50%",
-  },
-  {
-    value: 3,
-    label: "75%",
-  },
-];
+import { DutyCycleSelect } from "components/music/form/DutyCycleSelect";
 
 const sweepTimeOptions = [
   {
@@ -112,10 +91,6 @@ export const InstrumentDutyEditor = ({
     };
   }, [throttledTestInstrument]);
 
-  const selectedDuty = dutyOptions.find(
-    (i) => i.value === instrument?.duty_cycle,
-  );
-
   const selectedSweepTime = sweepTimeOptions.find(
     (i) => i.value === instrument?.frequency_sweep_time,
   );
@@ -178,6 +153,11 @@ export const InstrumentDutyEditor = ({
     [onChangeField],
   );
 
+  const onChangeDutyCycle = useMemo(
+    () => onChangeField("duty_cycle"),
+    [onChangeField],
+  );
+
   const onTestInstrument = useCallback(
     (note: number) => () => {
       if (!instrument) {
@@ -217,12 +197,12 @@ export const InstrumentDutyEditor = ({
       </FormRow>
       <FormDivider />
       <FormRow>
-        <FormField name="duty_cycle" label={l10n("FIELD_DUTY_CYCLE")}>
-          <Select
-            name="duty_cycle"
-            value={selectedDuty}
-            options={dutyOptions}
-            onChange={onChangeFieldSelect("duty_cycle")}
+        <FormField name="dutyCycle" label={l10n("FIELD_DUTY_CYCLE")}>
+          <DutyCycleSelect
+            name="dutyCycle"
+            value={instrument.duty_cycle}
+            onChange={onChangeDutyCycle}
+            menuPlacement="top"
           />
         </FormField>
       </FormRow>
@@ -237,12 +217,11 @@ export const InstrumentDutyEditor = ({
             value={instrument.frequency_sweep_shift || 0}
             min={-7}
             max={7}
-            // disabled={Number(instrument.frequency_sweep_time) !== 0}
             onChange={(value) => {
               if (Number(instrument.frequency_sweep_time) === 0) {
                 onChangeField("frequency_sweep_time")(4);
               }
-              onChangeField("frequency_sweep_shift")(value || 0);
+              onChangeField("frequency_sweep_shift")(value);
             }}
           />
         </FormField>
