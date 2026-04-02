@@ -13,7 +13,7 @@ interface SliderProps {
 
 const TRACK_PADDING = 14;
 const TRACK_RADIUS = 20;
-const THUMB_SIZE = 18;
+const THUMB_SIZE = 20;
 const EDGE_FILL_SIZE = 20;
 const EDGE_FILL_OFFSET = -10;
 
@@ -105,28 +105,31 @@ const ZeroMarker = styled.div<ZeroMarkerProps>`
   pointer-events: none;
 `;
 
-interface RangeThumbProps {
-  $isDragged: boolean;
-}
-
-const RangeThumb = styled.div<RangeThumbProps>`
+const RangeThumb = styled.div`
   height: ${THUMB_SIZE}px;
   width: ${THUMB_SIZE}px;
   border-radius: 20px;
-  background: ${(props) => props.theme.colors.button.background};
-  border: 1px solid ${(props) => props.theme.colors.input.border};
-
-  ${(props) =>
-    props.$isDragged
-      ? css`
-          background: ${props.theme.colors.highlight};
-          border: 1px solid ${props.theme.colors.highlight};
-        `
-      : ""}
+  background: ${(props) => props.theme.colors.input.background};
+  border: 2px solid ${(props) => props.theme.colors.highlight};
+  box-sizing: border-box;
 
   @media (max-width: 840px) {
-    width: 28px;
-    height: 28px;
+    width: 30px;
+    height: 30px;
+  }
+`;
+
+const ShadowBorder = styled.div`
+  position: absolute;
+  height: ${THUMB_SIZE - 4}px;
+  width: ${THUMB_SIZE - 4}px;
+  border-radius: 80px;
+  box-shadow: 0px 0px 3px 1px ${(props) => props.theme.colors.text} inset;
+  opacity: 0.3;
+
+  @media (max-width: 840px) {
+    width: 26px;
+    height: 26px;
   }
 `;
 
@@ -245,8 +248,10 @@ export const Slider: FC<SliderProps> = ({
           </RangeTrack>
         </RangeInner>
       )}
-      renderThumb={({ props, isDragged }) => (
-        <RangeThumb {...props} $isDragged={isDragged} style={props.style} />
+      renderThumb={({ props }) => (
+        <RangeThumb {...props} style={props.style}>
+          <ShadowBorder />
+        </RangeThumb>
       )}
     />
   );
