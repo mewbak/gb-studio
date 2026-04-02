@@ -1,6 +1,6 @@
 import React, {
   useCallback,
-  useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -170,7 +170,7 @@ export const InstrumentSubpatternScript = ({
         updateRow(selectedRow, { jump: null });
         return;
       }
-      updateRow(selectedRow, { jump: toSubpatternJump(selectedRow + 1) });
+      updateRow(selectedRow, { jump: toSubpatternJump(0) });
     },
     [selectedRow, updateRow],
   );
@@ -217,7 +217,7 @@ export const InstrumentSubpatternScript = ({
 
   const [wrapperEl, wrapperSize] = useResizeObserver<HTMLDivElement>();
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const renderJumpArrow = () => {
       if (selectedRow === null || selectedFlowType !== "jump") {
         setJumpArrow(null);
@@ -244,10 +244,11 @@ export const InstrumentSubpatternScript = ({
         targetRect.top - containerRect.top + targetRect.height / 2;
       const width = container.scrollWidth;
       const height = container.scrollHeight;
+      const halfHeaderHeight = startRect.height / 2;
 
       if (selectedJumpTarget === selectedRow) {
         const startX = startRect.left - containerRect.left + 14;
-        const startY = startRect.top - containerRect.top + 17;
+        const startY = startRect.top - containerRect.top + 2 + halfHeaderHeight;
         setJumpArrow({
           width,
           height,
@@ -337,7 +338,7 @@ export const InstrumentSubpatternScript = ({
       <StyledInstrumentSubpatternScriptList
         ref={mergeRefs(rowsListRef, wrapperEl)}
       >
-        {jumpArrow && (
+        {jumpArrow && selectedRow !== undefined && (
           <StyledInstrumentSubpatternJumpOverlay
             viewBox={`0 0 ${jumpArrow.width} ${jumpArrow.height}`}
             aria-hidden="true"
@@ -449,7 +450,10 @@ export const InstrumentSubpatternScript = ({
                               type="number"
                               min={0}
                               max={31}
-                              value={selectedJumpTarget}
+                              value={
+                                selectedJumpTarget > 0 ? selectedJumpTarget : ""
+                              }
+                              placeholder="0"
                               onChange={onChangeJumpTarget}
                             />
                           </>

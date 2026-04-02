@@ -4,6 +4,7 @@ import styled from "styled-components";
 
 export const StyledInstrumentSubpatternScriptList = styled.div`
   position: relative;
+  z-index: 0;
 `;
 
 export const StyledInstrumentSubpatternJumpOverlay = styled.svg`

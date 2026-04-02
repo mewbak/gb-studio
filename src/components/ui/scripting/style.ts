@@ -136,7 +136,6 @@ export const StyledScriptEventHeader = styled.div<StyledScriptEventHeaderProps>`
     content: "⋮";
     position: absolute;
     left: 3px;
-    top: 6px;
   }
 
   ${(props) =>
