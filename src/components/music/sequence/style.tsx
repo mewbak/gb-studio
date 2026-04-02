@@ -36,7 +36,7 @@ export const StyledSequenceItem = styled.div<StyledSequenceItemProps>`
 export const StyledAddSequenceButton = styled.button`
   background: ${(props) => props.theme.colors.button.nestedBackground};
   min-width: 60px;
-  min-height: 55px;
+  min-height: 56px;
   border: 0;
   border-radius: 4px;
   svg {

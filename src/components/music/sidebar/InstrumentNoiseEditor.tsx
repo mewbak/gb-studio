@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef } from "react";
+import React, { useCallback, useMemo } from "react";
 import { castEventToBool } from "renderer/lib/helpers/castEventValue";
 import l10n from "shared/lib/lang/l10n";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
@@ -6,11 +6,9 @@ import { NoiseInstrument } from "shared/lib/uge/types";
 import { CheckboxField } from "ui/form/CheckboxField";
 import { FormDivider, FormField, FormRow } from "ui/form/layout/FormLayout";
 import { Button } from "ui/buttons/Button";
-import { throttle } from "lodash";
 import { useAppDispatch } from "store/hooks";
 import { ButtonGroup } from "ui/buttons/ButtonGroup";
 import { testNotes } from "./helpers";
-import { NOTE_C5 } from "consts";
 import { playNoiseNotePreview } from "components/music/helpers";
 import { InstrumentEnvelopeEditor } from "components/music/sidebar/InstrumentEnvelopeEditor";
 import { InstrumentEnvelopePreview } from "components/music/sidebar/InstrumentEnvelopePreview";
@@ -27,32 +25,10 @@ export const InstrumentNoiseEditor = ({
 
   const instrumentId = instrument?.index;
 
-  const instrumentRef = useRef(instrument);
-
-  useEffect(() => {
-    instrumentRef.current = instrument;
-  }, [instrument]);
-
-  // const throttledTestInstrument = useRef(
-  //   throttle(
-  //     (instrument: NoiseInstrument) => {
-  //       playNoiseNotePreview(NOTE_C5, instrument, 0, 0);
-  //     },
-  //     250,
-  //     { leading: true, trailing: true },
-  //   ),
-  // ).current;
-
-  // useEffect(() => {
-  //   return () => {
-  //     throttledTestInstrument.cancel();
-  //   };
-  // }, [throttledTestInstrument]);
-
   const onChangeField = useCallback(
     <T extends keyof NoiseInstrument>(key: T) =>
       (editValue: NoiseInstrument[T]) => {
-        if (instrumentId === undefined || !instrumentRef.current) {
+        if (instrumentId === undefined) {
           return;
         }
         dispatch(
@@ -63,8 +39,6 @@ export const InstrumentNoiseEditor = ({
             },
           }),
         );
-        // const newValue = { ...instrumentRef.current, [key]: editValue };
-        // throttledTestInstrument(newValue);
       },
     [dispatch, instrumentId],
   );

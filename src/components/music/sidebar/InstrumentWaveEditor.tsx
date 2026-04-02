@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import React, { useCallback, useMemo } from "react";
 import l10n from "shared/lib/lang/l10n";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
 import { WaveInstrument } from "shared/lib/uge/types";
@@ -6,14 +6,10 @@ import { FormDivider, FormField, FormRow } from "ui/form/layout/FormLayout";
 import { Option, Select } from "ui/form/Select";
 import { InstrumentLengthForm } from "components/music/form/InstrumentLengthForm";
 import { WaveEditorForm } from "components/music/form/WaveEditorForm";
-import { Button } from "ui/buttons/Button";
 import { useAppDispatch } from "store/hooks";
 import { SingleValue } from "react-select";
-import { ButtonGroup } from "ui/buttons/ButtonGroup";
-import { testNotes } from "./helpers";
-import throttle from "lodash/throttle";
-import { NOTE_C5 } from "consts";
 import { Knob } from "ui/form/Knob";
+import { InstrumentWaveEnvelopeEditor } from "components/music/sidebar/InstrumentWaveEnvelopeEditor";
 
 const volumeOptions = [
   {
@@ -42,141 +38,75 @@ interface InstrumentWaveEditorProps {
 
 export const InstrumentWaveEditor = ({
   instrument,
-  waveForms,
 }: InstrumentWaveEditorProps) => {
   const dispatch = useAppDispatch();
-
-  // const throttledTestInstrument = useRef(
-  //   throttle(
-  //     (instrument: WaveInstrument, waveForm: Uint8Array) => {
-  //       playWaveNotePreview(NOTE_C5, instrument, waveForm, 0, 0);
-  //     },
-  //     250,
-  //     { leading: true, trailing: true },
-  //   ),
-  // ).current;
-
-  // useEffect(() => {
-  //   return () => {
-  //     throttledTestInstrument.cancel();
-  //   };
-  // }, [throttledTestInstrument]);
-
-  if (!instrument) return <></>;
 
   const selectedVolume = volumeOptions.find(
     (i) => parseInt(i.value, 10) === instrument.volume,
   );
 
-  const onChangeField =
+  const instrumentId = instrument?.index;
+
+  const onChangeField = useCallback(
     <T extends keyof WaveInstrument>(key: T) =>
-    (editValue: WaveInstrument[T]) => {
-      dispatch(
-        trackerDocumentActions.editWaveInstrument({
-          instrumentId: instrument.index,
-          changes: {
-            [key]: editValue,
-          },
-        }),
-      );
-      // const newValue = { ...instrument, [key]: editValue };
-      // throttledTestInstrument(newValue, waveForms[newValue.wave_index]);
-    };
+      (editValue: WaveInstrument[T]) => {
+        dispatch(
+          trackerDocumentActions.editWaveInstrument({
+            instrumentId,
+            changes: {
+              [key]: editValue,
+            },
+          }),
+        );
+      },
+    [dispatch, instrumentId],
+  );
 
-  const onChangeFieldSelect =
+  const onChangeFieldSelect = useCallback(
     <T extends keyof WaveInstrument>(key: T) =>
-    (e: { value: number | string; label: string }) => {
-      const editValue = e.value;
-      dispatch(
-        trackerDocumentActions.editWaveInstrument({
-          instrumentId: instrument.index,
-          changes: {
-            [key]: editValue,
-          },
-        }),
-      );
-      // const newValue = { ...instrument, [key]: editValue };
-      // throttledTestInstrument(newValue, waveForms[newValue.wave_index]);
-    };
+      (e: { value: number | string; label: string }) => {
+        const editValue = e.value;
+        dispatch(
+          trackerDocumentActions.editWaveInstrument({
+            instrumentId,
+            changes: {
+              [key]: editValue,
+            },
+          }),
+        );
+      },
+    [dispatch, instrumentId],
+  );
 
-  // const onChangeWave = (wave: Uint8Array) => {
-  //   throttledTestInstrument(instrument, wave);
-  // };
+  const onChangeEnvelopeLength = useMemo(
+    () => onChangeField("length"),
+    [onChangeField],
+  );
 
-  // const onTestInstrument = (note: number) => () => {
-  //   playWaveNotePreview(
-  //     note,
-  //     instrument,
-  //     waveForms[instrument.wave_index],
-  //     0,
-  //     0,
-  //   );
-  // };
+  const onChangeEnvelopeVolume = useMemo(
+    () => onChangeField("volume"),
+    [onChangeField],
+  );
+
+  if (!instrument) {
+    return null;
+  }
 
   return (
     <>
-      <InstrumentLengthForm
-        value={instrument.length}
-        onChange={onChangeField("length")}
-        min={1}
-        max={256}
+      <InstrumentWaveEnvelopeEditor
+        volume={instrument.volume}
+        length={instrument.length}
+        onChangeVolume={onChangeEnvelopeVolume}
+        onChangeLength={onChangeEnvelopeLength}
       />
 
       <FormDivider />
 
-      <FormRow>
-        <FormField name="volume" label={l10n("FIELD_VOLUME")}>
-          <Select
-            name="volume"
-            value={selectedVolume}
-            options={volumeOptions}
-            onChange={(e: SingleValue<Option>) =>
-              e && onChangeFieldSelect("volume")(e)
-            }
-          />
-          <Knob
-            name="volume"
-            value={parseInt(selectedVolume?.value || "0", 10)}
-            min={0}
-            max={3}
-            onChange={(value) => {
-              onChangeFieldSelect("volume")({
-                value: String(value),
-                label: String(value),
-              });
-            }}
-          />
-          [{parseInt(selectedVolume?.value || "0", 10)}] [
-          {JSON.stringify(selectedVolume)}]
-        </FormField>
-      </FormRow>
-
       <WaveEditorForm
         waveId={instrument.wave_index}
         onChange={onChangeFieldSelect("wave_index")}
-        // onEditWave={onChangeWave}
       />
-
-      {/* <FormDivider /> */}
-
-      {/* <FormRow>
-        <FormField
-          name="test_instrument_C5"
-          label={l10n("FIELD_TEST_INSTRUMENT")}
-        >
-          <ButtonGroup>
-            {testNotes.map(({ label, value }) => (
-              <Button
-                key={`test_instrument_${label}`}
-                id={`test_instrument_${label}`}
-                onClick={onTestInstrument(value)}
-              >
-                {label}
-              </Button>
-            ))}
-          </ButtonGroup>
-        </FormField>
-      </FormRow> */}
     </>
   );
 };

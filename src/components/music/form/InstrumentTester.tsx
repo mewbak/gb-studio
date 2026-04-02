@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef } from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 import {
   playDutyNotePreview,
   playNoiseNotePreview,
@@ -6,7 +6,7 @@ import {
 } from "components/music/helpers";
 import { testNotes } from "components/music/sidebar/helpers";
 import { NOTE_C5 } from "consts";
-import { isEqual } from "lodash";
+import isEqual from "lodash/isEqual";
 import throttle from "lodash/throttle";
 import l10n from "shared/lib/lang/l10n";
 import {
@@ -28,22 +28,25 @@ interface InstrumentTesterProps {
 const genKey = (instrumentId: number, instrumentType: InstrumentType): string =>
   `${instrumentId}:${instrumentType}`;
 
-const getInstrument = (
+type CurrentInstrument =
+  | { type: "duty"; instrument?: DutyInstrument }
+  | { type: "wave"; instrument?: WaveInstrument; waveForm?: Uint8Array }
+  | { type: "noise"; instrument?: NoiseInstrument };
+
+const getCurrentInstrument = (
   instrumentType: InstrumentType,
   dutyInstrument: DutyInstrument | undefined,
   waveInstrument: WaveInstrument | undefined,
   noiseInstrument: NoiseInstrument | undefined,
-) => {
+  waveForm: Uint8Array | undefined,
+): CurrentInstrument => {
   if (instrumentType === "duty") {
-    return dutyInstrument;
+    return { type: "duty", instrument: dutyInstrument };
   }
   if (instrumentType === "wave") {
-    return waveInstrument;
+    return { type: "wave", instrument: waveInstrument, waveForm };
   }
-  if (instrumentType === "noise") {
-    return noiseInstrument;
-  }
-  return undefined;
+  return { type: "noise", instrument: noiseInstrument };
 };
 
 export const InstrumentTester = ({
@@ -75,73 +78,70 @@ export const InstrumentTester = ({
 
   const selectedChannelIdRef = useRef(selectedChannelId);
   const keyRef = useRef(genKey(instrumentId, instrumentType));
-  const dutyInstrumentRef = useRef(dutyInstrument);
-  const waveInstrumentRef = useRef(waveInstrument);
-  const noiseInstrumentRef = useRef(noiseInstrument);
-  const waveFormRef = useRef(waveForm);
+  const currentInstrumentRef = useRef<CurrentInstrument>(
+    getCurrentInstrument(
+      instrumentType,
+      dutyInstrument,
+      waveInstrument,
+      noiseInstrument,
+      waveForm,
+    ),
+  );
 
-  const throttledTestInstrument = useRef(
+  useEffect(() => {
+    selectedChannelIdRef.current = selectedChannelId;
+  }, [selectedChannelId]);
+
+  const playPreview = useCallback((note: number) => {
+    const current = currentInstrumentRef.current;
+
+    if (current.type === "duty" && current.instrument) {
+      playDutyNotePreview(
+        note,
+        current.instrument,
+        selectedChannelIdRef.current === 1 ? 1 : 0,
+        0,
+        0,
+      );
+      return;
+    }
+
+    if (current.type === "wave" && current.instrument && current.waveForm) {
+      playWaveNotePreview(note, current.instrument, current.waveForm, 0, 0);
+      return;
+    }
+
+    if (current.type === "noise" && current.instrument) {
+      playNoiseNotePreview(note, current.instrument, 0, 0);
+    }
+  }, []);
+
+  const throttledTestInstrumentRef = useRef(
     throttle(
       () => {
-        const note = NOTE_C5;
-        if (instrumentType === "duty" && dutyInstrumentRef.current) {
-          playDutyNotePreview(
-            note,
-            dutyInstrumentRef.current,
-            selectedChannelIdRef.current === 1 ? 1 : 0,
-            0,
-            0,
-          );
-        } else if (
-          instrumentType === "wave" &&
-          waveInstrumentRef.current &&
-          waveFormRef.current
-        ) {
-          playWaveNotePreview(
-            note,
-            waveInstrumentRef.current,
-            waveFormRef.current,
-            0,
-            0,
-          );
-        } else if (instrumentType === "noise" && noiseInstrumentRef.current) {
-          playNoiseNotePreview(note, noiseInstrumentRef.current, 0, 0);
-        }
+        playPreview(NOTE_C5);
       },
       400,
       { leading: false, trailing: true },
     ),
-  ).current;
+  );
 
   useEffect(() => {
-    const prevInstrument = getInstrument(
+    const prevInstrument = currentInstrumentRef.current;
+
+    currentInstrumentRef.current = getCurrentInstrument(
       instrumentType,
-      dutyInstrumentRef.current,
-      waveInstrumentRef.current,
-      noiseInstrumentRef.current,
+      dutyInstrument,
+      waveInstrument,
+      noiseInstrument,
+      waveForm,
     );
-    const prevWave = waveFormRef.current;
-
-    dutyInstrumentRef.current = dutyInstrument;
-    waveInstrumentRef.current = waveInstrument;
-    noiseInstrumentRef.current = noiseInstrument;
-
-    waveFormRef.current = waveForm;
 
     const newKey = genKey(instrumentId, instrumentType);
 
     if (keyRef.current === newKey) {
-      const newInstrument = getInstrument(
-        instrumentType,
-        dutyInstrument,
-        waveInstrument,
-        noiseInstrument,
-      );
-      if (
-        !isEqual(prevInstrument, newInstrument) ||
-        (instrumentType === "wave" && !isEqual(prevWave, waveForm))
-      ) {
-        throttledTestInstrument();
+      if (!isEqual(prevInstrument, currentInstrumentRef.current)) {
+        throttledTestInstrumentRef.current();
       }
     }
 
@@ -151,39 +151,25 @@ export const InstrumentTester = ({
     instrumentId,
     instrumentType,
     noiseInstrument,
-    throttledTestInstrument,
     waveForm,
     waveInstrument,
   ]);
 
+  useEffect(() => {
+    const throttled = throttledTestInstrumentRef.current;
+    return () => {
+      throttled.cancel();
+    };
+  }, []);
+
   const onTestInstrument = useCallback(
     (e: React.MouseEvent<HTMLButtonElement>) => {
-      const note = parseInt(e.currentTarget.dataset.note ?? "", 10);
-      if (instrumentType === "duty" && dutyInstrumentRef.current) {
-        playDutyNotePreview(
-          note,
-          dutyInstrumentRef.current,
-          selectedChannelIdRef.current === 1 ? 1 : 0,
-          0,
-          0,
-        );
-      } else if (
-        instrumentType === "wave" &&
-        waveInstrumentRef.current &&
-        waveFormRef.current
-      ) {
-        playWaveNotePreview(
-          note,
-          waveInstrumentRef.current,
-          waveFormRef.current,
-          0,
-          0,
-        );
-      } else if (instrumentType === "noise" && noiseInstrumentRef.current) {
-        playNoiseNotePreview(note, noiseInstrumentRef.current, 0, 0);
+      const note = Number(e.currentTarget.dataset.note);
+      if (!Number.isNaN(note)) {
+        playPreview(note);
       }
     },
-    [instrumentType],
+    [playPreview],
   );
 
   return (

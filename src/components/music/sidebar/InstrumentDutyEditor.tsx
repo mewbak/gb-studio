@@ -1,15 +1,9 @@
-import React, { useCallback, useEffect, useMemo, useRef } from "react";
+import React, { useCallback, useMemo } from "react";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
 import { DutyInstrument } from "shared/lib/uge/types";
 import { FormDivider, FormField, FormRow } from "ui/form/layout/FormLayout";
-// import { Button } from "ui/buttons/Button";
 import l10n from "shared/lib/lang/l10n";
 import { useAppDispatch, useAppSelector } from "store/hooks";
-// import { ButtonGroup } from "ui/buttons/ButtonGroup";
-// import { testNotes } from "./helpers";
-// import throttle from "lodash/throttle";
-// import { NOTE_C5 } from "consts";
-// import { playDutyNotePreview } from "components/music/helpers";
 import { Alert, AlertItem } from "ui/alerts/Alert";
 import { InstrumentEnvelopeEditor } from "components/music/sidebar/InstrumentEnvelopeEditor";
 import { InstrumentEnvelopePreview } from "components/music/sidebar/InstrumentEnvelopePreview";
@@ -33,32 +27,10 @@ export const InstrumentDutyEditor = ({
 
   const instrumentId = instrument?.index;
 
-  const instrumentRef = useRef(instrument);
-
-  useEffect(() => {
-    instrumentRef.current = instrument;
-  }, [instrument]);
-
-  // const throttledTestInstrument = useRef(
-  //   throttle(
-  //     (instrument: DutyInstrument, channel: number) => {
-  //       playDutyNotePreview(NOTE_C5, instrument, channel === 1 ? 1 : 0, 0, 0);
-  //     },
-  //     500,
-  //     { trailing: true },
-  //   ),
-  // ).current;
-
-  // useEffect(() => {
-  //   return () => {
-  //     throttledTestInstrument.cancel();
-  //   };
-  // }, [throttledTestInstrument]);
-
   const onChangeField = useCallback(
     <T extends keyof DutyInstrument>(key: T) =>
       (editValue: DutyInstrument[T]) => {
-        if (instrumentId === undefined || !instrumentRef.current) {
+        if (instrumentId === undefined) {
           return;
         }
         dispatch(
@@ -69,8 +41,6 @@ export const InstrumentDutyEditor = ({
             },
           }),
         );
-        // const newValue = { ...instrumentRef.current, [key]: editValue };
-        // throttledTestInstrument(newValue, selectedChannel);
       },
     [dispatch, instrumentId],
   );
@@ -116,22 +86,6 @@ export const InstrumentDutyEditor = ({
     },
     [instrument?.frequency_sweep_shift, onChangeField],
   );
-
-  // const onTestInstrument = useCallback(
-  //   (note: number) => () => {
-  //     if (!instrument) {
-  //       return;
-  //     }
-  //     playDutyNotePreview(
-  //       note,
-  //       instrument,
-  //       selectedChannel === 1 ? 1 : 0,
-  //       0,
-  //       0,
-  //     );
-  //   },
-  //   [instrument, selectedChannel],
-  // );
 
   if (!instrument) {
     return null;
@@ -197,27 +151,6 @@ export const InstrumentDutyEditor = ({
           </FormRow>
         )}
       <FlexGrow />
-      {/* <div style={{ position: "sticky", bottom: 0 }}>
-        <FormDivider />
-        <FormRow>
-          <FormField
-            name="test_instrument_C5"
-            label={l10n("FIELD_TEST_INSTRUMENT")}
-          >
-            <ButtonGroup>
-              {testNotes.map(({ label, value }) => (
-                <Button
-                  key={`test_instrument_${label}`}
-                  id={`test_instrument_${label}`}
-                  onClick={onTestInstrument(value)}
-                >
-                  {label}
-                </Button>
-              ))}
-            </ButtonGroup>
-          </FormField>
-        </FormRow>
-      </div> */}
     </>
   );
 };
