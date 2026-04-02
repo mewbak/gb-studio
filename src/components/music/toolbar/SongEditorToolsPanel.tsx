@@ -291,6 +291,14 @@ const SongEditorToolsPanel = ({ musicAsset }: SongEditorToolsPanelProps) => {
   return (
     <SongToolsPanel>
       <FloatingPanelTools>
+        <InstrumentSelectButton
+          name="instrument"
+          value={selectedInstrumentId}
+          onChange={(newValue) => {
+            setSelectedInstrumentId(newValue);
+          }}
+        />
+        <FloatingPanelDivider />
         {view === "roll" && (
           <>
             <Button
@@ -316,19 +324,10 @@ const SongEditorToolsPanel = ({ musicAsset }: SongEditorToolsPanelProps) => {
             >
               <SelectionIcon />
             </Button>
-            <FloatingPanelDivider />
           </>
         )}
-        <InstrumentSelectButton
-          name="instrument"
-          value={selectedInstrumentId}
-          onChange={(newValue) => {
-            setSelectedInstrumentId(newValue);
-          }}
-        />
         {view === "tracker" && (
           <>
-            <FloatingPanelDivider />
             <OctaveOffsetSelectButton
               value={octaveOffset}
               onChange={setOctaveOffset}
