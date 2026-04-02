@@ -13,7 +13,12 @@ import { EffectCodeSelect } from "components/music/form/EffectCodeSelect";
 import { PatternCellAddress } from "shared/lib/uge/editor/types";
 import { PatternCell, Song } from "shared/lib/uge/types";
 import { EffectParamsForm } from "components/music/form/EffectParamsForm";
-import { InstrumentIcon, TrashIcon } from "ui/icons/Icons";
+import {
+  InstrumentIcon,
+  MinusSmallIcon,
+  PlusSmallIcon,
+  TrashIcon,
+} from "ui/icons/Icons";
 import trackerActions from "store/features/tracker/trackerActions";
 import { channelIdToInstrumentType } from "components/music/helpers";
 import { InputGroup, InputGroupAppend } from "ui/form/InputGroup";
@@ -237,7 +242,7 @@ export const PatternCellSelectionEditor = () => {
                       );
                     }}
                   >
-                    -
+                    <MinusSmallIcon />
                   </Button>
                   <Button
                     onClick={(e) => {
@@ -251,7 +256,7 @@ export const PatternCellSelectionEditor = () => {
                       );
                     }}
                   >
-                    +
+                    <PlusSmallIcon />
                   </Button>
                 </ButtonGroup>
               </div>
@@ -270,7 +275,7 @@ export const PatternCellSelectionEditor = () => {
                       );
                     }}
                   >
-                    -
+                    <MinusSmallIcon />
                   </Button>
                   <Button
                     onClick={(e) => {
@@ -284,7 +289,7 @@ export const PatternCellSelectionEditor = () => {
                       );
                     }}
                   >
-                    +
+                    <PlusSmallIcon />
                   </Button>
                 </ButtonGroup>
               </div>

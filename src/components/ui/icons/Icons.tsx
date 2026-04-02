@@ -426,6 +426,18 @@ export const PlusIcon = ({ title }: { title?: string }) => (
   </svg>
 );
 
+export const PlusSmallIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24">
+    <path d="M9.5 3H14.5V9.5H21V14.5H14.5V21H9.5V14.5H3V9.5H9.5Z" />
+  </svg>
+);
+
+export const MinusSmallIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24">
+    <path d="M2 9.5h20v5h-20z" />
+  </svg>
+);
+
 export const ReplaceIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24">
     <path d="M19.5 2H4.5C3.39543 2 2.5 2.89543 2.5 4V7V11H0.5L5 16L9 11H7V7H15H19.5C20.6046 7 21.5 6.10457 21.5 5V4C21.5 2.89543 20.6046 2 19.5 2Z" />
