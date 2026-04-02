@@ -18,12 +18,40 @@ const RangeInner = styled.div`
 `;
 
 const RangeTrack = styled.div`
+  position: relative;
   width: 100%;
-  height: 4px;
-  border-radius: 4px;
+  height: 28px;
+  border-radius: 20px;
   align-self: center;
-  background: ${(props) => props.theme.colors.input.border};
+  background: ${(props) => props.theme.colors.input.background};
   border: 1px solid ${(props) => props.theme.colors.input.border};
+  box-sizing: border-box;
+  padding: 0 14px;
+`;
+
+const RangeTrackFill = styled.div`
+  position: absolute;
+  top: 3px;
+  left: 14px;
+  right: 14px;
+  bottom: 3px;
+  &:before {
+    content: "";
+    display: block;
+    position: absolute;
+    width: 20px;
+    top: 0;
+    bottom: 0;
+    left: -10px;
+    background: ${(props) => props.theme.colors.highlight};
+    border-radius: 20px;
+  }
+`;
+
+const RangeTrackInner = styled.div`
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
 `;
 
 interface RangeThumbProps {
@@ -31,9 +59,9 @@ interface RangeThumbProps {
 }
 
 const RangeThumb = styled.div<RangeThumbProps>`
-  height: 12px;
-  width: 12px;
-  border-radius: 12px;
+  height: 18px;
+  width: 18px;
+  border-radius: 20px;
   background: ${(props) => props.theme.colors.button.background};
   border: 1px solid ${(props) => props.theme.colors.input.border};
   ${(props) =>
@@ -82,21 +110,21 @@ export const Slider: FC<SliderProps> = ({
           onTouchStart={props.onTouchStart}
           style={props.style}
         >
-          <RangeTrack
-            ref={props.ref}
-            style={{
-              background: getTrackBackground({
-                values: [value],
-                colors: [
-                  themeContext?.colors.highlight ?? "black",
-                  themeContext?.colors.input.background ?? "white",
-                ],
-                min,
-                max,
-              }),
-            }}
-          >
-            {children}
+          <RangeTrack>
+            <RangeTrackFill
+              style={{
+                background: getTrackBackground({
+                  values: [value],
+                  colors: [
+                    themeContext?.colors.highlight ?? "black",
+                    themeContext?.colors.input.background ?? "white",
+                  ],
+                  min,
+                  max,
+                }),
+              }}
+            />
+            <RangeTrackInner ref={props.ref}>{children}</RangeTrackInner>
           </RangeTrack>
         </RangeInner>
       )}

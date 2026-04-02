@@ -225,21 +225,20 @@ export const InstrumentDutyEditor = ({
             menuPlacement="top"
           />
         </FormField>
-        {Number(instrument.frequency_sweep_time) !== 0 && (
-          <FormField
-            name="frequency_sweep_time"
-            label={l10n("FIELD_SWEEP_SHIFT")}
-          >
-            <Slider
-              value={instrument.frequency_sweep_shift || 0}
-              min={-7}
-              max={7}
-              onChange={(value) => {
-                onChangeField("frequency_sweep_shift")(value || 0);
-              }}
-            />
-          </FormField>
-        )}
+        <FormField
+          name="frequency_sweep_time"
+          label={l10n("FIELD_SWEEP_SHIFT")}
+        >
+          <Slider
+            value={instrument.frequency_sweep_shift || 0}
+            min={-7}
+            max={7}
+            // disabled={Number(instrument.frequency_sweep_time) !== 0}
+            onChange={(value) => {
+              onChangeField("frequency_sweep_shift")(value || 0);
+            }}
+          />
+        </FormField>
       </FormRow>
       {Number(instrument.frequency_sweep_time) !== 0 &&
         selectedChannel === 1 && (
