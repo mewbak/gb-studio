@@ -494,7 +494,7 @@
   "FIELD_TEMPO": "Tempo",
   "FIELD_LENGTH": "Length",
   "FIELD_INITIAL_VOLUME": "Initial Volume",
-  "FIELD_VOLUME_SWEEP_CHANGE": "Sweep Change",
+  "FIELD_VOLUME_SWEEP_CHANGE": "Change",
   "FIELD_SWEEP_TIME": "Sweep Time",
   "FIELD_SWEEP_SHIFT": "Sweep Shift",
   "FIELD_DUTY": "Duty",
@@ -1340,6 +1340,7 @@
   "FIELD_INSERT_PATTERN_BEFORE": "Insert Pattern Before",
   "FIELD_INSERT_PATTERN_AFTER": "Insert Pattern After",
   "FIELD_CHANNEL": "Channel",
+  "FIELD_DUTY_CYCLE": "Duty Cycle",
 
   "// 7": "Asset Viewer ---------------------------------------------",
   "ASSET_SEARCH": "Search...",

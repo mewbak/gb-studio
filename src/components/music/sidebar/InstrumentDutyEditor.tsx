@@ -19,6 +19,7 @@ import { InstrumentEnvelopePreview } from "components/music/sidebar/InstrumentEn
 import { Knob } from "ui/form/Knob";
 import { Label } from "ui/form/Label";
 import { Slider } from "ui/form/Slider";
+import { FlexGrow } from "ui/spacing/Spacing";
 
 const dutyOptions = [
   {
@@ -216,15 +217,18 @@ export const InstrumentDutyEditor = ({
       </FormRow>
       <FormDivider />
       <FormRow>
-        <FormField name="frequency_sweep_time" label={l10n("FIELD_SWEEP_TIME")}>
+        <FormField name="duty_cycle" label={l10n("FIELD_DUTY_CYCLE")}>
           <Select
-            name="frequency_sweep_time"
-            value={selectedSweepTime}
-            options={sweepTimeOptions}
-            onChange={onChangeFieldSelect("frequency_sweep_time")}
-            menuPlacement="top"
+            name="duty_cycle"
+            value={selectedDuty}
+            options={dutyOptions}
+            onChange={onChangeFieldSelect("duty_cycle")}
           />
         </FormField>
+      </FormRow>
+
+      <FormDivider />
+      <FormRow>
         <FormField
           name="frequency_sweep_time"
           label={l10n("FIELD_SWEEP_SHIFT")}
@@ -235,8 +239,20 @@ export const InstrumentDutyEditor = ({
             max={7}
             // disabled={Number(instrument.frequency_sweep_time) !== 0}
             onChange={(value) => {
+              if (Number(instrument.frequency_sweep_time) === 0) {
+                onChangeField("frequency_sweep_time")(4);
+              }
               onChangeField("frequency_sweep_shift")(value || 0);
             }}
+          />
+        </FormField>
+        <FormField name="frequency_sweep_time" label={l10n("FIELD_SWEEP_TIME")}>
+          <Select
+            name="frequency_sweep_time"
+            value={selectedSweepTime}
+            options={sweepTimeOptions}
+            onChange={onChangeFieldSelect("frequency_sweep_time")}
+            menuPlacement="top"
           />
         </FormField>
       </FormRow>
@@ -248,18 +264,7 @@ export const InstrumentDutyEditor = ({
             </Alert>
           </FormRow>
         )}
-      <FormDivider />
-      <FormRow>
-        <FormField name="duty_cycle" label={l10n("FIELD_DUTY")}>
-          <Select
-            name="duty_cycle"
-            value={selectedDuty}
-            options={dutyOptions}
-            onChange={onChangeFieldSelect("duty_cycle")}
-            menuPlacement="top"
-          />
-        </FormField>
-      </FormRow>
+      <FlexGrow />
       <div style={{ position: "sticky", bottom: 0 }}>
         <FormDivider />
         <FormRow>
