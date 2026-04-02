@@ -37,6 +37,7 @@ export const InstrumentLengthForm = ({
       </FormRow>
       <FormRow>
         <Knob
+          name="length"
           value={value || 0}
           min={value ? min : 0}
           max={max}

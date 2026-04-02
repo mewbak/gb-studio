@@ -136,6 +136,7 @@ export const InstrumentWaveEditor = ({
             }
           />
           <Knob
+            name="volume"
             value={parseInt(selectedVolume?.value || "0", 10)}
             min={0}
             max={3}

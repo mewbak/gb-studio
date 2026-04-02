@@ -15,27 +15,28 @@ interface InstrumentEnvelopeEditorProps {
 }
 
 const StyledEnvelopeForm = styled.div`
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 5px;
+  align-items: end;
   padding: 0 10px;
+  padding-bottom: 10px;
 `;
 
 const StyledEnvelopeField = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  flex-grow: 1;
-  margin-bottom: 10px;
-  width: 33%;
-  flex-shrink: 0;
-  > * {
-    width: auto;
-  }
+  display: grid;
+  grid-template-rows: 1fr auto;
+  gap: 6px;
+
   > *:first-child {
-    height: 24px;
-    margin: 0;
-    display: flex;
+    align-self: end;
     align-items: center;
-    font-size: 11px;
+    text-align: center;
+    justify-content: center;
+  }
+
+  > *:last-child {
+    width: 100%;
   }
 `;
 
@@ -78,6 +79,7 @@ export const InstrumentEnvelopeEditor = ({
           }}
         />
         <Knob
+          name="length"
           value={length ?? 0}
           min={1}
           max={64}
@@ -88,11 +90,18 @@ export const InstrumentEnvelopeEditor = ({
 
       <StyledEnvelopeField>
         <Label htmlFor="initialVolume">{l10n("FIELD_INITIAL_VOLUME")}</Label>
-        <Knob value={volume} min={0} max={15} onChange={onChangeVolume} />
+        <Knob
+          name="initialVolume"
+          value={volume}
+          min={0}
+          max={15}
+          onChange={onChangeVolume}
+        />
       </StyledEnvelopeField>
       <StyledEnvelopeField>
         <Label htmlFor="sweepChange">{l10n("FIELD_VOLUME_SWEEP_CHANGE")}</Label>
         <Knob
+          name="sweepChange"
           value={flipSweepChange(sweep)}
           min={-7}
           max={7}

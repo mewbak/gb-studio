@@ -11,6 +11,7 @@ import React, {
 import styled, { ThemeContext, css } from "styled-components";
 
 interface KnobProps {
+  name: string;
   value: number;
   min: number;
   max: number;
@@ -199,6 +200,7 @@ const ShadowBorder = styled.div`
 `;
 
 export const Knob = ({
+  name,
   value,
   min,
   max,
@@ -547,6 +549,8 @@ export const Knob = ({
       {(isDragging || isEditing) && <ValueOverlay>{displayText}</ValueOverlay>}
 
       <KnobButton
+        id={name}
+        name={name}
         type="button"
         role="slider"
         aria-labelledby={labelledBy}
