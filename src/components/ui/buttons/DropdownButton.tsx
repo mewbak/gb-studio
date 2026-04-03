@@ -82,21 +82,31 @@ export const DropdownButton: FC<DropdownButtonProps & ButtonProps> = React.memo(
     const currentMenuIndex = useRef<number>(-1);
     const currentSubMenuIndex = useRef<number>(-1);
 
-    const childArray = Children.toArray(children);
-    const menuItemChildren = childArray.filter((child) => {
-      return isValidElement<MenuItemProps>(child) && child.type === MenuItem;
-    }) as ReactElement[];
+    const childArray = useMemo(() => Children.toArray(children), [children]);
+    const menuItemChildren = useMemo(
+      () =>
+        childArray.filter((child) => {
+          return (
+            isValidElement<MenuItemProps>(child) && child.type === MenuItem
+          );
+        }) as ReactElement[],
+      [childArray],
+    );
 
     const parentMenu = menuItemChildren[
       parentMenuIndex
     ] as ReactElement<MenuItemProps>;
     const subMenuChildArray = parentMenu?.props.subMenu ?? emptyArr;
 
-    const subMenuItemChildren = subMenuChildArray.filter(
-      (child: React.ReactNode) => {
-        return isValidElement<MenuItemProps>(child) && child.type === MenuItem;
-      },
-    ) as ReactElement[];
+    const subMenuItemChildren = useMemo(
+      () =>
+        subMenuChildArray.filter((child: React.ReactNode) => {
+          return (
+            isValidElement<MenuItemProps>(child) && child.type === MenuItem
+          );
+        }) as ReactElement[],
+      [subMenuChildArray],
+    );
 
     const closeMenu = useCallback(() => {
       setIsOpen(false);
