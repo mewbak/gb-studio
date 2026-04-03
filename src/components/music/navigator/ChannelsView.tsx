@@ -61,6 +61,7 @@ const Wrapper = styled.div`
 `;
 
 const StyledVisiblityIcon = styled.div`
+  padding-top: 1px;
   svg {
     width: 14px;
     height: 14px;
