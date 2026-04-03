@@ -78,6 +78,9 @@ export const SliderField: FC<SliderFieldProps> = ({
                 : undefined;
             onChange?.(newValue);
           }}
+          pattern={
+            step === undefined || Number.isInteger(step) ? "\\d*" : undefined
+          }
         />
         <SliderWrapper>
           <Slider
