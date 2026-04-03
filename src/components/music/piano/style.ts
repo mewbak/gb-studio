@@ -40,21 +40,21 @@ export const StyledPianoRollScrollLeftWrapper = styled.div`
   background: ${(props) => props.theme.colors.sidebar.background};
   z-index: 3;
   margin-bottom: -${PIANO_ROLL_FOOTER_HEIGHT + 1}px;
+`;
 
-  &::before {
-    content: "";
-    display: block;
-    position: sticky;
-    top: 0;
-    width: ${PIANO_ROLL_PIANO_WIDTH + 1}px;
-    height: ${PIANO_ROLL_HEADER_HEIGHT}px;
-    background: ${(props) => props.theme.colors.sidebar.background};
-    border-right: 1px solid ${(props) => props.theme.colors.sidebar.border};
-    border-bottom: 1px solid ${(props) => props.theme.colors.sidebar.border};
-    z-index: 20;
-    margin-top: -${PIANO_ROLL_HEADER_HEIGHT}px;
-    box-sizing: border-box;
-  }
+export const StyledPianoRollScrollLeftHeaderSpacer = styled.div`
+  content: "";
+  display: block;
+  position: sticky;
+  top: 0;
+  width: ${PIANO_ROLL_PIANO_WIDTH + 1}px;
+  height: ${PIANO_ROLL_HEADER_HEIGHT}px;
+  background: ${(props) => props.theme.colors.sidebar.background};
+  border-right: 1px solid ${(props) => props.theme.colors.sidebar.border};
+  border-bottom: 1px solid ${(props) => props.theme.colors.sidebar.border};
+  z-index: 20;
+  margin-top: -${PIANO_ROLL_HEADER_HEIGHT}px;
+  box-sizing: border-box;
 `;
 
 export const StyledPianoRollScrollLeftFXSpacer = styled.div`
@@ -497,7 +497,9 @@ export const StyledPianoRollEffectRow = styled.div`
   `}
 `;
 
-export const StyledPianoRollPlayhead = styled.div`
+export const StyledPianoRollPlayhead = styled.div<{
+  $isDefaultMarker?: boolean;
+}>`
   pointer-events: none;
   z-index: 0;
   width: 2px;
@@ -522,6 +524,16 @@ export const StyledPianoRollPlayhead = styled.div`
     border-left: ${PIANO_ROLL_CELL_SIZE / 2}px solid transparent;
     border-right: ${PIANO_ROLL_CELL_SIZE / 2}px solid transparent;
   }
+
+  ${(props) =>
+    props.$isDefaultMarker &&
+    css`
+      background: transparent;
+      &:before {
+        border-top-color: ${(props) =>
+          props.theme.colors.tracker.rollCell.border};
+      }
+    `}
 `;
 
 export const StyledPianoRollPatternsWrapper = styled.div`

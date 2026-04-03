@@ -124,6 +124,17 @@ export const SongContextBar = ({
 
   const [playbackFromStart, setPlaybackFromStart] = useState(false);
 
+  const [playbackState, setPlaybackState] = useState([0, 0]);
+
+  const startPlaybackPosition = useAppSelector(
+    (state) => state.tracker.startPlaybackPosition,
+  );
+
+  const orderIndex = playbackState[0];
+  const patternIndex = sequence?.[playbackState[0]] ?? 0;
+  const rowIndex = playbackState[1];
+  const themeContext = useContext(ThemeContext);
+
   const setTrackerView = useCallback(() => {
     dispatch(trackerActions.setViewAndSave("tracker"));
   }, [dispatch]);
@@ -163,11 +174,25 @@ export const SongContextBar = ({
 
   const stopPlayback = useCallback(() => {
     dispatch(trackerActions.stopTracker());
-    API.music.sendToMusicWindow({
-      action: "stop",
-      position: defaultStartPlaybackPosition,
-    });
-  }, [defaultStartPlaybackPosition, dispatch]);
+
+    const defaultOrderIndex = defaultStartPlaybackPosition[0];
+    const defaultRowIndex = defaultStartPlaybackPosition[1];
+
+    // Already at default start - restart default to start of song
+    if (orderIndex === defaultOrderIndex && rowIndex === defaultRowIndex) {
+      dispatch(trackerActions.setDefaultStartPlaybackPosition([0, 0]));
+      API.music.sendToMusicWindow({
+        action: "position",
+        position: [0, 0],
+      });
+    } else {
+      // Otherwise jump to default start
+      API.music.sendToMusicWindow({
+        action: "stop",
+        position: defaultStartPlaybackPosition,
+      });
+    }
+  }, [defaultStartPlaybackPosition, dispatch, orderIndex, rowIndex]);
 
   const onKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -206,12 +231,6 @@ export const SongContextBar = ({
     };
   });
 
-  const [playbackState, setPlaybackState] = useState([0, 0]);
-
-  const startPlaybackPosition = useAppSelector(
-    (state) => state.tracker.startPlaybackPosition,
-  );
-
   useEffect(() => {
     setPlaybackState(startPlaybackPosition);
   }, [setPlaybackState, startPlaybackPosition]);
@@ -229,12 +248,6 @@ export const SongContextBar = ({
       unsubscribeMusicData();
     };
   }, [setPlaybackState]);
-
-  const orderIndex = playbackState[0] + 1;
-  const patternIndex = sequence?.[playbackState[0]] ?? 0;
-  const rowIndex = playbackState[1];
-
-  const themeContext = useContext(ThemeContext);
 
   const themePianoIcon =
     themeContext?.type === "light" ? <PianoIcon /> : <PianoInverseIcon />;
@@ -282,7 +295,7 @@ export const SongContextBar = ({
           <StyledSongContextBarTimerPartLabel>
             ORD
           </StyledSongContextBarTimerPartLabel>
-          {String(orderIndex).padStart(2, "0")}
+          {String(orderIndex + 1).padStart(2, "0")}
         </StyledSongContextBarTimerPart>
         <StyledSongContextBarTimerPart>
           <StyledSongContextBarTimerPartLabel>

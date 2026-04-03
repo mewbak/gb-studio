@@ -107,6 +107,9 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
   const showVirtualKeyboard = useAppSelector(
     (state) => state.tracker.showVirtualKeyboard,
   );
+  const defaultStartPlaybackPosition = useAppSelector(
+    (state) => state.tracker.defaultStartPlaybackPosition,
+  );
 
   // #endregion Redux State
 
@@ -1581,6 +1584,7 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
                 activeLocalField={activeLocalFieldForPattern}
                 selectedTrackerFieldSet={selectedTrackerFieldSetForPattern}
                 playbackState={playbackState}
+                defaultStartPlaybackPosition={defaultStartPlaybackPosition}
                 channelStatus={channelStatus}
                 soloChannel={soloChannel}
                 orderLength={sequenceLength}

@@ -21,6 +21,7 @@ interface SongTrackerPatternProps {
   activeLocalField: number | undefined;
   selectedTrackerFieldSet?: Set<number>;
   playbackState: [number, number];
+  defaultStartPlaybackPosition: [number, number];
   channelStatus: boolean[];
   soloChannel: number;
   orderLength: number;
@@ -41,6 +42,7 @@ export const SongTrackerPattern = memo(
     activeLocalField,
     selectedTrackerFieldSet,
     playbackState,
+    defaultStartPlaybackPosition,
     channelStatus,
     soloChannel,
     orderLength,
@@ -160,6 +162,10 @@ export const SongTrackerPattern = memo(
                 isPlaying={
                   playbackState[0] === renderSequenceId &&
                   playbackState[1] === rowIndex
+                }
+                isDefaultPlayhead={
+                  defaultStartPlaybackPosition[0] === renderSequenceId &&
+                  defaultStartPlaybackPosition[1] === rowIndex
                 }
                 isStepMarker={rowIndex % 8 === 0}
                 activeFieldRef={activeFieldRef}

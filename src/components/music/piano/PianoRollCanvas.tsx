@@ -21,6 +21,7 @@ import {
   StyledPianoRollScrollLeftFXSpacer,
   StyledAddPatternButton,
   StyledAddPatternWrapper,
+  StyledPianoRollScrollLeftHeaderSpacer,
 } from "./style";
 import { PianoKeyboard } from "./PianoKeyboard";
 import {
@@ -867,6 +868,14 @@ export const PianoRollCanvas = ({
     },
     [dispatch],
   );
+
+  const onJumpToSongStart = useCallback(() => {
+    dispatch(trackerActions.setDefaultStartPlaybackPosition([0, 0]));
+    API.music.sendToMusicWindow({
+      action: "position",
+      position: [0, 0],
+    });
+  }, [dispatch]);
 
   // #endregion Action Handlers
 
@@ -2339,6 +2348,9 @@ export const PianoRollCanvas = ({
             playbackRow={playbackRow}
           />
           <StyledPianoRollScrollLeftWrapper>
+            <StyledPianoRollScrollLeftHeaderSpacer
+              onClick={onJumpToSongStart}
+            />
             <PianoKeyboard hoverNote={hoverNote} onPlayNote={onPianoNote} />
             <StyledPianoRollScrollLeftFXSpacer>
               <FXIcon />

@@ -1,6 +1,6 @@
 import React, { useRef, useCallback, useEffect, useMemo } from "react";
 import { Song } from "shared/lib/uge/types";
-import { useAppDispatch } from "store/hooks";
+import { useAppDispatch, useAppSelector } from "store/hooks";
 import {
   PIANO_ROLL_PIANO_WIDTH,
   PIANO_ROLL_CELL_SIZE,
@@ -101,6 +101,10 @@ export const PianoRollSequenceBar = ({
   const sequenceLength = song.sequence.length;
   const documentWidth = calculateDocumentWidth(sequenceLength);
 
+  const defaultStartPlaybackPosition = useAppSelector(
+    (state) => state.tracker.defaultStartPlaybackPosition,
+  );
+
   const headerRef = useRef<HTMLDivElement>(null);
   const lastPositionRef = useRef<[number, number] | null>(null);
 
@@ -185,6 +189,11 @@ export const PianoRollSequenceBar = ({
     playbackRow,
   );
 
+  const defaultPlayheadX = calculatePlaybackTrackerPosition(
+    defaultStartPlaybackPosition[0],
+    defaultStartPlaybackPosition[1],
+  );
+
   return (
     <StyledPianoRollScrollTopWrapper
       ref={headerRef}
@@ -209,6 +218,12 @@ export const PianoRollSequenceBar = ({
           />
         </StyledPianoRollSequenceHeader>
       ))}
+      {defaultPlayheadX > 0 && (
+        <StyledPianoRollPlayhead
+          $isDefaultMarker
+          style={{ transform: `translateX(${defaultPlayheadX}px)` }}
+        />
+      )}
       <StyledPianoRollPlayhead
         style={{ transform: `translateX(${playheadX}px)` }}
       />
