@@ -192,6 +192,7 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
   const playbackSequence = playbackState[0];
   const playbackRow = playbackState[1];
   const sequenceLength = song?.sequence.length ?? 0;
+  const numPatterns = song?.patterns.length ?? 0;
   const selectedSequenceId = selectionOrigin?.sequenceId;
 
   // #endregion Derived State
@@ -1583,6 +1584,7 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
                 channelStatus={channelStatus}
                 soloChannel={soloChannel}
                 orderLength={sequenceLength}
+                numPatterns={numPatterns}
                 dispatch={dispatch}
                 tableRef={tableRef}
                 activeFieldRef={activeFieldRef}
