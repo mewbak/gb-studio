@@ -1658,6 +1658,14 @@ export const PianoRollCanvas = ({
           interaction.origin.absRow,
         );
 
+        dispatch(
+          trackerActions.setHover({
+            note: noteIndex,
+            column: patternRow,
+            sequenceId,
+          }),
+        );
+
         const originPatternIndex = song.sequence[originSequenceId];
         const originPattern = song.patterns[originPatternIndex];
         const selectedCell = originPattern?.[originRowId]?.[selectedChannel];
@@ -1678,7 +1686,7 @@ export const PianoRollCanvas = ({
 
       stopTouch(e);
     },
-    [playPreview, selectedChannel, stopTouch],
+    [dispatch, playPreview, selectedChannel, stopTouch],
   );
 
   const handlePaintNoteMove = useCallback(
