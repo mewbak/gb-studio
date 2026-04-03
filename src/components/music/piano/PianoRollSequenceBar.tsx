@@ -14,6 +14,7 @@ import {
   StyledPianoRollSequenceHeaderOrder,
   StyledPianoRollSequenceHeaderText,
   StyledPianoRollPlayhead,
+  StyledPianoRollSequenceHeaderTimeMarker,
 } from "./style";
 import clamp from "shared/lib/helpers/clamp";
 import trackerActions from "store/features/tracker/trackerActions";
@@ -39,6 +40,8 @@ interface PianoRollSequenceBarPatternProps {
   orderIndex: number;
   orderLength: number;
 }
+
+const tickMarkers = [8, 16, 24, 32, 40, 48, 56] as const;
 
 const PianoRollSequenceBarPattern = ({
   patternIndex,
@@ -71,7 +74,7 @@ const PianoRollSequenceBarPattern = ({
       <StyledPianoRollSequenceHeaderText>
         <DropdownButton
           variant="transparent"
-          label={`${l10n("FIELD_PATTERN")} ${String(patternIndex).padStart(2, "0")}`}
+          label={`${orderIndex + 1}: ${l10n("FIELD_PATTERN")} ${String(patternIndex).padStart(2, "0")}`}
           onMouseDown={(e) => e.stopPropagation()}
         >
           {getContextMenu()}
@@ -186,9 +189,11 @@ export const PianoRollSequenceBar = ({
       {song.sequence.map((pattern, i) => (
         <StyledPianoRollSequenceHeader key={`${i}:${pattern}`}>
           <StyledPianoRollSequenceHeaderOrder>
-            <StyledPianoRollSequenceHeaderText>
-              <span>{i + 1}</span>
-            </StyledPianoRollSequenceHeaderText>
+            {tickMarkers.map((n) => (
+              <StyledPianoRollSequenceHeaderTimeMarker key={n}>
+                {n}
+              </StyledPianoRollSequenceHeaderTimeMarker>
+            ))}
           </StyledPianoRollSequenceHeaderOrder>
           <PianoRollSequenceBarPattern
             orderIndex={i}

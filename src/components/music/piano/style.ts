@@ -206,41 +206,49 @@ export const StyledPianoRollSequenceHeader = styled.div`
   }
 `;
 
+const buildTickBackground = (borderColor: string) => {
+  const steps: string[] = [];
+  const NUM_STEPS = 16;
+  const STEP_SIZE = 4;
+  const PIANO_ROLL_CELL_SIZE = 18;
+
+  for (let i = 0; i < NUM_STEPS; i++) {
+    const startPx = i * STEP_SIZE * PIANO_ROLL_CELL_SIZE;
+    const endPx = (i + 1) * STEP_SIZE * PIANO_ROLL_CELL_SIZE;
+    steps.push(`transparent ${startPx}px`);
+    steps.push(`transparent ${endPx - 1}px`);
+    steps.push(`${borderColor} ${endPx - 1}px`);
+    steps.push(`${borderColor} ${endPx}px`);
+  }
+  return `linear-gradient(90deg, ${steps.join(",")})`;
+};
+
 export const StyledPianoRollSequenceHeaderOrder = styled.div`
-  flex-grow: 1;
   display: flex;
-  justify-content: center;
   align-items: center;
   font-size: 11px;
   border-bottom: 1px solid ${(props) => props.theme.colors.sidebar.border};
-
-  background-image: repeating-linear-gradient(
-    90deg,
-    transparent 0,
-    transparent ${PIANO_ROLL_CELL_SIZE * 8 - 1}px,
-    ${(props) => props.theme.colors.tracker.rollCell.border}
-      ${PIANO_ROLL_CELL_SIZE * 8 - 1}px,
-    ${(props) => props.theme.colors.tracker.rollCell.border}
-      ${PIANO_ROLL_CELL_SIZE * 8}px,
-    transparent ${PIANO_ROLL_CELL_SIZE * 8}px,
-    transparent ${PIANO_ROLL_CELL_SIZE * 16 - 1}px,
-    ${(props) => props.theme.colors.tracker.rollCell.border}
-      ${PIANO_ROLL_CELL_SIZE * 16 - 1}px,
-    ${(props) => props.theme.colors.tracker.rollCell.border}
-      ${PIANO_ROLL_CELL_SIZE * 16}px,
-    transparent ${PIANO_ROLL_CELL_SIZE * 16}px,
-    transparent ${PIANO_ROLL_CELL_SIZE * 24 - 1}px,
-    ${(props) => props.theme.colors.tracker.rollCell.border}
-      ${PIANO_ROLL_CELL_SIZE * 24 - 1}px,
-    ${(props) => props.theme.colors.tracker.rollCell.border}
-      ${PIANO_ROLL_CELL_SIZE * 24}px,
-    transparent ${PIANO_ROLL_CELL_SIZE * 24}px,
-    transparent ${PIANO_ROLL_CELL_SIZE * 32}px
-  );
-
-  background-size: ${PIANO_ROLL_CELL_SIZE * 8 * 4}px 8px;
-  background-repeat: repeat-x;
+  height: 20px;
+  box-sizing: border-box;
+  background-image: ${(props) =>
+    buildTickBackground(props.theme.colors.tracker.rollCell.border)};
+  background-size: ${PIANO_ROLL_CELL_SIZE * TRACKER_PATTERN_LENGTH}px 5px;
+  background-repeat: no-repeat;
   background-position: 0px calc(100% - 2px);
+`;
+
+export const StyledPianoRollSequenceHeaderTimeMarker = styled.div`
+  width: ${PIANO_ROLL_CELL_SIZE * 2 - 1}px;
+  font-size: 8px;
+  height: 17px;
+  padding-top: 2px;
+  overflow: hidden;
+  opacity: 0.5;
+  border-left: ${PIANO_ROLL_CELL_SIZE * 6}px solid transparent;
+  border-right: 1px solid transparent;
+  &:first-child {
+    border-left: ${PIANO_ROLL_CELL_SIZE * 7}px solid transparent;
+  }
 `;
 
 export const StyledPianoRollSequenceHeaderText = styled.div`
