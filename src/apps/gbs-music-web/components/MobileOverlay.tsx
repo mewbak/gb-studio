@@ -8,7 +8,8 @@ import {
 } from "gbs-music-web/components/style";
 
 const MOBILE_OVERLAY_DRAG_CLOSE_THRESHOLD_PX = 30;
-const MOBILE_OVERLAY_MAX_DRAG_UP_PX = 100;
+const MOBILE_OVERLAY_MAX_DRAG_UP_PX = 250;
+const MOBILE_OVERLAY_ELASTIC_DRAG_UP_PX = 50;
 
 interface MobileOverlayProps {
   open: boolean;
@@ -16,6 +17,20 @@ interface MobileOverlayProps {
   onClose: () => void;
   children: React.ReactNode;
 }
+
+export const elasticDrag = (
+  inputValue: number,
+  easeStart: number,
+  maxValue: number,
+): number => {
+  if (inputValue <= easeStart) {
+    return inputValue;
+  }
+  const range = maxValue - easeStart;
+  const x = inputValue - easeStart;
+  const k = 1 / range;
+  return easeStart + range * (1 - Math.exp(-k * x));
+};
 
 export const MobileOverlay = ({
   open,
@@ -38,11 +53,12 @@ export const MobileOverlay = ({
   const onPointerMove = useCallback((e: PointerEvent) => {
     e.stopPropagation();
     e.preventDefault();
-    const diffY = Math.max(
-      -MOBILE_OVERLAY_MAX_DRAG_UP_PX,
-      e.pageY - handleStartY.current,
+    const elasticDiffY = elasticDrag(
+      -(e.pageY - handleStartY.current),
+      MOBILE_OVERLAY_ELASTIC_DRAG_UP_PX,
+      MOBILE_OVERLAY_MAX_DRAG_UP_PX,
     );
-    setOffsetY(diffY);
+    setOffsetY(-elasticDiffY);
   }, []);
 
   const onPointerUp = useCallback(

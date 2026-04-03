@@ -3,9 +3,7 @@ import { StyledButton } from "ui/buttons/style";
 
 export const StyledMobileToolbar = styled.div`
   display: flex;
-
   height: calc(50px + env(safe-area-inset-bottom));
-  align-items: center;
   justify-content: center;
   flex-shrink: 0;
   gap: 10px;
@@ -35,19 +33,13 @@ export const StyledMobileToolbarButton = styled.button<{
 }>`
   position: relative;
   flex-grow: 1;
-  // height: 100%;
   height: 40px;
   border-radius: 4px;
   border: 0;
   background: transparent;
-  padding-bottom: calc(5px + env(safe-area-inset-bottom));
+  padding-bottom: 5px;
   padding-top: 5px;
-  // border-right: 1px solid ${(props) => props.theme.colors.toolbar.border};
   color: ${(props) => props.theme.colors.button.text};
-
-  // &:last-child {
-  //   border-right: 0;
-  // }
   font-weight: bold;
 
   svg {
@@ -56,6 +48,7 @@ export const StyledMobileToolbarButton = styled.button<{
     max-width: 100%;
     max-height: 100%;
     min-width: 17px;
+    min-height: 17px;
     margin: 0;
     fill: ${(props) => props.theme.colors.button.text};
     opacity: ${(props) => (props.disabled ? 0.3 : 1)};
@@ -78,7 +71,7 @@ export const StyledMobileToolbarDivider = styled.div`
   background: ${(props) => props.theme.colors.panel.divider};
   min-width: 1px;
   min-height: 1px;
-  align-self: stretch;
+  height: 30px;
   margin: 5px 5px;
 `;
 
@@ -197,10 +190,10 @@ export const StyledMobileOverlayContainer = styled.div<{
     content: "";
     display: block;
     width: 100%;
-    height: 100px;
+    height: 250px;
     background: ${(props) => props.theme.colors.sidebar.background};
     position: absolute;
-    bottom: -100px;
+    bottom: -249px;
   }
 `;
 
