@@ -46,6 +46,7 @@ interface SequenceItemProps {
   playingSequence: number;
   sequenceOptions: SequenceOption[];
   sequenceLength: number;
+  numPatterns: number;
   setSelectHasFocus: (value: boolean) => void;
 }
 
@@ -55,6 +56,7 @@ const SequenceItem = ({
   playingSequence,
   sequenceOptions,
   sequenceLength,
+  numPatterns,
   setSelectHasFocus,
 }: SequenceItemProps) => {
   const dispatch = useAppDispatch();
@@ -78,6 +80,7 @@ const SequenceItem = ({
         patternIndex: item.patternId,
         orderIndex: item.sequenceIndex,
         orderLength: sequenceLength,
+        numPatterns,
         onClose: closeMenu,
       }),
   });
@@ -169,7 +172,7 @@ const SequenceEditorFwd = ({
       {
         value: -1,
         shortLabel: "",
-        label: `${l10n("FIELD_PATTERN")} ${(patterns || 1).toString().padStart(2, "0")} (New)`,
+        label: `${l10n("FIELD_PATTERN")} ${(patterns || 1).toString().padStart(2, "0")} (${l10n("FIELD_NEW")})`,
       },
     ]);
 
@@ -229,6 +232,7 @@ const SequenceEditorFwd = ({
             sequenceOptions={sequenceOptions}
             setSelectHasFocus={setSelectHasFocus}
             sequenceLength={sequenceItems.length}
+            numPatterns={patterns}
           />
         )}
         moveItems={onMoveSequence}

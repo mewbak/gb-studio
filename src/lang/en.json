@@ -1341,6 +1341,8 @@
   "FIELD_INSERT_PATTERN_AFTER": "Insert Pattern After",
   "FIELD_CHANNEL": "Channel",
   "FIELD_DUTY_CYCLE": "Duty Cycle",
+  "FIELD_REPLACE_WITH": "Replace With",
+  "FIELD_NEW": "New",
 
   "// 7": "Asset Viewer ---------------------------------------------",
   "ASSET_SEARCH": "Search...",

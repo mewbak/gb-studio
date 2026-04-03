@@ -255,6 +255,11 @@ export const StyledPianoRollSequenceHeaderText = styled.div`
   position: sticky;
   left: 51px;
   padding: 0 5px;
+
+  ${StyledButton} {
+    border-radius: 0px;
+    min-height: 20px;
+  }
 `;
 
 export const StyledPianoRollSequenceHeaderPattern = styled.div<{

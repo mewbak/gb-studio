@@ -24,6 +24,7 @@ interface SongTrackerPatternProps {
   channelStatus: boolean[];
   soloChannel: number;
   orderLength: number;
+  numPatterns: number;
   dispatch: ReturnType<typeof import("store/hooks").useAppDispatch>;
   tableRef: React.RefObject<HTMLTableSectionElement>;
   activeFieldRef: React.RefObject<HTMLSpanElement>;
@@ -43,6 +44,7 @@ export const SongTrackerPattern = memo(
     channelStatus,
     soloChannel,
     orderLength,
+    numPatterns,
     dispatch,
     tableRef,
     activeFieldRef,
@@ -74,6 +76,7 @@ export const SongTrackerPattern = memo(
                   patternIndex: sequencePatternId,
                   orderIndex: renderSequenceId,
                   orderLength,
+                  numPatterns,
                 })}
               </DropdownButton>
             </TrackerHeaderCell>

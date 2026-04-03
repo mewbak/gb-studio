@@ -1,4 +1,4 @@
-import React, { useRef, useCallback, useEffect } from "react";
+import React, { useRef, useCallback, useEffect, useMemo } from "react";
 import { Song } from "shared/lib/uge/types";
 import { useAppDispatch } from "store/hooks";
 import {
@@ -39,6 +39,7 @@ interface PianoRollSequenceBarPatternProps {
   patternIndex: number;
   orderIndex: number;
   orderLength: number;
+  numPatterns: number;
 }
 
 const tickMarkers = [8, 16, 24, 32, 40, 48, 56] as const;
@@ -47,24 +48,29 @@ const PianoRollSequenceBarPattern = ({
   patternIndex,
   orderIndex,
   orderLength,
+  numPatterns,
 }: PianoRollSequenceBarPatternProps) => {
   const dispatch = useAppDispatch();
 
   const getContextMenu = useCallback(
-    (onClose?: () => void) =>
-      renderPatternContextMenu({
+    (onClose?: () => void) => {
+      return renderPatternContextMenu({
         dispatch,
         patternIndex,
         orderIndex,
         orderLength,
+        numPatterns,
         onClose,
-      }),
-    [dispatch, patternIndex, orderIndex, orderLength],
+      });
+    },
+    [dispatch, patternIndex, orderIndex, orderLength, numPatterns],
   );
 
   const { onContextMenu, contextMenuElement } = useContextMenu({
     getMenu: ({ closeMenu }) => getContextMenu(closeMenu),
   });
+
+  const contextMenu = useMemo(() => getContextMenu(), [getContextMenu]);
 
   return (
     <StyledPianoRollSequenceHeaderPattern
@@ -77,7 +83,7 @@ const PianoRollSequenceBarPattern = ({
           label={`${orderIndex + 1}: ${l10n("FIELD_PATTERN")} ${String(patternIndex).padStart(2, "0")}`}
           onMouseDown={(e) => e.stopPropagation()}
         >
-          {getContextMenu()}
+          {contextMenu}
         </DropdownButton>
       </StyledPianoRollSequenceHeaderText>
       {contextMenuElement}
@@ -199,6 +205,7 @@ export const PianoRollSequenceBar = ({
             orderIndex={i}
             patternIndex={pattern}
             orderLength={song.sequence.length}
+            numPatterns={song.patterns.length}
           />
         </StyledPianoRollSequenceHeader>
       ))}

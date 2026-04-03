@@ -2,6 +2,7 @@ import React, { Dispatch } from "react";
 import { UnknownAction } from "redux";
 import l10n from "shared/lib/lang/l10n";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
+import { BlankIcon, CheckIcon } from "ui/icons/Icons";
 import { MenuDivider, MenuItem } from "ui/menu/Menu";
 
 interface PatternContextMenuProps {
@@ -9,13 +10,16 @@ interface PatternContextMenuProps {
   patternIndex: number;
   orderIndex: number;
   orderLength: number;
+  numPatterns: number;
   onClose?: () => void;
 }
 
 const renderPatternContextMenu = ({
   dispatch,
+  patternIndex,
   orderIndex,
   orderLength,
+  numPatterns,
 }: PatternContextMenuProps) => {
   return [
     ...(orderIndex > 0
@@ -90,6 +94,29 @@ const renderPatternContextMenu = ({
           <MenuDivider key="div-insert" />,
         ]
       : []),
+    <MenuItem
+      key="replaceWith"
+      subMenu={Array.from({ length: numPatterns + 1 }).map((_, n) => (
+        <MenuItem
+          key={n}
+          icon={n === patternIndex ? <CheckIcon /> : <BlankIcon />}
+          onClick={() => {
+            dispatch(
+              trackerDocumentActions.editSequence({
+                sequenceIndex: orderIndex,
+                sequenceId: n < numPatterns ? n : -1,
+              }),
+            );
+          }}
+        >
+          {l10n("FIELD_PATTERN")} {String(n).padStart(2, "0")}{" "}
+          {n === numPatterns ? `(${l10n("FIELD_NEW")})` : ""}
+        </MenuItem>
+      ))}
+    >
+      {l10n("FIELD_REPLACE_WITH")}
+    </MenuItem>,
+
     <MenuItem
       key="insertBefore"
       onClick={() => {
