@@ -5,10 +5,13 @@ import { KeyWhen } from "renderer/lib/keybindings/keyBindings";
 import { ButtonGroup } from "ui/buttons/ButtonGroup";
 import { FlexGrow } from "ui/spacing/Spacing";
 import {
+  ArrowRightLineIcon,
+  BackspaceIcon,
   CaretDownIcon,
   CaretUpIcon,
   FXIcon,
   SettingsIcon,
+  ShiftIcon,
 } from "ui/icons/Icons";
 import { Button } from "ui/buttons/Button";
 import { StyledButton } from "ui/buttons/style";
@@ -246,6 +249,54 @@ const StyledTrackerKeyboardButtonsRow = styled.div`
   }
 `;
 
+const StyledBackspaceIcon = styled.div`
+  display: flex;
+  svg {
+    height: 25px;
+    width: 25px;
+  }
+`;
+
+export const StyledKeyboardToggleIcon = styled.div`
+  display: flex;
+  svg {
+    height: 10px;
+    width: 10px;
+    min-width: 10px;
+    min-height: 10px;
+  }
+`;
+
+export const StyledArrowIcon = styled.div<{
+  $direction: "up" | "down" | "left" | "right";
+}>`
+  display: flex;
+
+  ${(props) =>
+    props.$direction === "down" &&
+    css`
+      svg {
+        transform: rotate(90deg);
+      }
+    `}
+
+  ${(props) =>
+    props.$direction === "left" &&
+    css`
+      svg {
+        transform: rotate(180deg);
+      }
+    `}
+
+  ${(props) =>
+    props.$direction === "up" &&
+    css`
+      svg {
+        transform: rotate(270deg);
+      }
+    `}
+`;
+
 const NOTE_NAMES = [
   "C-",
   "C#",
@@ -373,7 +424,9 @@ export const TrackerKeyboard = ({
               });
             }}
           >
-            ←
+            <StyledArrowIcon $direction="left">
+              <ArrowRightLineIcon />
+            </StyledArrowIcon>
           </RepeatButton>
 
           <RepeatButton
@@ -385,7 +438,9 @@ export const TrackerKeyboard = ({
               });
             }}
           >
-            ↑
+            <StyledArrowIcon $direction="up">
+              <ArrowRightLineIcon />
+            </StyledArrowIcon>
           </RepeatButton>
 
           <RepeatButton
@@ -397,7 +452,9 @@ export const TrackerKeyboard = ({
               });
             }}
           >
-            ↓
+            <StyledArrowIcon $direction="down">
+              <ArrowRightLineIcon />
+            </StyledArrowIcon>
           </RepeatButton>
 
           <RepeatButton
@@ -409,7 +466,9 @@ export const TrackerKeyboard = ({
               });
             }}
           >
-            →
+            <StyledArrowIcon $direction="right">
+              <ArrowRightLineIcon />
+            </StyledArrowIcon>
           </RepeatButton>
         </ButtonGroup>
 
@@ -421,7 +480,7 @@ export const TrackerKeyboard = ({
             setShiftKey((value) => !value);
           }}
         >
-          ⇧
+          <ShiftIcon />
         </Button>
 
         <FlexGrow />
@@ -435,7 +494,9 @@ export const TrackerKeyboard = ({
             });
           }}
         >
-          {open ? <CaretDownIcon /> : <CaretUpIcon />}
+          <StyledKeyboardToggleIcon>
+            {open ? <CaretDownIcon /> : <CaretUpIcon />}
+          </StyledKeyboardToggleIcon>
         </Button>
       </StyledTrackerNavigationButtons>
 
@@ -650,7 +711,9 @@ export const TrackerKeyboard = ({
               );
             }}
           >
-            ⌫
+            <StyledBackspaceIcon>
+              <BackspaceIcon />
+            </StyledBackspaceIcon>
           </Button>
 
           {isCompactLayout && (
