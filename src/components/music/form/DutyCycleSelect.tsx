@@ -17,30 +17,8 @@ interface DutyCycleSelectProps extends SelectCommonProps {
   note?: number;
   effectCode?: number;
   effectParam?: number;
+  isEffectParam?: boolean;
 }
-
-const options: DutyCycleOption[] = [
-  {
-    value: 0,
-    label: "12.5%",
-    width: 0.125,
-  },
-  {
-    value: 1,
-    label: "25%",
-    width: 0.25,
-  },
-  {
-    value: 2,
-    label: "50%",
-    width: 0.5,
-  },
-  {
-    value: 3,
-    label: "75%",
-    width: 0.75,
-  },
-];
 
 const StyledDutyCycleOptionLabel = styled.div`
   display: flex;
@@ -71,11 +49,38 @@ const DutyCyclePreview = ({ width }: { width: number }) => {
 export const DutyCycleSelect: FC<DutyCycleSelectProps> = ({
   value,
   onChange,
+  isEffectParam,
   ...selectProps
 }) => {
+  const options: DutyCycleOption[] = useMemo(
+    () => [
+      {
+        value: 0,
+        label: "12.5%",
+        width: 0.125,
+      },
+      {
+        value: isEffectParam ? 0x40 : 1,
+        label: "25%",
+        width: 0.25,
+      },
+      {
+        value: isEffectParam ? 0x80 : 2,
+        label: "50%",
+        width: 0.5,
+      },
+      {
+        value: isEffectParam ? 0xc0 : 3,
+        label: "75%",
+        width: 0.75,
+      },
+    ],
+    [isEffectParam],
+  );
+
   const currentValue = useMemo(
     () => options.find((i) => i.value === value),
-    [value],
+    [options, value],
   );
 
   const onSelectChange = (newValue: SingleValue<DutyCycleOption>) => {

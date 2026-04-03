@@ -12,6 +12,7 @@ import styled from "styled-components";
 import { VibratoWaveformPreview } from "./VibratoWaveformPreview";
 import { useMusicNotePreview } from "components/music/hooks/useMusicNotePreview";
 import { PitchSelect } from "components/music/form/PitchSelect";
+import { DutyCycleSelect } from "components/music/form/DutyCycleSelect";
 
 type SelectOption = {
   value: number;
@@ -26,13 +27,6 @@ interface EffectParamsFormProps {
   note?: number;
   instrumentId?: number;
 }
-
-const dutyOptions: SelectOption[] = [
-  { value: 0x00, label: "12.5%" },
-  { value: 0x40, label: "25%" },
-  { value: 0x80, label: "50%" },
-  { value: 0xc0, label: "75%" },
-];
 
 const routineOptions: SelectOption[] = [
   { value: 0, label: "Routine 0" },
@@ -392,19 +386,14 @@ export const EffectParamsForm: FC<EffectParamsFormProps> = ({
 
     case 9: {
       // Set Duty Cycle
-      const selectedDuty =
-        dutyOptions.find((option) => option.value === effectParam) ?? null;
-
       return (
         <FormRow>
           <FormField name="effectparam" label={l10n("FIELD_DUTY_CYCLE")}>
-            <Select
-              name="effectparam"
-              value={selectedDuty}
-              options={dutyOptions}
-              onChange={(selected: SingleValue<SelectOption>) => {
-                onChangeFullValue(selected?.value ?? 0);
-              }}
+            <DutyCycleSelect
+              name={"effectparam"}
+              value={effectParam}
+              onChange={onChangeFullValue}
+              isEffectParam
             />
           </FormField>
         </FormRow>
