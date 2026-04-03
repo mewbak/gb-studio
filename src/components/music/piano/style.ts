@@ -171,7 +171,8 @@ export const StyledPianoKey = styled.div<StyledPianoKeyProps>`
   color: #90a4ae;
   font-weight: bold;
   font-size: 10px;
-  padding-right: 5px;
+  padding-bottom: 1px;
+  padding-right: 3px;
   position: relative;
   height: ${(props) => (props.$tall ? 2 : 1.5) * PIANO_ROLL_CELL_SIZE}px;
   width: 100%;
