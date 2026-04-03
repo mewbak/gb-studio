@@ -277,7 +277,7 @@ export const EffectParamsForm: FC<EffectParamsFormProps> = ({
 
       return (
         <FormRow>
-          <FormField name="effectparam">
+          <FormField name="effectparam" label={l10n("FIELD_ROUTINE")}>
             <Select
               name="effectparam"
               value={selectedRoutine}
@@ -397,7 +397,7 @@ export const EffectParamsForm: FC<EffectParamsFormProps> = ({
 
       return (
         <FormRow>
-          <FormField name="effectparam">
+          <FormField name="effectparam" label={l10n("FIELD_DUTY_CYCLE")}>
             <Select
               name="effectparam"
               value={selectedDuty}
@@ -492,7 +492,7 @@ export const EffectParamsForm: FC<EffectParamsFormProps> = ({
           </FormRow>
           <FormRow>
             <CheckboxField
-              label="Change Envelope"
+              label={l10n("FIELD_CHANGE_ENVELOPE")}
               name="change_envelope"
               checked={effectParams.x !== 0}
               onChange={(e) => {

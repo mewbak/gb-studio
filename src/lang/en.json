@@ -1355,6 +1355,8 @@
   "FIELD_JUMP": "Jump",
   "FIELD_ADD_EFFECT_OVERRIDE": "Add Effect Override",
   "FIELD_EFFECT_OVERRIDE": "Effect Override",
+  "FIELD_TICK": "Tick",
+  "FIELD_CHANGE_ENVELOPE": "Change Envelope",
 
   "// 7": "Asset Viewer ---------------------------------------------",
   "ASSET_SEARCH": "Search...",

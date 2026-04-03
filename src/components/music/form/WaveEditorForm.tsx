@@ -1,4 +1,10 @@
-import React, { useContext, useEffect, useRef } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+} from "react";
 import { useAppDispatch, useAppSelector } from "store/hooks";
 import { Select } from "ui/form/Select";
 import l10n from "shared/lib/lang/l10n";
@@ -17,24 +23,36 @@ const PADDING = 10;
 
 export const WaveEditorForm = ({ waveId, onChange }: WaveEditorFormProps) => {
   const dispatch = useAppDispatch();
-
-  const song = useAppSelector((state) => state.trackerDocument.present.song);
   const themeContext = useContext(ThemeContext);
 
-  const waveOptions = song?.waves.map((wave: Uint8Array, i: number) => ({
-    value: i,
-    label: `Waveform ${i}`,
-  }));
-  const selectedWave = waveOptions?.find((wave) => wave.value === waveId);
+  const song = useAppSelector((state) => state.trackerDocument.present.song);
+  const wavesLength = song?.waves.length ?? 0;
 
-  const onEditWave = (newWave: Uint8Array) => {
-    dispatch(
-      trackerDocumentActions.editWaveform({
-        index: waveId,
-        waveForm: newWave,
-      }),
-    );
-  };
+  const waveOptions = useMemo(
+    () =>
+      Array.from({ length: wavesLength }).map((_, index) => ({
+        value: index,
+        label: `${l10n("FIELD_WAVEFORM")} ${index}`,
+      })),
+    [wavesLength],
+  );
+
+  const selectedWave = useMemo(
+    () => waveOptions?.find((wave) => wave.value === waveId),
+    [waveId, waveOptions],
+  );
+
+  const onEditWave = useCallback(
+    (newWave: Uint8Array) => {
+      dispatch(
+        trackerDocumentActions.editWaveform({
+          index: waveId,
+          waveForm: newWave,
+        }),
+      );
+    },
+    [dispatch, waveId],
+  );
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   useEffect(() => {

@@ -100,7 +100,7 @@ export const PatternCellSelectionEditor = () => {
   return (
     <>
       <FormRow>
-        <Label>Pitch</Label>
+        <Label>{l10n("FIELD_PITCH")}</Label>
       </FormRow>
       <FormRow>
         <PitchSelect

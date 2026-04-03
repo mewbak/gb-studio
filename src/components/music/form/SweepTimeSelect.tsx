@@ -1,6 +1,7 @@
 import React, { FC, useCallback, useMemo } from "react";
 import { OptionLabelWithInfo, Select, SelectCommonProps } from "ui/form/Select";
 import { SingleValue } from "react-select";
+import l10n from "shared/lib/lang/l10n";
 
 export interface SweepTimeOption {
   value: number;
@@ -13,49 +14,52 @@ interface SweepTimeSelectProps extends SelectCommonProps {
   onChange?: (newValue: number) => void;
 }
 
-const options: SweepTimeOption[] = [
-  {
-    value: 0,
-    label: "Off",
-  },
-  {
-    value: 1,
-    label: "1/128Hz",
-  },
-  {
-    value: 2,
-    label: "2/128Hz",
-  },
-  {
-    value: 3,
-    label: "3/128Hz",
-  },
-  {
-    value: 4,
-    label: "4/128Hz",
-  },
-  {
-    value: 5,
-    label: "5/128Hz",
-  },
-  {
-    value: 6,
-    label: "6/128Hz",
-  },
-  {
-    value: 7,
-    label: "7/128Hz",
-  },
-];
-
 export const SweepTimeSelect: FC<SweepTimeSelectProps> = ({
   value,
   onChange,
   ...selectProps
 }) => {
+  const options: SweepTimeOption[] = useMemo(
+    () => [
+      {
+        value: 0,
+        label: l10n("FIELD_NONE"),
+      },
+      {
+        value: 1,
+        label: "1/128Hz",
+      },
+      {
+        value: 2,
+        label: "2/128Hz",
+      },
+      {
+        value: 3,
+        label: "3/128Hz",
+      },
+      {
+        value: 4,
+        label: "4/128Hz",
+      },
+      {
+        value: 5,
+        label: "5/128Hz",
+      },
+      {
+        value: 6,
+        label: "6/128Hz",
+      },
+      {
+        value: 7,
+        label: "7/128Hz",
+      },
+    ],
+    [],
+  );
+
   const currentValue = useMemo(
     () => options.find((i) => i.value === value),
-    [value],
+    [options, value],
   );
 
   const onSelectChange = (newValue: SingleValue<SweepTimeOption>) => {

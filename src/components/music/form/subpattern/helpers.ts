@@ -2,6 +2,7 @@ import clamp from "shared/lib/helpers/clamp";
 import { renderEffectParam } from "components/music/helpers";
 import { createSubPatternCell } from "shared/lib/uge/song";
 import { SubPatternCell } from "shared/lib/uge/types";
+import l10n from "shared/lib/lang/l10n";
 
 export const SUBPATTERN_ROW_COUNT = 32;
 export const SUBPATTERN_BASE_NOTE = 36;
@@ -178,13 +179,17 @@ export const subPatternRowLabel = (
 ): string => {
   const labelParts: string[] = [];
   if (cell.note !== null && cell.note !== 36) {
-    labelParts.push(`Pitch: ${pitchOffsetLabel(cell.note - 36)}`);
+    labelParts.push(
+      `${l10n("FIELD_PITCH")}: ${pitchOffsetLabel(cell.note - 36)}`,
+    );
   }
   if (cell.jump !== null && cell.jump !== 0) {
     if (cell.jump - 1 === tick) {
-      labelParts.push(`Loop`);
+      labelParts.push(l10n("EVENT_LOOP"));
     } else {
-      labelParts.push(`Jump: ${String(cell.jump - 1).padStart(2, "0")}`);
+      labelParts.push(
+        `${l10n("FIELD_JUMP")}: ${String(cell.jump - 1).padStart(2, "0")}`,
+      );
     }
   }
   if (
@@ -192,10 +197,10 @@ export const subPatternRowLabel = (
     isValidSubpatternEffectCode(cell.effectcode)
   ) {
     labelParts.push(
-      `Effect: ${(cell.effectcode ?? 0).toString(16).toUpperCase()}${(cell.effectparam ?? 0).toString(16).padStart(2, "0").toUpperCase()}`,
+      `${l10n("FIELD_EFFECT")}: ${(cell.effectcode ?? 0).toString(16).toUpperCase()}${(cell.effectparam ?? 0).toString(16).padStart(2, "0").toUpperCase()}`,
     );
   }
-  return `Tick ${String(tick).padStart(2, "0")}${labelParts.length > 0 ? ":" : ""} ${labelParts.join(", ")}`;
+  return `${l10n("FIELD_TICK")} ${String(tick).padStart(2, "0")}${labelParts.length > 0 ? ":" : ""} ${labelParts.join(", ")}`;
 };
 
 export const pitchOffsetLabel = (offset: number): string => {

@@ -421,7 +421,7 @@ export const InstrumentSubpatternScript = ({
                       <ScriptEventField>
                         <SliderField
                           name="pitch"
-                          label={`Pitch Shift`}
+                          label={l10n("FIELD_PITCH_SHIFT")}
                           min={-36}
                           max={35}
                           value={selectedPitchOffset}
