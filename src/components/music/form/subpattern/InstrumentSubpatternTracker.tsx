@@ -13,7 +13,7 @@ import {
   parseClipboardToSubPattern,
   parseSubPatternFieldsToClipboard,
 } from "components/music/musicClipboardHelpers";
-import { KeyWhen, getKeys } from "renderer/lib/keybindings/keyBindings";
+import { getKeys } from "renderer/lib/keybindings/keyBindings";
 import trackerActions from "store/features/tracker/trackerActions";
 import scrollIntoView from "scroll-into-view-if-needed";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
@@ -33,12 +33,20 @@ import {
   StyledTrackerRow,
   StyledTrackerTableBody,
 } from "components/music/tracker/style";
+import {
+  TrackerKeyboard,
+  VirtualTrackerKey,
+} from "components/music/tracker/TrackerKeyboard";
+import { Portal } from "ui/layout/Portal";
+import { TRACKER_REDO, TRACKER_UNDO } from "consts";
 
 const CHANNEL_FIELDS = 4;
 const ROW_SIZE = CHANNEL_FIELDS;
 const EMPTY_OFFSET_DISPLAY = "...";
 const EMPTY_JUMP_DISPLAY = "...";
 const EMPTY_COUNTER_DISPLAY = "__";
+const OFFSET_MIN = 0;
+const OFFSET_MAX = 71;
 
 const getRowIndexFromField = (field: number) => Math.floor(field / ROW_SIZE);
 const getColumnIndexFromField = (field: number) => field % ROW_SIZE;
@@ -144,6 +152,9 @@ const getEventFieldId = (target: EventTarget | null): number | undefined => {
   return Number.isNaN(fieldId) ? undefined : fieldId;
 };
 
+const clamp = (value: number, min: number, max: number): number =>
+  Math.max(min, Math.min(max, value));
+
 export const InstrumentSubpatternTracker = ({
   instrumentId,
   instrumentType,
@@ -164,12 +175,23 @@ export const InstrumentSubpatternTracker = ({
   const [activeField, setActiveField] = useState<number | undefined>();
   const [isMouseDown, setIsMouseDown] = useState(false);
 
+  const tableRef = useRef<HTMLTableElement | null>(null);
   const activeFieldRef = useRef<HTMLSpanElement | null>(null);
   const offsetSignRef = useRef<1 | -1>(1);
   const offsetZeroSignOverrideRef = useRef<1 | -1 | null>(null);
 
+  const activeFieldValueRef = useRef<number | undefined>(undefined);
+  const selectionOriginRef = useRef<Position | undefined>(undefined);
+  const selectionRectRef = useRef<SelectionRect | undefined>(undefined);
+  const selectedTrackerFieldsRef = useRef<number[]>([]);
+  const subpatternRef = useRef(subpattern);
+
   const subpatternEditorFocus = useAppSelector(
     (state) => state.tracker.subpatternEditorFocus,
+  );
+
+  const showVirtualKeyboard = useAppSelector(
+    (state) => state.tracker.showVirtualKeyboard,
   );
 
   const selectedTrackerFields = useMemo(
@@ -186,6 +208,40 @@ export const InstrumentSubpatternTracker = ({
     activeField !== undefined ? getRowIndexFromField(activeField) : undefined;
   const activeCell =
     activeRowIndex !== undefined ? subpattern[activeRowIndex] : undefined;
+
+  const getCurrentFocus = useCallback((field: number) => {
+    switch (getColumnIndexFromField(field)) {
+      case 0:
+        return "offsetColumnFocus";
+      case 1:
+        return "jumpColumnFocus";
+      case 2:
+        return "effectCodeColumnFocus";
+      case 3:
+        return "effectParamColumnFocus";
+      default:
+        return "offsetColumnFocus";
+    }
+  }, []);
+
+  const currentFocus = useMemo(
+    () => (activeField !== undefined ? getCurrentFocus(activeField) : null),
+    [activeField, getCurrentFocus],
+  );
+
+  useEffect(() => {
+    activeFieldValueRef.current = activeField;
+    selectionOriginRef.current = selectionOrigin;
+    selectionRectRef.current = selectionRect;
+    selectedTrackerFieldsRef.current = selectedTrackerFields;
+    subpatternRef.current = subpattern;
+  }, [
+    activeField,
+    selectionOrigin,
+    selectionRect,
+    selectedTrackerFields,
+    subpattern,
+  ]);
 
   useLayoutEffect(() => {
     const el = activeFieldRef.current?.parentElement;
@@ -206,9 +262,25 @@ export const InstrumentSubpatternTracker = ({
     }
   }, [activeField]);
 
+  const focusTable = useCallback(() => {
+    tableRef.current?.focus({ preventScroll: true });
+  }, []);
+
+  const clearSelection = useCallback(() => {
+    setSelectionOrigin(undefined);
+    setSelectionRect(undefined);
+  }, []);
+
+  const setSingleFieldSelection = useCallback((field: number) => {
+    setSelectionOrigin(getFieldPosition(field));
+    setSelectionRect(undefined);
+  }, []);
+
   const editSubPatternCell = useCallback(
     (type: keyof SubPatternCell, value: number | null) => {
-      if (activeField === undefined) {
+      const currentActiveField = activeFieldValueRef.current;
+
+      if (currentActiveField === undefined) {
         return;
       }
 
@@ -217,8 +289,8 @@ export const InstrumentSubpatternTracker = ({
           instrumentId,
           instrumentType,
           cell: [
-            getRowIndexFromField(activeField),
-            getColumnIndexFromField(activeField),
+            getRowIndexFromField(currentActiveField),
+            getColumnIndexFromField(currentActiveField),
           ],
           changes: {
             [type]: value,
@@ -226,17 +298,19 @@ export const InstrumentSubpatternTracker = ({
         }),
       );
     },
-    [activeField, dispatch, instrumentId, instrumentType],
+    [dispatch, instrumentId, instrumentType],
   );
 
   const deleteSelectedTrackerFields = useCallback(() => {
-    if (selectedTrackerFields.length === 0) {
+    const currentSelectedTrackerFields = selectedTrackerFieldsRef.current;
+
+    if (currentSelectedTrackerFields.length === 0) {
       return;
     }
 
-    const nextSubpattern = [...subpattern];
+    const nextSubpattern = [...subpatternRef.current];
 
-    for (const field of selectedTrackerFields) {
+    for (const field of currentSelectedTrackerFields) {
       const rowIndex = getRowIndexFromField(field);
       const columnIndex = getColumnIndexFromField(field);
       const currentRow = nextSubpattern[rowIndex];
@@ -272,22 +346,19 @@ export const InstrumentSubpatternTracker = ({
         subpattern: nextSubpattern,
       }),
     );
-  }, [
-    dispatch,
-    instrumentId,
-    instrumentType,
-    selectedTrackerFields,
-    subpattern,
-  ]);
+  }, [dispatch, instrumentId, instrumentType]);
 
   const insertTrackerFields = useCallback(
     (uninsert: boolean) => {
-      if (activeField === undefined || subpattern.length === 0) {
+      const currentActiveField = activeFieldValueRef.current;
+      const currentSubpattern = subpatternRef.current;
+
+      if (currentActiveField === undefined || currentSubpattern.length === 0) {
         return;
       }
 
-      const startRow = getRowIndexFromField(activeField);
-      const nextSubpattern = [...subpattern];
+      const startRow = getRowIndexFromField(currentActiveField);
+      const nextSubpattern = [...currentSubpattern];
 
       if (uninsert) {
         for (
@@ -317,14 +388,7 @@ export const InstrumentSubpatternTracker = ({
         }),
       );
     },
-    [
-      activeField,
-      dispatch,
-      instrumentId,
-      instrumentType,
-      lastSubpatternRowIndex,
-      subpattern,
-    ],
+    [dispatch, instrumentId, instrumentType, lastSubpatternRowIndex],
   );
 
   const editOffsetField = useCallback(
@@ -427,20 +491,152 @@ export const InstrumentSubpatternTracker = ({
     [activeCell?.effectparam, editSubPatternCell],
   );
 
-  const getCurrentFocus = useCallback((field: number): KeyWhen => {
-    switch (getColumnIndexFromField(field)) {
-      case 0:
-        return "offsetColumnFocus";
-      case 1:
-        return "jumpColumnFocus";
-      case 2:
-        return "effectCodeColumnFocus";
-      case 3:
-        return "effectParamColumnFocus";
-      default:
-        return null;
-    }
-  }, []);
+  const moveActiveField = useCallback(
+    (direction: "up" | "down" | "left" | "right", extendSelection: boolean) => {
+      const currentActiveField = activeFieldValueRef.current;
+
+      if (currentActiveField === undefined || numFields <= 0) {
+        return;
+      }
+
+      let nextField = currentActiveField;
+
+      if (direction === "left") {
+        nextField -= 1;
+      } else if (direction === "right") {
+        nextField += 1;
+      } else if (direction === "up") {
+        nextField -= ROW_SIZE;
+      } else if (direction === "down") {
+        nextField += ROW_SIZE;
+      }
+
+      const normalizedField = ((nextField % numFields) + numFields) % numFields;
+
+      if (extendSelection) {
+        const anchor =
+          selectionOriginRef.current ?? getFieldPosition(currentActiveField);
+        setSelectionOrigin(anchor);
+        setSelectionRect(makeSelectionRect(anchor, normalizedField));
+      } else {
+        setSingleFieldSelection(normalizedField);
+      }
+
+      setActiveField(normalizedField);
+    },
+    [numFields, setSingleFieldSelection],
+  );
+
+  const applyVirtualInput = useCallback(
+    (value: number | null) => {
+      const currentActiveField = activeFieldValueRef.current;
+
+      if (currentActiveField === undefined) {
+        return false;
+      }
+
+      const focus = getCurrentFocus(currentActiveField);
+
+      if (focus === "offsetColumnFocus") {
+        editOffsetField(value);
+        return true;
+      }
+
+      if (focus === "jumpColumnFocus") {
+        editJumpField(value);
+        return true;
+      }
+
+      if (focus === "effectCodeColumnFocus") {
+        editEffectCodeField(value);
+        return true;
+      }
+
+      if (focus === "effectParamColumnFocus") {
+        editEffectParamField(value);
+        return true;
+      }
+
+      return false;
+    },
+    [
+      editEffectCodeField,
+      editEffectParamField,
+      editJumpField,
+      editOffsetField,
+      getCurrentFocus,
+    ],
+  );
+
+  const applyVirtualSign = useCallback(
+    (value: "+" | "-") => {
+      const currentActiveField = activeFieldValueRef.current;
+
+      if (currentActiveField === undefined) {
+        return false;
+      }
+
+      const focus = getCurrentFocus(currentActiveField);
+
+      if (focus !== "offsetColumnFocus") {
+        return false;
+      }
+
+      editOffsetField(value);
+      return true;
+    },
+    [editOffsetField, getCurrentFocus],
+  );
+
+  const transposeSelectedOffsets = useCallback(
+    (delta: number) => {
+      const currentSelectedTrackerFields = selectedTrackerFieldsRef.current;
+      const currentSubpattern = subpatternRef.current;
+
+      if (currentSelectedTrackerFields.length === 0) {
+        return;
+      }
+
+      const nextSubpattern = [...currentSubpattern];
+      let changed = false;
+
+      for (const field of currentSelectedTrackerFields) {
+        if (getColumnIndexFromField(field) !== 0) {
+          continue;
+        }
+
+        const rowIndex = getRowIndexFromField(field);
+        const currentRow = nextSubpattern[rowIndex];
+
+        if (!currentRow || currentRow.note === null) {
+          continue;
+        }
+
+        const nextNote = clamp(currentRow.note + delta, OFFSET_MIN, OFFSET_MAX);
+
+        if (nextNote !== currentRow.note) {
+          nextSubpattern[rowIndex] = {
+            ...currentRow,
+            note: nextNote,
+          };
+          changed = true;
+        }
+      }
+
+      if (!changed) {
+        return;
+      }
+
+      dispatch(
+        trackerDocumentActions.editSubPattern({
+          instrumentId,
+          instrumentType,
+          subpattern: nextSubpattern,
+        }),
+      );
+    },
+    [dispatch, instrumentId, instrumentType],
+  );
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTableElement>) => {
@@ -462,8 +658,7 @@ export const InstrumentSubpatternTracker = ({
 
       if (e.key === "Escape") {
         e.preventDefault();
-        setSelectionOrigin(undefined);
-        setSelectionRect(undefined);
+        clearSelection();
         return;
       }
 
@@ -533,18 +728,18 @@ export const InstrumentSubpatternTracker = ({
           setSelectionOrigin(anchor);
           setSelectionRect(makeSelectionRect(anchor, normalizedField));
         } else {
-          setSelectionOrigin(undefined);
-          setSelectionRect(undefined);
+          clearSelection();
+          setSingleFieldSelection(normalizedField);
         }
 
         setActiveField(normalizedField);
         return;
       }
 
-      const currentFocus = getCurrentFocus(activeField);
+      const focus = getCurrentFocus(activeField);
 
-      if (currentFocus && !e.metaKey && !e.ctrlKey && !e.altKey) {
-        getKeys(e.code, currentFocus, {
+      if (focus && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        getKeys(e.code, focus, {
           editOffsetField,
           editJumpField,
           editEffectCodeField,
@@ -554,6 +749,7 @@ export const InstrumentSubpatternTracker = ({
     },
     [
       activeField,
+      clearSelection,
       deleteSelectedTrackerFields,
       editEffectCodeField,
       editEffectParamField,
@@ -564,6 +760,7 @@ export const InstrumentSubpatternTracker = ({
       numFields,
       selectedTrackerFields.length,
       selectionOrigin,
+      setSingleFieldSelection,
       visibleRowCount,
     ],
   );
@@ -574,8 +771,7 @@ export const InstrumentSubpatternTracker = ({
 
       if (fieldId === undefined) {
         setActiveField(undefined);
-        setSelectionOrigin(undefined);
-        setSelectionRect(undefined);
+        clearSelection();
         return;
       }
 
@@ -591,14 +787,12 @@ export const InstrumentSubpatternTracker = ({
         setSelectionOrigin(anchor);
         setSelectionRect(makeSelectionRect(anchor, fieldId));
       } else {
-        const position = getFieldPosition(fieldId);
-        setSelectionOrigin(position);
-        setSelectionRect(undefined);
+        setSingleFieldSelection(fieldId);
       }
 
       setActiveField(fieldId);
     },
-    [activeField, selectionOrigin],
+    [activeField, clearSelection, selectionOrigin, setSingleFieldSelection],
   );
 
   const handleWindowMouseMove = useCallback(
@@ -609,14 +803,14 @@ export const InstrumentSubpatternTracker = ({
 
       const fieldId = getEventFieldId(e.target);
 
-      if (fieldId === undefined || !selectionOrigin) {
+      if (fieldId === undefined || !selectionOriginRef.current) {
         return;
       }
 
-      setSelectionRect(makeSelectionRect(selectionOrigin, fieldId));
+      setSelectionRect(makeSelectionRect(selectionOriginRef.current, fieldId));
       setActiveField(fieldId);
     },
-    [isMouseDown, selectionOrigin],
+    [isMouseDown],
   );
 
   const handleWindowMouseUp = useCallback(() => {
@@ -643,16 +837,15 @@ export const InstrumentSubpatternTracker = ({
     }
 
     e.preventDefault();
-
-    const _delta = e.deltaY === 0 ? e.deltaX : e.deltaY;
   }, []);
 
   const onFocus = useCallback(() => {
     if (activeField === undefined && numFields > 0) {
       setActiveField(0);
+      setSingleFieldSelection(0);
     }
     dispatch(trackerActions.setSubpatternEditorFocus(true));
-  }, [activeField, dispatch, numFields]);
+  }, [activeField, dispatch, numFields, setSingleFieldSelection]);
 
   const onBlur = useCallback(() => {
     setActiveField(undefined);
@@ -665,6 +858,100 @@ export const InstrumentSubpatternTracker = ({
       dispatch(trackerActions.setSubpatternEditorFocus(false));
     };
   }, [dispatch]);
+
+  const handleVirtualKeyPressed = useCallback(
+    (virtualKey: VirtualTrackerKey) => {
+      if (activeFieldValueRef.current === undefined && numFields > 0) {
+        setActiveField(0);
+        setSingleFieldSelection(0);
+      }
+
+      if (virtualKey.type === "navigation") {
+        moveActiveField(virtualKey.direction, virtualKey.shiftKey);
+        focusTable();
+        return;
+      }
+
+      if (virtualKey.type === "sign") {
+        applyVirtualSign(virtualKey.value);
+        focusTable();
+        return;
+      }
+
+      if (virtualKey.type === "number" || virtualKey.type === "note") {
+        applyVirtualInput(virtualKey.value);
+        focusTable();
+        return;
+      }
+
+      if (virtualKey.type === "insertRow") {
+        insertTrackerFields(false);
+        focusTable();
+        return;
+      }
+
+      if (virtualKey.type === "removeRow") {
+        insertTrackerFields(true);
+        focusTable();
+        return;
+      }
+
+      if (virtualKey.type === "clear") {
+        deleteSelectedTrackerFields();
+        focusTable();
+        return;
+      }
+
+      if (virtualKey.type === "transpose") {
+        transposeSelectedOffsets(
+          virtualKey.direction === "up"
+            ? virtualKey.size === "octave"
+              ? 12
+              : 1
+            : virtualKey.size === "octave"
+              ? -12
+              : -1,
+        );
+        focusTable();
+        return;
+      }
+
+      if (virtualKey.type === "transposeField") {
+        transposeSelectedOffsets(virtualKey.direction === "up" ? 1 : -1);
+        focusTable();
+        return;
+      }
+
+      if (virtualKey.type === "undo") {
+        dispatch({ type: TRACKER_UNDO });
+        focusTable();
+        return;
+      }
+
+      if (virtualKey.type === "redo") {
+        dispatch({ type: TRACKER_REDO });
+        focusTable();
+        return;
+      }
+
+      if (virtualKey.type === "toggle") {
+        dispatch(trackerActions.setShowVirtualKeyboard(!showVirtualKeyboard));
+      }
+    },
+    [
+      applyVirtualInput,
+      applyVirtualSign,
+      deleteSelectedTrackerFields,
+      dispatch,
+      focusTable,
+      insertTrackerFields,
+      moveActiveField,
+      numFields,
+      setSingleFieldSelection,
+      showVirtualKeyboard,
+      transposeSelectedOffsets,
+    ],
+  );
 
   const onCopy = useCallback(
     (e: ClipboardEvent) => {
@@ -719,6 +1006,7 @@ export const InstrumentSubpatternTracker = ({
 
       if (activeField === undefined) {
         setActiveField(tempActiveField);
+        setSingleFieldSelection(tempActiveField);
       }
 
       e.preventDefault();
@@ -783,11 +1071,11 @@ export const InstrumentSubpatternTracker = ({
       instrumentId,
       instrumentType,
       selectionOrigin,
+      setSingleFieldSelection,
       subpattern,
     ],
   );
 
-  // Clipboard
   useEffect(() => {
     if (subpatternEditorFocus) {
       window.addEventListener("copy", onCopy);
@@ -801,73 +1089,90 @@ export const InstrumentSubpatternTracker = ({
     }
   }, [onCopy, onCut, onPaste, subpatternEditorFocus]);
 
+  const portalRoot = document.getElementById(
+    "PortalInstrumentEditorFooter",
+  ) as HTMLElement;
+
   return (
-    <StyledTrackerContentTable
-      $type="subpattern"
-      tabIndex={0}
-      onFocus={onFocus}
-      onBlur={onBlur}
-      onKeyDown={handleKeyDown}
-      onMouseDown={handleMouseDown}
-      onWheel={handleWheel}
-    >
-      <StyledTrackerTableBody>
-        {subpattern.slice(0, visibleRowCount).map((row, rowIndex) => {
-          const isStepMarker = rowIndex % 8 === 0;
-          const fieldCount = rowIndex * ROW_SIZE;
+    <>
+      <StyledTrackerContentTable
+        ref={tableRef}
+        $type="subpattern"
+        tabIndex={0}
+        onFocus={onFocus}
+        onBlur={onBlur}
+        onKeyDown={handleKeyDown}
+        onMouseDown={handleMouseDown}
+        onWheel={handleWheel}
+      >
+        <StyledTrackerTableBody>
+          {subpattern.slice(0, visibleRowCount).map((row, rowIndex) => {
+            const isStepMarker = rowIndex % 8 === 0;
+            const fieldCount = rowIndex * ROW_SIZE;
 
-          const isOffsetActive = activeField === fieldCount;
-          const isJumpActive = activeField === fieldCount + 1;
-          const isEffectCodeActive = activeField === fieldCount + 2;
-          const isEffectParamActive = activeField === fieldCount + 3;
+            const isOffsetActive = activeField === fieldCount;
+            const isJumpActive = activeField === fieldCount + 1;
+            const isEffectCodeActive = activeField === fieldCount + 2;
+            const isEffectParamActive = activeField === fieldCount + 3;
 
-          return (
-            <StyledTrackerRow key={rowIndex} $isStepMarker={isStepMarker}>
-              <StyledTrackerCell>{renderCounter(rowIndex)}</StyledTrackerCell>
-              <StyledTrackerCell>
-                <StyledTrackerNoteField
-                  ref={isOffsetActive ? activeFieldRef : null}
-                  $active={isOffsetActive}
-                  data-subpattern_fieldid={fieldCount}
-                  $selected={selectedTrackerFieldSet.has(fieldCount)}
-                >
-                  {renderOffset(
-                    row.note,
-                    isOffsetActive ? offsetZeroSignOverrideRef.current : null,
-                  )}
-                </StyledTrackerNoteField>
+            return (
+              <StyledTrackerRow key={rowIndex} $isStepMarker={isStepMarker}>
+                <StyledTrackerCell>{renderCounter(rowIndex)}</StyledTrackerCell>
+                <StyledTrackerCell>
+                  <StyledTrackerNoteField
+                    ref={isOffsetActive ? activeFieldRef : null}
+                    $active={isOffsetActive}
+                    data-subpattern_fieldid={fieldCount}
+                    $selected={selectedTrackerFieldSet.has(fieldCount)}
+                  >
+                    {renderOffset(
+                      row.note,
+                      isOffsetActive ? offsetZeroSignOverrideRef.current : null,
+                    )}
+                  </StyledTrackerNoteField>
 
-                <StyledTrackerJumpField
-                  ref={isJumpActive ? activeFieldRef : null}
-                  $active={isJumpActive}
-                  data-subpattern_fieldid={fieldCount + 1}
-                  $selected={selectedTrackerFieldSet.has(fieldCount + 1)}
-                >
-                  {renderJump(row.jump)}
-                </StyledTrackerJumpField>
+                  <StyledTrackerJumpField
+                    ref={isJumpActive ? activeFieldRef : null}
+                    $active={isJumpActive}
+                    data-subpattern_fieldid={fieldCount + 1}
+                    $selected={selectedTrackerFieldSet.has(fieldCount + 1)}
+                  >
+                    {renderJump(row.jump)}
+                  </StyledTrackerJumpField>
 
-                <StyledTrackerEffectCodeField
-                  ref={isEffectCodeActive ? activeFieldRef : null}
-                  $active={isEffectCodeActive}
-                  data-subpattern_fieldid={fieldCount + 2}
-                  $selected={selectedTrackerFieldSet.has(fieldCount + 2)}
-                >
-                  {renderEffect(row.effectcode)}
-                </StyledTrackerEffectCodeField>
+                  <StyledTrackerEffectCodeField
+                    ref={isEffectCodeActive ? activeFieldRef : null}
+                    $active={isEffectCodeActive}
+                    data-subpattern_fieldid={fieldCount + 2}
+                    $selected={selectedTrackerFieldSet.has(fieldCount + 2)}
+                  >
+                    {renderEffect(row.effectcode)}
+                  </StyledTrackerEffectCodeField>
 
-                <StyledTrackerEffectParamField
-                  ref={isEffectParamActive ? activeFieldRef : null}
-                  $active={isEffectParamActive}
-                  data-subpattern_fieldid={fieldCount + 3}
-                  $selected={selectedTrackerFieldSet.has(fieldCount + 3)}
-                >
-                  {renderEffectParam(row.effectparam)}
-                </StyledTrackerEffectParamField>
-              </StyledTrackerCell>
-            </StyledTrackerRow>
-          );
-        })}
-      </StyledTrackerTableBody>
-    </StyledTrackerContentTable>
+                  <StyledTrackerEffectParamField
+                    ref={isEffectParamActive ? activeFieldRef : null}
+                    $active={isEffectParamActive}
+                    data-subpattern_fieldid={fieldCount + 3}
+                    $selected={selectedTrackerFieldSet.has(fieldCount + 3)}
+                  >
+                    {renderEffectParam(row.effectparam)}
+                  </StyledTrackerEffectParamField>
+                </StyledTrackerCell>
+              </StyledTrackerRow>
+            );
+          })}
+        </StyledTrackerTableBody>
+      </StyledTrackerContentTable>
+
+      <Portal root={portalRoot}>
+        <TrackerKeyboard
+          type="subpattern"
+          fieldType={currentFocus ?? "offsetColumnFocus"}
+          octaveOffset={0}
+          open={showVirtualKeyboard}
+          onKeyPressed={handleVirtualKeyPressed}
+        />
+      </Portal>
+    </>
   );
 };

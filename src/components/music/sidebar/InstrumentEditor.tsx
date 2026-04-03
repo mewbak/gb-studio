@@ -60,7 +60,6 @@ const StyledStickyFooter = styled.div`
   border-top: 1px solid ${(props) => props.theme.colors.sidebar.border};
   padding-top: 10px;
   padding-bottom: env(safe-area-inset-bottom);
-  padding-bottom: calc(10px + env(safe-area-inset-bottom));
 `;
 
 const instrumentTypeLabels: Record<InstrumentType, string> = {
@@ -485,6 +484,7 @@ export const InstrumentEditor = () => {
           instrumentId={selectedInstrumentId}
           instrumentType={instrumentType}
         />
+        <div id="PortalInstrumentEditorFooter" />
       </StyledStickyFooter>
     </>
   );

@@ -153,18 +153,7 @@ export const StyledMobileOverlayContainer = styled.div<{
           max-height: 100dvh;
           border-top-left-radius: 12px;
           border-top-right-radius: 12px;
-          padding-top: 12px;
-
-          &:before {
-            content: "";
-            display: block;
-            width: 40px;
-            height: 4px;
-            background: ${(props) => props.theme.colors.sidebar.border};
-            margin: 0px auto;
-            margin-bottom: 10px;
-            border-radius: 16px;
-          }
+          padding-top: 28px;
         `
       : css`
           top: auto;
@@ -172,18 +161,7 @@ export const StyledMobileOverlayContainer = styled.div<{
           max-height: 100dvh;
           border-top-left-radius: 12px;
           border-top-right-radius: 12px;
-          padding-top: 12px;
-
-          &:before {
-            content: "";
-            display: block;
-            width: 40px;
-            height: 4px;
-            background: ${(props) => props.theme.colors.sidebar.border};
-            margin: 0px auto;
-            margin-bottom: 10px;
-            border-radius: 16px;
-          }
+          padding-top: 28px;
         `}
 
   &:after {
@@ -216,6 +194,19 @@ export const StyledMobileOverlayHandle = styled.div`
   left: 0px;
   right: 0px;
   background: transparent;
+
+  &:before {
+    position: relative;
+    top: 37px;
+    content: "";
+    display: block;
+    width: 40px;
+    height: 4px;
+    background: ${(props) => props.theme.colors.sidebar.border};
+    margin: 0px auto;
+    margin-bottom: 10px;
+    border-radius: 16px;
+  }
 `;
 
 export const StyledMobileOverlayCloseButton = styled.div`

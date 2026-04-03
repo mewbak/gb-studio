@@ -1619,6 +1619,7 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
       </StyledTrackerScrollWrapper>
 
       <TrackerKeyboard
+        type="pattern"
         fieldType={currentFocus}
         octaveOffset={octaveOffset}
         open={showVirtualKeyboard}

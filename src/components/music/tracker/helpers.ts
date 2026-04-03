@@ -3,7 +3,6 @@ import {
   TRACKER_NUM_FIELDS,
   TRACKER_ROW_SIZE,
 } from "consts";
-import { KeyWhen } from "renderer/lib/keybindings/keyBindings";
 import { PatternCellAddress } from "shared/lib/uge/editor/types";
 import { resolveUniqueTrackerCells } from "store/features/trackerDocument/trackerDocumentHelpers";
 
@@ -75,7 +74,13 @@ export const getSelectedTrackerFields = (
   return selectedTrackerFields;
 };
 
-export const getFieldColumnFocus = (field: number): KeyWhen => {
+export const getFieldColumnFocus = (
+  field: number,
+):
+  | "noteColumnFocus"
+  | "instrumentColumnFocus"
+  | "effectCodeColumnFocus"
+  | "effectParamColumnFocus" => {
   switch (field % 4) {
     case 0:
       return "noteColumnFocus";
@@ -86,7 +91,7 @@ export const getFieldColumnFocus = (field: number): KeyWhen => {
     case 3:
       return "effectParamColumnFocus";
     default:
-      return null;
+      return "noteColumnFocus";
   }
 };
 
