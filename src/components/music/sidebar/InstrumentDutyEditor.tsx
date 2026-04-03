@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
 import { DutyInstrument } from "shared/lib/uge/types";
 import { FormDivider, FormField, FormRow } from "ui/form/layout/FormLayout";
@@ -26,6 +26,14 @@ export const InstrumentDutyEditor = ({
   );
 
   const instrumentId = instrument?.index;
+
+  const lastSweepTimeRef = useRef(instrument?.frequency_sweep_time || 4);
+  useEffect(() => {
+    const newSweepTime = instrument?.frequency_sweep_time;
+    if (typeof newSweepTime === "number" && newSweepTime !== 0) {
+      lastSweepTimeRef.current = newSweepTime;
+    }
+  }, [instrument?.frequency_sweep_time]);
 
   const onChangeField = useCallback(
     <T extends keyof DutyInstrument>(key: T) =>
@@ -67,8 +75,10 @@ export const InstrumentDutyEditor = ({
 
   const onChangeSweepShift = useCallback(
     (value: number) => {
-      if (Number(instrument?.frequency_sweep_time) === 0) {
-        onChangeField("frequency_sweep_time")(4);
+      if (value === 0) {
+        onChangeField("frequency_sweep_time")(0);
+      } else if (Number(instrument?.frequency_sweep_time) === 0) {
+        onChangeField("frequency_sweep_time")(lastSweepTimeRef.current);
       }
       onChangeField("frequency_sweep_shift")(value);
     },
