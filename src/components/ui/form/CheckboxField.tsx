@@ -22,6 +22,10 @@ const Wrapper = styled.div`
     margin-bottom: 0px;
     margin-top: -1px;
   }
+
+  @media (max-width: 840px) {
+    height: 38px;
+  }
 `;
 
 export const CheckboxField: FC<CheckboxFieldProps> = ({
