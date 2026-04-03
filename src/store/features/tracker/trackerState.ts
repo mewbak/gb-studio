@@ -22,7 +22,7 @@ export type TrackerViewType = "tracker" | "roll";
 
 export type TrackerSidebarViewType = "instrument" | "cell";
 
-export type SubpatternEditorMode = "simple" | "tracker";
+export type SubpatternEditorMode = "script" | "tracker";
 
 export type MobileOverlayView =
   | "none"
@@ -133,7 +133,7 @@ export const initialState: TrackerState = {
   selection: [-1, -1, -1, -1],
   selectedEffectCell: null,
   subpatternEditorFocus: false,
-  subpatternEditorMode: "simple",
+  subpatternEditorMode: "script",
   exportFormat: "mp3",
   exportLoopCount: 1,
   channelStatus: [false, false, false, false],

@@ -13,7 +13,7 @@ test("Should default subpattern editor mode to simple", () => {
 test("Should set subpattern editor mode", () => {
   const state: TrackerState = {
     ...initialState,
-    subpatternEditorMode: "simple",
+    subpatternEditorMode: "script",
   };
 
   const action = actions.setSubpatternEditorMode("tracker");
@@ -30,7 +30,11 @@ test("Should preserve subpattern editor mode when song loads", () => {
     status: "loading",
   };
 
-  const action = loadSongFile.fulfilled(undefined as never, "request-id", "song-1");
+  const action = loadSongFile.fulfilled(
+    undefined as never,
+    "request-id",
+    "song-1",
+  );
   const newState = reducer(state, action);
 
   expect(newState.subpatternEditorMode).toBe("tracker");

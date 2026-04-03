@@ -34,7 +34,7 @@ import {
   halfSubpattern,
   offsetToStoredPitch,
 } from "components/music/form/subpattern/helpers";
-import { createSubPatternCell } from "shared/lib/uge/song";
+import { createSubPattern } from "shared/lib/uge/song";
 import { InstrumentTester } from "components/music/form/InstrumentTester";
 
 type Instrument = DutyInstrument | NoiseInstrument | WaveInstrument;
@@ -81,7 +81,7 @@ const createSubpatternPreset = (
   pitch: number[],
   jump: SubpatternJump[] = [],
 ): SubpatternPreset => {
-  const cells = Array.from({ length: 32 }, () => createSubPatternCell());
+  const cells = createSubPattern();
 
   const jumpMap = new Map<number, number>(jump);
 
@@ -242,8 +242,8 @@ export const InstrumentEditor = () => {
     dispatch(trackerActions.setSubpatternEditorModeAndSave("tracker"));
   }, [dispatch]);
 
-  const onSetViewSimple = useCallback(() => {
-    dispatch(trackerActions.setSubpatternEditorModeAndSave("simple"));
+  const onSetViewScript = useCallback(() => {
+    dispatch(trackerActions.setSubpatternEditorModeAndSave("script"));
   }, [dispatch]);
 
   const onSetPreset = useCallback(
@@ -293,6 +293,20 @@ export const InstrumentEditor = () => {
         instrumentId: resolvedInstrument.instrument.index,
         changes: {
           subpattern: halfSubpattern(resolvedInstrument.instrument.subpattern),
+        },
+      }),
+    );
+  }, [dispatch, editInstrument, resolvedInstrument]);
+
+  const onResetSubpattern = useCallback(() => {
+    if (!resolvedInstrument || !resolvedInstrument.instrument.subpattern) {
+      return;
+    }
+    dispatch(
+      editInstrument({
+        instrumentId: resolvedInstrument.instrument.index,
+        changes: {
+          subpattern: createSubPattern(),
         },
       }),
     );
@@ -349,27 +363,21 @@ export const InstrumentEditor = () => {
                 }
               />
               {resolvedInstrument.instrument.subpattern_enabled && (
-                <DropdownButton
-                  variant="transparent"
-                  // variant={
-                  //   subpatternEditorMode === "tracker" ? "primary" : "normal"
-                  // }
-                  // onClick={onToggleSubpatternEditorMode}
-                >
+                <DropdownButton variant="transparent">
                   <MenuItem
                     subMenu={[
                       <MenuItem
-                        key="simple"
-                        onClick={onSetViewSimple}
+                        key="script"
+                        onClick={onSetViewScript}
                         icon={
-                          subpatternEditorMode === "simple" ? (
+                          subpatternEditorMode === "script" ? (
                             <CheckIcon />
                           ) : (
                             <BlankIcon />
                           )
                         }
                       >
-                        Visual
+                        {l10n("FIELD_SCRIPT")}
                       </MenuItem>,
                       <MenuItem
                         key="tracker"
@@ -382,11 +390,11 @@ export const InstrumentEditor = () => {
                           )
                         }
                       >
-                        Tracker
+                        {l10n("FIELD_TRACKER")}
                       </MenuItem>,
                     ]}
                   >
-                    View
+                    {l10n("MENU_VIEW")}
                   </MenuItem>
                   <MenuDivider />
                   <MenuItem
@@ -404,11 +412,19 @@ export const InstrumentEditor = () => {
                       ),
                     )}
                   >
-                    Presets
+                    {l10n("FIELD_PRESETS")}
                   </MenuItem>
                   <MenuDivider />
-                  <MenuItem onClick={onSpreadSubpattern}>Spread</MenuItem>
-                  <MenuItem onClick={onCompactSubpattern}>Compact</MenuItem>
+                  <MenuItem onClick={onSpreadSubpattern}>
+                    {l10n("FIELD_SPREAD")}
+                  </MenuItem>
+                  <MenuItem onClick={onCompactSubpattern}>
+                    {l10n("FIELD_COMPACT")}
+                  </MenuItem>
+                  <MenuDivider />
+                  <MenuItem onClick={onResetSubpattern}>
+                    {l10n("FIELD_RESET_SUBPATTERN")}
+                  </MenuItem>
                 </DropdownButton>
               )}
             </SubpatternSettings>

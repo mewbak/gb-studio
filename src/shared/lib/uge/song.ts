@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import { TRACKER_PATTERN_LENGTH } from "consts";
+import { TRACKER_PATTERN_LENGTH, TRACKER_SUBPATTERN_LENGTH } from "consts";
 import {
   Song,
   PatternCell,
@@ -32,10 +32,16 @@ export const createPatternCell = (): PatternCell => {
 export const createSubPatternCell = (): SubPatternCell => {
   return {
     note: null,
-    jump: null,
+    jump: 0,
     effectcode: null,
     effectparam: null,
   };
+};
+
+export const createSubPattern = (): SubPatternCell[] => {
+  return Array.from({ length: TRACKER_SUBPATTERN_LENGTH }).map(
+    createSubPatternCell,
+  );
 };
 
 export const createSong = (): Song => {

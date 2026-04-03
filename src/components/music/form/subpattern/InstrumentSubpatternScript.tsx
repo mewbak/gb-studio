@@ -45,6 +45,7 @@ import {
   StyledInstrumentSubpatternScriptList,
 } from "components/music/form/subpattern/style";
 import { StyledScriptEventFormWrapper } from "ui/scripting/style";
+import l10n from "shared/lib/lang/l10n";
 
 interface InstrumentSubpatternScriptProps {
   instrumentId: number;
@@ -391,7 +392,7 @@ export const InstrumentSubpatternScript = ({
                           clearRow(rowIndex);
                         }}
                       >
-                        Clear Row
+                        {l10n("FIELD_RESET_ROW")}
                       </MenuItem>
                     ) : undefined
                   }
@@ -429,13 +430,16 @@ export const InstrumentSubpatternScript = ({
                       </ScriptEventField>
 
                       <ScriptEventField>
-                        <Label>Flow</Label>
+                        <Label>{l10n("EVENT_GROUP_CONTROL_FLOW")}</Label>
                         <ToggleButtonGroup<"continue" | "jump">
                           name="subpattern_flow"
                           value={selectedFlowType}
                           options={[
-                            { value: "continue", label: "Continue" },
-                            { value: "jump", label: "Jump" },
+                            {
+                              value: "continue",
+                              label: l10n("FIELD_CONTINUE"),
+                            },
+                            { value: "jump", label: l10n("FIELD_JUMP") },
                           ]}
                           onChange={onChangeFlowType}
                         />
@@ -444,7 +448,7 @@ export const InstrumentSubpatternScript = ({
                       <ScriptEventField alignBottom>
                         {selectedFlowType === "jump" && (
                           <>
-                            <Label>Next Tick</Label>
+                            <Label>{l10n("FIELD_NEXT_TICK")}</Label>
 
                             <Input
                               type="number"
@@ -463,8 +467,8 @@ export const InstrumentSubpatternScript = ({
                       <ScriptEventField flexBasis="100%">
                         <ToggleableFormField
                           name="subpattern_effect"
-                          disabledLabel="Add Effect Override"
-                          label="Effect Override"
+                          disabledLabel={l10n("FIELD_ADD_EFFECT_OVERRIDE")}
+                          label={l10n("FIELD_EFFECT_OVERRIDE")}
                           enabled={selectedCell.effectparam !== null}
                         >
                           <EffectCodeSelect
@@ -479,7 +483,7 @@ export const InstrumentSubpatternScript = ({
                             instrumentId={instrumentId}
                             allowedEffectCodes={[...validSubpatternEffectCodes]}
                             onChange={onChangeEffectCode}
-                            noneLabel="None"
+                            noneLabel={l10n("FIELD_NONE")}
                           />
                         </ToggleableFormField>
                       </ScriptEventField>

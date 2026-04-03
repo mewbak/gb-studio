@@ -16,9 +16,12 @@ export const initViewFromSaved = createAsyncThunk(
 
     const subpatternEditorMode = await API.settings.getString(
       "subpatternEditorMode",
-      "simple",
+      "script",
     );
-    if (subpatternEditorMode === "simple" || subpatternEditorMode === "tracker") {
+    if (
+      subpatternEditorMode === "script" ||
+      subpatternEditorMode === "tracker"
+    ) {
       thunkApi.dispatch(actions.setSubpatternEditorMode(subpatternEditorMode));
     }
   },
