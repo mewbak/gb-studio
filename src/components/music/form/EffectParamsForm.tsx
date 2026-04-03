@@ -6,13 +6,13 @@ import l10n, { L10NKey } from "shared/lib/lang/l10n";
 import { SliderField } from "ui/form/SliderField";
 import { CheckboxField } from "ui/form/CheckboxField";
 import { Label } from "ui/form/Label";
-import { Input } from "ui/form/Input";
 import clamp from "shared/lib/helpers/clamp";
 import styled from "styled-components";
 import { VibratoWaveformPreview } from "./VibratoWaveformPreview";
 import { useMusicNotePreview } from "components/music/hooks/useMusicNotePreview";
 import { PitchSelect } from "components/music/form/PitchSelect";
 import { DutyCycleSelect } from "components/music/form/DutyCycleSelect";
+import { NumberInput } from "ui/form/NumberInput";
 
 type SelectOption = {
   value: number;
@@ -295,7 +295,7 @@ export const EffectParamsForm: FC<EffectParamsFormProps> = ({
             name="effectparam"
             value={effectParam}
             min={0}
-            max={255}
+            max={20}
             onChange={(nextValue) => {
               onChangeFullValue(nextValue ?? 0);
             }}
@@ -440,7 +440,7 @@ export const EffectParamsForm: FC<EffectParamsFormProps> = ({
             <Label>{l10n("FIELD_TO_PATTERN")}</Label>
           </FormRow>
           <FormRow>
-            <Input
+            <NumberInput
               type="number"
               min={0}
               max={63}
@@ -507,7 +507,7 @@ export const EffectParamsForm: FC<EffectParamsFormProps> = ({
 
     case 13: {
       // Pattern Break
-      const inputValue = String(clamp(effectParam, 0, 63));
+      const inputValue = clamp(effectParam - 1, 0, 63);
 
       return (
         <>
@@ -515,7 +515,7 @@ export const EffectParamsForm: FC<EffectParamsFormProps> = ({
             <Label>{l10n("FIELD_START_ROW")}</Label>
           </FormRow>
           <FormRow>
-            <Input
+            <NumberInput
               type="number"
               min={0}
               max={63}
@@ -524,8 +524,8 @@ export const EffectParamsForm: FC<EffectParamsFormProps> = ({
               onChange={(e) => {
                 const nextValue =
                   e.currentTarget.value.length > 0
-                    ? clamp(parseInt(e.currentTarget.value, 10), 0, 63)
-                    : 0;
+                    ? clamp(parseInt(e.currentTarget.value, 10) + 1, 1, 64)
+                    : 1;
                 onChangeFullValue(nextValue);
               }}
             />
@@ -542,7 +542,7 @@ export const EffectParamsForm: FC<EffectParamsFormProps> = ({
             label={l10n("FIELD_TICKS")}
             value={effectParam}
             min={0}
-            max={255}
+            max={20}
             onChange={(nextValue) => {
               onChangeFullValue(nextValue ?? 0);
             }}
@@ -557,8 +557,8 @@ export const EffectParamsForm: FC<EffectParamsFormProps> = ({
             name="effectparam"
             label={l10n("FIELD_TICKS_PER_ROW")}
             value={effectParam}
-            min={0}
-            max={255}
+            min={1}
+            max={20}
             onChange={(nextValue) => {
               onChangeFullValue(nextValue ?? 0);
             }}

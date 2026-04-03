@@ -174,12 +174,13 @@ export const PatternCellSelectionEditor = () => {
         <EffectCodeSelect
           name="effectCode"
           value={sharedEffectCode.value ?? undefined}
-          onChange={(effectCode) => {
+          onChange={(effectCode, effectParam) => {
             dispatch(
               trackerDocumentActions.editPatternCells({
                 patternCells: selectedPatternCells,
                 changes: {
                   effectcode: effectCode,
+                  effectparam: effectCode === null ? null : effectParam,
                 },
               }),
             );

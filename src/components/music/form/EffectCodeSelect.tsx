@@ -14,6 +14,7 @@ export interface EffectCodeOption {
   value: number | "";
   label: string;
   info?: string;
+  defaultParams: number;
 }
 
 type EffectCodeOptionGroup = GroupBase<EffectCodeOption>;
@@ -21,7 +22,7 @@ type EffectCodeOptionGroup = GroupBase<EffectCodeOption>;
 interface EffectCodeSelectProps extends SelectCommonProps {
   name: string;
   value?: number | null;
-  onChange?: (newEffectCode: number | null) => void;
+  onChange?: (newEffectCode: number | null, newEffectParam: number) => void;
   noneLabel?: string;
   note?: number;
   instrumentId?: number;
@@ -36,6 +37,7 @@ const buildEffectCodeOptions = (): EffectCodeOptionGroup[] => [
       {
         value: "",
         label: l10n("FIELD_NO_EFFECT"),
+        defaultParams: 0,
       },
     ],
   },
@@ -46,26 +48,31 @@ const buildEffectCodeOptions = (): EffectCodeOptionGroup[] => [
         value: 0,
         label: "Arpeggio",
         info: "0xy",
+        defaultParams: 0x47,
       },
       {
         value: 1,
         label: "Portamento Up",
         info: "1xx",
+        defaultParams: 0x18,
       },
       {
         value: 2,
         label: "Portamento Down",
         info: "2xx",
+        defaultParams: 0x18,
       },
       {
         value: 3,
         label: "Tone Portamento",
         info: "3xx",
+        defaultParams: 0x80,
       },
       {
         value: 4,
         label: "Vibrato",
         info: "4xy",
+        defaultParams: 0x1f,
       },
     ],
   },
@@ -76,21 +83,25 @@ const buildEffectCodeOptions = (): EffectCodeOptionGroup[] => [
         value: 5,
         label: "Set Master Volume",
         info: "5xx",
+        defaultParams: 0xff,
       },
       {
         value: 12,
         label: "Set Volume",
         info: "Cev",
+        defaultParams: 0x0f,
       },
       {
         value: 10,
         label: "Volume Slide",
         info: "Axy",
+        defaultParams: 0x20,
       },
       {
         value: 8,
         label: "Set Panning",
         info: "8xx",
+        defaultParams: 0xff,
       },
     ],
   },
@@ -101,11 +112,13 @@ const buildEffectCodeOptions = (): EffectCodeOptionGroup[] => [
         value: 7,
         label: "Note Delay",
         info: "7xx",
+        defaultParams: 0x02,
       },
       {
         value: 14,
         label: "Note Cut",
         info: "Exx",
+        defaultParams: 0x02,
       },
     ],
   },
@@ -116,11 +129,13 @@ const buildEffectCodeOptions = (): EffectCodeOptionGroup[] => [
         value: 11,
         label: "Position Jump",
         info: "Bxx",
+        defaultParams: 0x00,
       },
       {
         value: 13,
         label: "Pattern Break",
         info: "Dxx",
+        defaultParams: 0x01,
       },
     ],
   },
@@ -131,16 +146,19 @@ const buildEffectCodeOptions = (): EffectCodeOptionGroup[] => [
         value: 6,
         label: "Call Routine",
         info: "6xx",
+        defaultParams: 0x00,
       },
       {
         value: 9,
         label: "Set Duty Cycle",
         info: "9xx",
+        defaultParams: 0x00,
       },
       {
         value: 15,
         label: "Set Speed",
         info: "Fxx",
+        defaultParams: 0x06,
       },
     ],
   },
@@ -212,6 +230,7 @@ export const EffectCodeSelect: FC<EffectCodeSelectProps> = ({
         value === null || value === undefined
           ? (noneLabel ?? l10n("FIELD_NO_EFFECT"))
           : `Effect ${value.toString(16).toUpperCase()}`,
+      defaultParams: 0,
     };
   }, [allFlatOptions, noneLabel, value]);
 
@@ -220,7 +239,7 @@ export const EffectCodeSelect: FC<EffectCodeSelectProps> = ({
       return;
     }
     const newEffectCode = newValue.value !== "" ? newValue.value : null;
-    onChange?.(newEffectCode);
+    onChange?.(newEffectCode, newValue.defaultParams ?? 0);
     playPreview({
       note,
       instrumentId,

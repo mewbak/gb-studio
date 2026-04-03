@@ -193,17 +193,16 @@ export const InstrumentSubpatternScript = ({
   );
 
   const onChangeEffectCode = useCallback(
-    (effectcode: number | null) => {
+    (effectCode: number | null, effectParam: number) => {
       if (selectedRow === null) {
         return;
       }
       updateRow(selectedRow, {
-        effectcode,
-        effectparam:
-          effectcode === null ? null : (selectedCell.effectparam ?? 0),
+        effectcode: effectCode,
+        effectparam: effectCode === null ? null : effectParam,
       });
     },
-    [selectedCell.effectparam, selectedRow, updateRow],
+    [selectedRow, updateRow],
   );
 
   const onChangeEffectParam = useCallback(
