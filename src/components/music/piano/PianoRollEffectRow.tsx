@@ -149,10 +149,7 @@ export const PianoRollEffectRow = React.memo(
 
           const isSelected = selectedRowIds.includes(columnIdx);
 
-          if (
-            !cell ||
-            (cell.effectcode === null && cell.effectparam === null)
-          ) {
+          if (!cell || cell.effectcode === null) {
             return null;
           }
 
