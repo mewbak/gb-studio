@@ -1,58 +1,68 @@
 import React, { useCallback, useContext } from "react";
 import { SongMetadataEditor } from "components/music/sidebar/SongMetadataEditor";
 import { Button } from "ui/buttons/Button";
-import { ButtonGroup } from "ui/buttons/ButtonGroup";
 import {
   CaretRightIcon,
   HelpIcon,
   PianoIcon,
   PianoInverseIcon,
-  RedoIcon,
   TrackerIcon,
   UndoIcon,
 } from "ui/icons/Icons";
 import { useAppDispatch, useAppSelector } from "store/hooks";
 import trackerActions from "store/features/tracker/trackerActions";
-import styled, { css, ThemeContext } from "styled-components";
-import { FormField, FormRow } from "ui/form/layout/FormLayout";
+import styled, { ThemeContext } from "styled-components";
+import { FormDivider, FormRow } from "ui/form/layout/FormLayout";
 import { Label } from "ui/form/Label";
-import { SidebarColumn } from "ui/sidebars/Sidebar";
 import l10n from "shared/lib/lang/l10n";
 import { FixedSpacer, FlexGrow } from "ui/spacing/Spacing";
-import { getBPM } from "components/music/helpers";
-import {
-  InputGroup,
-  InputGroupAppend,
-  InputGroupLabel,
-} from "ui/form/InputGroup";
-import { NumberInput } from "ui/form/NumberInput";
-import { castEventToInt } from "renderer/lib/helpers/castEventValue";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
 import { Song } from "shared/lib/uge/types";
-import { StyledButtonGroup } from "ui/buttons/style";
 import { TRACKER_UNDO } from "consts";
+import {
+  ToggleButtonGroup,
+  ToggleButtonGroupWrapper,
+} from "ui/form/ToggleButtonGroup";
+import { TrackerViewType } from "store/features/tracker/trackerState";
 
-const ViewButtonLabel = styled.div<{ $isActive: boolean }>`
+const StyledViewSelection = styled.div`
+  padding-top: 10px;
+  width: 100%;
+  ${ToggleButtonGroupWrapper} {
+    width: 100%;
+    height: 70px;
+  }
+`;
+
+const StyledViewButtonLabel = styled.div`
   display: flex;
   align-items: center;
-
+  flex-direction: column;
   svg {
-    margin-right: 10px;
-    min-width: 20px;
-    min-height: 20px;
+    min-width: 25px;
+    min-height: 25px;
+    margin-bottom: 5px;
   }
+`;
 
-  ${(props) =>
-    props.$isActive &&
-    css`
-    svg {
-        fill: ${props.theme.colors.highlightText}
-    `}
+const StyledMenuItems = styled.div`
+  margin: 0 10px;
+  > :first-child {
+    border-top: 1px solid ${(props) => props.theme.colors.input.border};
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+  }
+  > :last-child {
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
+  }
 `;
 
 const StyledMenuItem = styled.div`
   background: ${(props) => props.theme.colors.input.background};
   color: ${(props) => props.theme.colors.input.text};
+  border-left: 1px solid ${(props) => props.theme.colors.input.border};
+  border-right: 1px solid ${(props) => props.theme.colors.input.border};
   border-bottom: 1px solid ${(props) => props.theme.colors.input.border};
   height: 50px;
   font-size: 14px;
@@ -92,35 +102,15 @@ export const MusicWebSettingPane = () => {
     [dispatch],
   );
 
-  const onChangeName = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) =>
-      onChangeSongProp("name", e.currentTarget.value),
-    [onChangeSongProp],
-  );
-
-  const onChangeArtist = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) =>
-      onChangeSongProp("artist", e.currentTarget.value),
-    [onChangeSongProp],
-  );
-
-  const onChangeTicksPerRow = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) =>
-      onChangeSongProp("ticks_per_row", castEventToInt(e, 0)),
-    [onChangeSongProp],
-  );
-
   const view = useAppSelector((state) => state.tracker.view);
 
-  const setTrackerView = useCallback(() => {
-    dispatch(trackerActions.setViewAndSave("tracker"));
-    dispatch(trackerActions.setMobileOverlayView("none"));
-  }, [dispatch]);
-
-  const setRollView = useCallback(() => {
-    dispatch(trackerActions.setViewAndSave("roll"));
-    dispatch(trackerActions.setMobileOverlayView("none"));
-  }, [dispatch]);
+  const setView = useCallback(
+    (view: TrackerViewType) => {
+      dispatch(trackerActions.setViewAndSave(view));
+      dispatch(trackerActions.setMobileOverlayView("none"));
+    },
+    [dispatch],
+  );
 
   const themeContext = useContext(ThemeContext);
 
@@ -135,76 +125,70 @@ export const MusicWebSettingPane = () => {
     <div>
       <SongMetadataEditor />
 
-      {/* <StyledMenuItem>
-        <span>Tempo (Ticks Per Row)</span>
-        <InputGroup>
-          <NumberInput
-            id="ticks_per_row"
-            name="ticks_per_row"
-            type="number"
-            value={song?.ticks_per_row}
-            min={1}
-            max={20}
-            placeholder="1"
-            onChange={onChangeTicksPerRow}
-            title={l10n("FIELD_TEMPO_TOOLTIP")}
-          />
-          <InputGroupAppend>
-            <InputGroupLabel
-              htmlFor="ticks_per_row"
-              style={{ minWidth: 70, justifyContent: "flex-end" }}
-            >
-              ~{Math.round(getBPM(song.ticks_per_row))} BPM
-            </InputGroupLabel>
-          </InputGroupAppend>
-        </InputGroup>
-      </StyledMenuItem> */}
+      <StyledViewSelection>
+        <FormRow>
+          <Label>{l10n("MENU_VIEW")}</Label>
+        </FormRow>
+        <FormRow>
+          <ToggleButtonGroup
+            name="view"
+            value={view}
+            options={[
+              {
+                value: "roll",
+                label: (
+                  <StyledViewButtonLabel>
+                    {view === "roll" ? <PianoInverseIcon /> : themePianoIcon}
+                    Piano Roll
+                  </StyledViewButtonLabel>
+                ),
+                title: "Piano Roll",
+              },
+              {
+                value: "tracker",
+                label: (
+                  <StyledViewButtonLabel>
+                    <TrackerIcon />
+                    Tracker
+                  </StyledViewButtonLabel>
+                ),
+                title: "Tracker",
+              },
+            ]}
+            onChange={setView}
+          ></ToggleButtonGroup>
+        </FormRow>
+      </StyledViewSelection>
 
-      <StyledMenuItem>
-        <span>View</span>
-        <ButtonGroup>
-          <Button
-            variant={view === "roll" ? "primary" : "normal"}
-            onClick={setRollView}
-          >
-            <ViewButtonLabel $isActive={view === "roll"}>
-              {view === "roll" ? <PianoInverseIcon /> : themePianoIcon}
-              Piano Roll
-            </ViewButtonLabel>
-          </Button>
-          <Button
-            variant={view === "tracker" ? "primary" : "normal"}
-            onClick={setTrackerView}
-          >
-            <ViewButtonLabel $isActive={view === "tracker"}>
-              <TrackerIcon />
-              Tracker
-            </ViewButtonLabel>
-          </Button>
-        </ButtonGroup>
-      </StyledMenuItem>
+      <FormDivider />
 
-      <StyledMenuItem
-        onClick={() => {
-          dispatch(trackerActions.setMobileOverlayView("instruments"));
-        }}
-      >
-        <span>Edit Instruments</span>
-        <StyledMenuCaret>
-          <CaretRightIcon />
-        </StyledMenuCaret>
-      </StyledMenuItem>
-      <StyledMenuItem
-        onClick={() => {
-          dispatch(trackerActions.setMobileOverlayView("sequence"));
-        }}
-      >
-        <span>Edit Pattern Order</span>
-        <StyledMenuCaret>
-          <CaretRightIcon />
-        </StyledMenuCaret>
-      </StyledMenuItem>
-      <FixedSpacer height={20} />
+      <StyledMenuItems>
+        <StyledMenuItem
+          onClick={() => {
+            dispatch(trackerActions.setMobileOverlayView("instruments"));
+          }}
+        >
+          <span>Edit Instruments</span>
+          <StyledMenuCaret>
+            <CaretRightIcon />
+          </StyledMenuCaret>
+        </StyledMenuItem>
+        <StyledMenuItem
+          onClick={() => {
+            dispatch(trackerActions.setMobileOverlayView("sequence"));
+          }}
+        >
+          <span>Edit Pattern Order</span>
+          <StyledMenuCaret>
+            <CaretRightIcon />
+          </StyledMenuCaret>
+        </StyledMenuItem>
+      </StyledMenuItems>
+
+      <FixedSpacer height={10} />
+      <FormDivider />
+
+      {/* <FixedSpacer height={20} /> */}
 
       <FormRow>
         <Button variant="transparent">
