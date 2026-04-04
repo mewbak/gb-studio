@@ -307,11 +307,6 @@ export const StandaloneMusicPage = ({
     };
   }, []);
 
-  const sidebarView = useAppSelector((state) => state.tracker.sidebarView);
-  // const selectedPatternCells = useAppSelector(
-  //   (state) => state.tracker.selectedPatternCells,
-  // );
-
   useEffect(() => {
     dispatch(trackerActions.setShowVirtualKeyboard(isProbablyPhone()));
   }, [dispatch]);
@@ -332,71 +327,6 @@ export const StandaloneMusicPage = ({
   const mobileOverlayView = useAppSelector(
     (state) => state.tracker.mobileOverlayView,
   );
-
-  const selectedEffectCell = useAppSelector(
-    (state) => state.tracker.selectedEffectCell,
-  );
-
-  const mobileOverlayViewRef = useRef(mobileOverlayView);
-  // useEffect(() => {
-  //   mobileOverlayViewRef.current = mobileOverlayView;
-  //   if (mobileOverlayView === "notes") {
-  //     dispatch(trackerActions.setSidebarView("cell"));
-  //   }
-  // }, [dispatch, mobileView]);
-
-  // useEffect(() => {
-  //   if (sidebarView === "cell" && selectedEffectCell && mobileOverlayViewRef.current !== "notes") {
-  //     setMobileOverlayView("notes");
-  //   }
-  // }, [sidebarView, selectedEffectCell]);
-
-  // const transitionMobileOverlayView = useCallback((view: MobileViewType) => {
-  //   if (!document.startViewTransition) {
-  //     setMobileOverlayView(view);
-  //     return;
-  //   }
-
-  //   document.startViewTransition(() => {
-  //     setMobileOverlayView(view);
-  //   });
-  // }, []);
-
-  // const transitionMobileOverlayView = useCallback((view: MobileViewType) => {
-  //   if (!document.startViewTransition) {
-  //     setMobileOverlayView(view);
-  //     return;
-  //   }
-
-  //   document.startViewTransition(() => {
-  //     flushSync(() => {
-  //       setMobileOverlayView(view);
-  //     });
-  //   });
-  // }, []);
-
-  // const transitionRef = useRef<Promise<void> | null>(null);
-
-  // const transitionMobileOverlayView = useCallback((view: MobileViewType) => {
-  //   if (transitionRef.current) {
-  //     return;
-  //   }
-
-  //   if (!document.startViewTransition) {
-  //     setMobileOverlayView(view);
-  //     return;
-  //   }
-
-  //   const transition = document.startViewTransition(() => {
-  //     flushSync(() => {
-  //       setMobileOverlayView(view);
-  //     });
-  //   });
-
-  //   transitionRef.current = transition.finished.finally(() => {
-  //     transitionRef.current = null;
-  //   });
-  // }, []);
 
   return (
     <Wrapper>
@@ -465,95 +395,6 @@ export const StandaloneMusicPage = ({
                 onOpenSettings={openSettingsPanel}
               />
             )}
-            {/* {isCompactLayout && view === "roll" && (
-              <StyledMobileToolbar>
-                <StyledMobileToolbarButton
-                  $isActive={mobileOverlayView === "channels"}
-                  onClick={() => {
-                    setMobileOverlayView(
-                      mobileView !== "channels" ? "channels" : "none",
-                    );
-                  }}
-                >
-                  Channels
-                </StyledMobileToolbarButton>
-                <StyledMobileToolbarButton
-                  $isActive={mobileOverlayView === "instruments"}
-                  onClick={() => {
-                    setMobileOverlayView(
-                      mobileView !== "instruments" ? "instruments" : "none",
-                    );
-                  }}
-                >
-                  Instruments
-                </StyledMobileToolbarButton>
-                <StyledMobileToolbarButton
-                  $isActive={mobileOverlayView === "sequence"}
-                  onClick={() => {
-                    setMobileOverlayView(
-                      mobileView !== "sequence" ? "sequence" : "none",
-                    );
-                  }}
-                >
-                  Sequence
-                </StyledMobileToolbarButton>
-                <StyledMobileToolbarButton
-                  $isActive={mobileOverlayView === "notes"}
-                  onClick={() => {
-                    setMobileOverlayView(mobileView !== "notes" ? "notes" : "none");
-                  }}
-                >
-                  Notes
-                </StyledMobileToolbarButton>
-            
-              </StyledMobileToolbar>
-            )} */}
-
-            {/* {isCompactLayout && (
-              <div
-                style={{
-                  flexShrink: 0,
-                  height: 400,
-                  background: "yellow",
-                }}
-              ></div>
-            )} */}
-
-            {/* {isCompactLayout && (
-              <div
-                style={{
-                  // position: "fixed",
-                  // bottom: 10,
-                  // left: 10,
-                  // right: 10,
-                  flexShrink: 0,
-                  height: 300,
-                  zIndex: 10000,
-                  background: "green",
-                  overflow: "hidden",
-                  boxShadow: "2px 2px 10px rgba(0,0,0,0.5)",
-                }}
-              >
-                <SplitPaneVerticalDivider />
-
-                {status === "loaded" && (
-                  <div
-                    style={{
-                      height: 300 - 31,
-                      overflow: "auto",
-                    }}
-                  >
-                    {sidebarView === "cell" &&
-                      selectedPatternCells.length > 0 && (
-                        <PatternCellSelectionEditor />
-                      )}
-                    {sidebarView === "instrument" && <InstrumentEditor />}
-                  </div>
-                )}
-              </div>
-            )} */}
-
-            {/* {isCompactLayout && <StyledMobileToolbarSpacer />} */}
 
             {!isCompactLayout && (
               <>
@@ -594,9 +435,7 @@ export const StandaloneMusicPage = ({
                   setMobileOverlayView("none");
                 }}
               >
-                {/* <StyledMobileOverlayContent> */}
                 <InstrumentEditor />
-                {/* </StyledMobileOverlayContent> */}
               </MobileOverlay>
 
               <MobileOverlay
@@ -639,9 +478,7 @@ export const StandaloneMusicPage = ({
                   setMobileOverlayView("none");
                 }}
               >
-                {/* <StyledMobileOverlayContent> */}
                 <PatternCellSelectionEditor />
-                {/* </StyledMobileOverlayContent> */}
               </MobileOverlay>
             </>
           )}
