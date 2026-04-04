@@ -5,6 +5,8 @@ export const StyledSequenceEditorWrapper = styled.div`
   flex-direction: column;
   background-color: ${(props) => props.theme.colors.sidebar.background};
   flex-shrink: 0;
+  min-width: 100%;
+  width: 0px;
 
   .CustomSelect {
     min-width: 0;
