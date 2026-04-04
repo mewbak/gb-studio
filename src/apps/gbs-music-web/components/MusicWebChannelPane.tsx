@@ -118,6 +118,7 @@ export const MusicWebChannelPane = () => {
         type: channelIdToInstrumentType(channelId),
       }),
     );
+    dispatch(trackerActions.setSidebarView("instrument"));
     dispatch(trackerActions.setMobileOverlayView("instruments"));
   }, [channelId, dispatch, selectedInstrumentId]);
 
