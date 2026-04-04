@@ -16,8 +16,6 @@ import { FormDivider, FormRow } from "ui/form/layout/FormLayout";
 import { Label } from "ui/form/Label";
 import l10n from "shared/lib/lang/l10n";
 import { FixedSpacer, FlexGrow } from "ui/spacing/Spacing";
-import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
-import { Song } from "shared/lib/uge/types";
 import { TRACKER_UNDO } from "consts";
 import {
   ToggleButtonGroup,
@@ -88,19 +86,6 @@ export const MusicWebSettingPane = () => {
   const dispatch = useAppDispatch();
 
   const song = useAppSelector((state) => state.trackerDocument.present.song);
-
-  const onChangeSongProp = useCallback(
-    <K extends keyof Song>(key: K, value: Song[K]) => {
-      dispatch(
-        trackerDocumentActions.editSong({
-          changes: {
-            [key]: value,
-          },
-        }),
-      );
-    },
-    [dispatch],
-  );
 
   const view = useAppSelector((state) => state.tracker.view);
 
