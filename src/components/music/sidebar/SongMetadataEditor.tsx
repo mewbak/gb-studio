@@ -112,7 +112,7 @@ export const SongMetadataEditor = () => {
                 placeholder="1"
                 onChange={onChangeTicksPerRow}
                 title={l10n("FIELD_TEMPO_TOOLTIP")}
-                pattern="\\d*"
+                pattern="\d*"
               />
               <InputGroupAppend>
                 <InputGroupLabel
