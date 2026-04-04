@@ -41,7 +41,6 @@ export const InstrumentLengthForm = ({
           value={value || 0}
           min={value ? min : 0}
           max={max}
-          sensitivity={3}
           onChange={(value) => {
             onChange(value || 0);
           }}

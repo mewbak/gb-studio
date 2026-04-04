@@ -89,7 +89,6 @@ export const InstrumentEnvelopeEditor = ({
           value={length ?? 0}
           min={1}
           max={64}
-          sensitivity={3}
           onChange={onChangeLength}
         />
       </StyledEnvelopeField>

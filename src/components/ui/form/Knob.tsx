@@ -8,6 +8,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+import clamp from "shared/lib/helpers/clamp";
 import styled, { ThemeContext, css } from "styled-components";
 
 interface KnobProps {
@@ -28,7 +29,7 @@ type DragAxis = "horizontal" | "vertical" | null;
 const KNOB_START_ANGLE = -135;
 const KNOB_END_ANGLE = 135;
 const KNOB_SWEEP = KNOB_END_ANGLE - KNOB_START_ANGLE;
-const DEAD_ZONE_PX = 5;
+const DEAD_ZONE_PX = 15;
 const PAGE_STEP_MULTIPLIER = 10;
 
 const clampAndSnap = (
@@ -208,7 +209,7 @@ export const Knob = ({
   labelledBy,
   ariaLabel,
   onChange,
-  sensitivity = 0.25,
+  sensitivity = 0.02,
   formatValue,
 }: KnobProps) => {
   const themeContext = useContext(ThemeContext);
@@ -219,6 +220,7 @@ export const Knob = ({
   const dragStartYRef = useRef(0);
   const dragStartValueRef = useRef(0);
   const dragAxisRef = useRef<DragAxis>(null);
+  const touchValue = useRef<number | null>(0);
 
   const [isDragging, setIsDragging] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -250,6 +252,7 @@ export const Knob = ({
         return;
       }
 
+      touchValue.current = null;
       lastEmittedValueRef.current = snapped;
       onChange?.(snapped);
     },
@@ -340,12 +343,17 @@ export const Knob = ({
 
         dragAxisRef.current =
           Math.abs(dx) > Math.abs(dy) ? "horizontal" : "vertical";
+
+        dragStartXRef.current = event.clientX;
+        dragStartYRef.current = event.clientY;
+
         setDragAxisState(dragAxisRef.current);
+        return;
       }
 
       const primaryDelta = dragAxisRef.current === "horizontal" ? dx : dy;
       const nextValue = clampAndSnap(
-        dragStartValueRef.current + primaryDelta * sensitivity * step,
+        dragStartValueRef.current + primaryDelta * sensitivity * (max - min),
         min,
         max,
         step,
@@ -364,6 +372,11 @@ export const Knob = ({
         return;
       }
 
+      if (touchValue.current !== null) {
+        const value = clampAndSnap(touchValue.current, min, max, step);
+        commitValue(value);
+      }
+
       pointerIdRef.current = null;
       dragAxisRef.current = null;
       setDragAxisState(null);
@@ -380,7 +393,15 @@ export const Knob = ({
       window.removeEventListener("pointerup", finishDrag);
       window.removeEventListener("pointercancel", finishDrag);
     };
-  }, [emitValueIfChanged, isDragging, max, min, sensitivity, step]);
+  }, [
+    commitValue,
+    emitValueIfChanged,
+    isDragging,
+    max,
+    min,
+    sensitivity,
+    step,
+  ]);
 
   const onPointerDown = useCallback(
     (event: ReactPointerEvent<HTMLButtonElement>) => {
@@ -399,10 +420,23 @@ export const Knob = ({
       setOverlayValue(safeValue);
       setIsDragging(true);
 
+      // Calculate value at touch start
+      const rect = event.currentTarget.getBoundingClientRect();
+      const relX = 2 * ((event.clientX - rect.left) / rect.width) - 1;
+      const relY = 2 * ((event.clientY - rect.top) / rect.height) - 1;
+      const length = Math.sqrt(relX * relX + relY * relY);
+
+      if (length > 0.5) {
+        const angle = Math.round(Math.atan2(relX, -relY) * (180 / Math.PI));
+        const ratio = clamp((angle - KNOB_START_ANGLE) / KNOB_SWEEP, 0, 1);
+        const value = clampAndSnap(min + (max - min) * ratio, min, max, step);
+        touchValue.current = value;
+      }
+
       event.currentTarget.setPointerCapture(event.pointerId);
       event.preventDefault();
     },
-    [isEditing, safeValue],
+    [isEditing, max, min, safeValue, step],
   );
 
   const onKeyDown = useCallback(

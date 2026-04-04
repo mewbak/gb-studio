@@ -96,7 +96,6 @@ export const InstrumentWaveEnvelopeEditor = ({
           value={length ?? 0}
           min={1}
           max={256}
-          sensitivity={3}
           onChange={onChangeLength}
         />
       </StyledEnvelopeField>
@@ -108,7 +107,6 @@ export const InstrumentWaveEnvelopeEditor = ({
           value={fixVolume(volume)}
           min={0}
           max={3}
-          sensitivity={0.1}
           onChange={fixedOnChangeVolume}
           formatValue={formatValue}
         />
