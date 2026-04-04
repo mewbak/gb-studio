@@ -20,7 +20,9 @@ import {
   StyledAddSequenceButton,
   StyledSequenceEditorWrapper,
   StyledSequenceItem,
+  StyledSequenceItemHeader,
 } from "./style";
+import { DropdownButton } from "ui/buttons/DropdownButton";
 
 interface SequenceOption {
   value: number;
@@ -48,6 +50,7 @@ interface SequenceItemProps {
   sequenceLength: number;
   numPatterns: number;
   setSelectHasFocus: (value: boolean) => void;
+  direction: "vertical" | "horizontal";
 }
 
 const SequenceItem = ({
@@ -58,6 +61,7 @@ const SequenceItem = ({
   sequenceLength,
   numPatterns,
   setSelectHasFocus,
+  direction,
 }: SequenceItemProps) => {
   const dispatch = useAppDispatch();
 
@@ -73,17 +77,25 @@ const SequenceItem = ({
     [dispatch, item.sequenceIndex],
   );
 
-  const { onContextMenu, contextMenuElement } = useContextMenu({
-    getMenu: ({ closeMenu }) =>
-      renderPatternContextMenu({
+  const getContextMenu = useCallback(
+    (onClose?: () => void) => {
+      return renderPatternContextMenu({
         dispatch,
         patternIndex: item.patternId,
         orderIndex: item.sequenceIndex,
         orderLength: sequenceLength,
         numPatterns,
-        onClose: closeMenu,
-      }),
+        onClose,
+      });
+    },
+    [dispatch, item.patternId, item.sequenceIndex, numPatterns, sequenceLength],
+  );
+
+  const { onContextMenu, contextMenuElement } = useContextMenu({
+    getMenu: ({ closeMenu }) => getContextMenu(closeMenu),
   });
+
+  const contextMenu = useMemo(() => getContextMenu(), [getContextMenu]);
 
   return (
     <StyledSequenceItem
@@ -95,24 +107,43 @@ const SequenceItem = ({
       }}
       onContextMenu={onContextMenu}
     >
-      <div style={{ padding: "0 0 2px 2px" }}>{item.sequenceIndex + 1}:</div>
-      <Select
-        classNamePrefix="CustomSelect--Left CustomSelect--WidthAuto"
-        value={sequenceOptions.find(
-          (option) => option.value === item.patternId,
+      <StyledSequenceItemHeader $direction={direction}>
+        <span>
+          {item.sequenceIndex + 1}:
+          {direction === "vertical"
+            ? ` ${l10n("FIELD_PATTERN")} ${String(item.patternId).padStart(2, "0")}`
+            : ""}
+        </span>
+        {direction === "vertical" && (
+          <DropdownButton
+            variant="transparent"
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            {contextMenu}
+          </DropdownButton>
         )}
-        formatOptionLabel={(option, { context }) =>
-          context === "value" ? option.shortLabel : option.label
-        }
-        options={sequenceOptions}
-        onFocus={() => setSelectHasFocus(true)}
-        onBlur={() => setSelectHasFocus(false)}
-        onChange={(newValue: SingleValue<SequenceOption>) => {
-          if (newValue) {
-            editSequence(newValue);
+      </StyledSequenceItemHeader>
+      {direction === "horizontal" && (
+        <Select
+          classNamePrefix="CustomSelect--Left CustomSelect--WidthAuto"
+          value={sequenceOptions.find(
+            (option) => option.value === item.patternId,
+          )}
+          formatOptionLabel={(option, { context }) =>
+            context === "value" && direction === "horizontal"
+              ? option.shortLabel
+              : option.label
           }
-        }}
-      />
+          options={sequenceOptions}
+          onFocus={() => setSelectHasFocus(true)}
+          onBlur={() => setSelectHasFocus(false)}
+          onChange={(newValue: SingleValue<SequenceOption>) => {
+            if (newValue) {
+              editSequence(newValue);
+            }
+          }}
+        />
+      )}
       {contextMenuElement}
     </StyledSequenceItem>
   );
@@ -233,6 +264,7 @@ const SequenceEditorFwd = ({
             setSelectHasFocus={setSelectHasFocus}
             sequenceLength={sequenceItems.length}
             numPatterns={patterns}
+            direction={direction}
           />
         )}
         moveItems={onMoveSequence}

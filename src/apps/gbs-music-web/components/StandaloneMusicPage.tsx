@@ -625,7 +625,7 @@ export const StandaloneMusicPage = ({
               >
                 {songDocument && (
                   <SequenceEditor
-                    direction="horizontal"
+                    direction="vertical"
                     sequence={songDocument.sequence}
                     patterns={songDocument.patterns.length}
                     playingSequence={playbackState[0]}

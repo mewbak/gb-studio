@@ -122,6 +122,10 @@ export const StyledMobileOverlayWrapper = styled.div<{
   transform: translateY(${(props) => (props.$open ? "0" : "100%")});
   pointer-events: ${(props) => (props.$open ? "auto" : "none")};
   box-sizing: border-box;
+
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - 50px);
 `;
 
 export const StyledMobileOverlayContainer = styled.div<{
@@ -136,12 +140,13 @@ export const StyledMobileOverlayContainer = styled.div<{
     props.$open ? "0px -10px 10px rgba(0, 0, 0, 0.3)" : "none"};
   border: 1px solid ${(props) => props.theme.colors.sidebar.border};
   border-bottom: 0;
+  display: flex;
+  flex-direction: column;
 
   ${(props) =>
     !props.$isDragging
       ? css`
           transition: transform 100ms ease-in-out;
-          // transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         `
       : ""}
 
@@ -150,15 +155,14 @@ export const StyledMobileOverlayContainer = styled.div<{
       ? css`
           top: 40px;
           height: calc(100dvh - 50px);
-          max-height: 100dvh;
           border-top-left-radius: 12px;
           border-top-right-radius: 12px;
           padding-top: 28px;
         `
       : css`
           top: auto;
-          height: auto;
-          max-height: 100dvh;
+          min-height: 0px;
+          max-height: calc(100dvh - 50px);
           border-top-left-radius: 12px;
           border-top-right-radius: 12px;
           padding-top: 28px;
@@ -229,8 +233,10 @@ export const StyledMobileOverlayCloseButton = styled.div`
 `;
 
 export const StyledMobileOverlayContent = styled.div`
-  max-height: 100%;
+  height: 100%;
   overflow: auto;
+  flex-grow: 1;
+  min-height: 0px;
 `;
 
 export const StyledSafeMarginBottom = styled.div`

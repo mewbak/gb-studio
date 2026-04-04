@@ -33,6 +33,24 @@ export const StyledSequenceItem = styled.div<StyledSequenceItemProps>`
       : ""}
 `;
 
+export const StyledSequenceItemHeader = styled.div<{
+  $direction: "horizontal" | "vertical";
+}>`
+  display: flex;
+  align-items: center;
+  span {
+    flex-grow: 1;
+  }
+  margin-bottom: 5px;
+
+  ${(props) =>
+    props.$direction === "vertical" &&
+    css`
+      padding-left: 5px;
+      margin-bottom: 0px;
+    `}
+`;
+
 export const StyledAddSequenceButton = styled.button`
   background: ${(props) => props.theme.colors.button.nestedBackground};
   min-width: 60px;
