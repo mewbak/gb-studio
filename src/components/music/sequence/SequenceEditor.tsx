@@ -102,7 +102,6 @@ const SequenceItem = ({
       $selected={isSelected}
       $active={playingSequence === item.sequenceIndex}
       style={{
-        color: "#000",
         background: `linear-gradient(0deg, hsl(${patternHue(item.patternId)}deg 100% 70%) 0%, hsl(${patternHue(item.patternId)}deg 100% 90%) 100%)`,
       }}
       onContextMenu={onContextMenu}

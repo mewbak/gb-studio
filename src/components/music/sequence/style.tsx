@@ -19,11 +19,15 @@ interface StyledSequenceItemProps {
 export const StyledSequenceItem = styled.div<StyledSequenceItemProps>`
   border: 1px solid ${(props) => props.theme.colors.tracker.border};
   background-color: ${(props) => props.theme.colors.button.nestedBackground};
-  color: ${(props) => props.theme.colors.input.text};
+  color: #000;
   padding: 4px;
   min-width: 60px;
   border-radius: 4px;
   box-sizing: border-box;
+
+  svg {
+    fill: #000;
+  }
 
   ${(props) =>
     props.$selected
