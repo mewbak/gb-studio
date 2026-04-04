@@ -15,7 +15,6 @@ import {
 } from "components/music/musicClipboardHelpers";
 import { getKeys } from "renderer/lib/keybindings/keyBindings";
 import trackerActions from "store/features/tracker/trackerActions";
-import scrollIntoView from "scroll-into-view-if-needed";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
 import { mergeWith } from "lodash";
 import { Position, SelectionRect } from "components/music/tracker/helpers";
@@ -248,9 +247,7 @@ export const InstrumentSubpatternTracker = ({
     if (!el) {
       return;
     }
-
-    scrollIntoView(el, {
-      scrollMode: "if-needed",
+    el.scrollIntoView({
       block: "nearest",
     });
   }, [activeField]);

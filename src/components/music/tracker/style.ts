@@ -55,6 +55,11 @@ export const StyledTrackerContentTable = styled.table<StyledTrackerContentTableP
         text-align: left;
         padding: 0 5px;
       }
+
+      td {
+        scroll-margin-top: 110px;
+        scroll-margin-bottom: 320px;
+      }
     `}
 `;
 
