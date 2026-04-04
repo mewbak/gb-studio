@@ -143,6 +143,7 @@ export const createMusicSession = (): MusicSession => {
         break;
       }
       case "export-song": {
+        player.reset();
         void player
           .exportSong(data.song, data.format, data.loopCount)
           .then((fileData) => {
