@@ -5,7 +5,6 @@ import {
   PayloadAction,
   createAction,
 } from "@reduxjs/toolkit";
-import cloneDeep from "lodash/cloneDeep";
 import {
   Song,
   PatternCell,
@@ -956,7 +955,7 @@ const trackerSlice = createSlice({
         };
       }
 
-      const patterns = cloneDeep(state.song.patterns);
+      const patterns = state.song.patterns;
       patterns[patternId][rowId][colId] = {
         ...patternCell,
         ...patch,
@@ -1014,7 +1013,7 @@ const trackerSlice = createSlice({
         return;
       }
       const patternId = _action.payload.patternId;
-      const patterns = cloneDeep(state.song.patterns);
+      const patterns = state.song.patterns;
       patterns[patternId] = _action.payload.pattern;
       state.song = {
         ...state.song,

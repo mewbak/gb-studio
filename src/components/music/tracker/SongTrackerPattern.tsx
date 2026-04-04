@@ -1,5 +1,5 @@
 import React, { memo } from "react";
-import { Song, PatternCell } from "shared/lib/uge/types";
+import { PatternCell } from "shared/lib/uge/types";
 import { TrackerHeaderCell } from "./TrackerHeaderCell";
 import {
   StyledTrackerContentTable,
@@ -14,7 +14,7 @@ import { SongTrackerRow } from "./SongTrackerRow";
 import { TRACKER_ROW_SIZE } from "consts";
 
 interface SongTrackerPatternProps {
-  song: Song;
+  pattern: PatternCell[][];
   sequencePatternId: number;
   renderSequenceId: number;
   activeSequenceId: number;
@@ -30,12 +30,12 @@ interface SongTrackerPatternProps {
   tableRef: React.RefObject<HTMLTableSectionElement>;
   activeFieldRef: React.RefObject<HTMLSpanElement>;
   onFocus: () => void;
-  onSelectionContextMenu: (event: React.MouseEvent<HTMLElement>) => void;
+  onSelectionContextMenu?: (event: React.MouseEvent<HTMLElement>) => void;
 }
 
 export const SongTrackerPattern = memo(
   ({
-    song,
+    pattern,
     sequencePatternId,
     renderSequenceId,
     activeSequenceId,
@@ -53,7 +53,6 @@ export const SongTrackerPattern = memo(
     onFocus,
     onSelectionContextMenu,
   }: SongTrackerPatternProps) => {
-    const renderPattern = song.patterns[sequencePatternId];
     const isActivePattern = renderSequenceId === activeSequenceId;
 
     return (
@@ -123,7 +122,7 @@ export const SongTrackerPattern = memo(
           onFocus={onFocus}
           onContextMenu={onSelectionContextMenu}
         >
-          {renderPattern?.map((row: PatternCell[], rowIndex: number) => {
+          {pattern?.map((row: PatternCell[], rowIndex: number) => {
             let selectedFieldsInRow: Set<number> | undefined;
 
             if (selectedTrackerFieldSet) {

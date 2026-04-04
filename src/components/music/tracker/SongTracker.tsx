@@ -1574,10 +1574,15 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
                 ? getLocalFieldFromGlobalField(activeField)
                 : undefined;
 
+            const onSelectionContextMenuForPattern =
+              selectedSequenceId === renderSequenceId
+                ? onSelectionContextMenu
+                : undefined;
+
             return (
               <SongTrackerPattern
                 key={renderSequenceId}
-                song={song}
+                pattern={song.patterns[sequencePatternId]}
                 sequencePatternId={sequencePatternId}
                 renderSequenceId={renderSequenceId}
                 activeSequenceId={activeSequenceId}
@@ -1593,7 +1598,7 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
                 tableRef={tableRef}
                 activeFieldRef={activeFieldRef}
                 onFocus={onFocus}
-                onSelectionContextMenu={onSelectionContextMenu}
+                onSelectionContextMenu={onSelectionContextMenuForPattern}
               />
             );
           })}
