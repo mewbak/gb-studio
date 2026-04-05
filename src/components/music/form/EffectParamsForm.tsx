@@ -28,13 +28,6 @@ interface EffectParamsFormProps {
   instrumentId?: number;
 }
 
-const routineOptions: SelectOption[] = [
-  { value: 0, label: "Routine 0" },
-  { value: 1, label: "Routine 1" },
-  { value: 2, label: "Routine 2" },
-  { value: 3, label: "Routine 3" },
-];
-
 const waveformOptions: SelectOption[] = [
   { value: 0x0, label: "0000000000000000000000000" },
   { value: 0x1, label: "0101010101010101010101010" },
@@ -79,6 +72,16 @@ export const EffectParamsForm: FC<EffectParamsFormProps> = ({
       y: effectParam & 0xf,
     }),
     [effectParam],
+  );
+
+  const routineOptions: SelectOption[] = useMemo(
+    () => [
+      { value: 0, label: `${l10n("FIELD_ROUTINE")} 0` },
+      { value: 1, label: `${l10n("FIELD_ROUTINE")} 1` },
+      { value: 2, label: `${l10n("FIELD_ROUTINE")} 2` },
+      { value: 3, label: `${l10n("FIELD_ROUTINE")} 3` },
+    ],
+    [],
   );
 
   const onChangeParamField = (field: "x" | "y") => (fieldValue: number) => {

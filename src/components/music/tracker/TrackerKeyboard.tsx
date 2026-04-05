@@ -15,6 +15,7 @@ import {
 import { Button } from "ui/buttons/Button";
 import { StyledButton } from "ui/buttons/style";
 import useWindowSize from "ui/hooks/use-window-size";
+import l10n from "shared/lib/lang/l10n";
 
 export type VirtualTrackerKey =
   | {
@@ -534,7 +535,7 @@ export const TrackerKeyboard = ({
                 }}
               >
                 +<br />
-                Val
+                {l10n("FIELD_VALUE")}
               </Button>
               <Button
                 onPointerDown={(e) => {
@@ -547,7 +548,7 @@ export const TrackerKeyboard = ({
                 }}
               >
                 +<br />
-                Oct
+                {l10n("FIELD_OCTAVE")}
               </Button>
               <Button
                 onPointerDown={(e) => {
@@ -560,7 +561,7 @@ export const TrackerKeyboard = ({
                 }}
               >
                 +<br />
-                Semi
+                {l10n("FIELD_SEMITONE")}
               </Button>
             </StyledTrackerKeyboardButtonsRow>
             <StyledTrackerKeyboardButtonsRow>
@@ -574,7 +575,7 @@ export const TrackerKeyboard = ({
                 }}
               >
                 -<br />
-                Val
+                {l10n("FIELD_VALUE")}
               </Button>
               <Button
                 onPointerDown={(e) => {
@@ -587,7 +588,7 @@ export const TrackerKeyboard = ({
                 }}
               >
                 -<br />
-                Oct
+                {l10n("FIELD_OCTAVE")}
               </Button>
               <Button
                 onPointerDown={(e) => {
@@ -600,7 +601,7 @@ export const TrackerKeyboard = ({
                 }}
               >
                 -<br />
-                Semi
+                {l10n("FIELD_SEMITONE")}
               </Button>
             </StyledTrackerKeyboardButtonsRow>
             <StyledTrackerKeyboardButtonsRow>
@@ -612,7 +613,7 @@ export const TrackerKeyboard = ({
                   });
                 }}
               >
-                Insert Row
+                {l10n("FIELD_INSERT_ROW")}
               </Button>
               <Button
                 onPointerDown={(e) => {
@@ -622,7 +623,7 @@ export const TrackerKeyboard = ({
                   });
                 }}
               >
-                Remove Row
+                {l10n("FIELD_DELETE_ROW")}
               </Button>
             </StyledTrackerKeyboardButtonsRow>
           </StyledTrackerEffectButtons>

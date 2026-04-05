@@ -124,7 +124,9 @@ export const PatternCellSelectionEditor = () => {
             }
           }}
           noneLabel={
-            sharedNote.type === "multiple" ? "Multiple Values" : "None"
+            sharedNote.type === "multiple"
+              ? l10n("FIELD_MULTIPLE_VALUES")
+              : l10n("FIELD_NONE")
           }
           instrumentId={sharedInstrumentId.value ?? undefined}
           effectCode={sharedEffectCode.value ?? undefined}
@@ -150,8 +152,8 @@ export const PatternCellSelectionEditor = () => {
             }}
             noneLabel={
               sharedInstrumentId.type === "multiple"
-                ? "Multiple Values"
-                : "None"
+                ? l10n("FIELD_MULTIPLE_VALUES")
+                : l10n("FIELD_NONE")
             }
             note={sharedNote.value ?? undefined}
             effectCode={sharedEffectCode.value ?? undefined}
@@ -187,7 +189,9 @@ export const PatternCellSelectionEditor = () => {
             );
           }}
           noneLabel={
-            sharedEffectCode.type === "multiple" ? "Multiple Values" : "None"
+            sharedEffectCode.type === "multiple"
+              ? l10n("FIELD_MULTIPLE_VALUES")
+              : l10n("FIELD_NONE")
           }
           // note={sharedNote !== null ? sharedNote : undefined}
           note={sharedNote.value ?? undefined}
