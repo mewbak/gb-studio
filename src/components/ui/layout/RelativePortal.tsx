@@ -112,11 +112,11 @@ export const RelativePortal: FC<RelativePortalProps> = ({
         }
       } else if (props.pin === "parent-edge") {
         if (newX + contentsWidth + MIN_MARGIN > window.innerWidth) {
-          newX -= parentWidth + contentsWidth;
+          newX = window.innerWidth - (contentsWidth + MIN_MARGIN);
         }
-      } else if (newX + contentsWidth + MIN_MARGIN > window.innerWidth) {
-        newX = window.innerWidth - contentsWidth - MIN_MARGIN;
       }
+
+      newX = Math.max(10, newX);
 
       setPortalState((prev) => {
         if (prev.type === "ready" && prev.x === newX && prev.y === newY) {
