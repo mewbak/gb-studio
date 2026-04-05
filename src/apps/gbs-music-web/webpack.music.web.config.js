@@ -108,6 +108,17 @@ rules.push({
   },
 });
 
+rules.push({
+  test: /\.uge$/i,
+  type: "asset/inline",
+  generator: {
+    dataUrl: {
+      mimetype: "application/octet-stream",
+      encoding: "base64",
+    },
+  },
+});
+
 module.exports = {
   mode: isProduction ? "production" : "development",
   target: "web",
@@ -159,7 +170,6 @@ module.exports = {
     new CopyPlugin({
       patterns: [
         { from: "src/apps/gbs-music-web/index.html", to: "index.html" },
-        { from: "appData/music/template.uge", to: "template.uge" },
       ],
     }),
     new webpack.DefinePlugin({

@@ -24,6 +24,8 @@ import { musicSelectors } from "store/features/entities/entitiesState";
 import WebAPI from "gbs-music-web/lib/api";
 import { ConfirmUnsavedChangesDialog } from "gbs-music-web/components/dialog/ConfirmUnsavedChangesDialog";
 import { MusicWebSplash } from "gbs-music-web/components/MusicWebSplash";
+import { useUnsavedChangesGuard } from "gbs-music-web/components/hooks/useUnsavedChangesGuard";
+import templateUge from "gbs-music-web/data/template.uge";
 
 const AppShell = styled.div`
   display: flex;
@@ -36,6 +38,27 @@ const AppContent = styled.div`
   min-height: 0;
   display: flex;
 `;
+
+const dataUriToUint8Array = (dataUri: string): Uint8Array => {
+  const prefix = "base64,";
+  const prefixIndex = dataUri.indexOf(prefix);
+
+  if (prefixIndex === -1) {
+    throw new Error("Invalid template data URI");
+  }
+
+  const base64 = dataUri.slice(prefixIndex + prefix.length);
+  const binary = window.atob(base64);
+  const bytes = new Uint8Array(binary.length);
+
+  for (let i = 0; i < binary.length; i += 1) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+
+  return bytes;
+};
+
+const templateSongData = dataUriToUint8Array(templateUge);
 
 const sortDocuments = (documents: MusicDocumentReference[]) =>
   [...documents].sort((a, b) =>
@@ -71,23 +94,11 @@ const appendWorkspaceDocument = (
   });
 };
 
-const loadTemplateSongData = async () => {
-  const templateUrl = new URL("template.uge", window.location.href).toString();
-  const response = await fetch(templateUrl);
-  if (!response.ok) {
-    throw new Error(`Unable to load music template: ${response.statusText}`);
-  }
-  return new Uint8Array(await response.arrayBuffer());
-};
-
 export const MusicWebApp = () => {
   const dispatch = useAppDispatch();
   const [workspace, setWorkspace] = useState<MusicWorkspace>();
   const [themeId, setThemeId] = useState(WebAPI.getThemeId());
   const [localeId, setLocaleId] = useState(WebAPI.getLocaleId());
-  const [pendingAction, setPendingAction] = useState<
-    (() => Promise<void>) | null
-  >(null);
   const singleDocumentMode = !supportsPersistentSave();
   const modified = useAppSelector((state) => state.tracker.modified);
   const currentSongName = useAppSelector((state) => {
@@ -97,6 +108,22 @@ export const MusicWebApp = () => {
   const selectedSongId = useAppSelector(
     (state) => state.tracker.selectedSongId,
   );
+
+  const saveCurrentSong = useCallback(async () => {
+    const result = await dispatch(saveSongFile());
+    return saveSongFile.fulfilled.match(result);
+  }, [dispatch]);
+
+  const {
+    hasPendingAction,
+    runWithUnsavedCheck,
+    closeConfirm,
+    saveAndContinue,
+    discardAndContinue,
+  } = useUnsavedChangesGuard({
+    modified,
+    save: saveCurrentSong,
+  });
 
   useEffect(() => {
     webMusicEnvironment.setWindowTitle(
@@ -138,8 +165,10 @@ export const MusicWebApp = () => {
   );
 
   const createSong = useCallback(async () => {
-    const templateData = await loadTemplateSongData();
-    const document = await createTemplateMusicDocument(templateData, workspace);
+    const document = await createTemplateMusicDocument(
+      new Uint8Array(templateSongData),
+      workspace,
+    );
     if (!document) {
       return;
     }
@@ -169,42 +198,6 @@ export const MusicWebApp = () => {
       : appendWorkspaceDocument(workspace, document);
     applyWorkspace(nextWorkspace);
   }, [applyWorkspace, singleDocumentMode, workspace]);
-
-  const closeConfirm = useCallback(() => {
-    setPendingAction(null);
-  }, []);
-
-  const runWithUnsavedCheck = useCallback(
-    async (action: () => Promise<void>) => {
-      if (!modified) {
-        await action();
-        return;
-      }
-      setPendingAction(() => action);
-    },
-    [modified],
-  );
-
-  const onSaveAndContinue = useCallback(async () => {
-    if (!pendingAction) {
-      return;
-    }
-    const result = await dispatch(saveSongFile());
-    if (saveSongFile.fulfilled.match(result)) {
-      const action = pendingAction;
-      closeConfirm();
-      await action();
-    }
-  }, [closeConfirm, dispatch, pendingAction]);
-
-  const onDiscardAndContinue = useCallback(async () => {
-    if (!pendingAction) {
-      return;
-    }
-    const action = pendingAction;
-    closeConfirm();
-    await action();
-  }, [closeConfirm, pendingAction]);
 
   const onSelectSong = useCallback(
     (nextSongId: string) => {
@@ -263,17 +256,10 @@ export const MusicWebApp = () => {
         localeId={localeId}
         onThemeChange={onThemeChange}
         onLocaleChange={onLocaleChange}
-        onCreateSong={() => void runWithUnsavedCheck(createSong)}
-        onImportSong={
-          singleDocumentMode
-            ? () => void runWithUnsavedCheck(() => openMusicWorkspace("file"))
-            : () => void runWithUnsavedCheck(importSong)
-        }
+        onCreateSong={onCreateSong}
+        onImportSong={onImportSong}
         onOpenDirectoryWorkspace={
-          singleDocumentMode
-            ? undefined
-            : () =>
-                void runWithUnsavedCheck(() => openMusicWorkspace("directory"))
+          singleDocumentMode ? undefined : onOpenDirectoryWorkspace
         }
       />
       <AppContent data-id="app-content">
@@ -294,12 +280,12 @@ export const MusicWebApp = () => {
           />
         )}
       </AppContent>
-      {pendingAction ? (
+      {hasPendingAction ? (
         <ConfirmUnsavedChangesDialog
           filename={currentSongName}
           onCancel={closeConfirm}
-          onSave={onSaveAndContinue}
-          onDiscard={onDiscardAndContinue}
+          onSave={saveAndContinue}
+          onDiscard={discardAndContinue}
         />
       ) : null}
     </AppShell>
