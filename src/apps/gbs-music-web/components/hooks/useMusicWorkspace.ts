@@ -1,0 +1,157 @@
+import { useCallback, useState } from "react";
+import {
+  createMusicWorkspace,
+  MusicDocumentReference,
+  MusicWorkspace,
+} from "shared/lib/music/workspace";
+import trackerActions from "store/features/tracker/trackerActions";
+import {
+  createTemplateMusicDocument,
+  importMusicDocument,
+  supportsPersistentSave,
+  webMusicEnvironment,
+} from "gbs-music-web/lib/adapters";
+import { musicAssetActions } from "gbs-music-web/store/features/musicAssets/musicAssetsState";
+import { musicWorkspaceToAssets } from "gbs-music-web/store/features/musicAssets/musicAssetsHelpers";
+import { useAppDispatch } from "store/hooks";
+
+const sortDocuments = (documents: MusicDocumentReference[]) =>
+  [...documents].sort((a, b) =>
+    a.filename.localeCompare(b.filename, undefined, {
+      numeric: true,
+      sensitivity: "base",
+    }),
+  );
+
+const isAbortError = (error: unknown) =>
+  error instanceof DOMException && error.name === "AbortError";
+
+const appendWorkspaceDocument = (
+  workspace: MusicWorkspace | undefined,
+  document: MusicDocumentReference,
+) => {
+  if (!workspace) {
+    return createMusicWorkspace({
+      source: "browser",
+      openMode: "file",
+      activeDocumentId: document.id,
+      documents: [document],
+    });
+  }
+
+  const existingDocuments = workspace.documents.filter(
+    (item) => item.id !== document.id,
+  );
+
+  return createMusicWorkspace({
+    ...workspace,
+    documents: sortDocuments([...existingDocuments, document]),
+    activeDocumentId: document.id,
+  });
+};
+
+interface UseMusicWorkspaceParams {
+  templateSongData: Uint8Array;
+}
+
+interface UseMusicWorkspaceResult {
+  singleDocumentMode: boolean;
+  createSong: () => Promise<void>;
+  importSong: () => Promise<void>;
+  openDirectoryWorkspace: () => Promise<void>;
+}
+
+export const useMusicWorkspace = ({
+  templateSongData,
+}: UseMusicWorkspaceParams): UseMusicWorkspaceResult => {
+  const dispatch = useAppDispatch();
+  const [workspace, setWorkspace] = useState<MusicWorkspace>();
+  const singleDocumentMode = !supportsPersistentSave();
+
+  const applyWorkspace = useCallback(
+    (nextWorkspace: MusicWorkspace) => {
+      setWorkspace(nextWorkspace);
+      dispatch(
+        musicAssetActions.setMusicAssets(musicWorkspaceToAssets(nextWorkspace)),
+      );
+      dispatch(
+        trackerActions.setSelectedSongId(nextWorkspace.activeDocumentId ?? ""),
+      );
+    },
+    [dispatch],
+  );
+
+  const openMusicWorkspace = useCallback(
+    async (mode: "file" | "directory") => {
+      try {
+        const nextWorkspace =
+          mode === "file"
+            ? await webMusicEnvironment.openFileWorkspace?.()
+            : await webMusicEnvironment.openDirectoryWorkspace?.();
+
+        if (!nextWorkspace) {
+          return;
+        }
+
+        applyWorkspace(nextWorkspace);
+      } catch (error) {
+        if (!isAbortError(error)) {
+          throw error;
+        }
+      }
+    },
+    [applyWorkspace],
+  );
+
+  const createSong = useCallback(async () => {
+    const document = await createTemplateMusicDocument(
+      new Uint8Array(templateSongData),
+      workspace,
+    );
+
+    if (!document) {
+      return;
+    }
+
+    const nextWorkspace = singleDocumentMode
+      ? createMusicWorkspace({
+          source: "browser",
+          openMode: "file",
+          activeDocumentId: document.id,
+          documents: [document],
+        })
+      : appendWorkspaceDocument(workspace, document);
+
+    applyWorkspace(nextWorkspace);
+  }, [applyWorkspace, singleDocumentMode, templateSongData, workspace]);
+
+  const importSong = useCallback(async () => {
+    if (singleDocumentMode) {
+      await openMusicWorkspace("file");
+      return;
+    }
+
+    const document = await importMusicDocument();
+    if (!document) {
+      return;
+    }
+
+    const nextWorkspace = appendWorkspaceDocument(workspace, document);
+    applyWorkspace(nextWorkspace);
+  }, [applyWorkspace, openMusicWorkspace, singleDocumentMode, workspace]);
+
+  const openDirectoryWorkspace = useCallback(async () => {
+    if (singleDocumentMode) {
+      return;
+    }
+
+    await openMusicWorkspace("directory");
+  }, [openMusicWorkspace, singleDocumentMode]);
+
+  return {
+    singleDocumentMode,
+    createSong,
+    importSong,
+    openDirectoryWorkspace,
+  };
+};
