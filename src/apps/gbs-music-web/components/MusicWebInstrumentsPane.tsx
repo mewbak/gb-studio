@@ -3,7 +3,7 @@ import {
   StyledMobileListMenuCaret,
   StyledMobileListMenuHeader,
   StyledMobileListMenuItem,
-} from "gbs-music-web/components/style";
+} from "gbs-music-web/components/ui/style";
 import React from "react";
 import l10n from "shared/lib/lang/l10n";
 import { InstrumentType } from "shared/lib/music/types";

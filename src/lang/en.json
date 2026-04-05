@@ -1357,6 +1357,7 @@
   "FIELD_EFFECT_OVERRIDE": "Effect Override",
   "FIELD_TICK": "Tick",
   "FIELD_CHANGE_ENVELOPE": "Change Envelope",
+  "FIELD_EDIT_INSTRUMENT": "Edit Instrument",
   "FIELD_EDIT_INSTRUMENTS": "Edit Instruments",
   "FIELD_EDIT_PATTERN_ORDER": "Edit Pattern Order",
   "FIELD_MULTIPLE_VALUES": "Multiple Values",

@@ -26,7 +26,7 @@ import {
   StyledMobileListMenu,
   StyledMobileListMenuItem,
   StyledMobileListMenuCaret,
-} from "gbs-music-web/components/style";
+} from "gbs-music-web/components/ui/style";
 
 const StyledViewSelection = styled.div`
   padding-top: 10px;

@@ -41,10 +41,10 @@ import { MusicWebChannelsBar } from "gbs-music-web/components/MusicWebChannelsBa
 import { MusicWebChannelPane } from "gbs-music-web/components/MusicWebChannelPane";
 import { MusicWebSettingPane } from "gbs-music-web/components/MusicWebSettingsPane";
 import { MobileOverlayView } from "store/features/tracker/trackerState";
-import { MobileOverlay } from "gbs-music-web/components/MobileOverlay";
+import { MobileOverlay } from "gbs-music-web/components/ui/MobileOverlay";
 import { MusicWebInstrumentsPane } from "gbs-music-web/components/MusicWebInstrumentsPane";
 import { CaretUpIcon } from "ui/icons/Icons";
-import { StyledMobileBackButton } from "gbs-music-web/components/style";
+import { StyledMobileBackButton } from "gbs-music-web/components/ui/style";
 
 const Wrapper = styled.div`
   display: flex;

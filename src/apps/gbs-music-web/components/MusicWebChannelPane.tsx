@@ -169,7 +169,10 @@ export const MusicWebChannelPane = () => {
             onChange={setSelectedInstrumentId}
           />
           <InputGroupAppend>
-            <Button onClick={onViewInstrument} title="Edit Instrument">
+            <Button
+              onClick={onViewInstrument}
+              title={l10n("FIELD_EDIT_INSTRUMENT")}
+            >
               <InstrumentIcon />
             </Button>
           </InputGroupAppend>

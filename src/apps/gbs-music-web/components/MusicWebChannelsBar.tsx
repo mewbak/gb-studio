@@ -3,7 +3,7 @@ import {
   StyledMobileToolbar,
   StyledMobileToolbarButton,
   StyledMobileToolbarDivider,
-} from "gbs-music-web/components/style";
+} from "gbs-music-web/components/ui/style";
 import { channels } from "shared/lib/music/constants";
 import styled from "styled-components";
 import {
@@ -16,8 +16,7 @@ import {
   ChannelSoloIcon,
   ChannelMuteIcon,
 } from "ui/icons/Icons";
-import { useAppDispatch, useAppSelector } from "store/hooks";
-import trackerActions from "store/features/tracker/trackerActions";
+import { useAppSelector } from "store/hooks";
 
 const StyledChannelIcon = styled.div`
   display: flex;

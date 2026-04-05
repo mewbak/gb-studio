@@ -348,17 +348,22 @@ export const installWebRendererApi = (store: MusicEditorStore) => {
   };
 
   (window as typeof window & { API?: typeof API }).API = API;
-
-  return {
-    getThemeId: () => currentThemeId,
-    setThemeId: (themeId: string) => {
-      setStoredSetting("themeId", themeId);
-      applyTheme(themeId);
-    },
-    getLocaleId: () => currentLocaleId,
-    setLocaleId: (localeId: string) => {
-      setStoredSetting("locale", localeId);
-      void applyLocale(localeId);
-    },
-  };
 };
+
+export const getThemeId = () => currentThemeId;
+
+export const setThemeId = (themeId: string) => {
+  setStoredSetting("themeId", themeId);
+  applyTheme(themeId);
+};
+
+export const getLocaleId = () => currentLocaleId;
+
+export const setLocaleId = (localeId: string) => {
+  setStoredSetting("locale", localeId);
+  void applyLocale(localeId);
+};
+
+const WebAPI = { getThemeId, setThemeId, getLocaleId, setLocaleId };
+
+export default WebAPI;

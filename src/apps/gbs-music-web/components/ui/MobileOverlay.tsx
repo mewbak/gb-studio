@@ -5,7 +5,7 @@ import {
   StyledMobileOverlayContent,
   StyledMobileOverlayHandle,
   StyledMobileOverlayWrapper,
-} from "gbs-music-web/components/style";
+} from "gbs-music-web/components/ui/style";
 
 const MOBILE_OVERLAY_DRAG_CLOSE_THRESHOLD_PX = 30;
 const MOBILE_OVERLAY_MAX_DRAG_UP_PX = 250;

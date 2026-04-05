@@ -112,7 +112,7 @@ module.exports = {
   mode: isProduction ? "production" : "development",
   target: "web",
   entry: {
-    bundle: "./src/apps/gbs-music-web/index.tsx",
+    bundle: "./src/apps/gbs-music-web/MusicWebRoot.tsx",
   },
   output: {
     path: repoPath("out", "music-web"),
