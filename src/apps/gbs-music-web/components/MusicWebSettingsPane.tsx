@@ -48,6 +48,43 @@ const StyledViewButtonLabel = styled.div`
   }
 `;
 
+const StyledHelpButton = styled.a`
+  user-select: none;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  font-size: ${(props) => props.theme.typography.fontSize};
+  border-radius: ${(props) => props.theme.borderRadius}px;
+  height: 28px;
+  min-width: 24px;
+  white-space: nowrap;
+  padding: 0px 10px;
+  box-sizing: border-box;
+  font-weight: normal;
+  border-width: 1px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: transparent;
+  border-color: transparent;
+  color: ${(props) => props.theme.colors.button.text};
+  min-width: 32px;
+  height: 38px;
+  margin-bottom: 10px;
+  text-decoration: none;
+
+  svg {
+    height: 17px;
+    width: 17px;
+    max-width: 100%;
+    max-height: 100%;
+    min-width: 17px;
+    fill: ${(props) => props.theme.colors.button.text};
+  }
+`;
+
 export const MusicWebSettingPane = () => {
   const dispatch = useAppDispatch();
 
@@ -140,11 +177,15 @@ export const MusicWebSettingPane = () => {
       <FormDivider />
 
       <FormRow>
-        <Button variant="transparent">
+        <StyledHelpButton
+          href="https://www.gbstudio.dev/docs/assets/music/music-huge"
+          target="_blank"
+          rel="noreferrer"
+        >
           <HelpIcon />
           <FixedSpacer width={10} />
           {l10n("MENU_HELP")}
-        </Button>
+        </StyledHelpButton>
         <FlexGrow />
         <Button
           variant="transparent"
