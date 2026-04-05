@@ -1,4 +1,3 @@
-import { GB3D } from "gbs-music-web/components/Splash3D";
 import React from "react";
 import Select from "react-windowed-select";
 import l10n from "shared/lib/lang/l10n";
@@ -27,9 +26,6 @@ export const MusicWebSplash = ({
       }}
     >
       <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-        <div style={{ width: 500, height: 500, marginTop: -200 }}>
-          <GB3D colorMode="light" />
-        </div>
         <div>
           <Select
             value={{ value: "workspace", label: "Workspace" }}

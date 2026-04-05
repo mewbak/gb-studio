@@ -99,15 +99,6 @@ const rules = baseRules.map((rule) => {
 });
 
 rules.push({
-  test: /\.(obj)$/i,
-  exclude: /(node_modules|.webpack)/,
-  loader: "file-loader",
-  options: {
-    publicPath: "..",
-  },
-});
-
-rules.push({
   test: /\.uge$/i,
   type: "asset/inline",
   generator: {
