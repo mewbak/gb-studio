@@ -37,6 +37,8 @@ const StyledChannelStatusIcon = styled.div`
   && svg {
     width: 12px;
     height: 12px;
+    min-width: 12px;
+    min-width: 12px;
     fill: ${(props) => props.theme.colors.highlight};
   }
 `;

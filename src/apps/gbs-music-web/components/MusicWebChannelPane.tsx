@@ -1,15 +1,14 @@
 import { InstrumentSelect } from "components/music/form/InstrumentSelect";
 import { channelIdToInstrumentType } from "components/music/helpers";
-import { channel } from "diagnostics_channel";
 import React, { useCallback, useMemo } from "react";
 import API from "renderer/lib/api";
 import l10n from "shared/lib/lang/l10n";
-import { toValidChannelId } from "shared/lib/uge/editor/helpers";
 import trackerActions from "store/features/tracker/trackerActions";
 import { useAppDispatch, useAppSelector } from "store/hooks";
 import styled from "styled-components";
 import { Button } from "ui/buttons/Button";
 import { ButtonGroup } from "ui/buttons/ButtonGroup";
+import { StyledButton } from "ui/buttons/style";
 import { InputGroup, InputGroupAppend } from "ui/form/InputGroup";
 import { Label } from "ui/form/Label";
 import { FormField } from "ui/form/layout/FormLayout";
@@ -37,6 +36,9 @@ const StyledChannelHeader = styled.div`
   span {
     flex-grow: 1;
     font-size: 16px;
+  }
+  ${StyledButton} {
+    min-width: 40px;
   }
 `;
 
