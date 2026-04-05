@@ -422,7 +422,6 @@ export const StyledDropdownSubMenu = styled.div<StyledDropdownMenuProps>`
   position: absolute;
   margin-top: 2px;
   z-index: 10001;
-  background: blue;
   height: 10px;
   right: 0;
 

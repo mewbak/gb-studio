@@ -154,18 +154,20 @@ export const MusicWebToolbar = ({
 
   const fileMenu = useMemo(() => {
     return [
-      <MenuItem onClick={onCreateSong}>{l10n("TOOL_ADD_SONG_LABEL")}</MenuItem>,
+      <MenuItem key="new" onClick={onCreateSong}>
+        {l10n("TOOL_ADD_SONG_LABEL")}
+      </MenuItem>,
       ...(onImportSong
         ? [
-            <MenuItem onClick={onImportSong}>
+            <MenuItem key="open" onClick={onImportSong}>
               {l10n("FIELD_OPEN_FILE")}
             </MenuItem>,
           ]
         : []),
       ...(onOpenDirectoryWorkspace
         ? [
-            <MenuDivider />,
-            <MenuItem onClick={onOpenDirectoryWorkspace}>
+            <MenuDivider key="dir-div" />,
+            <MenuItem key="dir" onClick={onOpenDirectoryWorkspace}>
               {l10n("FIELD_OPEN_FOLDER")}
             </MenuItem>,
           ]
@@ -175,8 +177,12 @@ export const MusicWebToolbar = ({
 
   const editMenu = useMemo(() => {
     return [
-      <MenuItem onClick={onUndo}>{l10n("MENU_UNDO")}</MenuItem>,
-      <MenuItem onClick={onRedo}>{l10n("MENU_REDO")}</MenuItem>,
+      <MenuItem key="undo" onClick={onUndo}>
+        {l10n("MENU_UNDO")}
+      </MenuItem>,
+      <MenuItem key="redo" onClick={onRedo}>
+        {l10n("MENU_REDO")}
+      </MenuItem>,
     ];
   }, [onRedo, onUndo]);
 
