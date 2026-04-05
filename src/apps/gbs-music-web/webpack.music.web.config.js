@@ -85,7 +85,6 @@ const rules = baseRules.map((rule) => {
         ...nestedRule,
         options: {
           ...nestedRule.options,
-          transpileOnly: !isProduction,
           getCustomTransformers: () => ({
             before: [!isProduction && ReactRefreshTypeScript()].filter(Boolean),
           }),
