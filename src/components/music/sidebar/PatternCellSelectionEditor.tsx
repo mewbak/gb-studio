@@ -89,7 +89,7 @@ export const PatternCellSelectionEditor = () => {
         }),
       );
       dispatch(trackerActions.setSidebarView("instrument"));
-      dispatch(trackerActions.setMobileOverlayView("instruments"));
+      dispatch(trackerActions.setMobileOverlayView("instrument"));
     }
   }, [
     dispatch,

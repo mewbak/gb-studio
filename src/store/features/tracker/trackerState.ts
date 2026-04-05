@@ -28,7 +28,8 @@ export type MobileOverlayView =
   | "none"
   | "notes"
   | "channels"
-  | "instruments"
+  | "instrumentsList"
+  | "instrument"
   | "settings"
   | "sequence";
 

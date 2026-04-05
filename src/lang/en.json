@@ -1357,6 +1357,8 @@
   "FIELD_EFFECT_OVERRIDE": "Effect Override",
   "FIELD_TICK": "Tick",
   "FIELD_CHANGE_ENVELOPE": "Change Envelope",
+  "FIELD_EDIT_INSTRUMENTS": "Edit Instruments",
+  "FIELD_EDIT_PATTERN_ORDER": "Edit Pattern Order",
 
   "// 7": "Asset Viewer ---------------------------------------------",
   "ASSET_SEARCH": "Search...",

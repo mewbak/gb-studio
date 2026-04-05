@@ -36,6 +36,7 @@ import {
 } from "components/music/form/subpattern/helpers";
 import { createSubPattern } from "shared/lib/uge/song";
 import { InstrumentTester } from "components/music/form/InstrumentTester";
+import { FixedSpacer } from "ui/spacing/Spacing";
 
 type Instrument = DutyInstrument | NoiseInstrument | WaveInstrument;
 type InstrumentType = "duty" | "wave" | "noise";
@@ -132,7 +133,11 @@ const getInstrumentName = (instrument: Instrument, type: InstrumentType) => {
   return instrument.name || getDefaultInstrumentName(instrument, type);
 };
 
-export const InstrumentEditor = () => {
+export const InstrumentEditor = ({
+  offsetHeader,
+}: {
+  offsetHeader?: boolean;
+}) => {
   const dispatch = useAppDispatch();
 
   const selectedInstrument = useAppSelector(
@@ -319,6 +324,7 @@ export const InstrumentEditor = () => {
     <>
       <FormSection>
         <FormSectionTitle>
+          {offsetHeader && <FixedSpacer width={35} />}
           {instrumentTypeLabels[resolvedInstrument.instrumentType]}
           {" / "}
           {l10n("SIDEBAR_INSTRUMENT")}{" "}

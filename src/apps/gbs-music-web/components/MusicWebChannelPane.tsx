@@ -119,7 +119,7 @@ export const MusicWebChannelPane = () => {
       }),
     );
     dispatch(trackerActions.setSidebarView("instrument"));
-    dispatch(trackerActions.setMobileOverlayView("instruments"));
+    dispatch(trackerActions.setMobileOverlayView("instrument"));
   }, [channelId, dispatch, selectedInstrumentId]);
 
   return (

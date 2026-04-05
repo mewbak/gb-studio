@@ -243,3 +243,81 @@ export const StyledSafeMarginBottom = styled.div`
   flex-shrink: 0;
   padding-bottom: env(safe-area-inset-bottom);
 `;
+
+export const StyledMobileBackButton = styled.button`
+  display: block;
+  width: 40px;
+  height: 40px;
+  border-radius: 60px;
+  margin-bottom: -40px;
+  background: transparent;
+  position: relative;
+  left: 5px;
+  border: 0;
+  transform: rotate(-90deg);
+  svg {
+    fill: ${(props) => props.theme.colors.text};
+    width: 20px;
+    height: 20px;
+  }
+`;
+
+export const StyledMobileListMenu = styled.div`
+  margin: 0 10px;
+  > :first-child {
+    border-top: 1px solid ${(props) => props.theme.colors.input.border};
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+  }
+  > :last-child {
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
+  }
+`;
+
+export const StyledMobileListMenuHeader = styled.div`
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  text-transform: uppercase;
+  font-size: 11px;
+  font-weight: bold;
+
+  @media (max-width: 840px) {
+    font-size: 14px;
+  }
+`;
+
+export const StyledMobileListMenuItem = styled.button`
+  background: ${(props) => props.theme.colors.input.background};
+  color: ${(props) => props.theme.colors.input.text};
+  border-left: 1px solid ${(props) => props.theme.colors.input.border};
+  border-right: 1px solid ${(props) => props.theme.colors.input.border};
+  border-bottom: 1px solid ${(props) => props.theme.colors.input.border};
+  border-top: 0;
+  height: 50px;
+  font-size: 14px;
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  font-weight: bold;
+  width: 100%;
+  text-align: left;
+
+  span {
+    flex-grow: 1;
+  }
+
+  &:focus {
+    position: relative;
+    z-index: 1;
+  }
+`;
+
+export const StyledMobileListMenuCaret = styled.div`
+  svg {
+    fill: ${(props) => props.theme.colors.text};
+    opacity: 0.5;
+    width: 16px;
+  }
+`;

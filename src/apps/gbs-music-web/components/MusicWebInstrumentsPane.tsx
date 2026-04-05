@@ -1,0 +1,299 @@
+import {
+  StyledMobileListMenu,
+  StyledMobileListMenuCaret,
+  StyledMobileListMenuHeader,
+  StyledMobileListMenuItem,
+} from "gbs-music-web/components/style";
+import React from "react";
+import l10n from "shared/lib/lang/l10n";
+import { InstrumentType } from "shared/lib/music/types";
+import {
+  DutyInstrument,
+  WaveInstrument,
+  NoiseInstrument,
+} from "shared/lib/uge/types";
+import trackerActions from "store/features/tracker/trackerActions";
+import { useAppDispatch, useAppSelector } from "store/hooks";
+import styled from "styled-components";
+import { DutyIcon, WaveIcon, NoiseIcon, CaretRightIcon } from "ui/icons/Icons";
+
+const emptyDutyInstruments: DutyInstrument[] = [];
+const emptyWaveInstruments: WaveInstrument[] = [];
+const emptyNoiseInstruments: NoiseInstrument[] = [];
+
+const StyledInstrumentSection = styled.div`
+  margin-bottom: 10px;
+
+  ${StyledMobileListMenuHeader} {
+    position: sticky;
+    top: 0px;
+    background: ${(props) => props.theme.colors.sidebar.background};
+    z-index: 1;
+
+    svg {
+      width: 22px;
+      margin-right: 10px;
+      fill: ${(props) => props.theme.colors.text};
+    }
+  }
+`;
+
+const StyledInstrumentItemDetails = styled.div`
+  flex-grow: 1;
+  margin-right: 10px;
+  overflow: hidden;
+  padding: 15px 10px;
+  div {
+    overflow: hidden;
+    display: block;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 14px;
+    margin-bottom: 1px;
+  }
+  span {
+    font-size: 12px;
+    overflow: hidden;
+    display: block;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    opacity: 0.3;
+  }
+`;
+
+const StyledLabelColor = styled.div<{ $instrument?: number }>`
+  position: relative;
+  width: 20px;
+  height: 20px;
+  border-radius: 2px;
+  border: 1px solid black;
+  flex-shrink: 0;
+  z-index: 0;
+  font-size: 11px;
+  background: ${(props) =>
+    props.$instrument !== undefined
+      ? `var(--instrument-${props.$instrument}-color)`
+      : "black"};
+  color: ${(props) =>
+    props.$instrument !== undefined
+      ? `var(--instrument-${props.$instrument}-text-color)`
+      : "white"};
+
+  &::before {
+    content: "";
+    position: absolute;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+    height: 2px;
+    background: rgba(0, 0, 0, 0.25);
+  }
+  &::after {
+    content: "";
+    position: absolute;
+    top: 1px;
+    left: 1px;
+    right: 1px;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.6);
+    mix-blend-mode: overlay;
+  }
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  svg {
+    width: 14px;
+    fill: ${(props) =>
+      props.$instrument !== undefined
+        ? `var(--instrument-${props.$instrument}-text-color)`
+        : "white"};
+    fill: rgba(0, 0, 0, 0.6);
+    mix-blend-mode: overlay;
+  }
+`;
+
+const getDutyInfo = (instrument: DutyInstrument): string => {
+  const infoParts: string[] = [];
+  if (instrument.duty_cycle === 0) {
+    infoParts.push(`${l10n("FIELD_DUTY_CYCLE")} 12.5%`);
+  } else if (instrument.duty_cycle === 1) {
+    infoParts.push(`${l10n("FIELD_DUTY_CYCLE")} 25%`);
+  } else if (instrument.duty_cycle === 2) {
+    infoParts.push(`${l10n("FIELD_DUTY_CYCLE")} 50%`);
+  } else if (instrument.duty_cycle === 3) {
+    infoParts.push(`${l10n("FIELD_DUTY_CYCLE")} 75%`);
+  }
+  if (instrument.subpattern_enabled) {
+    infoParts.push(l10n("FIELD_SUBPATTERN_ENABLED"));
+  }
+  return infoParts.join(", ");
+};
+
+const getWaveInfo = (instrument: WaveInstrument): string => {
+  const infoParts: string[] = [];
+  infoParts.push(`${l10n("FIELD_WAVEFORM")} ${instrument.wave_index}`);
+  if (instrument.subpattern_enabled) {
+    infoParts.push(l10n("FIELD_SUBPATTERN_ENABLED"));
+  }
+  return infoParts.join(", ");
+};
+
+const getNoiseInfo = (instrument: NoiseInstrument): string => {
+  const infoParts: string[] = [];
+  if (instrument.bit_count === 7) {
+    infoParts.push(l10n("FIELD_BIT_COUNT"));
+  }
+  if (instrument.subpattern_enabled) {
+    infoParts.push(l10n("FIELD_SUBPATTERN_ENABLED"));
+  }
+  return infoParts.join(", ");
+};
+
+const getNextChannel = (
+  type: InstrumentType,
+  currentChannel: 0 | 1 | 2 | 3,
+): 0 | 1 | 2 | 3 => {
+  if (type === "wave") {
+    return 2;
+  }
+  if (type === "noise") {
+    return 3;
+  }
+  return currentChannel === 1 ? 1 : 0;
+};
+
+type InstrumentRowProps =
+  | {
+      type: "duty";
+      instrument: DutyInstrument;
+    }
+  | {
+      type: "wave";
+      instrument: WaveInstrument;
+    }
+  | {
+      type: "noise";
+      instrument: NoiseInstrument;
+    };
+
+const InstrumentRow = ({ type, instrument }: InstrumentRowProps) => {
+  const dispatch = useAppDispatch();
+
+  const selectedChannel = useAppSelector(
+    (state) => state.tracker.selectedChannel,
+  );
+
+  let info: string;
+
+  switch (type) {
+    case "duty":
+      info = getDutyInfo(instrument);
+      break;
+    case "wave":
+      info = getWaveInfo(instrument);
+      break;
+    case "noise":
+      info = getNoiseInfo(instrument);
+      break;
+  }
+
+  const onClick = () => {
+    dispatch(trackerActions.setSelectedInstrumentId(instrument.index));
+    dispatch(
+      trackerActions.setSelectedInstrument({
+        id: String(instrument.index),
+        type,
+      }),
+    );
+    dispatch(
+      trackerActions.setSelectedChannel(getNextChannel(type, selectedChannel)),
+    );
+    dispatch(trackerActions.setMobileOverlayView("instrument"));
+  };
+
+  return (
+    <StyledMobileListMenuItem onClick={onClick}>
+      <StyledLabelColor $instrument={instrument.index}>
+        {String(instrument.index + 1).padStart(2, "0")}
+      </StyledLabelColor>
+
+      <StyledInstrumentItemDetails>
+        <div>{instrument.name}</div>
+        <span>{info}</span>
+      </StyledInstrumentItemDetails>
+
+      <StyledMobileListMenuCaret>
+        <CaretRightIcon />
+      </StyledMobileListMenuCaret>
+    </StyledMobileListMenuItem>
+  );
+};
+
+export const MusicWebInstrumentsPane = () => {
+  const dutyInstruments = useAppSelector(
+    (state) =>
+      state.trackerDocument.present.song?.duty_instruments ??
+      emptyDutyInstruments,
+  );
+
+  const waveInstruments = useAppSelector(
+    (state) =>
+      state.trackerDocument.present.song?.wave_instruments ??
+      emptyWaveInstruments,
+  );
+
+  const noiseInstruments = useAppSelector(
+    (state) =>
+      state.trackerDocument.present.song?.noise_instruments ??
+      emptyNoiseInstruments,
+  );
+
+  return (
+    <>
+      <StyledInstrumentSection>
+        <StyledMobileListMenuHeader>
+          <DutyIcon /> Duty
+        </StyledMobileListMenuHeader>
+        <StyledMobileListMenu>
+          {dutyInstruments.map((instrument) => (
+            <InstrumentRow
+              key={instrument.index}
+              type="duty"
+              instrument={instrument}
+            />
+          ))}
+        </StyledMobileListMenu>
+      </StyledInstrumentSection>
+      <StyledInstrumentSection>
+        <StyledMobileListMenuHeader>
+          <WaveIcon />
+          Wave
+        </StyledMobileListMenuHeader>
+        <StyledMobileListMenu>
+          {waveInstruments.map((instrument) => (
+            <InstrumentRow
+              key={instrument.index}
+              type="wave"
+              instrument={instrument}
+            />
+          ))}
+        </StyledMobileListMenu>
+      </StyledInstrumentSection>
+      <StyledInstrumentSection>
+        <StyledMobileListMenuHeader>
+          <NoiseIcon /> Noise
+        </StyledMobileListMenuHeader>
+        <StyledMobileListMenu>
+          {noiseInstruments.map((instrument) => (
+            <InstrumentRow
+              key={instrument.index}
+              type="noise"
+              instrument={instrument}
+            />
+          ))}
+        </StyledMobileListMenu>
+      </StyledInstrumentSection>
+    </>
+  );
+};

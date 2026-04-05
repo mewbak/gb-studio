@@ -22,6 +22,11 @@ import {
   ToggleButtonGroupWrapper,
 } from "ui/form/ToggleButtonGroup";
 import { TrackerViewType } from "store/features/tracker/trackerState";
+import {
+  StyledMobileListMenu,
+  StyledMobileListMenuItem,
+  StyledMobileListMenuCaret,
+} from "gbs-music-web/components/style";
 
 const StyledViewSelection = styled.div`
   padding-top: 10px;
@@ -40,45 +45,6 @@ const StyledViewButtonLabel = styled.div`
     min-width: 25px;
     min-height: 25px;
     margin-bottom: 5px;
-  }
-`;
-
-const StyledMenuItems = styled.div`
-  margin: 0 10px;
-  > :first-child {
-    border-top: 1px solid ${(props) => props.theme.colors.input.border};
-    border-top-left-radius: 4px;
-    border-top-right-radius: 4px;
-  }
-  > :last-child {
-    border-bottom-left-radius: 4px;
-    border-bottom-right-radius: 4px;
-  }
-`;
-
-const StyledMenuItem = styled.div`
-  background: ${(props) => props.theme.colors.input.background};
-  color: ${(props) => props.theme.colors.input.text};
-  border-left: 1px solid ${(props) => props.theme.colors.input.border};
-  border-right: 1px solid ${(props) => props.theme.colors.input.border};
-  border-bottom: 1px solid ${(props) => props.theme.colors.input.border};
-  height: 50px;
-  font-size: 14px;
-  padding: 0 10px;
-  display: flex;
-  align-items: center;
-  font-weight: bold;
-
-  span {
-    flex-grow: 1;
-  }
-`;
-
-const StyledMenuCaret = styled.div`
-  svg {
-    fill: ${(props) => props.theme.colors.text};
-    opacity: 0.5;
-    width: 16px;
   }
 `;
 
@@ -124,20 +90,20 @@ export const MusicWebSettingPane = () => {
                 label: (
                   <StyledViewButtonLabel>
                     {view === "roll" ? <PianoInverseIcon /> : themePianoIcon}
-                    Piano Roll
+                    {l10n("FIELD_PIANO_ROLL")}
                   </StyledViewButtonLabel>
                 ),
-                title: "Piano Roll",
+                title: l10n("FIELD_PIANO_ROLL"),
               },
               {
                 value: "tracker",
                 label: (
                   <StyledViewButtonLabel>
                     <TrackerIcon />
-                    Tracker
+                    {l10n("FIELD_TRACKER")}
                   </StyledViewButtonLabel>
                 ),
-                title: "Tracker",
+                title: l10n("FIELD_TRACKER"),
               },
             ]}
             onChange={setView}
@@ -147,33 +113,31 @@ export const MusicWebSettingPane = () => {
 
       <FormDivider />
 
-      <StyledMenuItems>
-        <StyledMenuItem
+      <StyledMobileListMenu>
+        <StyledMobileListMenuItem
           onClick={() => {
-            dispatch(trackerActions.setMobileOverlayView("instruments"));
+            dispatch(trackerActions.setMobileOverlayView("instrumentsList"));
           }}
         >
-          <span>Edit Instruments</span>
-          <StyledMenuCaret>
+          <span>{l10n("FIELD_EDIT_INSTRUMENTS")}</span>
+          <StyledMobileListMenuCaret>
             <CaretRightIcon />
-          </StyledMenuCaret>
-        </StyledMenuItem>
-        <StyledMenuItem
+          </StyledMobileListMenuCaret>
+        </StyledMobileListMenuItem>
+        <StyledMobileListMenuItem
           onClick={() => {
             dispatch(trackerActions.setMobileOverlayView("sequence"));
           }}
         >
-          <span>Edit Pattern Order</span>
-          <StyledMenuCaret>
+          <span>{l10n("FIELD_EDIT_PATTERN_ORDER")}</span>
+          <StyledMobileListMenuCaret>
             <CaretRightIcon />
-          </StyledMenuCaret>
-        </StyledMenuItem>
-      </StyledMenuItems>
+          </StyledMobileListMenuCaret>
+        </StyledMobileListMenuItem>
+      </StyledMobileListMenu>
 
       <FixedSpacer height={10} />
       <FormDivider />
-
-      {/* <FixedSpacer height={20} /> */}
 
       <FormRow>
         <Button variant="transparent">

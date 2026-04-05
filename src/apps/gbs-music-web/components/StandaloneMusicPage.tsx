@@ -42,6 +42,9 @@ import { MusicWebChannelPane } from "gbs-music-web/components/MusicWebChannelPan
 import { MusicWebSettingPane } from "gbs-music-web/components/MusicWebSettingsPane";
 import { MobileOverlayView } from "store/features/tracker/trackerState";
 import { MobileOverlay } from "gbs-music-web/components/MobileOverlay";
+import { MusicWebInstrumentsPane } from "gbs-music-web/components/MusicWebInstrumentsPane";
+import { CaretUpIcon } from "ui/icons/Icons";
+import { StyledMobileBackButton } from "gbs-music-web/components/style";
 
 const Wrapper = styled.div`
   display: flex;
@@ -429,13 +432,29 @@ export const StandaloneMusicPage = ({
           {isCompactLayout && (
             <>
               <MobileOverlay
-                open={mobileOverlayView === "instruments"}
+                open={mobileOverlayView === "instrument"}
                 fullHeight
                 onClose={() => {
                   setMobileOverlayView("none");
                 }}
               >
-                <InstrumentEditor />
+                <StyledMobileBackButton
+                  onClick={() => {
+                    setMobileOverlayView("instrumentsList");
+                  }}
+                >
+                  <CaretUpIcon />
+                </StyledMobileBackButton>
+                <InstrumentEditor offsetHeader />
+              </MobileOverlay>
+
+              <MobileOverlay
+                open={mobileOverlayView === "instrumentsList"}
+                onClose={() => {
+                  setMobileOverlayView("none");
+                }}
+              >
+                {viewSong.type === "uge" ? <MusicWebInstrumentsPane /> : null}
               </MobileOverlay>
 
               <MobileOverlay
