@@ -80,27 +80,6 @@ export const StyledTrackerTableBody = styled.tbody`
 
 export const StyledTrackerTableHeaderRow = styled.tr``;
 
-export const StyledTrackerPattern = styled.div`
-  overflow: auto;
-  width: 100%;
-  white-space: nowrap;
-  border-width: 0 0 0 1px;
-  border-color: ${(props) => props.theme.colors.sidebar.border};
-  border-style: solid;
-
-  &&& {
-    box-shadow: none;
-    z-index: 0;
-  }
-`;
-
-export const StyledTrackerHeaderSpacer = styled.div`
-  flex-grow: 1;
-  background: rgba(0, 0, 0, 0.5);
-  background: ${(props) => props.theme.colors.sidebar.background};
-  border-bottom: 1px solid ${(props) => props.theme.colors.sidebar.border};
-`;
-
 interface StyledTrackerHeaderCellProps {
   $type: "channel" | "patternIndex";
   $muted?: boolean;
@@ -333,7 +312,7 @@ export const StyledTrackerCell = styled.td<StyledTrackerCellProps>`
       : ""}
 `;
 
-export const StyledTrackerField = styled.span<{
+const StyledTrackerField = styled.span<{
   $active?: boolean;
   $selected?: boolean;
 }>`

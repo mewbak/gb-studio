@@ -119,8 +119,6 @@ interface MusicWebToolbarProps {
   onImportSong?: () => void;
 }
 
-export const MUSIC_WEB_TOOLBAR_HEIGHT = 38;
-
 export const MusicWebToolbar = ({
   themeId,
   localeId,
@@ -313,5 +311,3 @@ export const MusicWebToolbar = ({
     </>
   );
 };
-
-export default MusicWebToolbar;

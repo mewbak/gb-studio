@@ -1,4 +1,3 @@
-import { PatternCell } from "shared/lib/uge/types";
 import {
   PIANO_ROLL_CELL_SIZE,
   TOTAL_NOTES,
@@ -22,13 +21,6 @@ export const rowToNote = (row: number) => TOTAL_NOTES - 1 - row;
 
 export const wrapNote = (note: number) =>
   ((note % TOTAL_NOTES) + TOTAL_NOTES) % TOTAL_NOTES;
-
-export const clonePattern = (pattern: PatternCell[][]) =>
-  pattern.map((row) => row.map((cell) => ({ ...cell })));
-
-export const clonePatterns = (patterns: PatternCell[][][]) =>
-  patterns.map(clonePattern);
-
 export interface RollGridPoint {
   absRow: number;
   note: number;

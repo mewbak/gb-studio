@@ -15,7 +15,7 @@ export interface MusicSession {
   subscribe: (listener: MusicSessionListener) => () => void;
 }
 
-export const createMusicSession = (): MusicSession => {
+const createMusicSession = (): MusicSession => {
   let isInitialized = false;
   let isOpening = false;
   let openedSfx: string | undefined;

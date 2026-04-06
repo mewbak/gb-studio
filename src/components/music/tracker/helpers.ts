@@ -1,8 +1,4 @@
-import {
-  TRACKER_CHANNEL_FIELDS,
-  TRACKER_NUM_FIELDS,
-  TRACKER_ROW_SIZE,
-} from "consts";
+import { TRACKER_NUM_FIELDS, TRACKER_ROW_SIZE } from "consts";
 import { PatternCellAddress } from "shared/lib/uge/editor/types";
 import { resolveUniqueTrackerCells } from "store/features/trackerDocument/trackerDocumentHelpers";
 
@@ -30,7 +26,7 @@ export const fieldToPosition = (field: number): Position => ({
   y: Math.floor(field / TRACKER_ROW_SIZE),
 });
 
-export const positionToField = (position: Position) =>
+const positionToField = (position: Position) =>
   position.y * TRACKER_ROW_SIZE + position.x;
 
 export const buildSelectionRect = (
@@ -92,29 +88,6 @@ export const getFieldColumnFocus = (
       return "effectParamColumnFocus";
     default:
       return "noteColumnFocus";
-  }
-};
-
-export const getMovedField = (
-  field: number,
-  key: string,
-  shiftKey: boolean,
-): number | null => {
-  switch (key) {
-    case "ArrowLeft":
-      return field - 1;
-    case "ArrowRight":
-      return field + 1;
-    case "ArrowDown":
-      return field + TRACKER_ROW_SIZE;
-    case "ArrowUp":
-      return field - TRACKER_ROW_SIZE;
-    case "Tab":
-      return (
-        field + (shiftKey ? -TRACKER_CHANNEL_FIELDS : TRACKER_CHANNEL_FIELDS)
-      );
-    default:
-      return null;
   }
 };
 

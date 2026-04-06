@@ -1,6 +1,5 @@
 import {
   createEntityAdapter,
-  createSelector,
   createSlice,
   PayloadAction,
 } from "@reduxjs/toolkit";
@@ -37,20 +36,3 @@ const musicAssetsSlice = createSlice({
 
 export const { actions: musicAssetActions, reducer: musicAssetsReducer } =
   musicAssetsSlice;
-
-export const createMusicAssetSelectors = <
-  TState extends { musicAssets: ReturnType<typeof musicAssetsReducer> },
->() => {
-  const selectors = musicAssetsAdapter.getSelectors<TState>(
-    (state) => state.musicAssets,
-  );
-
-  const selectUgeSongs = createSelector(selectors.selectAll, (songs) =>
-    songs.filter((song) => (song.type || "uge") === "uge"),
-  );
-
-  return {
-    ...selectors,
-    selectUgeSongs,
-  };
-};

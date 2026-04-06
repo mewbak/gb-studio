@@ -9,9 +9,7 @@ import { musicSelectors } from "store/features/entities/entitiesState";
 import WebAPI from "gbs-music-web/lib/api";
 import { ConfirmUnsavedChangesDialog } from "gbs-music-web/components/dialog/ConfirmUnsavedChangesDialog";
 import { MusicWebSplash } from "gbs-music-web/components/MusicWebSplash";
-import MusicWebToolbar, {
-  MUSIC_WEB_TOOLBAR_HEIGHT,
-} from "gbs-music-web/components/MusicWebToolbar";
+import { MusicWebToolbar } from "gbs-music-web/components/MusicWebToolbar";
 import { useUnsavedChangesGuard } from "gbs-music-web/components/hooks/useUnsavedChangesGuard";
 import templateUge from "gbs-music-web/data/template.uge";
 import { useMusicWorkspace } from "gbs-music-web/components/hooks/useMusicWorkspace";
@@ -152,13 +150,14 @@ export const MusicWebApp = () => {
             onImportSong={onImportSong}
             onOpenDirectoryWorkspace={onOpenDirectoryWorkspace}
             onSelectSong={onSelectSong}
-            topInset={MUSIC_WEB_TOOLBAR_HEIGHT}
           />
         ) : (
           <MusicWebSplash
             onCreateSong={onCreateSong}
             onImportSong={onImportSong}
-            onOpenDirectoryWorkspace={onOpenDirectoryWorkspace}
+            onOpenDirectoryWorkspace={
+              singleDocumentMode ? undefined : onOpenDirectoryWorkspace
+            }
           />
         )}
       </AppContent>

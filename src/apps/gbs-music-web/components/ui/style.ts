@@ -75,40 +75,6 @@ export const StyledMobileToolbarDivider = styled.div`
   margin: 5px 5px;
 `;
 
-export const StyledMobileInstrumentsView = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  overflow: auto;
-  background: ${(props) => props.theme.colors.sidebar.background};
-  z-index: 1000;
-  view-transition-name: overlay;
-`;
-
-export const StyledMobileChannelsView = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  overflow: auto;
-  background: ${(props) => props.theme.colors.sidebar.background};
-  z-index: 1000;
-  view-transition-name: channels;
-`;
-
-export const StyledMobilePaneHeader = styled.div`
-  display: flex;
-  background: ${(props) => props.theme.colors.sidebar.header.background};
-  border-top: 1px solid ${(props) => props.theme.colors.sidebar.header.border};
-  border-bottom: 1px solid
-    ${(props) => props.theme.colors.sidebar.header.border};
-  height: 30px;
-  justify-content: flex-end;
-`;
-
 export const StyledMobileOverlayWrapper = styled.div<{
   $open: boolean;
   $fullHeight?: boolean;
@@ -179,10 +145,6 @@ export const StyledMobileOverlayContainer = styled.div<{
   }
 `;
 
-export const StyledMobileOverlayOffset = styled.div`
-  // width: 100%;
-`;
-
 export const StyledMobileOverlayClose = styled.div`
   position: absolute;
   bottom: 100%;
@@ -213,35 +175,11 @@ export const StyledMobileOverlayHandle = styled.div`
   }
 `;
 
-export const StyledMobileOverlayCloseButton = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: absolute;
-  top: 20px;
-  right: 10px;
-  border-radius: 30px;
-  width: 40px;
-  height: 40px;
-
-  background: ${(props) => props.theme.colors.list.activeBackground};
-
-  svg {
-    fill: ${(props) => props.theme.colors.button.text};
-    max-width: 15px;
-  }
-`;
-
 export const StyledMobileOverlayContent = styled.div`
   height: 100%;
   overflow: auto;
   flex-grow: 1;
   min-height: 0px;
-`;
-
-export const StyledSafeMarginBottom = styled.div`
-  flex-shrink: 0;
-  padding-bottom: env(safe-area-inset-bottom);
 `;
 
 export const StyledMobileBackButton = styled.button`

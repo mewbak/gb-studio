@@ -1,32 +1,18 @@
 import clamp from "shared/lib/helpers/clamp";
-import { renderEffectParam } from "components/music/helpers";
 import { createSubPatternCell } from "shared/lib/uge/song";
 import { SubPatternCell } from "shared/lib/uge/types";
 import l10n from "shared/lib/lang/l10n";
 import { TRACKER_SUBPATTERN_LENGTH } from "consts";
 
 export const TRACKER_SUBPATTERN_VISIBLE_LENGTH = 32;
-export const SUBPATTERN_BASE_NOTE = 36;
-export const SUBPATTERN_MIN_OFFSET = -36;
-export const SUBPATTERN_MAX_OFFSET = 35;
+
+const SUBPATTERN_BASE_NOTE = 36;
+const SUBPATTERN_MIN_OFFSET = -36;
+const SUBPATTERN_MAX_OFFSET = 35;
 
 export const validSubpatternEffectCodes = [
   0, 1, 2, 4, 5, 6, 8, 9, 10, 12, 15,
 ] as const;
-
-const subpatternEffectLabels: Record<number, string> = {
-  0: "Arpeggio",
-  1: "Portamento Up",
-  2: "Portamento Down",
-  4: "Vibrato",
-  5: "Set Master Volume",
-  6: "Call Routine",
-  8: "Set Panning",
-  9: "Change Timbre",
-  10: "Volume Slide",
-  12: "Set Volume",
-  15: "Set Tempo",
-};
 
 export const isSubpatternRowEmpty = (cell: SubPatternCell) => {
   return (
@@ -37,10 +23,10 @@ export const isSubpatternRowEmpty = (cell: SubPatternCell) => {
   );
 };
 
-export const getSubpatternPitchOffset = (note: number | null) =>
+const getSubpatternPitchOffset = (note: number | null) =>
   note === null ? null : note - SUBPATTERN_BASE_NOTE;
 
-export const clampSubpatternPitchOffset = (offset: number) =>
+const clampSubpatternPitchOffset = (offset: number) =>
   clamp(offset, SUBPATTERN_MIN_OFFSET, SUBPATTERN_MAX_OFFSET);
 
 export const toSubpatternNote = (offset: number | null) =>
@@ -92,33 +78,6 @@ export const isValidSubpatternEffectCode = (
     effectCode as (typeof validSubpatternEffectCodes)[number],
   );
 
-export const getSubpatternEffectLabel = (
-  effectCode: number | null | undefined,
-) => {
-  if (effectCode === null || effectCode === undefined) {
-    return "None";
-  }
-  return (
-    subpatternEffectLabels[effectCode] ??
-    `Effect ${effectCode.toString(16).toUpperCase()}`
-  );
-};
-
-export const formatSubpatternEffect = (
-  effectCode: number | null,
-  effectParam: number | null,
-) => {
-  if (effectCode === null) {
-    return "None";
-  }
-  const label = getSubpatternEffectLabel(effectCode);
-  const param =
-    effectParam === null
-      ? ""
-      : ` ${renderEffectParam(effectParam).padStart(2, "0")}`;
-  return `${label}${param}`;
-};
-
 export const getVisibleSubpatternRows = (subpattern: SubPatternCell[]) =>
   Array.from({ length: TRACKER_SUBPATTERN_VISIBLE_LENGTH }, (_, index) => {
     return subpattern[index] ?? createSubPatternCell();
@@ -142,16 +101,6 @@ export const applySubpatternCellChanges = (
   }
 
   nextSubpattern[rowIndex] = nextCell;
-  return nextSubpattern;
-};
-
-export const replaceSubpatternCell = (
-  subpattern: SubPatternCell[],
-  rowIndex: number,
-  cell: SubPatternCell,
-) => {
-  const nextSubpattern = [...subpattern];
-  nextSubpattern[rowIndex] = cell;
   return nextSubpattern;
 };
 
@@ -206,17 +155,13 @@ export const subPatternRowLabel = (
   return `${l10n("FIELD_TICK")} ${String(tick).padStart(2, "0")}${labelParts.length > 0 ? ":" : ""} ${labelParts.join(", ")}`;
 };
 
-export const pitchOffsetLabel = (offset: number): string => {
+const pitchOffsetLabel = (offset: number): string => {
   if (offset === 0) {
     return "";
   }
   const sign = offset < 0 ? -1 : 1;
   const abs = Math.abs(offset);
   return `${sign * abs > 0 ? "+" : ""}${sign * abs}`;
-};
-
-export const storedPitchToOffset = (stored: number): number => {
-  return stored - SUBPATTERN_BASE_NOTE;
 };
 
 export const offsetToStoredPitch = (offset: number): number => {

@@ -6,6 +6,7 @@ import {
   StyledMobileOverlayHandle,
   StyledMobileOverlayWrapper,
 } from "gbs-music-web/components/ui/style";
+import { elasticDrag } from "gbs-music-web/components/ui/helpers";
 
 const MOBILE_OVERLAY_DRAG_CLOSE_THRESHOLD_PX = 30;
 const MOBILE_OVERLAY_MAX_DRAG_UP_PX = 250;
@@ -17,20 +18,6 @@ interface MobileOverlayProps {
   onClose: () => void;
   children: React.ReactNode;
 }
-
-export const elasticDrag = (
-  inputValue: number,
-  easeStart: number,
-  maxValue: number,
-): number => {
-  if (inputValue <= easeStart) {
-    return inputValue;
-  }
-  const range = maxValue - easeStart;
-  const x = inputValue - easeStart;
-  const k = 1 / range;
-  return easeStart + range * (1 - Math.exp(-k * x));
-};
 
 export const MobileOverlay = ({
   open,

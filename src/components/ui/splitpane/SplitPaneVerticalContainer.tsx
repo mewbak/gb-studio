@@ -27,7 +27,7 @@ interface SplitPaneVerticalContainerProps {
   defaultLayout?: SplitPaneLayout[];
 }
 
-export const SplitPaneVerticalContainer = ({
+const SplitPaneVerticalContainer = ({
   height,
   children,
   minPaneSize = COLLAPSED_SIZE,

@@ -355,16 +355,16 @@ export const installWebRendererApi = (store: MusicEditorStore) => {
   (window as typeof window & { API?: typeof API }).API = API;
 };
 
-export const getThemeId = () => currentThemeId;
+const getThemeId = () => currentThemeId;
 
-export const setThemeId = (themeId: string) => {
+const setThemeId = (themeId: string) => {
   setStoredSetting("themeId", themeId);
   applyTheme(themeId);
 };
 
-export const getLocaleId = () => currentLocaleId;
+const getLocaleId = () => currentLocaleId;
 
-export const setLocaleId = async (localeId: string) => {
+const setLocaleId = async (localeId: string) => {
   setStoredSetting("locale", localeId);
   await applyLocale(localeId);
 };

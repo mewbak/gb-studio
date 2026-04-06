@@ -4,7 +4,7 @@ import type {
 } from "shared/lib/music/workspace";
 import type { MusicAsset } from "shared/lib/resources/types";
 
-export const musicDocumentToAsset = (
+const musicDocumentToAsset = (
   document: MusicDocumentReference,
 ): MusicAsset => ({
   _v: 0,

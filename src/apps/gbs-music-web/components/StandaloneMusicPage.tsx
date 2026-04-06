@@ -66,7 +66,6 @@ interface StandaloneMusicPageProps {
   onOpenDirectoryWorkspace?: () => void;
   onImportSong?: () => void;
   onSelectSong?: (id: string) => void;
-  topInset?: number;
 }
 
 const isProbablyPhone = () => {
@@ -80,7 +79,7 @@ const isProbablyPhone = () => {
   return window.matchMedia("(pointer: coarse) and (max-width: 768px)").matches;
 };
 
-export const StandaloneMusicPage = ({
+const StandaloneMusicPage = ({
   onCreateSong,
   onImportSong,
   onSelectSong,

@@ -103,7 +103,6 @@ const getSaveFilePicker = () => {
   return picker;
 };
 
-
 const createReference = (
   name: string,
   filename: string,
@@ -440,17 +439,13 @@ export const createTemplateMusicDocument = async (
       currentDirectoryHandle &&
       supportsFileSystemAccess()
     ) {
-      console.log("HERE");
       const filename = await findAvailableSongName(currentDirectoryHandle);
-      console.log("AAA", { filename });
       const handle = await currentDirectoryHandle.getFileHandle(filename, {
         create: true,
       });
       await writeFileHandle(handle, data);
-      console.log("CCC", { handle, workspace });
       const reference = registerHandleReference(handle);
       storeInMemoryDocument(reference, data, false);
-      console.log("DDD", { reference });
       return reference;
     }
 
