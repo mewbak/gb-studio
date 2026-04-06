@@ -232,7 +232,14 @@ export const PatternCellSelectionEditor = () => {
       {(sharedNote.type !== "none" || sharedEffectCode.type !== "none") && (
         <FormRow>
           {sharedNote.type !== "none" && (
-            <>
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: 10,
+                maxWidth: "calc(100% - 60px)",
+              }}
+            >
               <div>
                 <Label>{l10n("FIELD_SEMITONE")}</Label>
                 <ButtonGroup>
@@ -315,7 +322,7 @@ export const PatternCellSelectionEditor = () => {
                   </Button>
                 </div>
               )}
-            </>
+            </div>
           )}
           <div
             style={{
