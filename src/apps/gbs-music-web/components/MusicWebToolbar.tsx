@@ -13,10 +13,7 @@ import {
 import { FixedSpacer, FlexGrow } from "ui/spacing/Spacing";
 import l10n from "shared/lib/lang/l10n";
 import appIconUrl from "ui/icons/app_icon_256.png";
-import {
-  webLocaleOptions,
-  webThemeOptions,
-} from "gbs-music-web/lib/preferences";
+import { webLocaleOptions } from "gbs-music-web/lib/preferences";
 import { useWebFullscreen } from "ui/hooks/use-web-fullscreen";
 import { SongContextBar } from "components/music/toolbar/SongContextBar";
 import useWindowSize from "ui/hooks/use-window-size";
@@ -191,29 +188,34 @@ export const MusicWebToolbar = ({
         onClick={setRollView}
         icon={view === "roll" ? <CheckIcon /> : <BlankIcon />}
       >
-        Piano Roll
+        {l10n("FIELD_PIANO_ROLL")}
       </MenuItem>,
       <MenuItem
         key="tracker"
         onClick={setTrackerView}
         icon={view === "tracker" ? <CheckIcon /> : <BlankIcon />}
       >
-        Tracker
+        {l10n("FIELD_TRACKER")}
       </MenuItem>,
     ],
     [setRollView, setTrackerView, view],
   );
 
   const themeMenu = useMemo(
-    () =>
-      webThemeOptions.map((option) => (
-        <MenuItem key={option.id} onClick={() => onThemeChange(option.id)}>
-          <MenuItemIcon>
-            {themeId === option.id ? <CheckIcon /> : <BlankIcon />}
-          </MenuItemIcon>
-          {option.label}
-        </MenuItem>
-      )),
+    () => [
+      <MenuItem key={"light"} onClick={() => onThemeChange("light")}>
+        <MenuItemIcon>
+          {themeId === "light" ? <CheckIcon /> : <BlankIcon />}
+        </MenuItemIcon>
+        {l10n("MENU_THEME_LIGHT")}
+      </MenuItem>,
+      <MenuItem key={"dark"} onClick={() => onThemeChange("dark")}>
+        <MenuItemIcon>
+          {themeId === "dark" ? <CheckIcon /> : <BlankIcon />}
+        </MenuItemIcon>
+        {l10n("MENU_THEME_DARK")}
+      </MenuItem>,
+    ],
     [onThemeChange, themeId],
   );
 
@@ -299,7 +301,6 @@ export const MusicWebToolbar = ({
             </AboutHeader>
             <AboutText>{l10n("GBSTUDIO_DESCRIPTION")}</AboutText>
             <AboutText>{l10n("GBSTUDIO_COPYRIGHT")}</AboutText>
-            <AboutText>Standalone shared music editor for GB Studio.</AboutText>
             <AboutFooter>
               <Button onClick={() => setShowAbout(false)}>
                 {l10n("FIELD_CLOSE")}
