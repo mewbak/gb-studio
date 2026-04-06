@@ -328,7 +328,11 @@ export const NavigatorInstrumentsPane = ({
   }, [selectedChannel]);
 
   useEffect(() => {
-    if (syncInstruments && selectedChannelType !== selectedInstrument.type) {
+    if (
+      syncInstruments &&
+      selectedChannelType !== selectedInstrument.type &&
+      selectedInstrument.id !== "group"
+    ) {
       dispatch(
         trackerActions.setSelectedInstrument({
           id: selectedInstrument.id,
