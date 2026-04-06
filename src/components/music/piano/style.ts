@@ -624,14 +624,14 @@ export const StyledPianoRollPatternBlockGrid = styled.div<{
           ${(props) => props.theme.colors.tracker.rollCell.border} 0,
           ${(props) => props.theme.colors.tracker.rollCell.border} 1px,
           transparent 1px,
-          transparent 986px
+          transparent ${PIANO_ROLL_CELL_SIZE * 8}px
         ),
         linear-gradient(
           0deg,
           ${(props) => props.theme.colors.tracker.rollCell.border} 0,
           ${(props) => props.theme.colors.tracker.rollCell.border} 1px,
           transparent 1px,
-          transparent 986px
+          transparent ${PIANO_ROLL_CELL_SIZE * 8}px
         );
       background-size: ${PIANO_ROLL_CELL_SIZE * 8}px
         ${PIANO_ROLL_CELL_SIZE * OCTAVE_SIZE}px;
@@ -646,14 +646,14 @@ export const StyledPianoRollPatternBlockGrid = styled.div<{
           ${(props) => props.theme.colors.tracker.rollCell.border} 0,
           ${(props) => props.theme.colors.tracker.rollCell.border} 1px,
           transparent 1px,
-          transparent 986px
+          transparent ${PIANO_ROLL_CELL_SIZE * 4}px
         ),
         linear-gradient(
           0deg,
           ${(props) => props.theme.colors.tracker.rollCell.border} 0,
           ${(props) => props.theme.colors.tracker.rollCell.border} 1px,
           transparent 1px,
-          transparent 986px
+          transparent ${PIANO_ROLL_CELL_SIZE * 4}px
         );
       background-size: ${PIANO_ROLL_CELL_SIZE * 4}px
         ${PIANO_ROLL_CELL_SIZE * OCTAVE_SIZE}px;
