@@ -7,12 +7,16 @@ interface MusicWebSplashProps {
   onCreateSong: () => void;
   onImportSong?: () => void;
   onOpenDirectoryWorkspace?: () => void;
+  onRestoreBackup?: () => void;
+  backupSongName?: string;
 }
 
 export const MusicWebSplash = ({
   onCreateSong,
   onImportSong,
   onOpenDirectoryWorkspace,
+  onRestoreBackup,
+  backupSongName,
 }: MusicWebSplashProps) => {
   return (
     <div
@@ -67,6 +71,20 @@ export const MusicWebSplash = ({
             </Button>
           ) : null}
         </div>
+        {onRestoreBackup ? (
+          <div style={{ display: "flex", justifyContent: "center" }}>
+            <Button
+              style={{ flexGrow: 1 }}
+              size="large"
+              variant="primary"
+              onClick={onRestoreBackup}
+            >
+              {backupSongName
+                ? `Restore backup: ${backupSongName}`
+                : "Restore backup"}
+            </Button>
+          </div>
+        ) : null}
       </div>
     </div>
   );

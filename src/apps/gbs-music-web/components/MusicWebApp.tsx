@@ -75,17 +75,23 @@ export const MusicWebApp = () => {
     modified,
     save: saveCurrentSong,
   });
-
   useEffect(() => {
     webMusicEnvironment.setWindowTitle(
       currentSongName ? `GBS Music - ${currentSongName}` : "GBS Music",
     );
   }, [currentSongName]);
 
-  const { singleDocumentMode, createSong, importSong, openDirectoryWorkspace } =
-    useMusicWorkspace({
-      templateSongData,
-    });
+  const {
+    singleDocumentMode,
+    hasBackup,
+    backupSongName,
+    createSong,
+    importSong,
+    openDirectoryWorkspace,
+    restoreBackupSong,
+  } = useMusicWorkspace({
+    templateSongData,
+  });
 
   const onSelectSong = useCallback(
     (nextSongId: string) => {
@@ -124,6 +130,10 @@ export const MusicWebApp = () => {
     void runWithUnsavedCheck(openDirectoryWorkspace);
   }, [openDirectoryWorkspace, runWithUnsavedCheck]);
 
+  const onRestoreBackup = useCallback(() => {
+    void runWithUnsavedCheck(restoreBackupSong);
+  }, [restoreBackupSong, runWithUnsavedCheck]);
+
   return (
     <AppShell
       data-id="app-shell"
@@ -158,6 +168,8 @@ export const MusicWebApp = () => {
             onOpenDirectoryWorkspace={
               singleDocumentMode ? undefined : onOpenDirectoryWorkspace
             }
+            onRestoreBackup={hasBackup ? onRestoreBackup : undefined}
+            backupSongName={backupSongName}
           />
         )}
       </AppContent>

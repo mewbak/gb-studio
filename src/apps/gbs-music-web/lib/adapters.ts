@@ -479,4 +479,21 @@ export const supportsDirectoryOpen = () =>
 
 export const supportsPersistentSave = () => supportsSavePicker();
 
+/**
+ * Registers raw UGE binary data as an in-memory document so the normal
+ * loadDocument / loadSongFile path can read it back without touching the
+ * file system.  Returns the MusicDocumentReference needed to build a workspace.
+ */
+export const registerSongBackupData = (
+  data: Uint8Array,
+  name: string,
+  filename: string,
+): MusicDocumentReference => {
+  const reference = createReference(name, filename, {
+    id: `backup-${filename}`,
+  });
+  storeInMemoryDocument(reference, data);
+  return reference;
+};
+
 export type { MusicBinaryDocument };
