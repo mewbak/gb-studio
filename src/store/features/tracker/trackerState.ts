@@ -356,6 +356,7 @@ const trackerSlice = createSlice({
           !action.type.startsWith("trackerDocument/loadSong") &&
           !action.type.startsWith("trackerDocument/saveSong") &&
           !action.type.startsWith("trackerDocument/addNewSong") &&
+          !action.type.startsWith("trackerDocument/unloadSong") &&
           !action.type.startsWith("trackerDocument/requestAddNewSong"),
         (state, _action) => {
           state.modified = true;
