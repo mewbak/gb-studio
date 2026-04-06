@@ -157,20 +157,20 @@ const KnobSvg = styled.svg`
 `;
 
 const ValueOverlay = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
   position: absolute;
-  left: 50%;
-  bottom: calc(100% + 6px);
-  transform: translateX(-50%);
+  top: 0px;
+  left: 0px;
+  right: 0px;
+  bottom: 0px;
   pointer-events: none;
   white-space: nowrap;
   padding: 2px 6px;
-  border-radius: 4px;
   font-size: 11px;
-  line-height: 1.2;
-  z-index: 10;
-  background: ${(props) => props.theme.colors.panel.background};
-  color: ${(props) => props.theme.colors.panel.text};
-  border: 1px solid ${(props) => props.theme.colors.input.border};
+  z-index: 10001;
+  color: ${(props) => props.theme.colors.input.text};
 `;
 
 const EditInput = styled.input`
@@ -580,8 +580,6 @@ export const Knob = ({
 
   return (
     <Root>
-      {(isDragging || isEditing) && <ValueOverlay>{displayText}</ValueOverlay>}
-
       <KnobButton
         id={name}
         name={name}
@@ -674,6 +672,7 @@ export const Knob = ({
           />
         )}
       </KnobButton>
+      {isDragging && <ValueOverlay>{displayText}</ValueOverlay>}
     </Root>
   );
 };
