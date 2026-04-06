@@ -59,6 +59,7 @@ const applyLocale = async (localeId: string) => {
     return;
   }
   clearL10NData();
+  setL10NData(defaultLocaleData);
   setL10NData(localeData);
 };
 
@@ -167,7 +168,6 @@ const saveSongToFilename = async (song: Song) => {
 };
 
 export const installWebRendererApi = (store: MusicEditorStore) => {
-  setL10NData(defaultLocaleData);
   void applyLocale(currentLocaleId);
 
   window.addEventListener("keydown", (event) => {
@@ -364,9 +364,9 @@ export const setThemeId = (themeId: string) => {
 
 export const getLocaleId = () => currentLocaleId;
 
-export const setLocaleId = (localeId: string) => {
+export const setLocaleId = async (localeId: string) => {
   setStoredSetting("locale", localeId);
-  void applyLocale(localeId);
+  await applyLocale(localeId);
 };
 
 const WebAPI = { getThemeId, setThemeId, getLocaleId, setLocaleId };

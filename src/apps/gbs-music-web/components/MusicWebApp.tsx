@@ -106,8 +106,8 @@ export const MusicWebApp = () => {
     setThemeId(nextThemeId);
   }, []);
 
-  const onLocaleChange = useCallback((nextLocaleId: string) => {
-    WebAPI.setLocaleId(nextLocaleId);
+  const onLocaleChange = useCallback(async (nextLocaleId: string) => {
+    await WebAPI.setLocaleId(nextLocaleId);
     setLocaleId(nextLocaleId);
   }, []);
 
@@ -148,7 +148,6 @@ export const MusicWebApp = () => {
       <AppContent data-id="app-content">
         {hasSongs ? (
           <StandaloneMusicPage
-            key={localeId}
             onCreateSong={onCreateSong}
             onImportSong={onImportSong}
             onOpenDirectoryWorkspace={onOpenDirectoryWorkspace}
