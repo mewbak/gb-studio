@@ -49,7 +49,7 @@ export const PatternCellSelectionEditor = () => {
 
   const firstChannelId = useMemo(
     () =>
-      selectedPatternCells.length > 1 ? selectedPatternCells[0].channelId : 0,
+      selectedPatternCells.length > 0 ? selectedPatternCells[0].channelId : 0,
     [selectedPatternCells],
   );
 
