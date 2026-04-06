@@ -141,6 +141,12 @@ const StyledTrackerKeyboard = styled.div<{ $open?: boolean }>`
     }
   }
 
+  @media (max-width: 840px) {
+    ${StyledButton} {
+      line-height: 16px;
+    }
+  }
+
   @media (max-width: 340px) {
     ${StyledButton} {
       min-width: 40px;
@@ -312,6 +318,13 @@ export const StyledArrowIcon = styled.div<{
         transform: rotate(270deg);
       }
     `}
+`;
+
+export const StyledBreak = styled.br`
+  display: none;
+  @media (max-width: 840px) {
+    display: block;
+  }
 `;
 
 const NOTE_NAMES = [
@@ -534,7 +547,7 @@ export const TrackerKeyboard = ({
                   });
                 }}
               >
-                +<br />
+                + <StyledBreak />
                 {l10n("FIELD_VALUE")}
               </Button>
               <Button
@@ -547,7 +560,7 @@ export const TrackerKeyboard = ({
                   });
                 }}
               >
-                +<br />
+                + <StyledBreak />
                 {l10n("FIELD_OCTAVE")}
               </Button>
               <Button
@@ -560,7 +573,7 @@ export const TrackerKeyboard = ({
                   });
                 }}
               >
-                +<br />
+                + <StyledBreak />
                 {l10n("FIELD_SEMITONE")}
               </Button>
             </StyledTrackerKeyboardButtonsRow>
@@ -574,7 +587,7 @@ export const TrackerKeyboard = ({
                   });
                 }}
               >
-                -<br />
+                - <StyledBreak />
                 {l10n("FIELD_VALUE")}
               </Button>
               <Button
@@ -587,7 +600,7 @@ export const TrackerKeyboard = ({
                   });
                 }}
               >
-                -<br />
+                - <StyledBreak />
                 {l10n("FIELD_OCTAVE")}
               </Button>
               <Button
@@ -600,7 +613,7 @@ export const TrackerKeyboard = ({
                   });
                 }}
               >
-                -<br />
+                - <StyledBreak />
                 {l10n("FIELD_SEMITONE")}
               </Button>
             </StyledTrackerKeyboardButtonsRow>
