@@ -21,7 +21,7 @@ import { Position, SelectionRect } from "components/music/tracker/helpers";
 import API from "renderer/lib/api";
 import { useAppDispatch, useAppSelector } from "store/hooks";
 import { createSubPatternCell } from "shared/lib/uge/song";
-import { SUBPATTERN_ROW_COUNT } from "components/music/form/subpattern/helpers";
+import { TRACKER_SUBPATTERN_VISIBLE_LENGTH } from "components/music/form/subpattern/helpers";
 import {
   StyledTrackerCell,
   StyledTrackerContentTable,
@@ -161,7 +161,10 @@ export const InstrumentSubpatternTracker = ({
 }: InstrumentSubpatternEditorProps) => {
   const dispatch = useAppDispatch();
 
-  const visibleRowCount = Math.min(subpattern.length, SUBPATTERN_ROW_COUNT);
+  const visibleRowCount = Math.min(
+    subpattern.length,
+    TRACKER_SUBPATTERN_VISIBLE_LENGTH,
+  );
   const numFields = visibleRowCount * ROW_SIZE;
   const lastSubpatternRowIndex = Math.max(subpattern.length - 1, 0);
 

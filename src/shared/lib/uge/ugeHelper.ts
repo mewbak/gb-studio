@@ -465,11 +465,11 @@ export const saveUGESong = (song: Song): Buffer => {
     addInt8(i.subpattern_enabled ? 1 : 0);
     for (let n = 0; n < 64; n++) {
       const subpattern = i.subpattern[n];
-      addUint32(subpattern.note ?? 90);
+      addUint32(subpattern?.note ?? 90);
       addUint32(0);
-      addUint32(subpattern.jump ?? 0);
-      addUint32(subpattern.effectcode ?? 0);
-      addUint8(subpattern.effectparam ?? 0);
+      addUint32(subpattern?.jump ?? 0);
+      addUint32(subpattern?.effectcode ?? 0);
+      addUint8(subpattern?.effectparam ?? 0);
     }
   }
   function addDutyInstrument(type: number, i: DutyInstrument) {

@@ -3,8 +3,9 @@ import { renderEffectParam } from "components/music/helpers";
 import { createSubPatternCell } from "shared/lib/uge/song";
 import { SubPatternCell } from "shared/lib/uge/types";
 import l10n from "shared/lib/lang/l10n";
+import { TRACKER_SUBPATTERN_LENGTH } from "consts";
 
-export const SUBPATTERN_ROW_COUNT = 32;
+export const TRACKER_SUBPATTERN_VISIBLE_LENGTH = 32;
 export const SUBPATTERN_BASE_NOTE = 36;
 export const SUBPATTERN_MIN_OFFSET = -36;
 export const SUBPATTERN_MAX_OFFSET = 35;
@@ -59,7 +60,9 @@ export const getSubpatternJumpTarget = (jump: number | null) =>
   jump === null || jump === 0 ? null : jump - 1;
 
 export const toSubpatternJump = (targetRow: number | null) =>
-  targetRow === null ? null : clamp(targetRow, 0, SUBPATTERN_ROW_COUNT - 1) + 1;
+  targetRow === null
+    ? null
+    : clamp(targetRow, 0, TRACKER_SUBPATTERN_LENGTH - 1) + 1;
 
 export const getSubpatternFlowType = (
   jump: number | null,
@@ -117,7 +120,7 @@ export const formatSubpatternEffect = (
 };
 
 export const getVisibleSubpatternRows = (subpattern: SubPatternCell[]) =>
-  Array.from({ length: SUBPATTERN_ROW_COUNT }, (_, index) => {
+  Array.from({ length: TRACKER_SUBPATTERN_VISIBLE_LENGTH }, (_, index) => {
     return subpattern[index] ?? createSubPatternCell();
   });
 
@@ -166,7 +169,7 @@ export const moveSubpatternRow = (
   const [movedRow] = visibleRows.splice(fromIndex, 1);
   visibleRows.splice(toIndex, 0, movedRow);
 
-  for (let index = 0; index < SUBPATTERN_ROW_COUNT; index++) {
+  for (let index = 0; index < TRACKER_SUBPATTERN_LENGTH; index++) {
     nextSubpattern[index] = visibleRows[index] ?? createSubPatternCell();
   }
 
@@ -229,16 +232,16 @@ const cloneSubPatternCell = (cell: SubPatternCell): SubPatternCell => ({
 
 export const doubleSubpattern = (input: SubPatternCell[]): SubPatternCell[] => {
   const output: SubPatternCell[] = Array.from(
-    { length: SUBPATTERN_ROW_COUNT },
+    { length: TRACKER_SUBPATTERN_LENGTH },
     () => createSubPatternCell(),
   );
 
-  const sourceLength = Math.min(input.length, SUBPATTERN_ROW_COUNT);
+  const sourceLength = Math.min(input.length, TRACKER_SUBPATTERN_LENGTH);
 
   for (let i = 0; i < sourceLength; i += 1) {
     const targetIndex = i * 2;
 
-    if (targetIndex >= SUBPATTERN_ROW_COUNT) {
+    if (targetIndex >= TRACKER_SUBPATTERN_LENGTH) {
       break;
     }
 
@@ -255,17 +258,17 @@ export const doubleSubpattern = (input: SubPatternCell[]): SubPatternCell[] => {
 
 export const halfSubpattern = (input: SubPatternCell[]): SubPatternCell[] => {
   const output: SubPatternCell[] = Array.from(
-    { length: SUBPATTERN_ROW_COUNT },
+    { length: TRACKER_SUBPATTERN_LENGTH },
     () => createSubPatternCell(),
   );
 
-  const sourceLength = Math.min(input.length, SUBPATTERN_ROW_COUNT);
+  const sourceLength = Math.min(input.length, TRACKER_SUBPATTERN_LENGTH);
   const halfLength = Math.ceil(sourceLength / 2);
 
   for (let i = 0; i < halfLength; i += 1) {
     const sourceIndex = i * 2;
 
-    if (sourceIndex >= sourceLength || i >= SUBPATTERN_ROW_COUNT) {
+    if (sourceIndex >= sourceLength || i >= TRACKER_SUBPATTERN_LENGTH) {
       break;
     }
 
