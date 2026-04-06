@@ -112,8 +112,21 @@ export const RelativePortal: FC<RelativePortalProps> = ({
         }
       } else if (props.pin === "parent-edge") {
         if (newX + contentsWidth + MIN_MARGIN > window.innerWidth) {
-          newX = window.innerWidth - (contentsWidth + MIN_MARGIN);
+          // Not enough room on the right of parent for child content
+          if (newX > parentWidth + contentsWidth + MIN_MARGIN) {
+            // Enough room to place left of parent instead
+            newX -= parentWidth + contentsWidth + MIN_MARGIN;
+          } else if (newX - parentWidth > window.innerWidth * 0.3) {
+            // If parent location was to right of screen
+            // place child on the far left
+            newX = MIN_MARGIN;
+          } else {
+            // Otherwise place at far right of screen
+            newX = window.innerWidth - (contentsWidth + MIN_MARGIN);
+          }
         }
+      } else if (newX + contentsWidth + MIN_MARGIN > window.innerWidth) {
+        newX = window.innerWidth - contentsWidth - MIN_MARGIN;
       }
 
       newX = Math.max(10, newX);
