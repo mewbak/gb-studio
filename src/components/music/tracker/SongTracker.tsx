@@ -818,7 +818,6 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
     if (isMouseDownRef.current) {
       isMouseDownRef.current = false;
       isSelectingRef.current = false;
-      selectionOriginRef.current = undefined;
     }
   }, []);
 
