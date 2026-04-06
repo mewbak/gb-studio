@@ -57,7 +57,8 @@ const StyledInstrumentItemDetails = styled.div`
     display: block;
     white-space: nowrap;
     text-overflow: ellipsis;
-    opacity: 0.3;
+    opacity: 0.5;
+    font-weight: normal;
   }
 `;
 
@@ -111,6 +112,7 @@ const StyledLabelColor = styled.div<{ $instrument?: number }>`
     fill: rgba(0, 0, 0, 0.6);
     mix-blend-mode: overlay;
   }
+  font-weight: normal;
 `;
 
 const getDutyInfo = (instrument: DutyInstrument): string => {
@@ -185,16 +187,20 @@ const InstrumentRow = ({ type, instrument }: InstrumentRowProps) => {
   );
 
   let info: string;
+  let defaultName: string;
 
   switch (type) {
     case "duty":
       info = getDutyInfo(instrument);
+      defaultName = `Duty ${String(instrument.index + 1).padStart(2, "0")}`;
       break;
     case "wave":
       info = getWaveInfo(instrument);
+      defaultName = `Wave ${String(instrument.index + 1).padStart(2, "0")}`;
       break;
     case "noise":
       info = getNoiseInfo(instrument);
+      defaultName = `Noise ${String(instrument.index + 1).padStart(2, "0")}`;
       break;
   }
 
@@ -219,7 +225,7 @@ const InstrumentRow = ({ type, instrument }: InstrumentRowProps) => {
       </StyledLabelColor>
 
       <StyledInstrumentItemDetails>
-        <div>{instrument.name}</div>
+        <div>{instrument.name || defaultName}</div>
         <span>{info}</span>
       </StyledInstrumentItemDetails>
 
