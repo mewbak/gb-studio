@@ -86,7 +86,7 @@ export const InstrumentEnvelopePreview = ({
       } else if (sweep > 0) {
         //fade up
         localsweep = 8 - sweep;
-        const envLength = ((sweep / 64) * (15 - volume)) / 2;
+        const envLength = ((localsweep / 64) * (15 - volume)) / 2;
 
         ctx.lineTo(
           PADDING + Math.min(envLength, secLength) * drawWidth,

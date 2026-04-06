@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React from "react";
 import l10n from "shared/lib/lang/l10n";
 import styled from "styled-components";
 import { CheckboxField } from "ui/form/CheckboxField";
@@ -46,15 +46,6 @@ const StyledEnvelopeField = styled.div`
   }
 `;
 
-// For UI preview flip positive values so the control feels symmetric
-// The value is flipped back before being stored after changes.
-const flipSweepChange = (value: number) => {
-  if (value <= 0) {
-    return value;
-  }
-  return 8 - value;
-};
-
 export const InstrumentEnvelopeEditor = ({
   volume,
   sweep,
@@ -63,11 +54,6 @@ export const InstrumentEnvelopeEditor = ({
   onChangeLength,
   onChangeSweep,
 }: InstrumentEnvelopeEditorProps) => {
-  const flippedOnChangeSweep = useCallback(
-    (value: number) => onChangeSweep(flipSweepChange(value)),
-    [onChangeSweep],
-  );
-
   return (
     <StyledEnvelopeForm>
       <StyledEnvelopeField>
@@ -107,10 +93,10 @@ export const InstrumentEnvelopeEditor = ({
         <Label htmlFor="sweepChange">{l10n("FIELD_VOLUME_SWEEP_CHANGE")}</Label>
         <Knob
           name="sweepChange"
-          value={flipSweepChange(sweep)}
+          value={sweep}
           min={-7}
           max={7}
-          onChange={flippedOnChangeSweep}
+          onChange={onChangeSweep}
         />
       </StyledEnvelopeField>
     </StyledEnvelopeForm>
