@@ -148,17 +148,22 @@ const loadSongFromFilename = async (filename: string): Promise<Song | null> => {
 
 const saveSongToFilename = async (song: Song) => {
   const { saveUGESong } = await import("shared/lib/uge/ugeHelper");
-  const data = saveUGESong(song);
-  await webMusicEnvironment.saveDocument({
-    meta: {
-      id: song.filename,
-      name: song.filename.split("/").pop() || song.filename,
-      filename: song.filename,
-      format: "uge",
-    },
-    data: new Uint8Array(data),
-    modified: false,
-  });
+  try {
+    const data = saveUGESong(song);
+    await webMusicEnvironment.saveDocument({
+      meta: {
+        id: song.filename,
+        name: song.filename.split("/").pop() || song.filename,
+        filename: song.filename,
+        format: "uge",
+      },
+      data: new Uint8Array(data),
+      modified: false,
+    });
+  } catch (e) {
+    console.error(e);
+    alert(e);
+  }
 };
 
 export const installWebRendererApi = (store: MusicEditorStore) => {
