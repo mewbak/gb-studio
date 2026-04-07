@@ -13,7 +13,7 @@ import {
   NoiseInstrument,
   WaveInstrument,
 } from "shared/lib/uge/types";
-import { AppThunk, RootState } from "store/storeTypes";
+import { RootState } from "store/storeTypes";
 import API from "renderer/lib/api";
 import { MusicResourceAsset } from "shared/lib/resources/types";
 import { createPatternCell, createSong } from "shared/lib/uge/song";
@@ -21,24 +21,11 @@ import { InstrumentType } from "shared/lib/music/types";
 import {
   fromAbsRow,
   getTransposeNoteDelta,
-  NO_CHANGE_ON_PASTE,
-  parseClipboardOrigin,
-  parseClipboardToPattern,
-  parsePatternFieldsToClipboard,
-  parsePatternToClipboard,
-  resolveAbsRow,
   resolveTrackerCellFields,
   resolveUniqueTrackerCells,
-  toAbsRow,
   transposePatternCellNote,
-  wrapNote,
 } from "./trackerDocumentHelpers";
-import {
-  TRACKER_CHANNEL_FIELDS,
-  TRACKER_NUM_CHANNELS,
-  TRACKER_PATTERN_LENGTH,
-  TRACKER_ROW_SIZE,
-} from "consts";
+import { TRACKER_PATTERN_LENGTH } from "consts";
 import { PatternCellAddress } from "shared/lib/uge/editor/types";
 
 interface TrackerDocumentState {

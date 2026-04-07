@@ -12,7 +12,7 @@ import trackerActions from "store/features/tracker/trackerActions";
 import { useAppDispatch, useAppSelector } from "store/hooks";
 import { channels } from "shared/lib/music/constants";
 import { FixedSizeList as List } from "react-window";
-import styled, { css, ThemeContext } from "styled-components";
+import styled, { ThemeContext } from "styled-components";
 import { getEventNodeName } from "renderer/lib/helpers/dom";
 import throttle from "lodash/throttle";
 import API from "renderer/lib/api";
@@ -22,9 +22,6 @@ import {
   EyeClosedIcon,
   ChannelMuteIcon,
   ChannelSoloIcon,
-  NoiseIcon,
-  WaveIcon,
-  DutyIcon,
   Duty1Icon,
   Duty2Icon,
   Wave3Icon,

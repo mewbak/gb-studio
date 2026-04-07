@@ -13,7 +13,6 @@ import {
   ValueUnaryOperatorType,
 } from "shared/lib/scriptValue/types";
 import React, { useCallback, useContext, useMemo, useRef } from "react";
-import { useSelector } from "react-redux";
 import styled, { css } from "styled-components";
 import { Button } from "ui/buttons/Button";
 import { DropdownButton } from "ui/buttons/DropdownButton";

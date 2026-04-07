@@ -47,7 +47,6 @@ import { useAppDispatch, useAppSelector } from "store/hooks";
 import API from "renderer/lib/api";
 import clipboardActions from "store/features/clipboard/clipboardActions";
 import { SongContextBar } from "components/music/toolbar/SongContextBar";
-import styled from "styled-components";
 
 const sectionAccelerators = {
   world: "CommandOrControl+1",

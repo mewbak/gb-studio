@@ -1,25 +1,12 @@
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
-import styled, { ThemeContext } from "styled-components";
-import { SplitPaneVerticalDivider } from "ui/splitpane/SplitPaneDivider";
+import React, { useEffect, useRef } from "react";
+import styled from "styled-components";
 import { SongTracker } from "components/music/tracker/SongTracker";
 import { musicSelectors } from "store/features/entities/entitiesState";
-import SongEditorToolsPanel from "components/music/toolbar/SongEditorToolsPanel";
 import { SongPianoRoll } from "components/music/piano/SongPianoRoll";
 import l10n from "shared/lib/lang/l10n";
 import { UgePlayer } from "components/music/UgePlayer";
-import { useAppDispatch, useAppSelector } from "store/hooks";
-import { SplitPaneHeader } from "ui/splitpane/SplitPaneHeader";
-import { SequenceEditor } from "components/music/sequence/SequenceEditor";
-import { MusicDataReceivePacket } from "shared/lib/music/types";
-import API from "renderer/lib/api";
+import { useAppSelector } from "store/hooks";
 import { MusicAsset } from "shared/lib/resources/types";
-import useWindowSize from "ui/hooks/use-window-size";
 
 const ContentWrapper = styled.div`
   flex: 1 1 0;
