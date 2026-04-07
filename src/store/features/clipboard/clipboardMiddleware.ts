@@ -1,6 +1,6 @@
 import flatten from "lodash/flatten";
 import { UnknownAction, Dispatch, Middleware } from "@reduxjs/toolkit";
-import { RootState } from "store/configureStore";
+import { RootState } from "store/storeTypes";
 import {
   customEventSelectors,
   actorSelectors,

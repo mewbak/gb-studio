@@ -14,7 +14,6 @@ import {
 } from "shared/lib/scriptValue/types";
 import React, { useCallback, useContext, useMemo, useRef } from "react";
 import { useSelector } from "react-redux";
-import { RootState } from "store/configureStore";
 import styled, { css } from "styled-components";
 import { Button } from "ui/buttons/Button";
 import { DropdownButton } from "ui/buttons/DropdownButton";
@@ -418,7 +417,7 @@ const ValueSelect = ({
 }: ValueSelectProps) => {
   const dispatch = useAppDispatch();
   const context = useContext(ScriptEditorContext);
-  const editorType = useSelector((state: RootState) => state.editor.type);
+  const editorType = useAppSelector((state) => state.editor.type);
   const defaultConstant = useAppSelector(
     (state) => constantSelectors.selectAll(state)[0],
   );

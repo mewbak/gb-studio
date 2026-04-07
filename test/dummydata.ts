@@ -9,7 +9,7 @@ import {
   ScriptEventNormalized,
 } from "../src/shared/lib/entities/entitiesTypes";
 import { ProjectData } from "../src/store/features/project/projectActions";
-import { RootState } from "../src/store/configureStore";
+import { RootState } from "store/storeTypes";
 import { initialState as initialEditorState } from "../src/store/features/editor/editorState";
 import { initialState as initialConsoleState } from "../src/store/features/console/consoleState";
 import { initialState as initialMetadataState } from "../src/store/features/metadata/metadataState";

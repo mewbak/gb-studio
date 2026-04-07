@@ -6,7 +6,7 @@ import {
   triggerSelectors,
 } from "store/features/entities/entitiesState";
 import { ScriptEventParentType } from "shared/lib/entities/entitiesTypes";
-import { RootState } from "store/configureStore";
+import { RootState } from "store/storeTypes";
 import editorActions from "store/features/editor/editorActions";
 import { pasteAny } from "./clipboardHelpers";
 import {

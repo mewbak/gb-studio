@@ -6,7 +6,7 @@ import React from "react";
 import { VariableSelect } from "../../../src/components/forms/VariableSelect";
 import { render, screen, fireEvent } from "../../react-utils";
 import { UnknownAction, Store } from "@reduxjs/toolkit";
-import { RootState } from "../../../src/store/configureStore";
+import { RootState } from "store/storeTypes";
 import { ScriptEditorContext } from "../../../src/components/script/ScriptEditorContext";
 
 test("Should use default variable name with not renamed", () => {

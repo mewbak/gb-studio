@@ -1,6 +1,6 @@
 import middleware from "../../../../src/store/features/assets/assetsMiddleware";
 import actions from "../../../../src/store/features/assets/assetsActions";
-import { RootState } from "../../../../src/store/configureStore";
+import { RootState } from "store/storeTypes";
 import { dummyBackground } from "../../../dummydata";
 import { MiddlewareAPI, Dispatch, UnknownAction } from "@reduxjs/toolkit";
 import API from "../../../__mocks__/apiMock";

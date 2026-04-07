@@ -1,5 +1,5 @@
 import { Dispatch, Middleware } from "@reduxjs/toolkit";
-import { RootState } from "store/configureStore";
+import { RootState } from "store/storeTypes";
 import settingsActions from "./settingsActions";
 import { getSettings } from "store/features/settings/settingsState";
 import { defaultProjectSettings } from "consts";

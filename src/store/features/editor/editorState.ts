@@ -25,7 +25,7 @@ import entitiesActions from "store/features/entities/entitiesActions";
 import spriteActions from "store/features/sprite/spriteActions";
 import { MIN_SIDEBAR_WIDTH } from "renderer/lib/window/sidebar";
 import type { NavigationSection } from "store/features/navigation/navigationState";
-import type { RootState } from "store/configureStore";
+import type { RootState } from "store/storeTypes";
 import { selectScriptIds } from "store/features/entities/entitiesState";
 import { Variable } from "shared/lib/resources/types";
 

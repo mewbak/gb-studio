@@ -1,7 +1,7 @@
 import "jest-extended";
 import middleware from "../../../../src/store/features/clipboard/clipboardMiddleware";
 import actions from "../../../../src/store/features/clipboard/clipboardActions";
-import { RootState } from "../../../../src/store/configureStore";
+import { RootState } from "store/storeTypes";
 import { dummyActorNormalized } from "../../../dummydata";
 import { MiddlewareAPI, Dispatch, UnknownAction } from "@reduxjs/toolkit";
 import { ClipboardTypeActors } from "../../../../src/store/features/clipboard/clipboardTypes";

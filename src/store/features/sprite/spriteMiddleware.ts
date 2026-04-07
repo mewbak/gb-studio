@@ -1,5 +1,5 @@
 import { Dispatch, Middleware } from "@reduxjs/toolkit";
-import { RootState } from "store/configureStore";
+import { RootState } from "store/storeTypes";
 import actions from "./spriteActions";
 import projectActions from "store/features/project/projectActions";
 import {

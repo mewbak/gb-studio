@@ -1,5 +1,5 @@
 import { Dispatch, Middleware } from "@reduxjs/toolkit";
-import { RootState } from "store/configureStore";
+import { RootState } from "store/storeTypes";
 import soundfxActions from "store/features/soundfx/soundfxActions";
 import navigationActions from "store/features/navigation/navigationActions";
 import actions from "./musicActions";

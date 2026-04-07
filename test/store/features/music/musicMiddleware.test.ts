@@ -4,7 +4,7 @@
 
 import actions from "../../../../src/store/features/music/musicActions";
 import navigationActions from "../../../../src/store/features/navigation/navigationActions";
-import { RootState } from "../../../../src/store/configureStore";
+import { RootState } from "store/storeTypes";
 import { MiddlewareAPI, Dispatch, UnknownAction } from "@reduxjs/toolkit";
 import middleware from "../../../../src/store/features/music/musicMiddleware";
 

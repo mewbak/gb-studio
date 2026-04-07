@@ -1,14 +1,9 @@
 import React, { Dispatch } from "react";
 import { UnknownAction } from "redux";
 import l10n from "shared/lib/lang/l10n";
-import { PatternCellAddress } from "shared/lib/uge/editor/types";
-import { AppThunk } from "store/configureStore";
+import type { PatternCellAddress } from "shared/lib/uge/editor/types";
+import { AppThunk } from "store/storeTypes";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
-import {
-  copyTrackerFields,
-  cutTrackerFields,
-  pasteTrackerFields,
-} from "store/features/trackerDocument/trackerDocumentState";
 import { MenuAccelerator, MenuDivider, MenuItem } from "ui/menu/Menu";
 
 interface TrackerContextMenuProps {
@@ -95,7 +90,7 @@ const renderTrackerContextMenu = ({
       key="cut"
       onClick={() => {
         dispatch(
-          cutTrackerFields({
+          trackerDocumentActions.cutTrackerFields({
             patternId,
             selectedTrackerFields,
           }),
@@ -109,7 +104,7 @@ const renderTrackerContextMenu = ({
       key="copy"
       onClick={() => {
         dispatch(
-          copyTrackerFields({
+          trackerDocumentActions.copyTrackerFields({
             patternId,
             selectedTrackerFields,
           }),
@@ -125,7 +120,7 @@ const renderTrackerContextMenu = ({
         const firstField = selectedTrackerFields[0];
         if (firstField) {
           dispatch(
-            pasteTrackerFields({
+            trackerDocumentActions.pasteTrackerFields({
               patternId,
               startField: firstField,
             }),

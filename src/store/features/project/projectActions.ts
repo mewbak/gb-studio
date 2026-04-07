@@ -3,7 +3,7 @@ import {
   EntitiesState,
   ProjectEntitiesData,
 } from "shared/lib/entities/entitiesTypes";
-import type { RootState } from "store/configureStore";
+import type { RootState } from "store/storeTypes";
 import { SettingsState } from "store/features/settings/settingsState";
 import { MetadataState } from "store/features/metadata/metadataState";
 import { denormalizeEntities } from "shared/lib/entities/entitiesHelpers";

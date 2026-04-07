@@ -5,7 +5,7 @@ import reducer, {
 } from "../../../../src/store/features/editor/editorState";
 import actions from "../../../../src/store/features/editor/editorActions";
 import entitiesActions from "../../../../src/store/features/entities/entitiesActions";
-import { RootState } from "../../../../src/store/configureStore";
+import { RootState } from "store/storeTypes";
 import { create } from "../../../redux-utils";
 import { BRUSH_8PX, BRUSH_SLOPE, DRAG_ACTOR } from "consts";
 import { MIN_SIDEBAR_WIDTH } from "renderer/lib/window/sidebar";

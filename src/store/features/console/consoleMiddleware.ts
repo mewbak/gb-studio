@@ -5,7 +5,7 @@ import {
   sceneName,
   triggerName,
 } from "shared/lib/entities/entitiesHelpers";
-import { RootState } from "store/configureStore";
+import { RootState } from "store/storeTypes";
 import consoleActions from "store/features/console/consoleActions";
 import {
   customEventSelectors,

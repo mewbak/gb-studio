@@ -3,7 +3,7 @@ import editorActions from "store/features/editor/editorActions";
 import { getSettings } from "store/features/settings/settingsState";
 import settingsActions from "store/features/settings/settingsActions";
 import { Dispatch, Middleware } from "@reduxjs/toolkit";
-import { RootState } from "store/configureStore";
+import { RootState } from "store/storeTypes";
 import projectActions from "store/features/project/projectActions";
 import {
   customEventSelectors,

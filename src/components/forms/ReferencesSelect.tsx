@@ -37,7 +37,7 @@ import AddReferenceMenu from "./AddReferenceMenu";
 import { IMEInput } from "ui/form/IMEInput";
 import entitiesActions from "store/features/entities/entitiesActions";
 import { useAppDispatch, useAppSelector } from "store/hooks";
-import { RootState } from "store/configureStore";
+import { RootState } from "store/storeTypes";
 
 export type ReferenceType =
   | "background"

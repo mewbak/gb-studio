@@ -1,5 +1,5 @@
 import { Dispatch, Middleware } from "@reduxjs/toolkit";
-import { RootState } from "store/configureStore";
+import { RootState } from "store/storeTypes";
 import consoleActions from "store/features/console/consoleActions";
 import debuggerActions from "store/features/debugger/debuggerActions";
 import settingsActions from "store/features/settings/settingsActions";

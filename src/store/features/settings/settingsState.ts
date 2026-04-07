@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { defaultProjectSettings } from "consts";
-import { RootState } from "store/configureStore";
+import { RootState } from "store/storeTypes";
 import projectActions from "store/features/project/projectActions";
 import type { ScriptEditorCtx } from "shared/lib/scripts/context";
 import { ScriptEventArgs } from "shared/lib/resources/types";

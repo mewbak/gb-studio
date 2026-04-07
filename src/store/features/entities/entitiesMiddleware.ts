@@ -1,5 +1,5 @@
 import { Dispatch, Middleware } from "@reduxjs/toolkit";
-import { RootState } from "store/configureStore";
+import { RootState } from "store/storeTypes";
 import entitiesActions from "./entitiesActions";
 import { selectScriptEventDefs } from "store/features/scriptEventDefs/scriptEventDefsState";
 import settingsActions from "store/features/settings/settingsActions";

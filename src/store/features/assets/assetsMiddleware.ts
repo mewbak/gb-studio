@@ -1,7 +1,7 @@
 import { Middleware, Dispatch } from "@reduxjs/toolkit";
 import actions from "./assetsActions";
 import entitiesActions from "store/features/entities/entitiesActions";
-import { RootState } from "store/configureStore";
+import { RootState } from "store/storeTypes";
 import {
   backgroundSelectors,
   tilesetSelectors,

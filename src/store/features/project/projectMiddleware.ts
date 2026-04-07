@@ -1,5 +1,5 @@
 import { Dispatch, EntitySelectors, Middleware } from "@reduxjs/toolkit";
-import { RootState } from "store/configureStore";
+import { RootState } from "store/storeTypes";
 import actions from "./projectActions";
 import API from "renderer/lib/api";
 import {

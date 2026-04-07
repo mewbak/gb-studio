@@ -1,6 +1,5 @@
 import { combineReducers } from "redux";
-import undoable from "redux-undo";
-import console from "./features/console/consoleState";
+import undoable from "redux-undo";import console from "./features/console/consoleState";
 import music from "./features/music/musicState";
 import assets from "./features/assets/assetsState";
 import entities from "./features/entities/entitiesState";

@@ -9,7 +9,7 @@ import {
   dummyCompressedProjectResources,
   dummyRootState,
 } from "../../../dummydata";
-import { RootState } from "../../../../src/store/configureStore";
+import { RootState } from "store/storeTypes";
 import { CompressedProjectResources } from "shared/lib/resources/types";
 
 test("Should be able to change settings", () => {

@@ -2,14 +2,9 @@ import React, { Dispatch } from "react";
 import { UnknownAction } from "redux";
 import l10n from "shared/lib/lang/l10n";
 import { PatternCellAddress } from "shared/lib/uge/editor/types";
-import { AppThunk } from "store/configureStore";
+import { AppThunk } from "store/storeTypes";
 import { pasteAbsoluteCells } from "store/features/tracker/trackerState";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
-import {
-  copyAbsoluteCells,
-  cutAbsoluteCells,
-  pasteInPlace,
-} from "store/features/trackerDocument/trackerDocumentState";
 import { MenuAccelerator, MenuDivider, MenuItem } from "ui/menu/Menu";
 
 interface PianoContextMenuProps {
@@ -41,7 +36,7 @@ const renderPianoContextMenu = ({
         key="paste-in-place"
         onClick={() => {
           dispatch(
-            pasteInPlace({
+            trackerDocumentActions.pasteInPlace({
               channelId,
             }),
           );
@@ -118,7 +113,7 @@ const renderPianoContextMenu = ({
       key="cut"
       onClick={() => {
         dispatch(
-          cutAbsoluteCells({
+          trackerDocumentActions.cutAbsoluteCells({
             patternCells: selectedPatternCells,
           }),
         );
@@ -131,7 +126,7 @@ const renderPianoContextMenu = ({
       key="copy"
       onClick={() => {
         dispatch(
-          copyAbsoluteCells({
+          trackerDocumentActions.copyAbsoluteCells({
             patternCells: selectedPatternCells,
           }),
         );
@@ -153,7 +148,7 @@ const renderPianoContextMenu = ({
       key="paste-in-place"
       onClick={() => {
         dispatch(
-          pasteInPlace({
+          trackerDocumentActions.pasteInPlace({
             channelId,
           }),
         );

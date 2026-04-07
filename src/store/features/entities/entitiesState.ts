@@ -32,7 +32,7 @@ import {
 } from "consts";
 import { ScriptEventDefs } from "shared/lib/scripts/scriptDefHelpers";
 import clamp from "shared/lib/helpers/clamp";
-import { RootState } from "store/configureStore";
+import { RootState } from "store/storeTypes";
 import settingsActions from "store/features/settings/settingsActions";
 import uuid from "uuid";
 import {

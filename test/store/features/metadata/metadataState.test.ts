@@ -8,7 +8,7 @@ import {
   dummyCompressedProjectResources,
   dummyRootState,
 } from "../../../dummydata";
-import { RootState } from "../../../../src/store/configureStore";
+import { RootState } from "store/storeTypes";
 
 test("Should change the path and root to new path and root and set loaded to true after loading is finished", () => {
   const state = {

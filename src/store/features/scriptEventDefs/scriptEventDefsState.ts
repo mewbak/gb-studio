@@ -1,6 +1,6 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 import { ScriptEventDefs } from "shared/lib/scripts/scriptDefHelpers";
-import { RootState } from "store/configureStore";
+import { RootState } from "store/storeTypes";
 import projectActions from "store/features/project/projectActions";
 
 interface ScriptEventsState {

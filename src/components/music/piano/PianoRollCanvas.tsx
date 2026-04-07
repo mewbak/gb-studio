@@ -62,15 +62,6 @@ import {
 import renderPianoContextMenu from "components/music/contextMenus/renderPianoContextMenu";
 import { useContextMenu } from "ui/hooks/use-context-menu";
 import {
-  commitPastedAbsoluteCells,
-  copyAbsoluteCells,
-  cutAbsoluteCells,
-  eraseAbsoluteCells,
-  moveAbsoluteCells,
-  paintAbsoluteCells,
-  pasteInPlace,
-} from "store/features/trackerDocument/trackerDocumentState";
-import {
   pasteAbsoluteCells,
   PianoRollToolType,
 } from "store/features/tracker/trackerState";
@@ -693,7 +684,7 @@ export const PianoRollCanvas = ({
       }
 
       dispatch(
-        commitPastedAbsoluteCells({
+        trackerDocumentActions.commitPastedAbsoluteCells({
           pastedPattern,
           channelId: selectedChannel,
           startSequenceId: sequenceId,
@@ -1153,7 +1144,7 @@ export const PianoRollCanvas = ({
       if (e.target.nodeName === "INPUT") return;
 
       dispatch(
-        copyAbsoluteCells({
+        trackerDocumentActions.copyAbsoluteCells({
           patternCells: selectedPatternCellsRef.current,
         }),
       );
@@ -1167,7 +1158,7 @@ export const PianoRollCanvas = ({
       if (e.target.nodeName === "INPUT") return;
 
       dispatch(
-        cutAbsoluteCells({
+        trackerDocumentActions.cutAbsoluteCells({
           patternCells: selectedPatternCellsRef.current,
         }),
       );
@@ -1181,7 +1172,7 @@ export const PianoRollCanvas = ({
 
   const onPasteInPlace = useCallback(() => {
     void dispatch(
-      pasteInPlace({
+      trackerDocumentActions.pasteInPlace({
         channelId: selectedChannel,
       }),
     );
@@ -1720,7 +1711,7 @@ export const PianoRollCanvas = ({
         );
 
         dispatch(
-          paintAbsoluteCells({
+          trackerDocumentActions.paintAbsoluteCells({
             cells: cellsToPaint,
             channelId: selectedChannel,
             instrumentId: selectedInstrumentId,
@@ -1791,7 +1782,7 @@ export const PianoRollCanvas = ({
         );
 
         dispatch(
-          eraseAbsoluteCells({
+          trackerDocumentActions.eraseAbsoluteCells({
             cells: cellsToErase,
             channelId: selectedChannel,
           }),
@@ -1897,7 +1888,7 @@ export const PianoRollCanvas = ({
 
       if (shouldMove && selectedPatternCells.length > 0) {
         dispatch(
-          moveAbsoluteCells({
+          trackerDocumentActions.moveAbsoluteCells({
             patternCells: selectedPatternCells,
             rowDelta: interaction.delta.rows,
             noteDelta: interaction.delta.notes,

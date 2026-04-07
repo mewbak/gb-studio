@@ -6,7 +6,7 @@ import {
   decodeAudioData,
 } from "renderer/lib/soundfx/soundfx";
 import { Dispatch, Middleware } from "@reduxjs/toolkit";
-import { RootState } from "store/configureStore";
+import { RootState } from "store/storeTypes";
 import musicActions from "store/features/music/musicActions";
 import navigationActions from "store/features/navigation/navigationActions";
 import actions from "./soundfxActions";

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import "jest-extended";
 import middleware from "../../../../src/store/features/undo/undoMiddleware";
-import { RootState } from "../../../../src/store/configureStore";
+import { RootState } from "store/storeTypes";
 import { dummyCompressedProjectResources } from "../../../dummydata";
 import { MiddlewareAPI, Dispatch, UnknownAction } from "@reduxjs/toolkit";
 import projectActions from "../../../../src/store/features/project/projectActions";

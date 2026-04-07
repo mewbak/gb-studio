@@ -6,12 +6,11 @@ import { MAX_EXPORT_LOOPS, MIN_EXPORT_LOOPS } from "shared/lib/music/constants";
 import {
   addNewSongFile,
   loadSongFile,
-  moveAbsoluteCellsComplete,
   saveSongFile,
 } from "store/features/trackerDocument/trackerDocumentState";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
-import { PatternCell } from "shared/lib/uge/types";
-import { AppThunk } from "store/configureStore";
+import type { PatternCell } from "shared/lib/uge/types";
+import { AppThunk } from "store/storeTypes";
 import API from "renderer/lib/api";
 import { parseClipboardToPattern } from "store/features/trackerDocument/trackerDocumentHelpers";
 import { PatternCellAddress } from "shared/lib/uge/editor/types";
@@ -340,9 +339,12 @@ const trackerSlice = createSlice({
         },
       )
       // After dragging cells, set selection to new location
-      .addCase(moveAbsoluteCellsComplete, (state, action) => {
-        state.selectedPatternCells = action.payload.newSelection;
-      })
+      .addCase(
+        trackerDocumentActions.moveAbsoluteCellsComplete,
+        (state, action) => {
+          state.selectedPatternCells = action.payload.newSelection;
+        },
+      )
       .addCase(trackerDocumentActions.insertSequence, (state, action) => {
         const offset = action.payload.position === "after" ? 1 : 0;
         state.selectedSequence = action.payload.sequenceIndex + offset;

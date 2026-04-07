@@ -43,11 +43,6 @@ import {
   TRACKER_REDO,
 } from "consts";
 import { useContextMenu } from "ui/hooks/use-context-menu";
-import {
-  copyTrackerFields,
-  cutTrackerFields,
-  pasteTrackerFields,
-} from "store/features/trackerDocument/trackerDocumentState";
 import { PatternCellAddress } from "shared/lib/uge/editor/types";
 import { toValidChannelId } from "shared/lib/uge/editor/helpers";
 import { useMusicNotePreview } from "components/music/hooks/useMusicNotePreview";
@@ -1141,7 +1136,7 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
       if (e.target.nodeName === "INPUT") return;
 
       dispatch(
-        copyTrackerFields({
+        trackerDocumentActions.copyTrackerFields({
           patternId: patternIdRef.current,
           selectedTrackerFields: selectedTrackerFieldsRef.current,
         }),
@@ -1156,7 +1151,7 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
       if (e.target.nodeName === "INPUT") return;
 
       dispatch(
-        cutTrackerFields({
+        trackerDocumentActions.cutTrackerFields({
           patternId: patternIdRef.current,
           selectedTrackerFields: selectedTrackerFieldsRef.current,
         }),
@@ -1173,7 +1168,7 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
     }
 
     await dispatch(
-      pasteTrackerFields({
+      trackerDocumentActions.pasteTrackerFields({
         patternId: patternIdRef.current,
         startField: firstField,
       }),
