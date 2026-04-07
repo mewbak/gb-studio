@@ -40,7 +40,7 @@ const ErrorDescription = styled.div`
   padding-top: 5px;
 `;
 
-const SongDocument = ({ musicAsset }: { musicAsset: MusicAsset }) => {
+const SongDocument = () => {
   const selectedSongId = useAppSelector(
     (state) => state.tracker.selectedSongId,
   );

@@ -388,7 +388,7 @@ const StandaloneMusicPage = ({
           >
             <SongEditorToolsPanel musicAsset={viewSong} />
             <SplitPaneVerticalDivider />
-            <SongDocument musicAsset={viewSong} />
+            <SongDocument />
 
             {isCompactLayout && view === "roll" && (
               <MusicWebChannelsBar

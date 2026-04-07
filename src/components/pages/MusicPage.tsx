@@ -326,7 +326,7 @@ const MusicPage = () => {
             <SongEditorToolsPanel musicAsset={viewSong} />
             <SplitPaneVerticalDivider />
 
-            <SongDocument musicAsset={viewSong} />
+            <SongDocument />
 
             {isCompactLayout && (
               <>
