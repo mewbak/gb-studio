@@ -499,16 +499,13 @@ export const DropdownButton: FC<DropdownButtonProps & ButtonProps> = React.memo(
 
     // When clicking button toggle open state
     // and close any sub menus
-    const onButtonClick = useCallback(
-      (_e: React.MouseEvent) => {
-        clickedOpen.current = !isOpen;
-        requestAnimationFrame(() => {
-          setIsOpen(!isOpen);
-          setParentMenuIndex(-1);
-        });
-      },
-      [isOpen, setIsOpen],
-    );
+    const onButtonClick = useCallback(() => {
+      setIsOpen((prev) => {
+        clickedOpen.current = !prev;
+        return !prev;
+      });
+      setParentMenuIndex(-1);
+    }, []);
 
     // Store menu width for using to offset sub menu to
     // left or right depending on space available
