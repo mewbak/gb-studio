@@ -5,6 +5,7 @@ const zlib = require("zlib");
 const { promisify } = require("util");
 const CopyPlugin = require("copy-webpack-plugin");
 const { GitRevisionPlugin } = require("git-revision-webpack-plugin");
+const { GenerateSW } = require("workbox-webpack-plugin");
 const baseRules = require("../shared/webpack.rules");
 const { repoPath, srcPath } = require("../shared/webpack.paths");
 const ReactRefreshWebpackPlugin = require("@pmmmwh/react-refresh-webpack-plugin");
@@ -160,6 +161,11 @@ module.exports = {
     new CopyPlugin({
       patterns: [
         { from: "src/apps/gbs-music-web/index.html", to: "index.html" },
+        { from: "src/apps/gbs-music-web/manifest.json", to: "manifest.json" },
+        {
+          from: "src/apps/gbs-music-web/components/ui/icons",
+          to: "icons",
+        },
       ],
     }),
     new webpack.DefinePlugin({
@@ -171,6 +177,22 @@ module.exports = {
     }),
     ...(isProduction ? [] : [new ReactRefreshWebpackPlugin()]),
     ...(isProduction ? [new PrecompressAssetsPlugin()] : []),
+    ...(isProduction
+      ? [
+          new GenerateSW({
+            swDest: "service-worker.js",
+            // Activate the new service worker as soon as it finishes installing
+            // so users get updates without having to close every tab first.
+            skipWaiting: true,
+            clientsClaim: true,
+            // Serve the cached shell for all navigation requests when offline.
+            navigateFallback: "index.html",
+            // Exclude pre-compressed variants and source maps — the browser
+            // never requests these URLs directly.
+            exclude: [/\.gz$/, /\.br$/, /\.map$/, /\.DS_Store$/],
+          }),
+        ]
+      : []),
   ],
   optimization: {
     splitChunks: {

@@ -12,7 +12,7 @@ import {
 } from "ui/icons/Icons";
 import { FixedSpacer, FlexGrow } from "ui/spacing/Spacing";
 import l10n from "shared/lib/lang/l10n";
-import appIconUrl from "ui/icons/app_icon_256.png";
+import appIconUrl from "gbs-music-web/components/ui/icons/app_music_icon_180.png";
 import { webLocaleOptions } from "gbs-music-web/lib/preferences";
 import { useWebFullscreen } from "ui/hooks/use-web-fullscreen";
 import { SongContextBar } from "components/music/toolbar/SongContextBar";
@@ -81,6 +81,10 @@ const AboutHeader = styled.div`
   align-items: center;
   gap: 12px;
   margin-bottom: 16px;
+`;
+
+const AboutHeaderText = styled.div`
+  flex-grow: 1;
 `;
 
 const AboutLogo = styled.img`
@@ -232,6 +236,24 @@ export const MusicWebToolbar = ({
     [localeId, onLocaleChange],
   );
 
+  const clearAppCache = useCallback(async () => {
+    try {
+      if ("serviceWorker" in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        await Promise.allSettled(registrations.map((r) => r.unregister()));
+      }
+
+      if ("caches" in window) {
+        const keys = await caches.keys();
+        await Promise.allSettled(keys.map((key) => caches.delete(key)));
+      }
+    } catch (e) {
+      // ignore
+    }
+
+    window.location.reload();
+  }, []);
+
   const { isFullscreen, toggleFullscreen } = useWebFullscreen();
 
   const windowSize = useWindowSize();
@@ -292,12 +314,15 @@ export const MusicWebToolbar = ({
           >
             <AboutHeader>
               <AboutLogo src={appIconUrl} alt="GB Studio" />
-              <div>
+              <AboutHeaderText>
                 <AboutTitle>GBS Music</AboutTitle>
                 <div>
                   {VERSION} ({COMMITHASH})
                 </div>
-              </div>
+              </AboutHeaderText>
+              <DropdownButton menuDirection="right">
+                <MenuItem onClick={clearAppCache}>Clear App Cache</MenuItem>
+              </DropdownButton>
             </AboutHeader>
             <AboutText>{l10n("GBSTUDIO_DESCRIPTION")}</AboutText>
             <AboutText>{l10n("GBSTUDIO_COPYRIGHT")}</AboutText>

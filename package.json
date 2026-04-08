@@ -196,6 +196,7 @@
     "typescript": "^5.6.3",
     "webpack-bundle-analyzer": "^4.4.2",
     "webpack-cli": "^4.7.0",
+    "workbox-webpack-plugin": "^7.4.0",
     "worker-loader": "^3.0.8"
   },
   "packageManager": "yarn@4.4.1+sha256.920b4530755296dc2ce8b4351f057d4a26429524fcb2789d277560d94837c27e",

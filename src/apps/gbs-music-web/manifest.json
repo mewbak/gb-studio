@@ -1,0 +1,17 @@
+{
+  "name": "GBS Music",
+  "short_name": "GBS Music",
+  "description": "GB Studio Music Editor",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#c92c61",
+  "theme_color": "#c92c61",
+  "icons": [
+    {
+      "src": "./icons/app_music_icon_180.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
