@@ -18,10 +18,7 @@ import { customEventName } from "shared/lib/entities/entitiesHelpers";
 import { CheckIcon, BlankIcon } from "ui/icons/Icons";
 import ItemTypes from "renderer/lib/dnd/itemTypes";
 import { getParentPath } from "shared/lib/helpers/virtualFilesystem";
-import {
-  ReparentArgs,
-  useFlatListReparentDnD,
-} from "ui/hooks/use-flatlist-reparent-dnd";
+import { useFlatListReparentDnD } from "ui/hooks/use-flatlist-reparent-dnd";
 import { assertUnreachable } from "shared/lib/helpers/assert";
 import { FlatListOuterDropTarget } from "ui/lists/FlatListOuterDropTarget";
 import { FlatListOuterDropProvider } from "ui/lists/FlatListOuterDropContext";
@@ -193,39 +190,33 @@ export const NavigatorCustomEvents: FC<NavigatorCustomEventsProps> = ({
     [toggleFolderOpen],
   );
 
-  const reparentArgs = useMemo(() => {
-    return {
-      onReparent: (
-        item: EntityNavigatorItem<ScriptNormalized>,
-        { dropFolder }: ReparentArgs,
-      ) => {
-        if (item.type === "folder") {
-          dispatch(
-            entitiesActions.reparentCustomEventsFolder({
-              fromPath: item.name,
-              toPath: dropFolder,
-            }),
-          );
-        } else if (item.type === "entity") {
-          dispatch(
-            entitiesActions.reparentCustomEvent({
-              customEventId: item.id,
-              toPath: dropFolder,
-            }),
-          );
-        } else {
-          assertUnreachable(item.type);
-        }
-      },
-      acceptTypes: ACCEPT_TYPES,
-      getName: (item: EntityNavigatorItem<ScriptNormalized>) => item.name,
-      getDropFolder: (target: EntityNavigatorItem<ScriptNormalized>) =>
-        target.type === "folder" ? target.name : getParentPath(target.name),
-    };
-  }, [dispatch]);
-
-  const { onDropOntoItem, flatListDropProviderValue } =
-    useFlatListReparentDnD<EntityNavigatorItem<ScriptNormalized>>(reparentArgs);
+  const { onDropOntoItem, flatListDropProviderValue } = useFlatListReparentDnD<
+    EntityNavigatorItem<ScriptNormalized>
+  >({
+    onReparent: (item, { dropFolder }) => {
+      if (item.type === "folder") {
+        dispatch(
+          entitiesActions.reparentCustomEventsFolder({
+            fromPath: item.name,
+            toPath: dropFolder,
+          }),
+        );
+      } else if (item.type === "entity") {
+        dispatch(
+          entitiesActions.reparentCustomEvent({
+            customEventId: item.id,
+            toPath: dropFolder,
+          }),
+        );
+      } else {
+        assertUnreachable(item.type);
+      }
+    },
+    acceptTypes: ACCEPT_TYPES,
+    getName: (item) => item.name,
+    getDropFolder: (target) =>
+      target.type === "folder" ? target.name : getParentPath(target.name),
+  });
 
   return (
     <FlatListOuterDropProvider value={flatListDropProviderValue}>

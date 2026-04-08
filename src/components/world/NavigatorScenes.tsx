@@ -35,10 +35,7 @@ import renderNoteContextMenu from "components/world/renderNoteContextMenu";
 import { EntityListItemDnD } from "ui/lists/EntityListItemDnD";
 import ItemTypes from "renderer/lib/dnd/itemTypes";
 import { getParentPath } from "shared/lib/helpers/virtualFilesystem";
-import {
-  ReparentArgs,
-  useFlatListReparentDnD,
-} from "ui/hooks/use-flatlist-reparent-dnd";
+import { useFlatListReparentDnD } from "ui/hooks/use-flatlist-reparent-dnd";
 import { FlatListOuterDropProvider } from "ui/lists/FlatListOuterDropContext";
 import { FlatListOuterDropTarget } from "ui/lists/FlatListOuterDropTarget";
 
