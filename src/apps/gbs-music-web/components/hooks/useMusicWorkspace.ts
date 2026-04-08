@@ -106,6 +106,19 @@ export const useMusicWorkspace = ({
           return;
         }
 
+        if (nextWorkspace.documents.length === 0) {
+          const document = await createTemplateMusicDocument(
+            new Uint8Array(templateSongData),
+            nextWorkspace,
+          );
+
+          if (!document) {
+            return;
+          }
+          applyWorkspace(appendWorkspaceDocument(nextWorkspace, document));
+          return;
+        }
+
         applyWorkspace(nextWorkspace);
       } catch (error) {
         if (!isAbortError(error)) {
@@ -113,7 +126,7 @@ export const useMusicWorkspace = ({
         }
       }
     },
-    [applyWorkspace],
+    [applyWorkspace, templateSongData],
   );
 
   const createSong = useCallback(async () => {
