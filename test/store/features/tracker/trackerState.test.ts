@@ -6,8 +6,8 @@ import reducer, {
 import actions from "../../../../src/store/features/tracker/trackerActions";
 import { loadSongFile } from "../../../../src/store/features/trackerDocument/trackerDocumentState";
 
-test("Should default subpattern editor mode to simple", () => {
-  expect(initialState.subpatternEditorMode).toBe("simple");
+test("Should default subpattern editor mode to script", () => {
+  expect(initialState.subpatternEditorMode).toBe("script");
 });
 
 test("Should set subpattern editor mode", () => {

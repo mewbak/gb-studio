@@ -32,7 +32,7 @@ export const createPatternCell = (): PatternCell => {
 export const createSubPatternCell = (): SubPatternCell => {
   return {
     note: null,
-    jump: 0,
+    jump: null,
     effectcode: null,
     effectparam: null,
   };

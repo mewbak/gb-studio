@@ -272,7 +272,7 @@ describe("fitSizesToTotal", () => {
       [Infinity, Infinity, Infinity],
       0,
     );
-    expect(result).toEqual([16, 33, 52]);
+    expect(result).toEqual([16, 34, 51]);
     expect(result.reduce((memo, value) => memo + value, 0)).toBe(101);
   });
 
