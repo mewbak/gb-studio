@@ -20,6 +20,7 @@ import API from "renderer/lib/api";
 import { NavigationSection } from "store/features/navigation/navigationState";
 import { isZoomSection } from "store/features/editor/editorHelpers";
 import trackerActions from "store/features/tracker/trackerActions";
+import { ConsoleLink } from "store/features/console/consoleState";
 
 const urlParams = new URLSearchParams(window.location.search);
 const projectPath = urlParams.get("path");
@@ -163,33 +164,41 @@ store.subscribe(() => {
   modified = state.document.modified;
 });
 
-let pendingLogLines: string[] = [];
+type PendingConsoleItem =
+  | { type: "out"; text: string; link?: ConsoleLink }
+  | { type: "err"; text: string; link?: ConsoleLink };
+
+let pendingConsoleItems: PendingConsoleItem[] = [];
 let flushScheduled = false;
 
-const flushLogs = () => {
+const flushConsoleItems = () => {
   flushScheduled = false;
 
-  if (pendingLogLines.length === 0) {
+  if (pendingConsoleItems.length === 0) {
     return;
   }
 
-  const lines = pendingLogLines;
-  pendingLogLines = [];
+  const items = pendingConsoleItems;
+  pendingConsoleItems = [];
 
-  store.dispatch(consoleActions.stdOutMany(lines.map((text) => ({ text }))));
+  store.dispatch(consoleActions.appendMany(items));
+};
+
+const scheduleFlush = () => {
+  if (!flushScheduled) {
+    flushScheduled = true;
+    requestAnimationFrame(flushConsoleItems);
+  }
 };
 
 API.project.onBuildLog((_event, message) => {
-  pendingLogLines.push(message);
-
-  if (!flushScheduled) {
-    flushScheduled = true;
-    requestAnimationFrame(flushLogs);
-  }
+  pendingConsoleItems.push({ type: "out", text: message });
+  scheduleFlush();
 });
 
 API.project.onBuildError((_event, message) => {
-  store.dispatch(consoleActions.stdErr({ text: message }));
+  pendingConsoleItems.push({ type: "err", text: message });
+  scheduleFlush();
 });
 
 // Watch Sprites
