@@ -18,8 +18,13 @@ import { customEventName } from "shared/lib/entities/entitiesHelpers";
 import { CheckIcon, BlankIcon } from "ui/icons/Icons";
 import ItemTypes from "renderer/lib/dnd/itemTypes";
 import { getParentPath } from "shared/lib/helpers/virtualFilesystem";
-import { useFlatListReparentDnD } from "ui/hooks/use-flatlist-reparent-dnd";
+import {
+  ReparentArgs,
+  useFlatListReparentDnD,
+} from "ui/hooks/use-flatlist-reparent-dnd";
 import { assertUnreachable } from "shared/lib/helpers/assert";
+import { FlatListOuterDropTarget } from "ui/lists/FlatListOuterDropTarget";
+import { FlatListOuterDropProvider } from "ui/lists/FlatListOuterDropContext";
 
 interface NavigatorCustomEventsProps {
   height: number;
@@ -60,22 +65,23 @@ export const NavigatorCustomEvents: FC<NavigatorCustomEventsProps> = ({
     ];
   }, [manuallyOpenedFolders, customEvent]);
 
-  const nestedCustomEventItems = useMemo(
-    () =>
-      buildEntityNavigatorItems(
-        allCustomEvents.map((customEvent, index) => ({
-          ...customEvent,
-          name: customEventName(customEvent, index),
-        })),
-        openFolders,
-        searchTerm,
-      ),
-    [allCustomEvents, openFolders, searchTerm],
-  );
+  const nestedCustomEventItems = useMemo(() => {
+    return buildEntityNavigatorItems(
+      allCustomEvents.map((customEvent, index) => ({
+        ...customEvent,
+        name: customEventName(customEvent, index),
+      })),
+      openFolders,
+      searchTerm,
+    );
+  }, [allCustomEvents, openFolders, searchTerm]);
 
-  const setSelectedId = (id: string) => {
-    dispatch(editorActions.selectCustomEvent({ customEventId: id }));
-  };
+  const setSelectedId = useCallback(
+    (id: string) => {
+      dispatch(editorActions.selectCustomEvent({ customEventId: id }));
+    },
+    [dispatch],
+  );
 
   const [renameId, setRenameId] = useState("");
 
@@ -114,6 +120,23 @@ export const NavigatorCustomEvents: FC<NavigatorCustomEventsProps> = ({
       dispatch(editorActions.setShowScriptUses(value));
     },
     [dispatch],
+  );
+
+  const onKeyDown = useCallback(
+    (
+      e: KeyboardEvent,
+      item: EntityNavigatorItem<ScriptNormalized> | undefined,
+    ) => {
+      listenForRenameStart(e);
+      if (item?.type === "folder") {
+        if (e.key === "ArrowRight") {
+          openFolder(selectedId);
+        } else if (e.key === "ArrowLeft") {
+          closeFolder(selectedId);
+        }
+      }
+    },
+    [closeFolder, listenForRenameStart, openFolder, selectedId],
   );
 
   const renderContextMenu = useCallback(
@@ -170,75 +193,74 @@ export const NavigatorCustomEvents: FC<NavigatorCustomEventsProps> = ({
     [toggleFolderOpen],
   );
 
-  const { onDropOntoItem, flatListDropzone } = useFlatListReparentDnD<
-    EntityNavigatorItem<ScriptNormalized>
-  >({
-    onReparent: (item, { dropFolder }) => {
-      if (item.type === "folder") {
-        dispatch(
-          entitiesActions.reparentCustomEventsFolder({
-            fromPath: item.name,
-            toPath: dropFolder,
-          }),
-        );
-      } else if (item.type === "entity") {
-        dispatch(
-          entitiesActions.reparentCustomEvent({
-            customEventId: item.id,
-            toPath: dropFolder,
-          }),
-        );
-      } else {
-        assertUnreachable(item.type);
-      }
-    },
-    acceptTypes: ACCEPT_TYPES,
-    getName: (item) => item.name,
-    getDropFolder: (target) =>
-      target.type === "folder" ? target.name : getParentPath(target.name),
-  });
+  const reparentArgs = useMemo(() => {
+    return {
+      onReparent: (
+        item: EntityNavigatorItem<ScriptNormalized>,
+        { dropFolder }: ReparentArgs,
+      ) => {
+        if (item.type === "folder") {
+          dispatch(
+            entitiesActions.reparentCustomEventsFolder({
+              fromPath: item.name,
+              toPath: dropFolder,
+            }),
+          );
+        } else if (item.type === "entity") {
+          dispatch(
+            entitiesActions.reparentCustomEvent({
+              customEventId: item.id,
+              toPath: dropFolder,
+            }),
+          );
+        } else {
+          assertUnreachable(item.type);
+        }
+      },
+      acceptTypes: ACCEPT_TYPES,
+      getName: (item: EntityNavigatorItem<ScriptNormalized>) => item.name,
+      getDropFolder: (target: EntityNavigatorItem<ScriptNormalized>) =>
+        target.type === "folder" ? target.name : getParentPath(target.name),
+    };
+  }, [dispatch]);
+
+  const { onDropOntoItem, flatListDropProviderValue } =
+    useFlatListReparentDnD<EntityNavigatorItem<ScriptNormalized>>(reparentArgs);
 
   return (
-    <FlatList
-      selectedId={selectedId}
-      items={nestedCustomEventItems}
-      setSelectedId={setSelectedId}
-      height={height}
-      onKeyDown={(e: KeyboardEvent, item) => {
-        listenForRenameStart(e);
-        if (item?.type === "folder") {
-          if (e.key === "ArrowRight") {
-            openFolder(selectedId);
-          } else if (e.key === "ArrowLeft") {
-            closeFolder(selectedId);
-          }
-        }
-      }}
-      outerElementType={flatListDropzone}
-      children={({ item }) => (
-        <EntityListItemDnD
-          item={item}
-          type={item.type === "folder" ? "folder" : "script"}
-          rename={item.type === "entity" && renameId === item.id}
-          onRename={onRenameComplete}
-          onRenameCancel={onRenameCancel}
-          renderContextMenu={
-            item.type === "entity" ? renderContextMenu : undefined
-          }
-          collapsable={item.type === "folder"}
-          collapsed={!isFolderOpen(item.name)}
-          onToggleCollapse={() => toggleFolderOpen(item.name)}
-          nestLevel={item.nestLevel}
-          renderLabel={renderLabel}
-          dragType={
-            item.type === "folder"
-              ? ItemTypes.CUSTOM_EVENT_FOLDER
-              : ItemTypes.CUSTOM_EVENT
-          }
-          acceptTypes={ACCEPT_TYPES}
-          onDrop={onDropOntoItem}
-        />
-      )}
-    />
+    <FlatListOuterDropProvider value={flatListDropProviderValue}>
+      <FlatList
+        selectedId={selectedId}
+        items={nestedCustomEventItems}
+        setSelectedId={setSelectedId}
+        height={height}
+        onKeyDown={onKeyDown}
+        outerElementType={FlatListOuterDropTarget}
+        children={({ item }) => (
+          <EntityListItemDnD
+            item={item}
+            type={item.type === "folder" ? "folder" : "script"}
+            rename={item.type === "entity" && renameId === item.id}
+            onRename={onRenameComplete}
+            onRenameCancel={onRenameCancel}
+            renderContextMenu={
+              item.type === "entity" ? renderContextMenu : undefined
+            }
+            collapsable={item.type === "folder"}
+            collapsed={!isFolderOpen(item.name)}
+            onToggleCollapse={() => toggleFolderOpen(item.name)}
+            nestLevel={item.nestLevel}
+            renderLabel={renderLabel}
+            dragType={
+              item.type === "folder"
+                ? ItemTypes.CUSTOM_EVENT_FOLDER
+                : ItemTypes.CUSTOM_EVENT
+            }
+            acceptTypes={ACCEPT_TYPES}
+            onDrop={onDropOntoItem}
+          />
+        )}
+      />
+    </FlatListOuterDropProvider>
   );
 };

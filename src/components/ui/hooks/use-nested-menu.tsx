@@ -126,7 +126,9 @@ const useNestedMenu = (
   }, [isOpen]);
 
   // Clear submenu timer on unmount
-  const closeTimer = useRef<ReturnType<typeof setTimeout>>();
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
   useEffect(() => {
     return () => {
       if (closeTimer.current) {
@@ -408,9 +410,13 @@ const useNestedMenu = (
     if (isInitialMount.current) {
       return;
     }
+
+    const parentItem = menuItemChildren[parentMenuIndex];
+
     if (
       parentMenuIndex > -1 &&
-      menuItemChildren[parentMenuIndex]?.props.subMenu
+      isValidElement<{ subMenu?: React.ReactElement[] }>(parentItem) &&
+      parentItem.props.subMenu
     ) {
       // If sub menu open focus on first element
       moveFocus(currentMenuIndex.current, 0);
@@ -425,7 +431,7 @@ const useNestedMenu = (
   // Delay setting isInitialMount to false by one frame
   // to prevent issues where contextmenu event handler will fire
   // during the mount (especially in React.StrictMode)
-  const mountDelayRequest = React.useRef<number>();
+  const mountDelayRequest = React.useRef<number | undefined>(undefined);
 
   useEffect(() => {
     isInitialMount.current = true;

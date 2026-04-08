@@ -61,7 +61,7 @@ const BackgroundPreviewSettings = ({
   const dispatch = useAppDispatch();
 
   const buttonRef = useRef<HTMLButtonElement>(null);
-  const timerRef = useRef<ReturnType<typeof setTimeout>>();
+  const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const background = useAppSelector((state) =>
     backgroundSelectors.selectById(state, backgroundId),

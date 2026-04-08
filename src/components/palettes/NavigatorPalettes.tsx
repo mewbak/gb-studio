@@ -26,6 +26,8 @@ import { useFlatListReparentDnD } from "ui/hooks/use-flatlist-reparent-dnd";
 import { assertUnreachable } from "shared/lib/helpers/assert";
 import ItemTypes from "renderer/lib/dnd/itemTypes";
 import { getParentPath } from "shared/lib/helpers/virtualFilesystem";
+import { FlatListOuterDropTarget } from "ui/lists/FlatListOuterDropTarget";
+import { FlatListOuterDropProvider } from "ui/lists/FlatListOuterDropContext";
 
 interface NavigatorPalettesProps {
   height: number;
@@ -204,7 +206,7 @@ export const NavigatorPalettes = ({
     setPalettesSearchEnabled(!palettesSearchEnabled);
   }, [palettesSearchEnabled]);
 
-  const { onDropOntoItem, flatListDropzone } = useFlatListReparentDnD<
+  const { onDropOntoItem, flatListDropProviderValue } = useFlatListReparentDnD<
     EntityNavigatorItem<Palette>
   >({
     onReparent: (item, { dropFolder }) => {
@@ -277,54 +279,56 @@ export const NavigatorPalettes = ({
         />
       )}
 
-      <FlatList
-        selectedId={selectedId}
-        items={nestedPaletteItems}
-        setSelectedId={setSelectedId}
-        height={height - (showPalettesSearch ? 60 : 30)}
-        outerElementType={flatListDropzone}
-        onKeyDown={(e: KeyboardEvent, item) => {
-          listenForRenameStart(e);
-          if (item?.type === "folder") {
-            if (e.key === "ArrowRight") {
-              openFolder(selectedId);
-            } else if (e.key === "ArrowLeft") {
-              closeFolder(selectedId);
+      <FlatListOuterDropProvider value={flatListDropProviderValue}>
+        <FlatList
+          selectedId={selectedId}
+          items={nestedPaletteItems}
+          setSelectedId={setSelectedId}
+          height={height - (showPalettesSearch ? 60 : 30)}
+          outerElementType={FlatListOuterDropTarget}
+          onKeyDown={(e: KeyboardEvent, item) => {
+            listenForRenameStart(e);
+            if (item?.type === "folder") {
+              if (e.key === "ArrowRight") {
+                openFolder(selectedId);
+              } else if (e.key === "ArrowLeft") {
+                closeFolder(selectedId);
+              }
             }
-          }
-        }}
-      >
-        {({ item }) => (
-          <EntityListItemDnD
-            item={item}
-            type={item.type === "folder" ? "folder" : "palette"}
-            rename={
-              item.type === "entity" &&
-              renameId === item.id &&
-              !renameId.startsWith("default")
-            }
-            onRename={onRenamePaletteComplete}
-            onRenameCancel={onRenameCancel}
-            renderContextMenu={
-              item.type === "entity" && !item.id.startsWith("default")
-                ? renderContextMenu
-                : undefined
-            }
-            collapsable={item.type === "folder"}
-            collapsed={!isFolderOpen(item.name)}
-            onToggleCollapse={() => toggleFolderOpen(item.name)}
-            nestLevel={item.nestLevel}
-            renderLabel={renderLabel}
-            dragType={
-              item.type === "folder"
-                ? ItemTypes.PALETTE_FOLDER
-                : ItemTypes.PALETTE
-            }
-            acceptTypes={ACCEPT_TYPES}
-            onDrop={onDropOntoItem}
-          />
-        )}
-      </FlatList>
+          }}
+        >
+          {({ item }) => (
+            <EntityListItemDnD
+              item={item}
+              type={item.type === "folder" ? "folder" : "palette"}
+              rename={
+                item.type === "entity" &&
+                renameId === item.id &&
+                !renameId.startsWith("default")
+              }
+              onRename={onRenamePaletteComplete}
+              onRenameCancel={onRenameCancel}
+              renderContextMenu={
+                item.type === "entity" && !item.id.startsWith("default")
+                  ? renderContextMenu
+                  : undefined
+              }
+              collapsable={item.type === "folder"}
+              collapsed={!isFolderOpen(item.name)}
+              onToggleCollapse={() => toggleFolderOpen(item.name)}
+              nestLevel={item.nestLevel}
+              renderLabel={renderLabel}
+              dragType={
+                item.type === "folder"
+                  ? ItemTypes.PALETTE_FOLDER
+                  : ItemTypes.PALETTE
+              }
+              acceptTypes={ACCEPT_TYPES}
+              onDrop={onDropOntoItem}
+            />
+          )}
+        </FlatList>
+      </FlatListOuterDropProvider>
     </Pane>
   );
 };

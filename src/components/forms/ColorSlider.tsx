@@ -52,7 +52,7 @@ const ColorSlider = ({
   steps,
   colorAtValue,
 }: ColorSliderProps) => {
-  const boundingRect = useRef<DOMRect>();
+  const boundingRect = useRef<DOMRect | undefined>(undefined);
 
   const stepValues = useMemo(() => Array.from(Array(steps).keys()), [steps]);
 

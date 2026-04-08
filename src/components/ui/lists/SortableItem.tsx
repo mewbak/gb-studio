@@ -1,6 +1,11 @@
-import React from "react";
+import React, { JSX } from "react";
 import { DropTargetMonitor, useDrag, useDrop } from "react-dnd";
 import type { SortableListOrientation } from "./SortableList";
+
+type SortableDragItem<T> = {
+  index: number;
+  data: T;
+};
 
 interface SortableItemProps<T> {
   itemType: string;
@@ -39,7 +44,11 @@ export const SortableItem = <T,>({
   const ref = React.useRef<HTMLDivElement>(null);
   const dragHandleRef = React.useRef<HTMLDivElement>(null);
 
-  const [{ isOver }, drop] = useDrop({
+  const [{ isOver }, drop] = useDrop<
+    SortableDragItem<T>,
+    void,
+    { isOver: boolean }
+  >({
     accept: itemType,
     hover(_, monitor: DropTargetMonitor) {
       if (!ref.current) {
@@ -130,7 +139,11 @@ export const SortableItem = <T,>({
     },
   });
 
-  const [{ isDragging }, drag, dragPreview] = useDrag(() => ({
+  const [{ isDragging }, drag, dragPreview] = useDrag<
+    SortableDragItem<T>,
+    void,
+    { isDragging: boolean }
+  >(() => ({
     type: itemType,
     collect: (monitor) => {
       return {
@@ -155,7 +168,11 @@ export const SortableItem = <T,>({
   }
 
   return (
-    <div ref={dragPreview}>
+    <div
+      ref={(node) => {
+        dragPreview(node);
+      }}
+    >
       <div ref={ref} onMouseDown={onSelect}>
         {renderItem(item, {
           isDragging,

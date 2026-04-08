@@ -1,4 +1,4 @@
-import React, { ReactNode, useCallback, useMemo, useState } from "react";
+import React, { JSX, ReactNode, useCallback, useMemo, useState } from "react";
 import { ContextMenu } from "ui/menu/ContextMenu";
 
 interface ContextMenuState {

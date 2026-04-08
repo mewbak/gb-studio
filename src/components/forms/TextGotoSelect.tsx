@@ -29,7 +29,7 @@ export const TextGotoSelect = ({
   onBlur,
 }: TextGotoSelectProps) => {
   const [internalValue, setValue] = useState(value);
-  const timerRef = useRef<ReturnType<typeof setTimeout>>();
+  const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const options = useMemo(
     () => [

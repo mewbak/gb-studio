@@ -198,7 +198,9 @@ export const DropdownButton: FC<DropdownButtonProps & ButtonProps> = React.memo(
     }, [isOpen]);
 
     // Clear submenu timer on unmount
-    const closeTimer = useRef<ReturnType<typeof setTimeout>>();
+    const closeTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
+      undefined,
+    );
     useEffect(() => {
       return () => {
         if (closeTimer.current) {
@@ -532,9 +534,13 @@ export const DropdownButton: FC<DropdownButtonProps & ButtonProps> = React.memo(
       if (isInitialMount.current) {
         return;
       }
+
+      const parentItem = menuItemChildren[parentMenuIndex];
+
       if (
         parentMenuIndex > -1 &&
-        menuItemChildren[parentMenuIndex]?.props.subMenu
+        isValidElement<{ subMenu?: React.ReactElement[] }>(parentItem) &&
+        parentItem.props.subMenu
       ) {
         // If sub menu open focus on first element
         moveFocus(currentMenuIndex.current, 0);

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from "react";
+import React, { useCallback, useLayoutEffect, useRef } from "react";
 import styled, { css } from "styled-components";
 import { Button } from "ui/buttons/Button";
 import l10n from "shared/lib/lang/l10n";
@@ -22,6 +22,9 @@ import { StyledButton } from "ui/buttons/style";
 import { ResourceLinkedText } from "ui/links/ResourceLinkedText";
 
 const PIN_TO_BOTTOM_RANGE = 100;
+
+const isNearBottom = (el: HTMLDivElement) =>
+  el.scrollTop >= el.scrollHeight - el.clientHeight - PIN_TO_BOTTOM_RANGE;
 
 const Wrapper = styled.div`
   display: flex;
@@ -137,6 +140,8 @@ const BuildLogLine = ({ text, type, link }: BuildLogLineProps) => {
 
 const DebuggerBuildLog = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const shouldPinToBottomRef = useRef(true);
+
   const dispatch = useAppDispatch();
 
   const output = useAppSelector((state) => state.console.output);
@@ -176,27 +181,6 @@ const DebuggerBuildLog = () => {
     dispatch(consoleActions.clearConsole());
   }, [dispatch]);
 
-  useEffect(() => {
-    // Pin scroll to bottom of console as new lines arrive if currently near bottom of scroll anyway
-    const scrollEl = scrollRef.current;
-    if (scrollEl) {
-      if (
-        scrollEl.scrollTop >
-        scrollEl.scrollHeight - scrollEl.clientHeight - PIN_TO_BOTTOM_RANGE
-      ) {
-        scrollEl.scrollTop = scrollEl.scrollHeight;
-      }
-    }
-  }, [output]);
-
-  useEffect(() => {
-    // Pin scroll to bottom of console on initial load
-    const scrollEl = scrollRef.current;
-    if (scrollEl) {
-      scrollEl.scrollTop = scrollEl.scrollHeight;
-    }
-  }, []);
-
   const onChangeSettingProp = useCallback(
     <K extends keyof SettingsState>(key: K, value: SettingsState[K]) => {
       dispatch(
@@ -233,9 +217,40 @@ const DebuggerBuildLog = () => {
     [onChangeSettingProp, showRomUsageAfterBuild],
   );
 
+  const onScroll = useCallback(() => {
+    const scrollEl = scrollRef.current;
+    if (!scrollEl) {
+      return;
+    }
+    shouldPinToBottomRef.current = isNearBottom(scrollEl);
+  }, []);
+
+  useLayoutEffect(() => {
+    // Pin scroll to bottom of console as new lines arrive if currently near bottom of scroll anyway
+    const scrollEl = scrollRef.current;
+    if (!scrollEl) {
+      return;
+    }
+
+    if (shouldPinToBottomRef.current) {
+      scrollEl.scrollTop = scrollEl.scrollHeight;
+    }
+  }, [outputLines.length, warnings.length, status]);
+
+  useLayoutEffect(() => {
+    // Pin scroll to bottom of console on initial load
+    const scrollEl = scrollRef.current;
+    if (!scrollEl) {
+      return;
+    }
+
+    scrollEl.scrollTop = scrollEl.scrollHeight;
+    shouldPinToBottomRef.current = true;
+  }, []);
+
   return (
     <Wrapper>
-      <Terminal ref={scrollRef}>
+      <Terminal ref={scrollRef} onScroll={onScroll}>
         {outputLines.map((out, index) => (
           <BuildLogLine
             key={index}

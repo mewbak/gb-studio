@@ -46,7 +46,7 @@ export const TooltipWrapper = ({
   open,
 }: TooltipWrapperProps) => {
   const [isOpen, setOpen] = useState(open);
-  const timer = useRef<ReturnType<typeof setTimeout>>();
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
     if (open !== undefined) {

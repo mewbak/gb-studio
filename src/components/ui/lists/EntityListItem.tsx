@@ -1,4 +1,4 @@
-import React, { ReactNode, useCallback, useState } from "react";
+import React, { JSX, ReactNode, useCallback, useState } from "react";
 import styled from "styled-components";
 import { RenameInput } from "ui/form/RenameInput";
 import {

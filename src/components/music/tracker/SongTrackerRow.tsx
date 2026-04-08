@@ -31,7 +31,7 @@ interface SongTrackerRowProps {
   isPlaying: boolean;
   isDefaultPlayhead: boolean;
   isStepMarker: boolean;
-  activeFieldRef: React.RefObject<HTMLSpanElement>;
+  activeFieldRef: React.RefObject<HTMLSpanElement | null>;
 }
 
 export const SongTrackerRow = memo(

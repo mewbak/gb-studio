@@ -1,4 +1,5 @@
 import React, {
+  JSX,
   useCallback,
   useEffect,
   useMemo,
@@ -92,7 +93,9 @@ const WorldView = () => {
 
   const scrollContentsRef = useRef<HTMLDivElement>(null);
   const worldRef = useRef<HTMLDivElement>(null);
-  const blockWheelZoom = useRef<ReturnType<typeof setTimeout>>();
+  const blockWheelZoom = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
 
   const [dragMode, setDragMode] = useState(false);
   const [hoverState, setHoverState] = useState<{ x: number; y: number }>();
@@ -109,7 +112,7 @@ const WorldView = () => {
   const isMouseOver = useRef(false);
   const [selectionStart, setSelectionStart] = useState<Point>();
   const [selectionEnd, setSelectionEnd] = useState<Point>();
-  const selection = useRef<SelectionRect>();
+  const selection = useRef<SelectionRect | undefined>(undefined);
 
   const loaded = useAppSelector((state) => state.document.loaded);
   const scenes = useAppSelector(

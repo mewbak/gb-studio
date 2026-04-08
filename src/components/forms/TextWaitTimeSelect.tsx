@@ -28,7 +28,7 @@ export const TextWaitTimeSelect = ({
   onChangeUnits,
   onBlur,
 }: TextWaitTimeSelectProps) => {
-  const timerRef = useRef<ReturnType<typeof setTimeout>>();
+  const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const debouncedLeave = useCallback(() => {
     if (timerRef.current) {

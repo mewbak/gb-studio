@@ -1,5 +1,4 @@
 import React, { useState, useEffect, FC, useContext, useMemo } from "react";
-import PropTypes from "prop-types";
 import { useAppSelector } from "store/hooks";
 import { MathTextarea, NamedConstant } from "ui/form/MathTextarea";
 import {
@@ -33,7 +32,7 @@ const ScriptEventFormMathArea: FC<ScriptEventFormMathAreaProps> = ({
   placeholder,
   onChange,
   entityId,
-}) => {
+}: ScriptEventFormMathAreaProps) => {
   const context = useContext(ScriptEditorContext);
   const [variables, setVariables] = useState<NamedVariable[]>([]);
   const variablesLookup = useAppSelector((state) =>
@@ -65,14 +64,6 @@ const ScriptEventFormMathArea: FC<ScriptEventFormMathAreaProps> = ({
       placeholder={placeholder}
     />
   );
-};
-
-ScriptEventFormMathArea.propTypes = {
-  id: PropTypes.string,
-  value: PropTypes.string,
-  placeholder: PropTypes.string,
-  onChange: PropTypes.func.isRequired,
-  entityId: PropTypes.string.isRequired,
 };
 
 export default ScriptEventFormMathArea;

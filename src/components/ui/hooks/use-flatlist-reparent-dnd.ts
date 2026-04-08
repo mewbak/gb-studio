@@ -1,6 +1,5 @@
-import { useCallback, useMemo } from "react";
+import { useCallback } from "react";
 import { getParentPath } from "shared/lib/helpers/virtualFilesystem";
-import { createFlatListOuterDropTarget } from "ui/lists/FlatListOuterDropTarget";
 
 export type ReparentArgs = {
   draggedPath: string;
@@ -27,6 +26,7 @@ export const useFlatListReparentDnD = <TItem>({
       if (isReparentable && !isReparentable(draggedItem)) {
         return;
       }
+
       const name = getName(draggedItem);
 
       if (getParentPath(name) === dropFolder) {
@@ -46,10 +46,10 @@ export const useFlatListReparentDnD = <TItem>({
       if (canDrop && !canDrop(draggedItem, targetItem)) {
         return;
       }
-      const dropFolder = getDropFolder(targetItem);
-      handleReparent(draggedItem, dropFolder);
+
+      handleReparent(draggedItem, getDropFolder(targetItem));
     },
-    [handleReparent, getDropFolder, canDrop],
+    [canDrop, getDropFolder, handleReparent],
   );
 
   const onDropOntoRoot = useCallback(
@@ -59,13 +59,11 @@ export const useFlatListReparentDnD = <TItem>({
     [handleReparent],
   );
 
-  const flatListDropzone = useMemo(
-    () => createFlatListOuterDropTarget<TItem>(acceptTypes, onDropOntoRoot),
-    [acceptTypes, onDropOntoRoot],
-  );
-
   return {
     onDropOntoItem,
-    flatListDropzone,
+    flatListDropProviderValue: {
+      acceptTypes,
+      onItemDrop: onDropOntoRoot as (item: unknown) => void,
+    },
   };
 };

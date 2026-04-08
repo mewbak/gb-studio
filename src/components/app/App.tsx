@@ -32,7 +32,9 @@ const AppContent = styled.div`
 const App = () => {
   const dispatch = useAppDispatch();
   const [draggingOver, setDraggingOver] = useState(false);
-  const dragLeaveTimer = useRef<ReturnType<typeof setTimeout>>();
+  const dragLeaveTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
   const section = useAppSelector((state) => state.navigation.section);
   const error = useAppSelector((state) => state.error);
   const loaded = useAppSelector((state) => state.document.loaded);

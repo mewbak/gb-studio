@@ -126,6 +126,11 @@ export const StyledSortableList = styled.div<StyledSortableListProps>`
 export const StyledListWithDropzoneWrapper = styled.div`
   display: flex;
   flex-direction: column;
+  height: 100%;
+
+  [role="list"] {
+    flex-grow: 0 !important;
+  }
 `;
 
 interface StyledListDropzoneProps {

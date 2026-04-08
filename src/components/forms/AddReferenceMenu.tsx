@@ -1,10 +1,4 @@
-import React, {
-  CSSProperties,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { OptGroup } from "ui/form/Select";
 import styled, { css } from "styled-components";
 import { Menu, MenuGroup, MenuItem, MenuItemCaret } from "ui/menu/Menu";
@@ -34,7 +28,7 @@ import {
   customEventName,
   sceneName,
 } from "shared/lib/entities/entitiesHelpers";
-import { FixedSizeList as List } from "react-window";
+import { List, RowComponentProps } from "react-window";
 import { allVariables } from "renderer/lib/variables";
 import { globalVariableDefaultName } from "shared/lib/variables/variableNames";
 import l10n from "shared/lib/lang/l10n";
@@ -332,7 +326,6 @@ const AddReferenceMenu = ({ onBlur, onAdd }: AddReferenceMenuProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const rootOptionsRef = useRef<HTMLDivElement>(null);
   const childOptionsRef = useRef<HTMLDivElement>(null);
-  const childOptionsListRef = useRef<List>(null);
 
   const backgrounds = useAppSelector((state) =>
     backgroundSelectors.selectAll(state),
@@ -633,24 +626,24 @@ const AddReferenceMenu = ({ onBlur, onAdd }: AddReferenceMenuProps) => {
             {renderCategoryIndex > -1 &&
               (options[renderCategoryIndex] as EventOptGroup)?.options && (
                 <List
-                  ref={childOptionsListRef}
-                  width="100%"
-                  height={allOptions.length * MENU_ITEM_HEIGHT}
-                  itemCount={
+                  style={{
+                    width: "100%",
+                    height: allOptions.length * MENU_ITEM_HEIGHT,
+                  }}
+                  rowCount={
                     (options[renderCategoryIndex] as EventOptGroup)?.options
                       .length
                   }
-                  itemSize={MENU_ITEM_HEIGHT}
-                  itemData={{
+                  rowHeight={MENU_ITEM_HEIGHT}
+                  rowComponent={Row}
+                  rowProps={{
                     items: (options[renderCategoryIndex] as EventOptGroup)
                       ?.options,
                     selectedIndex,
                     setSelectedIndex,
                     onSelectOption,
                   }}
-                >
-                  {Row}
-                </List>
+                />
               )}
           </SelectMenuOptions>
         </SelectMenuOptionsWrapper>
@@ -660,18 +653,21 @@ const AddReferenceMenu = ({ onBlur, onAdd }: AddReferenceMenuProps) => {
 };
 
 interface VirtualRowProps {
-  readonly index: number;
-  readonly style: CSSProperties;
-  readonly data: {
-    readonly items: EventOption[];
-    readonly selectedIndex: number;
-    readonly setSelectedIndex: (index: number) => void;
-    readonly onSelectOption: (index: number) => void;
-  };
+  readonly items: EventOption[];
+  readonly selectedIndex: number;
+  readonly setSelectedIndex: (index: number) => void;
+  readonly onSelectOption: (index: number) => void;
 }
 
-const Row = ({ index, data, style }: VirtualRowProps) => {
-  const item = data.items[index];
+const Row = ({
+  index,
+  items,
+  selectedIndex,
+  setSelectedIndex,
+  onSelectOption,
+  style,
+}: RowComponentProps<VirtualRowProps>) => {
+  const item = items[index];
   if (!item) {
     return <div style={style} />;
   }
@@ -680,9 +676,9 @@ const Row = ({ index, data, style }: VirtualRowProps) => {
       <MenuItem
         key={item.value}
         data-index={index}
-        selected={data.selectedIndex === index}
-        onMouseOver={() => data.setSelectedIndex(index)}
-        onClick={() => data.onSelectOption(index)}
+        selected={selectedIndex === index}
+        onMouseOver={() => setSelectedIndex(index)}
+        onClick={() => onSelectOption(index)}
       >
         {item.label}
       </MenuItem>

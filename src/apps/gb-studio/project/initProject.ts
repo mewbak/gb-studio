@@ -163,8 +163,29 @@ store.subscribe(() => {
   modified = state.document.modified;
 });
 
+let pendingLogLines: string[] = [];
+let flushScheduled = false;
+
+const flushLogs = () => {
+  flushScheduled = false;
+
+  if (pendingLogLines.length === 0) {
+    return;
+  }
+
+  const lines = pendingLogLines;
+  pendingLogLines = [];
+
+  store.dispatch(consoleActions.stdOutMany(lines.map((text) => ({ text }))));
+};
+
 API.project.onBuildLog((_event, message) => {
-  store.dispatch(consoleActions.stdOut({ text: message }));
+  pendingLogLines.push(message);
+
+  if (!flushScheduled) {
+    flushScheduled = true;
+    requestAnimationFrame(flushLogs);
+  }
 });
 
 API.project.onBuildError((_event, message) => {

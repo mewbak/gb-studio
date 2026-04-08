@@ -1,5 +1,4 @@
 import React, { useState, useEffect, FC, useContext } from "react";
-import PropTypes from "prop-types";
 import { useAppSelector } from "store/hooks";
 import { DialogueTextarea } from "ui/form/DialogueTextarea";
 import {
@@ -28,7 +27,7 @@ const ScriptEventFormTextArea: FC<ScriptEventFormTextAreaProps> = ({
   singleLine = false,
   onChange,
   entityId,
-}) => {
+}: ScriptEventFormTextAreaProps) => {
   const context = useContext(ScriptEditorContext);
   const [variables, setVariables] = useState<NamedVariable[]>([]);
   const fonts = useAppSelector((state) => fontSelectors.selectAll(state));
@@ -58,15 +57,6 @@ const ScriptEventFormTextArea: FC<ScriptEventFormTextAreaProps> = ({
       singleLine={singleLine}
     />
   );
-};
-
-ScriptEventFormTextArea.propTypes = {
-  id: PropTypes.string,
-  value: PropTypes.string,
-  maxlength: PropTypes.number,
-  placeholder: PropTypes.string,
-  onChange: PropTypes.func.isRequired,
-  entityId: PropTypes.string.isRequired,
 };
 
 export default ScriptEventFormTextArea;

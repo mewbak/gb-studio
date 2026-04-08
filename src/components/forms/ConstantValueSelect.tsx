@@ -6,7 +6,7 @@ import {
   isValueOperation,
   ScriptValue,
 } from "shared/lib/scriptValue/types";
-import React, { useCallback, useMemo, useRef } from "react";
+import React, { JSX, useCallback, useMemo, useRef } from "react";
 import styled, { css } from "styled-components";
 import { Button } from "ui/buttons/Button";
 import { DropdownButton } from "ui/buttons/DropdownButton";
@@ -290,7 +290,7 @@ const ConstantValueSelect = ({
     [inputOverride],
   );
 
-  const [{ isOver }, drop] = useDrop({
+  const [{ isOver }, drop] = useDrop<ScriptValue, void, { isOver: boolean }>({
     accept: ItemTypes.SCRIPT_VALUE,
     collect(monitor) {
       return {

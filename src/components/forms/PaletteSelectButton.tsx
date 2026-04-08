@@ -83,7 +83,7 @@ export const PaletteSelectButton: FC<PaletteSelectProps> = ({
   autoPalette,
 }) => {
   const buttonRef = useRef<HTMLButtonElement>(null);
-  const timerRef = useRef<ReturnType<typeof setTimeout>>();
+  const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   let paletteId = value || "";
   if (optional && !value) {

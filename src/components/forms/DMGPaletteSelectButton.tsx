@@ -137,7 +137,7 @@ export const DMGPaletteSelectButton = ({
   variant = "default",
 }: DMGPaletteSelectButtonProps) => {
   const buttonRef = useRef<HTMLButtonElement>(null);
-  const timerRef = useRef<ReturnType<typeof setTimeout>>();
+  const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [buttonFocus, setButtonFocus] = useState<boolean>(false);
 

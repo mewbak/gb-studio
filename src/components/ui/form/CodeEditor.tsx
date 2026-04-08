@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { JSX, useMemo, useState } from "react";
 import Editor from "react-simple-code-editor";
 import { highlight, Grammar } from "prismjs";
 import "prismjs/components/prism-clike";

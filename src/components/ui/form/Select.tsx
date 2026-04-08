@@ -1,7 +1,7 @@
 import styled from "styled-components";
 import WindowedSelect from "react-windowed-select";
 import CRSelect from "react-select/creatable";
-import React, { FC, ReactNode } from "react";
+import React, { FC, JSX, ReactNode } from "react";
 import { setDefault } from "shared/lib/helpers/setDefault";
 import { SearchIcon } from "ui/icons/Icons";
 import L10NText from "./L10NText";

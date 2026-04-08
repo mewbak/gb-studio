@@ -3,7 +3,7 @@ import styled, { css } from "styled-components";
 import { MetaspriteCanvas } from "./preview/MetaspriteCanvas";
 import renderSpriteFrameContextMenu from "components/sprites/renderSpriteFrameContextMenu";
 import { useAppDispatch, useAppSelector } from "store/hooks";
-import { useCallback, useState } from "react";
+import { JSX, useCallback, useState } from "react";
 import { ContextMenu } from "ui/menu/ContextMenu";
 import { pasteAny } from "store/features/clipboard/clipboardHelpers";
 

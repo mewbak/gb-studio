@@ -1,6 +1,8 @@
 import { RefObject, useCallback, useEffect, useState } from "react";
 
-export const useIMEIsComposing = (inputRef: RefObject<HTMLInputElement>) => {
+export const useIMEIsComposing = (
+  inputRef: RefObject<HTMLInputElement | null>,
+) => {
   const [isComposing, setComposition] = useState(false);
 
   const onCompositionStart = useCallback(() => setComposition(true), []);

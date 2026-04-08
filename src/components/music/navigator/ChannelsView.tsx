@@ -1,5 +1,4 @@
 import React, {
-  CSSProperties,
   useCallback,
   useContext,
   useEffect,
@@ -11,7 +10,7 @@ import l10n from "shared/lib/lang/l10n";
 import trackerActions from "store/features/tracker/trackerActions";
 import { useAppDispatch, useAppSelector } from "store/hooks";
 import { channels } from "shared/lib/music/constants";
-import { FixedSizeList as List } from "react-window";
+import { List, RowComponentProps, useListRef } from "react-window";
 import styled, { ThemeContext } from "styled-components";
 import { getEventNodeName } from "renderer/lib/helpers/dom";
 import throttle from "lodash/throttle";
@@ -45,12 +44,6 @@ interface ChannelNavigatorListData {
   setSelectedId: (id: string, item: ChannelNavigatorItem) => void;
 }
 
-interface ChannelNavigatorRowProps {
-  index: number;
-  style: CSSProperties;
-  data: ChannelNavigatorListData;
-}
-
 const Wrapper = styled.div`
   padding: 0;
   width: 100%;
@@ -76,8 +69,15 @@ const StyledChannelIcon = styled.div<{ channel: number }>`
   }
 `;
 
-const Row = ({ index, style, data }: ChannelNavigatorRowProps) => {
-  const item = data.items[index];
+const Row = ({
+  index,
+  style,
+  ariaAttributes,
+  items,
+  selectedId,
+  setSelectedId,
+}: RowComponentProps<ChannelNavigatorListData>) => {
+  const item = items[index];
 
   const channelStatus = useAppSelector((state) => state.tracker.channelStatus);
 
@@ -153,10 +153,11 @@ const Row = ({ index, style, data }: ChannelNavigatorRowProps) => {
 
   return (
     <div
+      {...ariaAttributes}
       style={style}
       data-id={item.id}
       tabIndex={0}
-      onClick={() => data.setSelectedId(item.id, item)}
+      onClick={() => setSelectedId(item.id, item)}
     >
       <div
         style={{
@@ -181,10 +182,7 @@ const Row = ({ index, style, data }: ChannelNavigatorRowProps) => {
           {item.index === 3 && <Noise4Icon />}
         </StyledChannelIcon>
 
-        <div
-          data-selected={data.selectedId === item.id}
-          style={{ flexGrow: 1 }}
-        >
+        <div data-selected={selectedId === item.id} style={{ flexGrow: 1 }}>
           {item.name}
         </div>
 
@@ -230,7 +228,7 @@ export const ChannelsView = () => {
 
   const ref = useRef<HTMLDivElement>(null);
   const [hasFocus, setHasFocus] = useState(false);
-  const list = useRef<List>(null);
+  const listRef = useListRef(null);
 
   const selectedChannel = useAppSelector(
     (state) => state.tracker.selectedChannel,
@@ -344,10 +342,10 @@ export const ChannelsView = () => {
     /**
      * enables scrolling on key down arrow
      */
-    if (selectedIndex >= 0 && list.current !== null) {
-      list.current.scrollToItem(selectedIndex);
+    if (selectedIndex >= 0 && listRef.current !== null) {
+      listRef.current.scrollToRow({ index: selectedIndex });
     }
-  }, [selectedIndex]);
+  }, [selectedIndex, listRef]);
 
   return (
     <Wrapper
@@ -357,19 +355,16 @@ export const ChannelsView = () => {
       onBlur={() => setHasFocus(false)}
     >
       <List
-        ref={list}
-        width="100%"
-        height={4 * 40}
-        itemCount={channels.length}
-        itemSize={40}
-        itemData={{
+        listRef={listRef}
+        rowCount={channels.length}
+        rowHeight={40}
+        rowComponent={Row}
+        rowProps={{
           items: channels,
           selectedId: String(selectedChannel ?? ""),
           setSelectedId,
         }}
-      >
-        {Row}
-      </List>
+      />
     </Wrapper>
   );
 };

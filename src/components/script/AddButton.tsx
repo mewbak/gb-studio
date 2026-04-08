@@ -2,6 +2,7 @@ import ItemTypes from "renderer/lib/dnd/itemTypes";
 import l10n from "shared/lib/lang/l10n";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { DropTargetMonitor, useDrop } from "react-dnd";
+import type { Identifier } from "dnd-core";
 import {
   ScriptEventParentType,
   ScriptEventsRef,
@@ -104,7 +105,11 @@ const AddButton = ({
     (state) => state.editor.scriptEventSelectionIds,
   );
 
-  const [{ handlerId, isOverCurrent }, drop] = useDrop({
+  const [{ handlerId, isOverCurrent }, drop] = useDrop<
+    ScriptEventsRef,
+    void,
+    { isOverCurrent: boolean; handlerId: Identifier | null }
+  >({
     accept: ItemTypes.SCRIPT_EVENT,
     collect(monitor) {
       return {

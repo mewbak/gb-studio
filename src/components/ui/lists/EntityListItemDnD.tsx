@@ -24,7 +24,7 @@ export const EntityListItemDnD = <
   onDrop,
   ...rest
 }: EntityListItemDnDProps<T>) => {
-  const [{ isOver }, drop] = useDrop({
+  const [{ isOver }, drop] = useDrop<T, void, { isOver: boolean }>({
     accept: acceptTypes || [],
     collect: (monitor: DropTargetMonitor) => ({
       isOver: monitor.isOver({ shallow: true }),

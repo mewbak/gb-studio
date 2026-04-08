@@ -12,6 +12,7 @@ import { AppSelect } from "ui/form/AppSelect";
 import { OptionLabelWithInfo, Select } from "ui/form/Select";
 import API from "renderer/lib/api";
 import l10n from "shared/lib/lang/l10n";
+import { SingleValue } from "react-select";
 
 interface Options {
   value: number;
@@ -164,7 +165,7 @@ const Preferences = () => {
             <Select
               value={currentZoomValue}
               options={zoomOptions}
-              onChange={(newValue) => {
+              onChange={(newValue: SingleValue<Options>) => {
                 if (newValue) {
                   onChangeZoomLevel(newValue.value);
                 }
@@ -181,7 +182,7 @@ const Preferences = () => {
             <Select
               value={currentTrackerKeyBindings}
               options={trackerKeyBindingsOptions}
-              onChange={(newValue) => {
+              onChange={(newValue: SingleValue<Options>) => {
                 if (newValue) {
                   onChangeTrackerKeyBindings(newValue.value);
                 }

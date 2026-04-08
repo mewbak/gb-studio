@@ -279,7 +279,6 @@ const AppToolbar: FC = () => {
             placeholder={l10n("TOOLBAR_SEARCH")}
             value={searchTerm || ""}
             onChange={onChangeSearchTerm}
-            onSubmit={onChangeSearchTerm}
           />
         )}
         <Button

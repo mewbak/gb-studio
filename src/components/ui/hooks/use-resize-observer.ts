@@ -5,7 +5,10 @@ interface Size {
   height: number | undefined;
 }
 
-const useResizeObserver = <T extends HTMLElement>(): [RefObject<T>, Size] => {
+const useResizeObserver = <T extends HTMLElement>(): [
+  RefObject<T | null>,
+  Size,
+] => {
   const [size, setSize] = useState<Size>({
     width: undefined,
     height: undefined,

@@ -174,7 +174,7 @@ export const BackgroundSelectButton: FC<BackgroundSelectProps> = ({
   includeInfo,
 }) => {
   const buttonRef = useRef<HTMLButtonElement>(null);
-  const timerRef = useRef<ReturnType<typeof setTimeout>>();
+  const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const background = useAppSelector((state) =>
     backgroundSelectors.selectById(state, value || ""),
   );

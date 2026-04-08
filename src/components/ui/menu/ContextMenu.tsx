@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from "react";
+import React, { JSX, useCallback, useEffect, useRef } from "react";
 import useNestedMenu from "ui/hooks/use-nested-menu";
 import { PositionedPortal } from "ui/layout/PositionedPortal";
 import { Menu } from "ui/menu/Menu";

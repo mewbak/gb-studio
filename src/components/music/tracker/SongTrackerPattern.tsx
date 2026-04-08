@@ -27,8 +27,8 @@ interface SongTrackerPatternProps {
   orderLength: number;
   numPatterns: number;
   dispatch: ReturnType<typeof import("store/hooks").useAppDispatch>;
-  tableRef: React.RefObject<HTMLTableSectionElement>;
-  activeFieldRef: React.RefObject<HTMLSpanElement>;
+  tableRef: React.RefObject<HTMLTableSectionElement | null>;
+  activeFieldRef: React.RefObject<HTMLSpanElement | null>;
   onFocus: () => void;
   onSelectionContextMenu?: (event: React.MouseEvent<HTMLElement>) => void;
 }

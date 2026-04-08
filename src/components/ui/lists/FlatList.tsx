@@ -1,12 +1,6 @@
 import throttle from "lodash/throttle";
-import React, {
-  CSSProperties,
-  ReactNode,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
-import { FixedSizeList as List } from "react-window";
+import React, { useEffect, useRef, useState } from "react";
+import { List, RowComponentProps, useListRef } from "react-window";
 import styled from "styled-components";
 import { ThemeInterface } from "ui/theme/ThemeInterface";
 import { ListItem } from "./ListItem";
@@ -17,21 +11,21 @@ export interface FlatListItem {
   name: string;
 }
 
-interface RowProps<T extends FlatListItem> {
-  readonly index: number;
-  readonly style: CSSProperties;
-  readonly data: {
-    readonly items: T[];
-    readonly selectedId: string;
-    readonly highlightIds?: string[];
-    readonly setSelectedId?: (value: string, item: T) => void;
-    readonly renderItem: (props: {
-      selected: boolean;
-      item: T;
-      index: number;
-    }) => React.ReactNode;
-  };
+interface RowProps {
+  readonly items: FlatListItem[];
+  readonly selectedId: string;
+  readonly highlightIds?: string[];
+  readonly setSelectedId?: (value: string, item: FlatListItem) => void;
+  readonly renderItem: (props: {
+    selected: boolean;
+    item: FlatListItem;
+    index: number;
+  }) => React.ReactNode;
 }
+
+type WrapperElementProps = React.PropsWithChildren<
+  React.HTMLAttributes<HTMLDivElement>
+>;
 
 interface FlatListProps<T extends FlatListItem> {
   readonly height: number;
@@ -40,9 +34,7 @@ interface FlatListProps<T extends FlatListItem> {
   readonly highlightIds?: string[];
   readonly setSelectedId?: (id: string, item: T) => void;
   readonly onKeyDown?: (e: KeyboardEvent, item?: T) => void;
-  readonly outerElementType?: React.ComponentType<
-    React.HTMLAttributes<HTMLDivElement>
-  >;
+  readonly outerElementType?: React.ComponentType<WrapperElementProps>;
   readonly children: (props: {
     selected: boolean;
     item: T;
@@ -57,29 +49,41 @@ const Wrapper = styled.div`
   box-sizing: border-box;
 `;
 
-const Row = <T extends FlatListItem>({ index, style, data }: RowProps<T>) => {
-  const item = data.items[index];
+const PassThrough = ({ children }: { children: React.ReactNode }) => (
+  <>{children}</>
+);
+
+const Row = ({
+  index,
+  style,
+  ariaAttributes,
+  items,
+  selectedId,
+  setSelectedId,
+  renderItem,
+  highlightIds,
+}: RowComponentProps<RowProps>) => {
+  const item = items[index];
   if (!item) {
-    return <div style={style} />;
+    return <div style={style} {...ariaAttributes} />;
   }
+
   return (
     <div
-      key={item.id}
+      {...ariaAttributes}
       style={style}
-      onClick={() => data.setSelectedId?.(item.id, item)}
+      onClick={() => setSelectedId?.(item.id, item)}
       data-id={item.id}
     >
       <ListItem
-        data-selected={data.selectedId === item.id}
-        data-highlighted={data.highlightIds?.includes(item.id)}
+        data-selected={selectedId === item.id}
+        data-highlighted={highlightIds?.includes(item.id)}
       >
-        {data.renderItem
-          ? data.renderItem({
-              item,
-              selected: data.selectedId === item.id,
-              index,
-            })
-          : item.name}
+        {renderItem({
+          item,
+          selected: selectedId === item.id,
+          index,
+        })}
       </ListItem>
     </div>
   );
@@ -95,15 +99,15 @@ export const FlatList = <T extends FlatListItem>({
   onKeyDown,
   children,
 }: FlatListProps<T>) => {
-  const typedSetSelectedId = setSelectedId as <T extends FlatListItem>(
-    id: string,
-    item: T,
-  ) => void | undefined;
-  const typedItems = items as T[];
+  const typedSetSelectedId = setSelectedId as
+    | ((id: string, item: FlatListItem) => void)
+    | undefined;
 
   const ref = useRef<HTMLDivElement>(null);
   const [hasFocus, setHasFocus] = useState(false);
-  const list = useRef<List>(null);
+  const listRef = useListRef(null);
+
+  const WrapperElement = outerElementType ?? PassThrough;
 
   const selectedIndex = items.findIndex((item) => item.id === selectedId);
 
@@ -122,30 +126,33 @@ export const FlatList = <T extends FlatListItem>({
       throttledPrev.current(items, selectedId || "");
     } else if (e.key === "Home") {
       const nextItem = items[0];
-      setSelectedId?.(nextItem.id, nextItem);
-      setFocus(nextItem.id);
+      if (nextItem) {
+        setSelectedId?.(nextItem.id, nextItem);
+        setFocus(nextItem.id);
+      }
     } else if (e.key === "End") {
       const nextItem = items[items.length - 1];
-      setSelectedId?.(nextItem.id, nextItem);
-      setFocus(nextItem.id);
+      if (nextItem) {
+        setSelectedId?.(nextItem.id, nextItem);
+        setFocus(nextItem.id);
+      }
     } else {
       handleSearch(e.key);
     }
     onKeyDown?.(e, items[selectedIndex]);
   };
 
-  // Keep ref to setSelectedId to prevent stale references
-  // in throttled calls used in keyboard navigation
   const setSelectedIdRef = useRef(setSelectedId);
   useEffect(() => {
     setSelectedIdRef.current = setSelectedId;
   }, [setSelectedId]);
 
   const throttledNext = useRef(
-    throttle((items: T[], selectedId: string) => {
-      const currentIndex = items.findIndex((item) => item.id === selectedId);
-      const nextIndex = currentIndex + 1;
-      const nextItem = items[nextIndex];
+    throttle((items: T[], currentSelectedId: string) => {
+      const currentIndex = items.findIndex(
+        (item) => item.id === currentSelectedId,
+      );
+      const nextItem = items[currentIndex + 1];
       if (nextItem) {
         setSelectedIdRef.current?.(nextItem.id, nextItem);
         setFocus(nextItem.id);
@@ -154,10 +161,11 @@ export const FlatList = <T extends FlatListItem>({
   );
 
   const throttledPrev = useRef(
-    throttle((items: T[], selectedId: string) => {
-      const currentIndex = items.findIndex((item) => item.id === selectedId);
-      const nextIndex = currentIndex - 1;
-      const nextItem = items[nextIndex];
+    throttle((items: T[], currentSelectedId: string) => {
+      const currentIndex = items.findIndex(
+        (item) => item.id === currentSelectedId,
+      );
+      const nextItem = items[currentIndex - 1];
       if (nextItem) {
         setSelectedIdRef.current?.(nextItem.id, nextItem);
         setFocus(nextItem.id);
@@ -168,16 +176,17 @@ export const FlatList = <T extends FlatListItem>({
   const handleSearch = (key: string) => {
     const search = key.toLowerCase();
     const index = selectedIndex + 1;
+
     let next = items.slice(index).find((node) => {
-      const name = String(node.name).toLowerCase();
-      return name.startsWith(search);
+      return String(node.name).toLowerCase().startsWith(search);
     });
+
     if (!next) {
       next = items.slice(0, index).find((node) => {
-        const name = String(node.name).toLowerCase();
-        return name.startsWith(search);
+        return String(node.name).toLowerCase().startsWith(search);
       });
     }
+
     if (next) {
       setSelectedId?.(next.id, next);
       setFocus(next.id);
@@ -192,7 +201,7 @@ export const FlatList = <T extends FlatListItem>({
 
   const setFocus = (id: string) => {
     if (ref.current) {
-      const el = ref.current.querySelector('[data-id="' + id + '"]');
+      const el = ref.current.querySelector(`[data-id="${id}"]`);
       if (el) {
         (el as HTMLDivElement).focus();
       }
@@ -209,16 +218,13 @@ export const FlatList = <T extends FlatListItem>({
   });
 
   useEffect(() => {
-    /**
-     * enables scrolling on key down arrow
-     */
-    if (selectedIndex >= 0 && list.current !== null) {
-      list.current.scrollToItem(selectedIndex);
+    if (selectedIndex >= 0 && listRef.current) {
+      listRef.current.scrollToRow({ index: selectedIndex });
     }
-  }, [selectedIndex, items, list]);
+  }, [selectedIndex, items, listRef]);
 
   if (height <= 0) {
-    return <Wrapper ref={ref} style={{ height }}></Wrapper>;
+    return <Wrapper ref={ref} style={{ height }} />;
   }
 
   return (
@@ -230,28 +236,28 @@ export const FlatList = <T extends FlatListItem>({
       tabIndex={0}
       style={{ height }}
     >
-      <List
-        ref={list}
-        width="100%"
-        height={Math.max(0, height)}
-        itemCount={items.length}
-        itemSize={25}
-        itemData={{
-          items: typedItems,
-          selectedId: selectedId ?? "",
-          highlightIds,
-          setSelectedId: typedSetSelectedId,
-          renderItem: ((props: { selected: boolean; item: T; index: number }) =>
-            children(props)) as (props: {
-            selected: boolean;
-            item: FlatListItem;
-            index: number;
-          }) => ReactNode,
-        }}
-        outerElementType={outerElementType}
-      >
-        {Row}
-      </List>
+      <WrapperElement>
+        <List
+          listRef={listRef}
+          rowCount={items.length}
+          rowHeight={25}
+          rowComponent={Row}
+          rowProps={{
+            items: items as FlatListItem[],
+            selectedId: selectedId ?? "",
+            highlightIds,
+            setSelectedId: typedSetSelectedId,
+            renderItem: (props) =>
+              children(
+                props as {
+                  selected: boolean;
+                  item: T;
+                  index: number;
+                },
+              ),
+          }}
+        />
+      </WrapperElement>
     </Wrapper>
   );
 };

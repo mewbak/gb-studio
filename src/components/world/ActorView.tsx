@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useEffect, useState } from "react";
+import React, { JSX, memo, useCallback, useEffect, useState } from "react";
 import SpriteSheetCanvas from "./SpriteSheetCanvas";
 import { MIDDLE_MOUSE, TILE_SIZE, TOOL_COLLISIONS } from "consts";
 import {

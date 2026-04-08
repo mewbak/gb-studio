@@ -154,7 +154,7 @@ export const SpriteSheetSelectButton: FC<SpriteSheetSelectProps> = ({
   optionalValue,
 }) => {
   const buttonRef = useRef<HTMLButtonElement>(null);
-  const timerRef = useRef<ReturnType<typeof setTimeout>>();
+  const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const spriteSheet = useAppSelector((state) =>
     spriteSheetSelectors.selectById(state, value || optionalValue || ""),
   );

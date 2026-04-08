@@ -329,7 +329,7 @@ const BrushToolbar = ({ hasFocusForKeyboardShortcuts }: BrushToolbarProps) => {
       setModalColorIndex(-1);
     }
   }, [selectedTool]);
-  const timerRef = useRef<ReturnType<typeof setTimeout>>();
+  const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const startReplacePalette = (paletteIndex: number) => () => {
     if (timerRef.current) {
       clearTimeout(timerRef.current);

@@ -1,5 +1,4 @@
 import React from "react";
-import PropTypes from "prop-types";
 import styled, { css } from "styled-components";
 
 type PaletteBlockProps = {
@@ -44,7 +43,7 @@ const PaletteBlock: React.FC<PaletteBlockProps> = ({
   size = 24,
   type = "tile",
   highlight,
-}) => (
+}: PaletteBlockProps) => (
   <Wrapper
     $type={type}
     $highlight={highlight}
@@ -68,10 +67,5 @@ const PaletteBlock: React.FC<PaletteBlockProps> = ({
     })}
   </Wrapper>
 );
-
-PaletteBlock.propTypes = {
-  colors: PropTypes.arrayOf(PropTypes.string.isRequired).isRequired,
-  size: PropTypes.number,
-};
 
 export default PaletteBlock;

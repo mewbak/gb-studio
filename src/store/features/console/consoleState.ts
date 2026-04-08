@@ -77,6 +77,30 @@ const consoleSlice = createSlice({
         state.output.push(line);
       }
     },
+    stdOutMany: (
+      state,
+      action: PayloadAction<Array<{ text: string; link?: ConsoleLink }>>,
+    ) => {
+      if (!action.payload?.length) {
+        return;
+      }
+
+      const lines: ConsoleLine[] = action.payload
+        .filter(
+          (item) =>
+            item &&
+            (state.status !== "cancelled" ||
+              item.text === l10n("BUILD_CANCELLED")),
+        )
+        .map((item) => ({
+          type: "out",
+          ...item,
+        }));
+
+      if (lines.length > 0) {
+        state.output.push(...lines);
+      }
+    },
     stdErr: (
       state,
       action: PayloadAction<{ text: string; link?: ConsoleLink }>,

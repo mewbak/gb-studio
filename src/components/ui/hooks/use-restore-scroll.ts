@@ -7,7 +7,7 @@ interface UseRestoreScrollOptions {
 }
 
 export function useRestoreScroll<T extends HTMLElement>(
-  ref: React.RefObject<T>,
+  ref: React.RefObject<T | null>,
   target: number | null | undefined,
   options?: UseRestoreScrollOptions,
 ) {

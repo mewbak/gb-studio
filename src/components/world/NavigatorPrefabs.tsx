@@ -38,6 +38,8 @@ const TRIGGER_ACCEPT_TYPES = [
   ItemTypes.TRIGGER_PREFAB_FOLDER,
 ];
 
+const ACCEPT_TYPES = [...ACTOR_ACCEPT_TYPES, ...TRIGGER_ACCEPT_TYPES];
+
 const getDropFolder = (target: PrefabNavigatorItem): string => {
   if (
     target.type === "actorPrefabFolder" ||
@@ -315,7 +317,7 @@ export const NavigatorPrefabs: FC<NavigatorPrefabsProps> = ({
   );
 
   const { onDropOntoItem } = useFlatListReparentDnD<PrefabNavigatorItem>({
-    acceptTypes: [...ACTOR_ACCEPT_TYPES, ...TRIGGER_ACCEPT_TYPES],
+    acceptTypes: ACCEPT_TYPES,
     canDrop: (dragged, target) =>
       getPrefabCategory(dragged) === getPrefabCategory(target),
     getName: (item) => item.name,

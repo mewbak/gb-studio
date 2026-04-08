@@ -16,7 +16,7 @@ export const extractMenuAccelerator = (children: ReactNode): string | null => {
 
   Children.forEach(children, (child) => {
     if (
-      isValidElement(child) &&
+      isValidElement<{ accelerator?: string }>(child) &&
       child.type === MenuAccelerator &&
       typeof child.props.accelerator === "string"
     ) {

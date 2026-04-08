@@ -1,4 +1,5 @@
 import React, {
+  JSX,
   useCallback,
   useContext,
   useEffect,
@@ -53,6 +54,7 @@ import { getSettings } from "store/features/settings/settingsState";
 import renderScriptEventContextMenu from "components/script/renderScriptEventContextMenu";
 import { ContextMenu } from "ui/menu/ContextMenu";
 import { ScriptEventChildren } from "components/script/ScriptEventChildren";
+import { Identifier } from "dnd-core";
 
 interface ScriptEditorEventProps {
   id: string;
@@ -177,7 +179,11 @@ const ScriptEditorEvent = React.memo(
       setRename(!rename);
     }, [rename]);
 
-    const [{ handlerId, isOverCurrent }, drop] = useDrop({
+    const [{ handlerId, isOverCurrent }, drop] = useDrop<
+      ScriptEventsRef,
+      void,
+      { isOverCurrent: boolean; handlerId: Identifier | null }
+    >({
       accept: ItemTypes.SCRIPT_EVENT,
       collect(monitor) {
         return {

@@ -1,4 +1,4 @@
-import React, { FC, useMemo } from "react";
+import React, { FC, JSX, useMemo } from "react";
 import l10n from "shared/lib/lang/l10n";
 import { DropdownButton } from "ui/buttons/DropdownButton";
 import {

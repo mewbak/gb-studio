@@ -217,7 +217,7 @@ const RGBtoHSV = (r: number, g: number, b: number) => {
 const CustomPalettePicker = ({ paletteId }: CustomPalettePickerProps) => {
   const dispatch = useAppDispatch();
 
-  const prevPaletteIdRef = useRef<string>();
+  const prevPaletteIdRef = useRef<string | undefined>(undefined);
 
   const palette = useAppSelector((state) =>
     paletteSelectors.selectById(state, paletteId),
