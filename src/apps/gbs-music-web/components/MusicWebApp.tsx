@@ -142,17 +142,19 @@ export const MusicWebApp = () => {
         e.stopPropagation();
       }}
     >
-      <MusicWebToolbar
-        themeId={themeId}
-        localeId={localeId}
-        onThemeChange={onThemeChange}
-        onLocaleChange={onLocaleChange}
-        onCreateSong={onCreateSong}
-        onImportSong={onImportSong}
-        onOpenDirectoryWorkspace={
-          singleDocumentMode ? undefined : onOpenDirectoryWorkspace
-        }
-      />
+      {hasSongs ? (
+        <MusicWebToolbar
+          themeId={themeId}
+          localeId={localeId}
+          onThemeChange={onThemeChange}
+          onLocaleChange={onLocaleChange}
+          onCreateSong={onCreateSong}
+          onImportSong={onImportSong}
+          onOpenDirectoryWorkspace={
+            singleDocumentMode ? undefined : onOpenDirectoryWorkspace
+          }
+        />
+      ) : null}
       <AppContent data-id="app-content">
         {hasSongs ? (
           <StandaloneMusicPage

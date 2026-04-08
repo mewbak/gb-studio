@@ -113,7 +113,7 @@ const SplashAppTitleWrapper = styled.div`
   }
 `;
 
-export const SplashAppTitle = () => {
+export const SplashAppTitle = ({ appName }: { appName?: string }) => {
   const [showCommit, setShowCommit] = useState(false);
   const displayCommit = () => setShowCommit(true);
   return (
@@ -123,7 +123,7 @@ export const SplashAppTitle = () => {
           {VERSION} ({COMMITHASH})
         </div>
       ) : (
-        `GB Studio ${VERSION}`
+        `${appName ?? "GB Studio"} ${VERSION}`
       )}
     </SplashAppTitleWrapper>
   );

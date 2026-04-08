@@ -32,6 +32,7 @@ export const StyledCredits = styled.div`
   animation-fill-mode: forwards;
   -webkit-app-region: drag;
   background: red;
+  z-index: 100000;
 `;
 
 export const StyledCreditsTitle = styled.div`

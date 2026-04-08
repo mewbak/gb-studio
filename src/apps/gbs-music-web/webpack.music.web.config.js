@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 const webpack = require("webpack");
-const Path = require("path");
 const zlib = require("zlib");
 const { promisify } = require("util");
 const CopyPlugin = require("copy-webpack-plugin");
@@ -139,12 +138,9 @@ module.exports = {
       consts: srcPath("consts.ts"),
       "gbs-music-web": srcPath("apps/gbs-music-web"),
       wasm: repoPath("appData", "wasm"),
-      "contributors.json": Path.join(__dirname, "contributors.json"),
-      "contributors-external.json": Path.join(
-        __dirname,
-        "contributors-external.json",
-      ),
-      "patrons.json": Path.join(__dirname, "patrons.json"),
+      "contributors.json": repoPath("contributors.json"),
+      "contributors-external.json": repoPath("contributors-external.json"),
+      "patrons.json": repoPath("patrons.json"),
       "#my-quickjs-variant": require.resolve(
         "@jitl/quickjs-singlefile-browser-release-sync",
       ),
