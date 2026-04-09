@@ -25,7 +25,7 @@ import {
   SplashTabLink,
   SplashWindow,
 } from "ui/splash/Splash";
-import { FixedSpacer, FlexGrow } from "ui/spacing/Spacing";
+import { FlexGrow } from "ui/spacing/Spacing";
 import styled from "styled-components";
 import { musicExamples } from "gbs-music-web/data/musicExamples";
 import projectIcon from "ui/icons/gbsproj.png";
@@ -198,21 +198,20 @@ export const MusicWebSplash = ({
               onClick={() => setSection("examples")}
               // disabled={}
             >
-              Examples
+              Example Songs
             </SplashTab>
-
-            <SplashTab onClick={() => setOpenCredits(true)}>
-              {l10n("SPLASH_CREDITS")}
-            </SplashTab>
-            <FlexGrow />
 
             <SplashTabLink
               target="_blank"
               href="https://www.gbstudio.dev/docs/assets/music/music-huge"
             >
-              {l10n("MENU_HELP")}
+              {l10n("SPLASH_DOCUMENTATION")}
             </SplashTabLink>
-            <FixedSpacer height={10} />
+
+            <SplashTab onClick={() => setOpenCredits(true)}>
+              {l10n("SPLASH_CREDITS")}
+            </SplashTab>
+            <FlexGrow />
           </SplashSidebar>
 
           {section === "new" && (
@@ -220,6 +219,7 @@ export const MusicWebSplash = ({
               <div
                 style={{ display: "flex", flexDirection: "column", gap: 20 }}
               >
+                <FlexGrow />
                 <div
                   style={{ display: "flex", gap: 10, justifyContent: "center" }}
                 >
@@ -237,7 +237,6 @@ export const MusicWebSplash = ({
                     <Button
                       style={{ flexGrow: 1 }}
                       size="large"
-                      variant="primary"
                       onClick={onImportSong}
                     >
                       {l10n("FIELD_OPEN_FILE")}
@@ -247,7 +246,6 @@ export const MusicWebSplash = ({
                     <Button
                       style={{ flexGrow: 1 }}
                       size="large"
-                      variant="primary"
                       onClick={onOpenDirectoryWorkspace}
                     >
                       {l10n("FIELD_OPEN_FOLDER")}
@@ -259,7 +257,6 @@ export const MusicWebSplash = ({
                     <Button
                       style={{ flexGrow: 1 }}
                       size="large"
-                      variant="primary"
                       onClick={onRestoreBackup}
                     >
                       {backupSongName
@@ -295,6 +292,13 @@ export const MusicWebSplash = ({
           <FocusLock>
             <Credits onClose={() => setOpenCredits(false)}>
               <CreditsTitle>GBS Music</CreditsTitle>
+              <CreditsSubHeading>Based On hUGETracker By</CreditsSubHeading>
+              <CreditsPerson
+                href="https://nickfa.ro/wiki/Main_Page"
+                target="_blank"
+              >
+                Nick "SuperDisk" Faro
+              </CreditsPerson>
               <CreditsSubHeading>
                 {l10n("SPLASH_CONTRIBUTORS")}
               </CreditsSubHeading>
