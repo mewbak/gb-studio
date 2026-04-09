@@ -4,7 +4,11 @@ import styled from "styled-components";
 import { Button } from "ui/buttons/Button";
 import projectIcon from "ui/icons/gbsproj.png";
 import { CloseIcon } from "ui/icons/Icons";
-import { StyledSplashTab, StyledSplashWindow } from "ui/splash/style";
+import {
+  StyledSplashTab,
+  StyledSplashTabLink,
+  StyledSplashWindow,
+} from "ui/splash/style";
 import type { TemplatePlugin } from "lib/templates/templateManager";
 import {
   Option,
@@ -136,6 +140,10 @@ interface SplashTabProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 export const SplashTab = ({ selected, ...props }: SplashTabProps) => (
   <StyledSplashTab $selected={selected} {...props} />
 );
+
+export const SplashTabLink = (
+  props: React.AnchorHTMLAttributes<HTMLAnchorElement>,
+) => <StyledSplashTabLink {...props} />;
 
 export const SplashOpenButton = styled(Button).attrs(() => ({
   variant: "transparent",

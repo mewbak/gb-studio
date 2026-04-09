@@ -48,6 +48,25 @@ export const StyledSplashTab = styled.button<StyledSplashTabProps>`
   ${(props) => (props.$selected ? styledSplashTabSelectedStyles : "")}
 `;
 
+export const StyledSplashTabLink = styled.a`
+  font-size: 13px;
+  padding: 8px 20px;
+  text-align: left;
+  color: ${(props) => props.theme.colors.text};
+  background: transparent;
+  border: 0;
+  text-decoration: none;
+  -webkit-app-region: no-drag;
+
+  &:hover {
+    background: rgba(128, 128, 128, 0.3);
+  }
+
+  &:active {
+    background: rgba(128, 128, 128, 0.4);
+  }
+`;
+
 const styledSplashTabSelectedStyles = css`
   background: ${(props) => props.theme.colors.highlight};
   color: ${(props) => props.theme.colors.highlightText};

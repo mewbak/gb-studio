@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import Select from "react-windowed-select";
 import FocusLock from "react-focus-lock";
 import API from "renderer/lib/api";
 import l10n from "shared/lib/lang/l10n";
@@ -20,17 +19,17 @@ import {
   SplashAppTitle,
   SplashContent,
   SplashEasterEggButton,
-  SplashLoading,
   SplashLogo,
-  SplashOpenButton,
+  SplashScroll,
   SplashSidebar,
   SplashTab,
+  SplashTabLink,
   SplashWindow,
 } from "ui/splash/Splash";
-import { LoadingIcon } from "ui/icons/Icons";
-import { FlexGrow } from "ui/spacing/Spacing";
+import { FixedSpacer, FlexGrow } from "ui/spacing/Spacing";
 import styled from "styled-components";
 import { musicExamples } from "gbs-music-web/data/musicExamples";
+import projectIcon from "ui/icons/gbsproj.png";
 
 const StyledSplashPage = styled.div`
   background: radial-gradient(
@@ -66,31 +65,75 @@ const StyledSplashWindowChrome = styled.div`
   }
 `;
 
-const StyledExamplesList = styled.div`
+interface SplashExampleMusicProps {
+  name: string;
+  onClick: () => void;
+}
+
+const SplashProjectWrapper = styled.button`
+  position: relative;
   display: flex;
-  flex-direction: column;
-  gap: 2px;
-  overflow-y: auto;
-  flex: 1;
-  padding: 4px 0;
+  text-align: left;
+  background: ${(props) => props.theme.colors.input.background};
+  color: ${(props) => props.theme.colors.text};
+  border: 0;
+  border-bottom: 1px solid ${(props) => props.theme.colors.input.border};
+  border-radius: 0px;
+  padding: 15px 30px;
+  width: 100%;
+
+  img {
+    width: 42px;
+    margin-right: 10px;
+  }
+
+  &:hover {
+    background: ${(props) => props.theme.colors.input.hoverBackground};
+  }
+
+  &:active {
+    background: ${(props) => props.theme.colors.input.activeBackground};
+  }
+
+  &:focus {
+    background: transparent;
+    box-shadow: inset 0 0 0px 2px #c92c61;
+  }
+
+  &:last-child {
+    margin-bottom: 0;
+  }
 `;
 
-const StyledExampleItem = styled.button`
-  all: unset;
-  cursor: pointer;
-  padding: 6px 16px;
-  border-radius: 4px;
-  font-size: 12px;
-  text-align: left;
-  color: ${(props) => props.theme.colors.text};
-  &:hover {
-    background: ${(props) => props.theme.colors.menu.hoverBackground};
-  }
-  &:focus-visible {
-    outline: 2px solid ${(props) => props.theme.colors.highlight};
-    outline-offset: -2px;
-  }
+const SplashProjectDetails = styled.span`
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 `;
+
+const SplashProjectName = styled.span`
+  display: block;
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+export const SplashExampleMusic = ({
+  name,
+  onClick,
+}: SplashExampleMusicProps) => (
+  <SplashProjectWrapper onClick={onClick}>
+    <img src={projectIcon} alt="" draggable={false} />
+    <SplashProjectDetails>
+      <SplashProjectName>{name}</SplashProjectName>
+      {/* <SplashProjectPath>{project.dir}</SplashProjectPath> */}
+    </SplashProjectDetails>
+  </SplashProjectWrapper>
+);
 
 interface MusicWebSplashProps {
   onCreateSong: () => void;
@@ -109,7 +152,6 @@ export const MusicWebSplash = ({
   backupSongName,
   onOpenExample,
 }: MusicWebSplashProps) => {
-  const [loading, setLoading] = useState(false);
   const [openCredits, setOpenCredits] = useState(false);
   const [patrons, _setPatrons] = useState<Patrons>(inbuiltPatrons as Patrons);
   const [section, setSection] = useState<string>("new");
@@ -149,14 +191,9 @@ export const MusicWebSplash = ({
               onClick={() => setSection("new")}
               // disabled={}
             >
-              {l10n("SPLASH_NEW")}
+              {l10n("MENU_FILE")}
             </SplashTab>
 
-            <SplashTab onClick={() => {}}>Open File</SplashTab>
-
-            {onRestoreBackup ? (
-              <SplashTab onClick={onRestoreBackup}>Restore Backup</SplashTab>
-            ) : null}
             <SplashTab
               selected={section === "examples"}
               onClick={() => setSection("examples")}
@@ -168,13 +205,15 @@ export const MusicWebSplash = ({
             <SplashTab onClick={() => setOpenCredits(true)}>
               {l10n("SPLASH_CREDITS")}
             </SplashTab>
-            <SplashTab onClick={() => setOpenCredits(true)}>
-              {l10n("MENU_HELP")}
-            </SplashTab>
             <FlexGrow />
 
-            {/* <SplashOpenButton onClick={() => {}}>Open File</SplashOpenButton> */}
-            {/* <SplashOpenButton onClick={() => {}}>Open Folder</SplashOpenButton> */}
+            <SplashTabLink
+              target="_blank"
+              href="https://www.gbstudio.dev/docs/assets/music/music-huge"
+            >
+              {l10n("MENU_HELP")}
+            </SplashTabLink>
+            <FixedSpacer height={10} />
           </SplashSidebar>
 
           {section === "new" && (
@@ -182,15 +221,6 @@ export const MusicWebSplash = ({
               <div
                 style={{ display: "flex", flexDirection: "column", gap: 20 }}
               >
-                <div>
-                  <Select
-                    value={{ value: "workspace", label: "Workspace" }}
-                    options={[
-                      { value: "workspace", label: "Workspace" },
-                      { value: "single", label: "Single File" },
-                    ]}
-                  />
-                </div>
                 <div
                   style={{ display: "flex", gap: 10, justifyContent: "center" }}
                 >
@@ -244,24 +274,21 @@ export const MusicWebSplash = ({
           )}
 
           {section === "examples" && (
-            <SplashContent>
-              <StyledExamplesList>
-                {musicExamples.map((example) => (
-                  <StyledExampleItem
-                    key={example.filename}
-                    onClick={() =>
-                      onOpenExample(
-                        example.displayName,
-                        example.filename,
-                        example.url,
-                      )
-                    }
-                  >
-                    {example.displayName}
-                  </StyledExampleItem>
-                ))}
-              </StyledExamplesList>
-            </SplashContent>
+            <SplashScroll>
+              {musicExamples.map((example) => (
+                <SplashExampleMusic
+                  key={example.filename}
+                  name={example.displayName}
+                  onClick={() =>
+                    onOpenExample(
+                      example.displayName,
+                      example.filename,
+                      example.url,
+                    )
+                  }
+                />
+              ))}
+            </SplashScroll>
           )}
         </SplashWindow>
 
