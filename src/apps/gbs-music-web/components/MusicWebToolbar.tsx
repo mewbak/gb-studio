@@ -3,7 +3,7 @@ import styled from "styled-components";
 import { Toolbar } from "ui/toolbar/Toolbar";
 import { Button } from "ui/buttons/Button";
 import { DropdownButton } from "ui/buttons/DropdownButton";
-import { MenuDivider, MenuItem, MenuItemIcon, MenuOverlay } from "ui/menu/Menu";
+import { MenuDivider, MenuItem, MenuItemIcon } from "ui/menu/Menu";
 import {
   BlankIcon,
   CheckIcon,
@@ -12,7 +12,6 @@ import {
 } from "ui/icons/Icons";
 import { FixedSpacer, FlexGrow } from "ui/spacing/Spacing";
 import l10n from "shared/lib/lang/l10n";
-import appIconUrl from "gbs-music-web/components/ui/icons/app_music_icon_180.png";
 import appPixelIconUrl from "gbs-music-web/components/ui/icons/app_music_icon_pixel.png";
 import { webLocaleOptions } from "gbs-music-web/lib/preferences";
 import { useWebFullscreen } from "ui/hooks/use-web-fullscreen";
@@ -22,9 +21,7 @@ import trackerActions from "store/features/tracker/trackerActions";
 import { useAppDispatch, useAppSelector } from "store/hooks";
 import { StyledButton } from "ui/buttons/style";
 import { TRACKER_REDO, TRACKER_UNDO } from "consts";
-
-declare const VERSION: string;
-declare const COMMITHASH: string;
+import { AboutDialog } from "gbs-music-web/components/dialog/AboutDialog";
 
 const COMPACT_LAYOUT_BREAKPOINT = 590;
 
@@ -56,59 +53,6 @@ const Brand = styled.div`
 const BrandText = styled.div`
   font-weight: bold;
   white-space: nowrap;
-`;
-
-const AboutOverlay = styled(MenuOverlay)`
-  background: rgba(0, 0, 0, 0.35);
-`;
-
-const AboutModal = styled.div`
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  width: min(300px, calc(100vw - 32px));
-  transform: translate(-50%, -50%);
-  background: ${(props) => props.theme.colors.card.background};
-  color: ${(props) => props.theme.colors.card.text};
-  border: 1px solid ${(props) => props.theme.colors.card.border};
-  box-shadow: ${(props) => props.theme.colors.card.boxShadow};
-  border-radius: 4px;
-  padding: 24px;
-  z-index: 1001;
-`;
-
-const AboutHeader = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
-`;
-
-const AboutHeaderText = styled.div`
-  flex-grow: 1;
-`;
-
-const AboutLogo = styled.img`
-  width: 40px;
-  height: 40px;
-  image-rendering: pixelated;
-  flex-shrink: 0;
-`;
-
-const AboutTitle = styled.div`
-  font-size: 16px;
-  font-weight: bold;
-`;
-
-const AboutText = styled.p`
-  margin: 0 0 10px;
-  line-height: 1.5;
-`;
-
-const AboutFooter = styled.div`
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 18px;
 `;
 
 interface MusicWebToolbarProps {
@@ -237,24 +181,6 @@ export const MusicWebToolbar = ({
     [localeId, onLocaleChange],
   );
 
-  const clearAppCache = useCallback(async () => {
-    try {
-      if ("serviceWorker" in navigator) {
-        const registrations = await navigator.serviceWorker.getRegistrations();
-        await Promise.allSettled(registrations.map((r) => r.unregister()));
-      }
-
-      if ("caches" in window) {
-        const keys = await caches.keys();
-        await Promise.allSettled(keys.map((key) => caches.delete(key)));
-      }
-    } catch (e) {
-      // ignore
-    }
-
-    window.location.reload();
-  }, []);
-
   const { isFullscreen, toggleFullscreen } = useWebFullscreen();
 
   const windowSize = useWindowSize();
@@ -305,36 +231,7 @@ export const MusicWebToolbar = ({
           )}
         </Toolbar>
       </Wrapper>
-      {showAbout && (
-        <>
-          <AboutOverlay onClick={() => setShowAbout(false)} />
-          <AboutModal
-            role="dialog"
-            aria-modal="true"
-            aria-label={l10n("MENU_ABOUT")}
-          >
-            <AboutHeader>
-              <AboutLogo src={appIconUrl} alt="GB Studio" />
-              <AboutHeaderText>
-                <AboutTitle>GBS Music</AboutTitle>
-                <div>
-                  {VERSION} ({COMMITHASH})
-                </div>
-              </AboutHeaderText>
-              <DropdownButton menuDirection="right">
-                <MenuItem onClick={clearAppCache}>Clear App Cache</MenuItem>
-              </DropdownButton>
-            </AboutHeader>
-            <AboutText>{l10n("GBSTUDIO_DESCRIPTION")}</AboutText>
-            <AboutText>{l10n("GBSTUDIO_COPYRIGHT")}</AboutText>
-            <AboutFooter>
-              <Button onClick={() => setShowAbout(false)}>
-                {l10n("FIELD_CLOSE")}
-              </Button>
-            </AboutFooter>
-          </AboutModal>
-        </>
-      )}
+      {showAbout && <AboutDialog onClose={() => setShowAbout(false)} />}
     </>
   );
 };

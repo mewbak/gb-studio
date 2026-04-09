@@ -12,9 +12,12 @@ interface StyledButtonProps {
     | "anchor";
   readonly $active?: boolean;
   readonly disabled?: boolean;
+  readonly "data-variant"?: StyledButtonProps["$variant"];
 }
 
-export const StyledButton = styled.button<StyledButtonProps>`
+export const StyledButton = styled.button.attrs<StyledButtonProps>((props) => ({
+  "data-variant": props.$variant,
+}))`
   user-select: none;
   display: inline-flex;
   justify-content: center;
