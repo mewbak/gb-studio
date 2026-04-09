@@ -215,7 +215,14 @@ export const useMusicWorkspace = ({
         return;
       }
 
-      const newFilename = `${newBaseName}.uge`;
+      // Strip path separators — slashes are valid in Electron paths but not in
+      // web filenames (the FS API rejects them with a NotAllowedError).
+      const safeName = newBaseName.replace(/[/\\]/g, "").trim();
+      if (!safeName) {
+        return;
+      }
+
+      const newFilename = `${safeName}.uge`;
       const newRef = await renameWebDocument(musicId, doc.filename, newFilename);
 
       setWorkspace((prev) => {
