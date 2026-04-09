@@ -33,6 +33,7 @@ interface NavigatorSongsPaneProps extends SplitPaneChildProps {
   onCreateSong?: () => void;
   onImportSong?: () => void;
   onSelectSong?: (id: string) => void;
+  onRenameSong?: (musicId: string, newFilename: string) => void;
 }
 
 interface NavigatorItem {
@@ -49,6 +50,7 @@ export const NavigatorSongsPane = ({
   onSelectSong,
   onCreateSong,
   onImportSong,
+  onRenameSong,
 }: NavigatorSongsPaneProps) => {
   const dispatch = useAppDispatch();
 
@@ -96,16 +98,20 @@ export const NavigatorSongsPane = ({
   const onRenameSongComplete = useCallback(
     (name: string) => {
       if (renameId) {
-        dispatch(
-          projectActions.renameMusicAsset({
-            musicId: renameId,
-            newFilename: stripInvalidPathCharacters(name),
-          }),
-        );
+        if (onRenameSong) {
+          onRenameSong(renameId, stripInvalidPathCharacters(name));
+        } else {
+          dispatch(
+            projectActions.renameMusicAsset({
+              musicId: renameId,
+              newFilename: stripInvalidPathCharacters(name),
+            }),
+          );
+        }
       }
       setRenameId("");
     },
-    [dispatch, renameId],
+    [dispatch, onRenameSong, renameId],
   );
 
   const onRenameCancel = useCallback(() => {

@@ -9,17 +9,19 @@ import {
   createTemplateMusicDocument,
   importMusicDocument,
   registerSongBackupData,
+  renameWebDocument,
   supportsPersistentSave,
   webMusicEnvironment,
 } from "gbs-music-web/lib/adapters";
 import { musicAssetActions } from "gbs-music-web/store/features/musicAssets/musicAssetsState";
 import { musicWorkspaceToAssets } from "gbs-music-web/store/features/musicAssets/musicAssetsHelpers";
-import { useAppDispatch } from "store/hooks";
+import { useAppDispatch, useAppSelector } from "store/hooks";
 import {
   BACKUP_SONG_KEY,
   deserializeSong,
   getBackupInfo,
 } from "gbs-music-web/lib/songBackup";
+import { actions as trackerDocumentActions } from "store/features/trackerDocument/trackerDocumentState";
 
 const sortDocuments = (documents: MusicDocumentReference[]) =>
   [...documents].sort((a, b) =>
@@ -68,6 +70,7 @@ interface UseMusicWorkspaceResult {
   importSong: () => Promise<void>;
   openDirectoryWorkspace: () => Promise<void>;
   restoreBackupSong: () => Promise<void>;
+  renameSong: (musicId: string, newBaseName: string) => Promise<void>;
 }
 
 export const useMusicWorkspace = ({
@@ -76,6 +79,9 @@ export const useMusicWorkspace = ({
   const dispatch = useAppDispatch();
   const [workspace, setWorkspace] = useState<MusicWorkspace>();
   const singleDocumentMode = !supportsPersistentSave();
+  const selectedSongId = useAppSelector(
+    (state) => state.tracker.selectedSongId,
+  );
 
   const backupInfo = getBackupInfo();
   const hasBackup = backupInfo !== null;
@@ -202,6 +208,40 @@ export const useMusicWorkspace = ({
     applyWorkspace(nextWorkspace);
   }, [applyWorkspace]);
 
+  const renameSong = useCallback(
+    async (musicId: string, newBaseName: string) => {
+      const doc = workspace?.documents.find((d) => d.id === musicId);
+      if (!doc) {
+        return;
+      }
+
+      const newFilename = `${newBaseName}.uge`;
+      const newRef = await renameWebDocument(musicId, doc.filename, newFilename);
+
+      setWorkspace((prev) => {
+        if (!prev) {
+          return prev;
+        }
+        return {
+          ...prev,
+          documents: prev.documents.map((d) => (d.id === musicId ? newRef : d)),
+        };
+      });
+
+      dispatch(
+        musicAssetActions.renameMusicAsset({
+          musicId,
+          newFilename,
+        }),
+      );
+
+      if (musicId === selectedSongId) {
+        dispatch(trackerDocumentActions.setSongFilename(newFilename));
+      }
+    },
+    [dispatch, selectedSongId, workspace],
+  );
+
   return {
     singleDocumentMode,
     hasBackup,
@@ -210,5 +250,6 @@ export const useMusicWorkspace = ({
     importSong,
     openDirectoryWorkspace,
     restoreBackupSong,
+    renameSong,
   };
 };

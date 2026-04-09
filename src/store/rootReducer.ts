@@ -63,7 +63,8 @@ const rootReducer = combineReducers({
         !action.type.startsWith("trackerDocument/loadSong") &&
         !action.type.startsWith("trackerDocument/saveSong") &&
         !action.type.startsWith("trackerDocument/addNewSong") &&
-        !action.type.startsWith("trackerDocument/requestAddNewSong")
+        !action.type.startsWith("trackerDocument/requestAddNewSong") &&
+        !action.type.startsWith("trackerDocument/setSongFilename")
       );
     },
     ignoreInitialState: true,

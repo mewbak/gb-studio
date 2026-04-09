@@ -66,6 +66,7 @@ interface StandaloneMusicPageProps {
   onOpenDirectoryWorkspace?: () => void;
   onImportSong?: () => void;
   onSelectSong?: (id: string) => void;
+  onRenameSong?: (musicId: string, newFilename: string) => void;
 }
 
 const isProbablyPhone = () => {
@@ -83,6 +84,7 @@ const StandaloneMusicPage = ({
   onCreateSong,
   onImportSong,
   onSelectSong,
+  onRenameSong,
 }: StandaloneMusicPageProps) => {
   const dispatch = useAppDispatch();
   const themeContext = useContext(ThemeContext);
@@ -321,9 +323,10 @@ const StandaloneMusicPage = ({
         onCreateSong={onCreateSong}
         onImportSong={onImportSong}
         onSelectSong={onSelectSong}
+        onRenameSong={onRenameSong}
       />
     ),
-    [modified, onCreateSong, onImportSong, onSelectSong, viewSongId],
+    [modified, onCreateSong, onImportSong, onRenameSong, onSelectSong, viewSongId],
   );
 
   const mobileOverlayView = useAppSelector(
