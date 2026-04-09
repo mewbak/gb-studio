@@ -98,7 +98,7 @@ interface MusicWebSplashProps {
   onOpenDirectoryWorkspace?: () => void;
   onRestoreBackup?: () => void;
   backupSongName?: string;
-  onOpenExample: (name: string, filename: string, dataUri: string) => void;
+  onOpenExample: (name: string, filename: string, url: string) => void;
 }
 
 export const MusicWebSplash = ({
@@ -253,7 +253,7 @@ export const MusicWebSplash = ({
                       onOpenExample(
                         example.displayName,
                         example.filename,
-                        example.data,
+                        example.url,
                       )
                     }
                   >

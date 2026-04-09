@@ -98,14 +98,27 @@ const rules = baseRules.map((rule) => {
   };
 });
 
+// Template .uge is inlined base64 to include in initial bundle
 rules.push({
   test: /\.uge$/i,
+  include: srcPath("apps/gbs-music-web/data"),
   type: "asset/inline",
   generator: {
     dataUrl: {
       mimetype: "application/octet-stream",
       encoding: "base64",
     },
+  },
+});
+
+// Example .uge songs emitted as separate files so they don't bloat
+// the main bundle and are loaded on demand
+rules.push({
+  test: /\.uge$/i,
+  exclude: srcPath("apps/gbs-music-web/data"),
+  type: "asset/resource",
+  generator: {
+    filename: "examples/[name][ext]",
   },
 });
 

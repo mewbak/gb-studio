@@ -118,8 +118,8 @@ export const MusicWebApp = () => {
   }, [restoreBackupSong, runWithUnsavedCheck]);
 
   const onOpenExample = useCallback(
-    (name: string, filename: string, dataUri: string) => {
-      void runWithUnsavedCheck(() => openExample(name, filename, dataUri));
+    (name: string, filename: string, url: string) => {
+      void runWithUnsavedCheck(() => openExample(name, filename, url));
     },
     [openExample, runWithUnsavedCheck],
   );

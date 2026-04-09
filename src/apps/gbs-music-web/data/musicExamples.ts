@@ -1,7 +1,7 @@
 export interface MusicExample {
   filename: string;
   displayName: string;
-  data: string; // base64 data URI
+  url: string; // webpack asset/resource URL
 }
 
 const formatDisplayName = (filename: string): string => {
@@ -27,7 +27,7 @@ export const musicExamples: MusicExample[] = req
     return {
       filename,
       displayName: formatDisplayName(filename),
-      data: req(key) as string,
+      url: req(key) as string,
     };
   })
   .sort((a, b) => a.displayName.localeCompare(b.displayName));

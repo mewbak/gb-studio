@@ -571,15 +571,13 @@ export const registerSongBackupData = (
 };
 
 /**
- * Registers a pre-bundled UGE example (supplied as a base64 data URI from a
- * webpack `asset/inline` import) as an in-memory document.
+ * Registers a pre-fetched UGE example binary as an in-memory document.
  */
 export const registerExampleData = (
-  dataUri: string,
+  data: Uint8Array,
   name: string,
   filename: string,
 ): MusicDocumentReference => {
-  const data = dataUriToUint8Array(dataUri);
   const reference = createReference(name, filename, {
     id: `example-${filename}`,
   });

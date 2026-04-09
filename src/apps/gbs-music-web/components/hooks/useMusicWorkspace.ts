@@ -71,7 +71,7 @@ interface UseMusicWorkspaceResult {
   importSong: () => Promise<void>;
   openDirectoryWorkspace: () => Promise<void>;
   restoreBackupSong: () => Promise<void>;
-  openExample: (name: string, filename: string, dataUri: string) => Promise<void>;
+  openExample: (name: string, filename: string, url: string) => Promise<void>;
   renameSong: (musicId: string, newBaseName: string) => Promise<void>;
 }
 
@@ -211,8 +211,11 @@ export const useMusicWorkspace = ({
   }, [applyWorkspace]);
 
   const openExample = useCallback(
-    async (name: string, filename: string, dataUri: string) => {
-      const reference = registerExampleData(dataUri, name, filename);
+    async (name: string, filename: string, url: string) => {
+      const response = await fetch(url);
+      const buffer = await response.arrayBuffer();
+      const data = new Uint8Array(buffer);
+      const reference = registerExampleData(data, name, filename);
       const nextWorkspace = createMusicWorkspace({
         source: "browser",
         openMode: "file",
