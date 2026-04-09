@@ -9,7 +9,6 @@ import { Label } from "ui/form/Label";
 import clamp from "shared/lib/helpers/clamp";
 import styled from "styled-components";
 import { VibratoWaveformPreview } from "./VibratoWaveformPreview";
-import { useMusicNotePreview } from "components/music/hooks/useMusicNotePreview";
 import { PitchSelect } from "components/music/form/PitchSelect";
 import { DutyCycleSelect } from "components/music/form/DutyCycleSelect";
 import { NumberInput } from "ui/form/NumberInput";
@@ -59,11 +58,8 @@ export const EffectParamsForm: FC<EffectParamsFormProps> = ({
   value,
   onChange,
   note,
-  instrumentId,
   onChangeNote,
 }) => {
-  const playPreview = useMusicNotePreview();
-
   const effectParam = value ?? 0;
 
   const effectParams = useMemo(
@@ -91,22 +87,10 @@ export const EffectParamsForm: FC<EffectParamsFormProps> = ({
         : ((effectParams.x & 0xf) << 4) | (fieldValue & 0xf);
 
     onChange?.(nextValue);
-    playPreview({
-      note,
-      instrumentId,
-      effectCode,
-      effectParam: nextValue,
-    });
   };
 
   const onChangeFullValue = (nextValue: number | null) => {
     onChange?.(nextValue);
-    playPreview({
-      note,
-      instrumentId,
-      effectCode,
-      effectParam: nextValue ?? 0,
-    });
   };
 
   if (effectCode === null || effectCode === undefined) {

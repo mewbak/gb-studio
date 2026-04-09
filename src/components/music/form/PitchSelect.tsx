@@ -9,7 +9,6 @@ import {
 } from "ui/form/Select";
 import l10n from "shared/lib/lang/l10n";
 import { MIN_OCTAVE, OCTAVE_SIZE, TOTAL_OCTAVES } from "consts";
-import { useMusicNotePreview } from "components/music/hooks/useMusicNotePreview";
 
 type PitchOption = {
   value: number;
@@ -23,9 +22,6 @@ interface PitchSelectProps extends SelectCommonProps {
   value?: number;
   onChange?: (newNote: number) => void;
   noneLabel?: string;
-  instrumentId?: number;
-  effectCode?: number;
-  effectParam?: number;
 }
 
 const NOTE_NAMES = [
@@ -111,13 +107,8 @@ export const PitchSelect: FC<PitchSelectProps> = ({
   value,
   onChange,
   noneLabel,
-  instrumentId,
-  effectCode,
-  effectParam,
   ...selectProps
 }) => {
-  const playPreview = useMusicNotePreview();
-
   const groupedOptions = useMemo(() => buildGroupedOptions(), []);
   const flatOptions = useMemo(
     () => groupedOptions.flatMap((group) => group.options),
@@ -141,12 +132,6 @@ export const PitchSelect: FC<PitchSelectProps> = ({
   const onSelectChange = (newValue: SingleValue<PitchOption>) => {
     if (newValue && newValue.value >= 0) {
       onChange?.(newValue.value);
-      playPreview({
-        note: newValue.value,
-        instrumentId,
-        effectCode,
-        effectParam,
-      });
     }
   };
 

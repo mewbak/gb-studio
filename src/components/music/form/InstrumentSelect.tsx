@@ -66,18 +66,14 @@ interface InstrumentSelectProps extends SelectCommonProps {
   value?: number;
   onChange?: (newId: number) => void;
   noneLabel?: string;
-  note?: number;
-  effectCode?: number;
-  effectParam?: number;
+  previewNoteOnChange?: boolean;
 }
 
 export const InstrumentSelect: FC<InstrumentSelectProps> = ({
   value,
   onChange,
   noneLabel,
-  note,
-  effectCode,
-  effectParam,
+  previewNoteOnChange,
   ...selectProps
 }) => {
   const playPreview = useMusicNotePreview();
@@ -151,12 +147,11 @@ export const InstrumentSelect: FC<InstrumentSelectProps> = ({
       const value = newValue.value;
 
       onChange?.(value);
-      playPreview({
-        note,
-        instrumentId: value,
-        effectCode,
-        effectParam,
-      });
+      if (previewNoteOnChange) {
+        playPreview({
+          instrumentId: value,
+        });
+      }
     }
   };
 

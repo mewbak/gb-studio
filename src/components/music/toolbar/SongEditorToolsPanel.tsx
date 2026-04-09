@@ -297,6 +297,7 @@ const SongEditorToolsPanel = ({ musicAsset }: SongEditorToolsPanelProps) => {
           onChange={(newValue) => {
             setSelectedInstrumentId(newValue);
           }}
+          previewNoteOnChange
         />
         <FloatingPanelDivider />
         {view === "roll" && (

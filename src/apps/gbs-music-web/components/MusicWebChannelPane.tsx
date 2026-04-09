@@ -167,6 +167,7 @@ export const MusicWebChannelPane = () => {
             name={"selectedInstrumentId"}
             value={selectedInstrumentId}
             onChange={setSelectedInstrumentId}
+            previewNoteOnChange
           />
           <InputGroupAppend>
             <Button

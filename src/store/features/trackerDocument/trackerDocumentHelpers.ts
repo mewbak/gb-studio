@@ -51,6 +51,23 @@ export const resolveAbsRow = (
   return { sequenceId, rowId, patternId };
 };
 
+export const transposeNoteValue = (note: number | null, noteDelta: number) => {
+  if (note === null) {
+    return note;
+  }
+
+  if (Math.abs(noteDelta) === OCTAVE_SIZE) {
+    const noteClass = note % OCTAVE_SIZE;
+    const min = noteClass;
+    const max =
+      noteClass + Math.floor((71 - noteClass) / OCTAVE_SIZE) * OCTAVE_SIZE;
+    const next = note + noteDelta;
+    return clamp(next, min, max);
+  }
+
+  return clamp(note + noteDelta, 0, 71);
+};
+
 export const transposePatternCellNote = (
   cell: PatternCell | undefined,
   noteDelta: number,
@@ -63,17 +80,7 @@ export const transposePatternCellNote = (
     return;
   }
 
-  if (Math.abs(noteDelta) === OCTAVE_SIZE) {
-    const noteClass = cell.note % OCTAVE_SIZE;
-    const min = noteClass;
-    const max =
-      noteClass + Math.floor((71 - noteClass) / OCTAVE_SIZE) * OCTAVE_SIZE;
-    const next = cell.note + noteDelta;
-    cell.note = clamp(next, min, max);
-    return;
-  }
-
-  cell.note = clamp(cell.note + noteDelta, 0, 71);
+  cell.note = transposeNoteValue(cell.note, noteDelta);
 };
 
 export const getTransposeNoteDelta = (

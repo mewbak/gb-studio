@@ -22,6 +22,9 @@ import {
 import trackerActions from "store/features/tracker/trackerActions";
 import { channelIdToInstrumentType } from "components/music/helpers";
 import { InputGroup, InputGroupAppend } from "ui/form/InputGroup";
+import { useMusicNotePreview } from "components/music/hooks/useMusicNotePreview";
+import { transposeNoteValue } from "store/features/trackerDocument/trackerDocumentHelpers";
+import { OCTAVE_SIZE } from "consts";
 
 const getSharedValue = <T extends keyof PatternCell>(
   song: Song | undefined,
@@ -40,6 +43,7 @@ const getSharedValue = <T extends keyof PatternCell>(
 
 export const PatternCellSelectionEditor = () => {
   const dispatch = useAppDispatch();
+  const playPreview = useMusicNotePreview();
 
   const song = useAppSelector((state) => state.trackerDocument.present.song);
 
@@ -122,15 +126,19 @@ export const PatternCellSelectionEditor = () => {
                 }),
               );
             }
+            playPreview({
+              channelId: firstChannelId,
+              note,
+              instrumentId: sharedInstrumentId.value ?? undefined,
+              effectCode: sharedEffectCode.value ?? undefined,
+              effectParam: sharedEffectParam.value ?? undefined,
+            });
           }}
           noneLabel={
             sharedNote.type === "multiple"
               ? l10n("FIELD_MULTIPLE_VALUES")
               : l10n("FIELD_NONE")
           }
-          instrumentId={sharedInstrumentId.value ?? undefined}
-          effectCode={sharedEffectCode.value ?? undefined}
-          effectParam={sharedEffectParam.value ?? undefined}
         />
       </FormRow>
 
@@ -149,15 +157,19 @@ export const PatternCellSelectionEditor = () => {
                   instrumentId,
                 }),
               );
+              playPreview({
+                channelId: firstChannelId,
+                note: sharedNote.value ?? undefined,
+                instrumentId,
+                effectCode: sharedEffectCode.value ?? undefined,
+                effectParam: sharedEffectParam.value ?? undefined,
+              });
             }}
             noneLabel={
               sharedInstrumentId.type === "multiple"
                 ? l10n("FIELD_MULTIPLE_VALUES")
                 : l10n("FIELD_NONE")
             }
-            note={sharedNote.value ?? undefined}
-            effectCode={sharedEffectCode.value ?? undefined}
-            effectParam={sharedEffectParam.value ?? undefined}
           />
           {sharedInstrumentId.type === "shared" &&
             sharedInstrumentId.value !== null && (
@@ -187,16 +199,19 @@ export const PatternCellSelectionEditor = () => {
                 },
               }),
             );
+            playPreview({
+              channelId: firstChannelId,
+              note: sharedNote.value ?? undefined,
+              instrumentId: sharedInstrumentId.value ?? undefined,
+              effectCode,
+              effectParam,
+            });
           }}
           noneLabel={
             sharedEffectCode.type === "multiple"
               ? l10n("FIELD_MULTIPLE_VALUES")
               : l10n("FIELD_NONE")
           }
-          // note={sharedNote !== null ? sharedNote : undefined}
-          note={sharedNote.value ?? undefined}
-          instrumentId={sharedInstrumentId.value ?? undefined}
-          effectParam={sharedEffectParam.value ?? undefined}
         />
       </FormRow>
 
@@ -214,6 +229,13 @@ export const PatternCellSelectionEditor = () => {
                 },
               }),
             );
+            playPreview({
+              channelId: firstChannelId,
+              note: sharedNote.value ?? undefined,
+              instrumentId: sharedInstrumentId.value ?? undefined,
+              effectCode: sharedEffectCode.value ?? undefined,
+              effectParam: newEffectParam ?? undefined,
+            });
           }}
           onChangeNote={(newNote) => {
             dispatch(
@@ -224,6 +246,13 @@ export const PatternCellSelectionEditor = () => {
                 },
               }),
             );
+            playPreview({
+              channelId: firstChannelId,
+              note: newNote ?? undefined,
+              instrumentId: sharedInstrumentId.value ?? undefined,
+              effectCode: sharedEffectCode.value ?? undefined,
+              effectParam: sharedEffectParam.value ?? undefined,
+            });
           }}
           instrumentId={sharedInstrumentId.value ?? undefined}
         />
@@ -253,6 +282,20 @@ export const PatternCellSelectionEditor = () => {
                           size: "note",
                         }),
                       );
+                      if (
+                        sharedNote.type === "shared" &&
+                        typeof sharedNote.value === "number"
+                      ) {
+                        playPreview({
+                          channelId: firstChannelId,
+                          note:
+                            transposeNoteValue(sharedNote.value, -1) ??
+                            undefined,
+                          instrumentId: sharedInstrumentId.value ?? undefined,
+                          effectCode: sharedEffectCode.value ?? undefined,
+                          effectParam: sharedEffectParam.value ?? undefined,
+                        });
+                      }
                     }}
                   >
                     <MinusSmallIcon />
@@ -267,6 +310,20 @@ export const PatternCellSelectionEditor = () => {
                           size: "note",
                         }),
                       );
+                      if (
+                        sharedNote.type === "shared" &&
+                        typeof sharedNote.value === "number"
+                      ) {
+                        playPreview({
+                          channelId: firstChannelId,
+                          note:
+                            transposeNoteValue(sharedNote.value, 1) ??
+                            undefined,
+                          instrumentId: sharedInstrumentId.value ?? undefined,
+                          effectCode: sharedEffectCode.value ?? undefined,
+                          effectParam: sharedEffectParam.value ?? undefined,
+                        });
+                      }
                     }}
                   >
                     <PlusSmallIcon />
@@ -286,6 +343,22 @@ export const PatternCellSelectionEditor = () => {
                           size: "octave",
                         }),
                       );
+                      if (
+                        sharedNote.type === "shared" &&
+                        typeof sharedNote.value === "number"
+                      ) {
+                        playPreview({
+                          channelId: firstChannelId,
+                          note:
+                            transposeNoteValue(
+                              sharedNote.value,
+                              -OCTAVE_SIZE,
+                            ) ?? undefined,
+                          instrumentId: sharedInstrumentId.value ?? undefined,
+                          effectCode: sharedEffectCode.value ?? undefined,
+                          effectParam: sharedEffectParam.value ?? undefined,
+                        });
+                      }
                     }}
                   >
                     <MinusSmallIcon />
@@ -300,6 +373,20 @@ export const PatternCellSelectionEditor = () => {
                           size: "octave",
                         }),
                       );
+                      if (
+                        sharedNote.type === "shared" &&
+                        typeof sharedNote.value === "number"
+                      ) {
+                        playPreview({
+                          channelId: firstChannelId,
+                          note:
+                            transposeNoteValue(sharedNote.value, OCTAVE_SIZE) ??
+                            undefined,
+                          instrumentId: sharedInstrumentId.value ?? undefined,
+                          effectCode: sharedEffectCode.value ?? undefined,
+                          effectParam: sharedEffectParam.value ?? undefined,
+                        });
+                      }
                     }}
                   >
                     <PlusSmallIcon />

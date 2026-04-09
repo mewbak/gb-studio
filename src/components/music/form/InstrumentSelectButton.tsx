@@ -11,6 +11,7 @@ import {
 interface InstrumentSelectProps {
   name: string;
   value?: number;
+  previewNoteOnChange: boolean;
   onChange?: (newId: number) => void;
 }
 
@@ -96,6 +97,7 @@ const TriggerButton = React.forwardRef<
 export const InstrumentSelectButton: FC<InstrumentSelectProps> = ({
   name,
   value,
+  previewNoteOnChange,
   onChange,
 }) => {
   return (
@@ -116,6 +118,7 @@ export const InstrumentSelectButton: FC<InstrumentSelectProps> = ({
               onChange?.(newValue);
             }}
             onBlur={closeMenu}
+            previewNoteOnChange={previewNoteOnChange}
             {...selectMenuStyleProps}
           />
         )}
