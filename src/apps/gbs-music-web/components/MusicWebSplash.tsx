@@ -323,7 +323,12 @@ export const MusicWebSplash = ({
 
           {section === "new" && (
             <SplashContent>
-              <StyledFileForm>
+              <SplashForm
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  onCreateSong(name, artist);
+                }}
+              >
                 <FormRow>
                   <TextField
                     name="name"
@@ -437,7 +442,7 @@ export const MusicWebSplash = ({
                     </Button>
                   )}
                 </StyledFileActions>
-              </StyledFileForm>
+              </SplashForm>
             </SplashContent>
           )}
 
