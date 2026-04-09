@@ -570,4 +570,36 @@ export const registerSongBackupData = (
   return reference;
 };
 
+/**
+ * Registers a pre-bundled UGE example (supplied as a base64 data URI from a
+ * webpack `asset/inline` import) as an in-memory document.
+ */
+export const registerExampleData = (
+  dataUri: string,
+  name: string,
+  filename: string,
+): MusicDocumentReference => {
+  const data = dataUriToUint8Array(dataUri);
+  const reference = createReference(name, filename, {
+    id: `example-${filename}`,
+  });
+  storeInMemoryDocument(reference, data);
+  return reference;
+};
+
+export const dataUriToUint8Array = (dataUri: string): Uint8Array => {
+  const prefix = "base64,";
+  const prefixIndex = dataUri.indexOf(prefix);
+  if (prefixIndex === -1) {
+    throw new Error("Invalid data URI: missing base64 prefix");
+  }
+  const base64 = dataUri.slice(prefixIndex + prefix.length);
+  const binary = window.atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes;
+};
+
 export type { MusicBinaryDocument };

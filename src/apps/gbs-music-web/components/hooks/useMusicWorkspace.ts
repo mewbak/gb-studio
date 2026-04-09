@@ -8,6 +8,7 @@ import trackerActions from "store/features/tracker/trackerActions";
 import {
   createTemplateMusicDocument,
   importMusicDocument,
+  registerExampleData,
   registerSongBackupData,
   renameWebDocument,
   supportsPersistentSave,
@@ -70,6 +71,7 @@ interface UseMusicWorkspaceResult {
   importSong: () => Promise<void>;
   openDirectoryWorkspace: () => Promise<void>;
   restoreBackupSong: () => Promise<void>;
+  openExample: (name: string, filename: string, dataUri: string) => Promise<void>;
   renameSong: (musicId: string, newBaseName: string) => Promise<void>;
 }
 
@@ -208,6 +210,20 @@ export const useMusicWorkspace = ({
     applyWorkspace(nextWorkspace);
   }, [applyWorkspace]);
 
+  const openExample = useCallback(
+    async (name: string, filename: string, dataUri: string) => {
+      const reference = registerExampleData(dataUri, name, filename);
+      const nextWorkspace = createMusicWorkspace({
+        source: "browser",
+        openMode: "file",
+        activeDocumentId: reference.id,
+        documents: [reference],
+      });
+      applyWorkspace(nextWorkspace);
+    },
+    [applyWorkspace],
+  );
+
   const renameSong = useCallback(
     async (musicId: string, newBaseName: string) => {
       const doc = workspace?.documents.find((d) => d.id === musicId);
@@ -257,6 +273,7 @@ export const useMusicWorkspace = ({
     importSong,
     openDirectoryWorkspace,
     restoreBackupSong,
+    openExample,
     renameSong,
   };
 };

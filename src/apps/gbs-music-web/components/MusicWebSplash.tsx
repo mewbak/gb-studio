@@ -30,6 +30,7 @@ import {
 import { LoadingIcon } from "ui/icons/Icons";
 import { FlexGrow } from "ui/spacing/Spacing";
 import styled from "styled-components";
+import { musicExamples } from "gbs-music-web/data/musicExamples";
 
 const StyledSplashPage = styled.div`
   background: radial-gradient(
@@ -65,12 +66,39 @@ const StyledSplashWindowChrome = styled.div`
   }
 `;
 
+const StyledExamplesList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow-y: auto;
+  flex: 1;
+  padding: 4px 0;
+`;
+
+const StyledExampleItem = styled.button`
+  all: unset;
+  cursor: pointer;
+  padding: 6px 16px;
+  border-radius: 4px;
+  font-size: 12px;
+  text-align: left;
+  color: ${(props) => props.theme.colors.text};
+  &:hover {
+    background: ${(props) => props.theme.colors.menu.hoverBackground};
+  }
+  &:focus-visible {
+    outline: 2px solid ${(props) => props.theme.colors.highlight};
+    outline-offset: -2px;
+  }
+`;
+
 interface MusicWebSplashProps {
   onCreateSong: () => void;
   onImportSong?: () => void;
   onOpenDirectoryWorkspace?: () => void;
   onRestoreBackup?: () => void;
   backupSongName?: string;
+  onOpenExample: (name: string, filename: string, dataUri: string) => void;
 }
 
 export const MusicWebSplash = ({
@@ -79,6 +107,7 @@ export const MusicWebSplash = ({
   onOpenDirectoryWorkspace,
   onRestoreBackup,
   backupSongName,
+  onOpenExample,
 }: MusicWebSplashProps) => {
   const [loading, setLoading] = useState(false);
   const [openCredits, setOpenCredits] = useState(false);
@@ -211,6 +240,27 @@ export const MusicWebSplash = ({
                   </div>
                 ) : null}
               </div>
+            </SplashContent>
+          )}
+
+          {section === "examples" && (
+            <SplashContent>
+              <StyledExamplesList>
+                {musicExamples.map((example) => (
+                  <StyledExampleItem
+                    key={example.filename}
+                    onClick={() =>
+                      onOpenExample(
+                        example.displayName,
+                        example.filename,
+                        example.data,
+                      )
+                    }
+                  >
+                    {example.displayName}
+                  </StyledExampleItem>
+                ))}
+              </StyledExamplesList>
             </SplashContent>
           )}
         </SplashWindow>

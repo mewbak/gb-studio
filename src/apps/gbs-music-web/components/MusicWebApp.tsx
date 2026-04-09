@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import trackerActions from "store/features/tracker/trackerActions";
 import styled from "styled-components";
 import { saveSongFile } from "store/features/trackerDocument/trackerDocumentState";
-import { webMusicEnvironment } from "gbs-music-web/lib/adapters";
+import { webMusicEnvironment, dataUriToUint8Array } from "gbs-music-web/lib/adapters";
 import StandaloneMusicPage from "gbs-music-web/components/StandaloneMusicPage";
 import { useAppDispatch, useAppSelector } from "store/hooks";
 import { musicSelectors } from "store/features/entities/entitiesState";
@@ -25,25 +25,6 @@ const AppContent = styled.div`
   min-height: 0;
   display: flex;
 `;
-
-const dataUriToUint8Array = (dataUri: string): Uint8Array => {
-  const prefix = "base64,";
-  const prefixIndex = dataUri.indexOf(prefix);
-
-  if (prefixIndex === -1) {
-    throw new Error("Invalid template data URI");
-  }
-
-  const base64 = dataUri.slice(prefixIndex + prefix.length);
-  const binary = window.atob(base64);
-  const bytes = new Uint8Array(binary.length);
-
-  for (let i = 0; i < binary.length; i += 1) {
-    bytes[i] = binary.charCodeAt(i);
-  }
-
-  return bytes;
-};
 
 const templateSongData = dataUriToUint8Array(templateUge);
 
@@ -89,6 +70,7 @@ export const MusicWebApp = () => {
     importSong,
     openDirectoryWorkspace,
     restoreBackupSong,
+    openExample,
     renameSong,
   } = useMusicWorkspace({
     templateSongData,
@@ -135,6 +117,13 @@ export const MusicWebApp = () => {
     void runWithUnsavedCheck(restoreBackupSong);
   }, [restoreBackupSong, runWithUnsavedCheck]);
 
+  const onOpenExample = useCallback(
+    (name: string, filename: string, dataUri: string) => {
+      void runWithUnsavedCheck(() => openExample(name, filename, dataUri));
+    },
+    [openExample, runWithUnsavedCheck],
+  );
+
   return (
     <AppShell
       data-id="app-shell"
@@ -174,6 +163,7 @@ export const MusicWebApp = () => {
             }
             onRestoreBackup={hasBackup ? onRestoreBackup : undefined}
             backupSongName={backupSongName}
+            onOpenExample={onOpenExample}
           />
         )}
       </AppContent>
