@@ -41,6 +41,7 @@ export const SplashSidebar = styled.div`
   -webkit-app-region: drag;
   box-sizing: border-box;
   padding-bottom: env(safe-area-inset-bottom);
+  box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.05) inset;
 `;
 
 export const SplashContent = styled.div`

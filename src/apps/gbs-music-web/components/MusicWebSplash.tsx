@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import FocusLock from "react-focus-lock";
 import l10n from "shared/lib/lang/l10n";
 import { Button } from "ui/buttons/Button";
@@ -14,10 +14,14 @@ import contributorsExternal from "contributors-external.json";
 import inbuiltPatrons from "patrons.json";
 import type { Patrons } from "scripts/fetchPatrons";
 import appIconUrl from "gbs-music-web/components/ui/icons/app_music_icon_180.png";
+import trackerImageUrl from "gbs-music-web/static/tracker.png";
+import pianoImageUrl from "gbs-music-web/static/piano.png";
 import {
   SplashAppTitle,
   SplashContent,
+  SplashCreateButton,
   SplashEasterEggButton,
+  SplashForm,
   SplashLogo,
   SplashScroll,
   SplashSidebar,
@@ -25,13 +29,17 @@ import {
   SplashTabLink,
   SplashWindow,
 } from "ui/splash/Splash";
-import { FlexGrow } from "ui/spacing/Spacing";
+import { FixedSpacer, FlexGrow } from "ui/spacing/Spacing";
 import styled from "styled-components";
 import { musicExamples } from "gbs-music-web/data/musicExamples";
 import projectIcon from "ui/icons/gbsproj.png";
 import { StyledButton } from "ui/buttons/style";
 import { Label } from "ui/form/Label";
-import { FormRow } from "ui/form/layout/FormLayout";
+import { FormDivider, FormRow } from "ui/form/layout/FormLayout";
+import { DropdownButton } from "ui/buttons/DropdownButton";
+import trackerActions from "store/features/tracker/trackerActions";
+import { useAppDispatch, useAppSelector } from "store/hooks";
+import { TextField } from "ui/form/TextField";
 
 const StyledSplashPage = styled.div`
   background: radial-gradient(
@@ -50,7 +58,7 @@ const StyledSplashPage = styled.div`
 
 const StyledSplashWindowChrome = styled.div`
   position: relative;
-  width: 640px;
+  width: 700px;
   height: 430px;
   border-radius: 10px;
   overflow: hidden;
@@ -70,8 +78,21 @@ const StyledSplashWindowChrome = styled.div`
 
 const StyledSplashRestorePanel = styled.div`
   display: flex;
-  background: ${(props) => props.theme.colors.highlight};
-  color: ${(props) => props.theme.colors.highlightText};
+  // background: ${(props) => props.theme.colors.highlight};
+  // color: ${(props) => props.theme.colors.highlightText};
+
+  background: ${(props) => props.theme.colors.panel.background};
+  color: ${(props) => props.theme.colors.panel.text};
+  border: 1px solid ${(props) => props.theme.colors.panel.border};
+
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #fff;
+
   border-radius: 4px;
   padding: 10px;
   align-items: center;
@@ -79,13 +100,15 @@ const StyledSplashRestorePanel = styled.div`
   box-sizing: border-box;
   width: 100%;
   margin-bottom: 10px;
+  flex-grow: 1;
 
   ${StyledButton} {
-    color: ${(props) => props.theme.colors.highlightText};
+    color: ${(props) => props.theme.colors.panel.text};
     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
     backdrop-filter: blur(5px);
     -webkit-backdrop-filter: blur(5px);
     border: 1px solid rgba(255, 255, 255, 0.37);
+    color: #fff;
   }
   ${StyledButton}[data-variant="normal"] {
     background: rgba(255, 255, 255, 0.19);
@@ -150,19 +173,20 @@ const SplashProjectName = styled.span`
 `;
 
 const StyledFileActions = styled.div`
+  padding: 0px 10px;
   display: flex;
   gap: 10px;
-  justify-content: center;
-  flex-wrap: wrap;
 
-  ${StyledButton}:first-child {
-    flex: 1 0 100%;
-  }
+  // display: flex;
+  // gap: 10px;
+  // justify-content: center;
+  // flex-wrap: wrap;
+  // box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
 
-  ${StyledButton}:nth-child(2),
-  ${StyledButton}:nth-child(3) {
-    flex: 1 1 0;
-  }
+  // ${StyledButton} {
+  //   height: 50px;
+  //   flex-grow: 1;
+  // }
 `;
 
 export const SplashExampleMusic = ({
@@ -195,9 +219,24 @@ export const MusicWebSplash = ({
   backupSongName,
   onOpenExample,
 }: MusicWebSplashProps) => {
+  const dispatch = useAppDispatch();
+
   const [openCredits, setOpenCredits] = useState(false);
   const [patrons, _setPatrons] = useState<Patrons>(inbuiltPatrons as Patrons);
   const [section, setSection] = useState<string>("new");
+
+  const [name, setName] = useState<string>("New Song");
+  const [artist, setArtist] = useState<string>("Artist");
+
+  const view = useAppSelector((state) => state.tracker.view);
+
+  const setTrackerView = useCallback(() => {
+    dispatch(trackerActions.setViewAndSave("tracker"));
+  }, [dispatch]);
+
+  const setRollView = useCallback(() => {
+    dispatch(trackerActions.setViewAndSave("roll"));
+  }, [dispatch]);
 
   const goldContributors = contributors.filter((user) => user.group === "gold");
   const silverContributors = [...contributorsExternal]
@@ -218,6 +257,9 @@ export const MusicWebSplash = ({
 
   return (
     <StyledSplashPage>
+      <div style={{ color: "white", marginBottom: 20 }}>
+        GBS Music: A Free and Open-Source Chiptune Music Editor
+      </div>
       <StyledSplashWindowChrome>
         <SplashWindow focus>
           <SplashSidebar>
@@ -256,72 +298,111 @@ export const MusicWebSplash = ({
               {l10n("SPLASH_CREDITS")}
             </SplashTab>
             <FlexGrow />
+            <SplashTabLink
+              target="_blank"
+              href="https://github.com/chrismaltby/gb-studio"
+            >
+              GitHub
+            </SplashTabLink>
+            <FixedSpacer height={10} />
           </SplashSidebar>
 
           {section === "new" && (
             <SplashContent>
-              {onRestoreBackup ? (
-                <StyledSplashRestorePanel>
-                  A previous session has been recovered{" "}
-                  {backupSongName ? `"${backupSongName}"` : ""}
-                  <Button
-                    style={{ flexGrow: 1 }}
-                    size="large"
-                    onClick={onRestoreBackup}
-                  >
-                    Restore File
-                  </Button>
-                </StyledSplashRestorePanel>
-              ) : null}
-
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-
-                  flexGrow: 1,
-                }}
-              >
+              <SplashForm onSubmit={() => {}}>
                 <FormRow>
-                  <Label>View</Label>
+                  <TextField
+                    name="name"
+                    label="Song Name"
+                    errorLabel={undefined}
+                    size="large"
+                    value={name}
+                    placeholder="Song Name"
+                    onChange={(e) => {
+                      setName(e.currentTarget.value);
+                    }}
+                    disabled={false}
+                  />
                 </FormRow>
-                <div style={{ display: "flex", gap: 10 }}>
+                <FormRow>
+                  <TextField
+                    name="name"
+                    label="Artist"
+                    errorLabel={undefined}
+                    size="large"
+                    value={artist}
+                    placeholder="Artist Name"
+                    onChange={(e) => {
+                      setArtist(e.currentTarget.value);
+                    }}
+                    disabled={false}
+                  />
+                </FormRow>
+                <FormRow>
+                  <Label>{l10n("MENU_VIEW")}</Label>
+                </FormRow>
+                <FormRow>
                   <div
                     style={{
-                      flexGrow: 1,
-                      height: 150,
-                      background: "#fff",
-                      border: "3px solid red",
-                      borderRadius: 4,
+                      display: "flex",
+                      gap: 10,
+                      width: "100%",
                     }}
-                  />
-                  <div
-                    style={{
-                      flexGrow: 1,
-                      height: 150,
-                      background: "#fff",
-                      border: "3px solid red",
-                      borderRadius: 4,
-                    }}
-                  />
-                </div>
-
+                  >
+                    <div
+                      style={{
+                        flexGrow: 1,
+                        height: 120,
+                        background: "#fff",
+                        border:
+                          view === "roll"
+                            ? "4px solid #c92c61"
+                            : "4px solid #ddd",
+                        borderRadius: 4,
+                        backgroundImage: `url(${pianoImageUrl})`,
+                        backgroundSize: "cover",
+                      }}
+                      onClick={setRollView}
+                    />
+                    <div
+                      style={{
+                        flexGrow: 1,
+                        height: 120,
+                        background: "#fff",
+                        border:
+                          view === "tracker"
+                            ? "4px solid #c92c61"
+                            : "4px solid #ddd",
+                        borderRadius: 4,
+                        backgroundImage: `url(${trackerImageUrl})`,
+                        backgroundSize: "cover",
+                      }}
+                      onClick={setTrackerView}
+                    />
+                  </div>
+                </FormRow>
+                <FormRow>
+                  <div style={{ marginTop: 5, fontSize: 11 }}>
+                    {view === "roll"
+                      ? "Piano Roll description"
+                      : "Tracker description"}
+                  </div>
+                </FormRow>
                 <FlexGrow />
-                <StyledFileActions style={{}}>
+                <StyledFileActions>
                   {onCreateSong ? (
                     <Button
                       size="large"
                       variant="primary"
                       onClick={onCreateSong}
                     >
-                      {/* {l10n("TOOL_ADD_SONG_LABEL")} */}
-                      Create .UGE Song
+                      Create Song
                     </Button>
                   ) : null}
+                  <FlexGrow />
                   {onImportSong ? (
                     <Button size="large" onClick={onImportSong}>
-                      {/* {l10n("FIELD_OPEN_FILE")} */}
-                      Open .UGE File
+                      Open File
                     </Button>
                   ) : null}
                   {onOpenDirectoryWorkspace ? (
@@ -339,7 +420,7 @@ export const MusicWebSplash = ({
                     </Button>
                   )}
                 </StyledFileActions>
-              </div>
+              </SplashForm>
             </SplashContent>
           )}
 
@@ -422,6 +503,24 @@ export const MusicWebSplash = ({
           </FocusLock>
         )}
       </StyledSplashWindowChrome>
+
+      <div style={{ maxWidth: 420, marginTop: 20 }}>
+        {onRestoreBackup ? (
+          <StyledSplashRestorePanel>
+            A previous session has been recovered{" "}
+            {backupSongName ? `"${backupSongName}"` : ""}
+            <Button
+              style={{ flexGrow: 1 }}
+              size="large"
+              onClick={onRestoreBackup}
+            >
+              Restore File
+            </Button>
+          </StyledSplashRestorePanel>
+        ) : (
+          <FlexGrow />
+        )}
+      </div>
     </StyledSplashPage>
   );
 };
