@@ -118,6 +118,7 @@ const StyledSplashRestorePanel = styled.div`
 
 interface SplashExampleMusicProps {
   name: string;
+  artist: string;
   onClick: () => void;
 }
 
@@ -167,7 +168,16 @@ const SplashProjectName = styled.span`
   display: block;
   font-size: 16px;
   font-weight: bold;
-  margin-bottom: 10px;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const SplashProjectArtist = styled.span`
+  display: block;
+  font-size: 12px;
+  opacity: 0.7;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -199,13 +209,14 @@ export const StyledFileForm = styled.div`
 
 export const SplashExampleMusic = ({
   name,
+  artist,
   onClick,
 }: SplashExampleMusicProps) => (
   <SplashProjectWrapper onClick={onClick}>
     <img src={projectIcon} alt="" draggable={false} />
     <SplashProjectDetails>
       <SplashProjectName>{name}</SplashProjectName>
-      {/* <SplashProjectPath>{project.dir}</SplashProjectPath> */}
+      <SplashProjectArtist>{artist}</SplashProjectArtist>
     </SplashProjectDetails>
   </SplashProjectWrapper>
 );
@@ -452,6 +463,7 @@ export const MusicWebSplash = ({
                 <SplashExampleMusic
                   key={example.filename}
                   name={example.displayName}
+                  artist={example.artistName}
                   onClick={() =>
                     onOpenExample(
                       example.displayName,
