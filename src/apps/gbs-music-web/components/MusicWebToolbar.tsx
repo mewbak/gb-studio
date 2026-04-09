@@ -13,6 +13,7 @@ import {
 import { FixedSpacer, FlexGrow } from "ui/spacing/Spacing";
 import l10n from "shared/lib/lang/l10n";
 import appIconUrl from "gbs-music-web/components/ui/icons/app_music_icon_180.png";
+import appPixelIconUrl from "gbs-music-web/components/ui/icons/app_music_icon_pixel.png";
 import { webLocaleOptions } from "gbs-music-web/lib/preferences";
 import { useWebFullscreen } from "ui/hooks/use-web-fullscreen";
 import { SongContextBar } from "components/music/toolbar/SongContextBar";
@@ -270,7 +271,7 @@ export const MusicWebToolbar = ({
             <DropdownButton
               label={
                 <>
-                  <Logo src={appIconUrl} alt="GB Studio" />
+                  <Logo src={appPixelIconUrl} alt="GB Studio" />
                   <BrandText>GBS Music</BrandText>
                 </>
               }
