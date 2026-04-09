@@ -29,6 +29,9 @@ import { FlexGrow } from "ui/spacing/Spacing";
 import styled from "styled-components";
 import { musicExamples } from "gbs-music-web/data/musicExamples";
 import projectIcon from "ui/icons/gbsproj.png";
+import { StyledButton } from "ui/buttons/style";
+import { Label } from "ui/form/Label";
+import { FormRow } from "ui/form/layout/FormLayout";
 
 const StyledSplashPage = styled.div`
   background: radial-gradient(
@@ -40,6 +43,7 @@ const StyledSplashPage = styled.div`
   );
   flex-grow: 1;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
 `;
@@ -61,6 +65,30 @@ const StyledSplashWindowChrome = styled.div`
     border: 0;
     box-shadow: none;
     border-radius: 0;
+  }
+`;
+
+const StyledSplashRestorePanel = styled.div`
+  display: flex;
+  background: ${(props) => props.theme.colors.highlight};
+  color: ${(props) => props.theme.colors.highlightText};
+  border-radius: 4px;
+  padding: 10px;
+  align-items: center;
+  gap: 10px;
+  box-sizing: border-box;
+  width: 100%;
+  margin-bottom: 10px;
+
+  ${StyledButton} {
+    color: ${(props) => props.theme.colors.highlightText};
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.37);
+  }
+  ${StyledButton}[data-variant="normal"] {
+    background: rgba(255, 255, 255, 0.19);
   }
 `;
 
@@ -119,6 +147,22 @@ const SplashProjectName = styled.span`
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+`;
+
+const StyledFileActions = styled.div`
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+
+  ${StyledButton}:first-child {
+    flex: 1 0 100%;
+  }
+
+  ${StyledButton}:nth-child(2),
+  ${StyledButton}:nth-child(3) {
+    flex: 1 1 0;
+  }
 `;
 
 export const SplashExampleMusic = ({
@@ -216,55 +260,85 @@ export const MusicWebSplash = ({
 
           {section === "new" && (
             <SplashContent>
+              {onRestoreBackup ? (
+                <StyledSplashRestorePanel>
+                  A previous session has been recovered{" "}
+                  {backupSongName ? `"${backupSongName}"` : ""}
+                  <Button
+                    style={{ flexGrow: 1 }}
+                    size="large"
+                    onClick={onRestoreBackup}
+                  >
+                    Restore File
+                  </Button>
+                </StyledSplashRestorePanel>
+              ) : null}
+
               <div
-                style={{ display: "flex", flexDirection: "column", gap: 20 }}
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+
+                  flexGrow: 1,
+                }}
               >
+                <FormRow>
+                  <Label>View</Label>
+                </FormRow>
+                <div style={{ display: "flex", gap: 10 }}>
+                  <div
+                    style={{
+                      flexGrow: 1,
+                      height: 150,
+                      background: "#fff",
+                      border: "3px solid red",
+                      borderRadius: 4,
+                    }}
+                  />
+                  <div
+                    style={{
+                      flexGrow: 1,
+                      height: 150,
+                      background: "#fff",
+                      border: "3px solid red",
+                      borderRadius: 4,
+                    }}
+                  />
+                </div>
+
                 <FlexGrow />
-                <div
-                  style={{ display: "flex", gap: 10, justifyContent: "center" }}
-                >
+                <StyledFileActions style={{}}>
                   {onCreateSong ? (
                     <Button
-                      style={{ flexGrow: 1 }}
                       size="large"
                       variant="primary"
                       onClick={onCreateSong}
                     >
-                      {l10n("TOOL_ADD_SONG_LABEL")}
+                      {/* {l10n("TOOL_ADD_SONG_LABEL")} */}
+                      Create .UGE Song
                     </Button>
                   ) : null}
                   {onImportSong ? (
-                    <Button
-                      style={{ flexGrow: 1 }}
-                      size="large"
-                      onClick={onImportSong}
-                    >
-                      {l10n("FIELD_OPEN_FILE")}
+                    <Button size="large" onClick={onImportSong}>
+                      {/* {l10n("FIELD_OPEN_FILE")} */}
+                      Open .UGE File
                     </Button>
                   ) : null}
                   {onOpenDirectoryWorkspace ? (
+                    <Button size="large" onClick={onOpenDirectoryWorkspace}>
+                      {l10n("FIELD_OPEN_FOLDER")}
+                    </Button>
+                  ) : (
                     <Button
                       style={{ flexGrow: 1 }}
                       size="large"
-                      onClick={onOpenDirectoryWorkspace}
+                      disabled
+                      onClick={() => {}}
                     >
                       {l10n("FIELD_OPEN_FOLDER")}
                     </Button>
-                  ) : null}
-                </div>
-                {onRestoreBackup ? (
-                  <div style={{ display: "flex", justifyContent: "center" }}>
-                    <Button
-                      style={{ flexGrow: 1 }}
-                      size="large"
-                      onClick={onRestoreBackup}
-                    >
-                      {backupSongName
-                        ? `Restore backup: ${backupSongName}`
-                        : "Restore backup"}
-                    </Button>
-                  </div>
-                ) : null}
+                  )}
+                </StyledFileActions>
               </div>
             </SplashContent>
           )}
