@@ -147,6 +147,7 @@ const trackerSlice = createSlice({
   name: "tracker",
   initialState,
   reducers: {
+    reset: () => initialState,
     playTracker: (state, _action: PayloadAction<void>) => {
       state.playing = true;
     },

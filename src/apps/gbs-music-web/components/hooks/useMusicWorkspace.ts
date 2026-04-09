@@ -73,6 +73,7 @@ interface UseMusicWorkspaceResult {
   restoreBackupSong: () => Promise<void>;
   openExample: (name: string, filename: string, url: string) => Promise<void>;
   renameSong: (musicId: string, newBaseName: string) => Promise<void>;
+  closeWorkspace: () => void;
 }
 
 export const useMusicWorkspace = ({
@@ -101,6 +102,12 @@ export const useMusicWorkspace = ({
     },
     [dispatch],
   );
+
+  const closeWorkspace = useCallback(() => {
+    setWorkspace(undefined);
+    dispatch(musicAssetActions.setMusicAssets([]));
+    dispatch(trackerActions.reset());
+  }, [dispatch]);
 
   const openMusicWorkspace = useCallback(
     async (mode: "file" | "directory") => {
@@ -242,7 +249,11 @@ export const useMusicWorkspace = ({
       }
 
       const newFilename = `${safeName}.uge`;
-      const newRef = await renameWebDocument(musicId, doc.filename, newFilename);
+      const newRef = await renameWebDocument(
+        musicId,
+        doc.filename,
+        newFilename,
+      );
 
       setWorkspace((prev) => {
         if (!prev) {
@@ -278,5 +289,6 @@ export const useMusicWorkspace = ({
     restoreBackupSong,
     openExample,
     renameSong,
+    closeWorkspace,
   };
 };

@@ -2,7 +2,10 @@ import React, { useCallback, useEffect, useState } from "react";
 import trackerActions from "store/features/tracker/trackerActions";
 import styled from "styled-components";
 import { saveSongFile } from "store/features/trackerDocument/trackerDocumentState";
-import { webMusicEnvironment, dataUriToUint8Array } from "gbs-music-web/lib/adapters";
+import {
+  webMusicEnvironment,
+  dataUriToUint8Array,
+} from "gbs-music-web/lib/adapters";
 import StandaloneMusicPage from "gbs-music-web/components/StandaloneMusicPage";
 import { useAppDispatch, useAppSelector } from "store/hooks";
 import { musicSelectors } from "store/features/entities/entitiesState";
@@ -72,6 +75,7 @@ export const MusicWebApp = () => {
     restoreBackupSong,
     openExample,
     renameSong,
+    closeWorkspace,
   } = useMusicWorkspace({
     templateSongData,
   });
@@ -124,6 +128,10 @@ export const MusicWebApp = () => {
     [openExample, runWithUnsavedCheck],
   );
 
+  const onCloseWorkspace = useCallback(() => {
+    void runWithUnsavedCheck(closeWorkspace);
+  }, [closeWorkspace, runWithUnsavedCheck]);
+
   return (
     <AppShell
       data-id="app-shell"
@@ -143,6 +151,7 @@ export const MusicWebApp = () => {
           onOpenDirectoryWorkspace={
             singleDocumentMode ? undefined : onOpenDirectoryWorkspace
           }
+          onCloseWorkspace={onCloseWorkspace}
         />
       ) : null}
       <AppContent data-id="app-content">

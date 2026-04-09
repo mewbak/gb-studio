@@ -63,6 +63,7 @@ interface MusicWebToolbarProps {
   onCreateSong: () => void;
   onOpenDirectoryWorkspace?: () => void;
   onImportSong?: () => void;
+  onCloseWorkspace?: () => void;
 }
 
 export const MusicWebToolbar = ({
@@ -73,6 +74,7 @@ export const MusicWebToolbar = ({
   onCreateSong,
   onOpenDirectoryWorkspace,
   onImportSong,
+  onCloseWorkspace,
 }: MusicWebToolbarProps) => {
   const dispatch = useAppDispatch();
 
@@ -99,8 +101,10 @@ export const MusicWebToolbar = ({
   const fileMenu = useMemo(() => {
     return [
       <MenuItem key="new" onClick={onCreateSong}>
-        {l10n("TOOL_ADD_SONG_LABEL")}
+        {/* {l10n("TOOL_ADD_SONG_LABEL")} */}
+        New File
       </MenuItem>,
+      <MenuDivider key="dir-open" />,
       ...(onImportSong
         ? [
             <MenuItem key="open" onClick={onImportSong}>
@@ -110,14 +114,19 @@ export const MusicWebToolbar = ({
         : []),
       ...(onOpenDirectoryWorkspace
         ? [
-            <MenuDivider key="dir-div" />,
             <MenuItem key="dir" onClick={onOpenDirectoryWorkspace}>
               {l10n("FIELD_OPEN_FOLDER")}
             </MenuItem>,
           ]
         : []),
+      <MenuDivider key="dir-save" />,
+      <MenuItem key="save" onClick={() => {}}>
+        Save
+      </MenuItem>,
+      <MenuDivider key="dir-close" />,
+      <MenuItem onClick={onCloseWorkspace}>Close Project</MenuItem>,
     ];
-  }, [onCreateSong, onImportSong, onOpenDirectoryWorkspace]);
+  }, [onCloseWorkspace, onCreateSong, onImportSong, onOpenDirectoryWorkspace]);
 
   const editMenu = useMemo(() => {
     return [
