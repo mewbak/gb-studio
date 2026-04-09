@@ -260,6 +260,7 @@ export const installWebRendererApi = (store: MusicEditorStore) => {
         return Promise.resolve();
       },
       app: {
+        openExternal: (url: string) => window.open(url, "_blank"),
         setUIScale: () => Promise.resolve(),
         getUIScale: () => Promise.resolve(0),
         setTrackerKeyBindings: () => Promise.resolve(),

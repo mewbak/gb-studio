@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import FocusLock from "react-focus-lock";
-import API from "renderer/lib/api";
 import l10n from "shared/lib/lang/l10n";
 import { Button } from "ui/buttons/Button";
 import {
@@ -302,11 +301,8 @@ export const MusicWebSplash = ({
               {goldContributors.map((contributor) => (
                 <CreditsPerson
                   key={contributor.login}
-                  onClick={
-                    contributor.html_url
-                      ? () => API.app.openExternal(contributor.html_url)
-                      : undefined
-                  }
+                  href={contributor.html_url}
+                  target="_blank"
                 >
                   {contributor.login}
                 </CreditsPerson>
@@ -315,11 +311,8 @@ export const MusicWebSplash = ({
                 {silverContributors.map((contributor) => (
                   <CreditsPerson
                     key={contributor.login}
-                    onClick={
-                      contributor.html_url
-                        ? () => API.app.openExternal(contributor.html_url)
-                        : undefined
-                    }
+                    href={contributor.html_url}
+                    target="_blank"
                   >
                     {contributor.login}
                   </CreditsPerson>

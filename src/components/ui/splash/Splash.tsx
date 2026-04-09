@@ -39,6 +39,8 @@ export const SplashSidebar = styled.div`
   height: 100%;
   flex-shrink: 0;
   -webkit-app-region: drag;
+  box-sizing: border-box;
+  padding-bottom: env(safe-area-inset-bottom);
 `;
 
 export const SplashContent = styled.div`

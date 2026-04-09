@@ -65,7 +65,7 @@ const goldPersonAnimation = keyframes`
     100% {background-position: 200px 0px}
   `;
 
-export const StyledCreditsPerson = styled.div<StyledCreditsPersonProps>`
+export const StyledCreditsPerson = styled.a<StyledCreditsPersonProps>`
   display: block;
   color: #fff;
   font-size: 20px;
@@ -149,5 +149,11 @@ export const StyledCreditsGrid = styled.div`
 
   & > * {
     width: 30%;
+  }
+
+  @media (max-width: 840px) {
+    & > * {
+      width: 50%;
+    }
   }
 `;

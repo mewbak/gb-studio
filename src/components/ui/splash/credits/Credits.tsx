@@ -59,15 +59,24 @@ export const CreditsSubHeading = ({ children }: CreditsSubHeadingProps) => {
 interface CreditsPersonProps {
   children?: ReactNode;
   gold?: boolean;
+  href?: string;
+  target?: string;
   onClick?: () => void;
 }
 
 export const CreditsPerson = ({
   children,
   gold,
+  href,
+  target,
   onClick,
 }: CreditsPersonProps) => (
-  <StyledCreditsPerson $gold={gold} onClick={onClick}>
+  <StyledCreditsPerson
+    $gold={gold}
+    onClick={onClick}
+    href={href}
+    target={target}
+  >
     <span>{children}</span>
   </StyledCreditsPerson>
 );
