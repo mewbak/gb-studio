@@ -24,6 +24,9 @@ import {
 } from "gbs-music-web/lib/songBackup";
 import { actions as trackerDocumentActions } from "store/features/trackerDocument/trackerDocumentState";
 
+const toSafeBaseName = (name: string) =>
+  name.replace(/[/\\]/g, "").trim() || "New Song";
+
 const sortDocuments = (documents: MusicDocumentReference[]) =>
   [...documents].sort((a, b) =>
     a.filename.localeCompare(b.filename, undefined, {
@@ -67,7 +70,7 @@ interface UseMusicWorkspaceResult {
   singleDocumentMode: boolean;
   hasBackup: boolean;
   backupSongName: string;
-  createSong: () => Promise<void>;
+  createSong: (options?: { name?: string; artist?: string }) => Promise<void>;
   importSong: () => Promise<void>;
   openDirectoryWorkspace: () => Promise<void>;
   restoreBackupSong: () => Promise<void>;
@@ -144,27 +147,47 @@ export const useMusicWorkspace = ({
     [applyWorkspace, templateSongData],
   );
 
-  const createSong = useCallback(async () => {
-    const document = await createTemplateMusicDocument(
-      new Uint8Array(templateSongData),
-      workspace,
-    );
+  const createSong = useCallback(
+    async (options?: { name?: string; artist?: string }) => {
+      const songName = options?.name?.trim() || "New Song";
+      const songArtist =
+        options?.artist !== undefined ? options.artist : "Artist";
+      const baseName = toSafeBaseName(songName);
 
-    if (!document) {
-      return;
-    }
+      // Stamp the template UGE data with the requested name and artist before
+      // writing it to disk / the in-memory store.
+      const { loadUGESong, saveUGESong } = await import(
+        "shared/lib/uge/ugeHelper"
+      );
+      const song = loadUGESong(Buffer.from(templateSongData));
+      song.name = songName;
+      song.artist = songArtist;
+      song.filename = baseName;
+      const stampedData = new Uint8Array(saveUGESong(song));
 
-    const nextWorkspace = singleDocumentMode
-      ? createMusicWorkspace({
-          source: "browser",
-          openMode: "file",
-          activeDocumentId: document.id,
-          documents: [document],
-        })
-      : appendWorkspaceDocument(workspace, document);
+      const document = await createTemplateMusicDocument(
+        stampedData,
+        workspace,
+        baseName,
+      );
 
-    applyWorkspace(nextWorkspace);
-  }, [applyWorkspace, singleDocumentMode, templateSongData, workspace]);
+      if (!document) {
+        return;
+      }
+
+      const nextWorkspace = singleDocumentMode
+        ? createMusicWorkspace({
+            source: "browser",
+            openMode: "file",
+            activeDocumentId: document.id,
+            documents: [document],
+          })
+        : appendWorkspaceDocument(workspace, document);
+
+      applyWorkspace(nextWorkspace);
+    },
+    [applyWorkspace, singleDocumentMode, templateSongData, workspace],
+  );
 
   const importSong = useCallback(async () => {
     if (singleDocumentMode) {
@@ -241,8 +264,6 @@ export const useMusicWorkspace = ({
         return;
       }
 
-      // Strip path separators — slashes are valid in Electron paths but not in
-      // web filenames (the FS API rejects them with a NotAllowedError).
       const safeName = newBaseName.replace(/[/\\]/g, "").trim();
       if (!safeName) {
         return;

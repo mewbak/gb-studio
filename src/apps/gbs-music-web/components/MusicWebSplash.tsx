@@ -40,6 +40,7 @@ import { DropdownButton } from "ui/buttons/DropdownButton";
 import trackerActions from "store/features/tracker/trackerActions";
 import { useAppDispatch, useAppSelector } from "store/hooks";
 import { TextField } from "ui/form/TextField";
+import { useLocalStorageState } from "ui/hooks/use-local-storage-state";
 
 const StyledSplashPage = styled.div`
   background: radial-gradient(
@@ -189,6 +190,13 @@ const StyledFileActions = styled.div`
   // }
 `;
 
+export const StyledFileForm = styled.div`
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+`;
+
 export const SplashExampleMusic = ({
   name,
   onClick,
@@ -203,13 +211,16 @@ export const SplashExampleMusic = ({
 );
 
 interface MusicWebSplashProps {
-  onCreateSong: () => void;
+  onCreateSong: (name: string, artist: string) => void;
   onImportSong?: () => void;
   onOpenDirectoryWorkspace?: () => void;
   onRestoreBackup?: () => void;
   backupSongName?: string;
   onOpenExample: (name: string, filename: string, url: string) => void;
+  initialArtist?: string;
 }
+
+const ARTIST_STORAGE_KEY = "gbsMusicWeb:artist";
 
 export const MusicWebSplash = ({
   onCreateSong,
@@ -226,7 +237,10 @@ export const MusicWebSplash = ({
   const [section, setSection] = useState<string>("new");
 
   const [name, setName] = useState<string>("New Song");
-  const [artist, setArtist] = useState<string>("Artist");
+  const [artist, setArtist] = useLocalStorageState<string>(
+    "Artist",
+    ARTIST_STORAGE_KEY,
+  );
 
   const view = useAppSelector((state) => state.tracker.view);
 
@@ -309,7 +323,7 @@ export const MusicWebSplash = ({
 
           {section === "new" && (
             <SplashContent>
-              <SplashForm onSubmit={() => {}}>
+              <StyledFileForm>
                 <FormRow>
                   <TextField
                     name="name"
@@ -394,7 +408,10 @@ export const MusicWebSplash = ({
                     <Button
                       size="large"
                       variant="primary"
-                      onClick={onCreateSong}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        onCreateSong(name, artist);
+                      }}
                     >
                       Create Song
                     </Button>
@@ -420,7 +437,7 @@ export const MusicWebSplash = ({
                     </Button>
                   )}
                 </StyledFileActions>
-              </SplashForm>
+              </StyledFileForm>
             </SplashContent>
           )}
 

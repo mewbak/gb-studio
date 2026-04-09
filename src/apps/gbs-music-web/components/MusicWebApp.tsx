@@ -105,8 +105,15 @@ export const MusicWebApp = () => {
   const allSongs = useAppSelector(musicSelectors.selectAll);
   const hasSongs = allSongs.length > 0;
 
-  const onCreateSong = useCallback(() => {
-    void runWithUnsavedCheck(createSong);
+  const onCreateSong = useCallback(
+    (name: string, songArtist: string) => {
+      void runWithUnsavedCheck(() => createSong({ name, artist: songArtist }));
+    },
+    [createSong, runWithUnsavedCheck],
+  );
+
+  const onAddSong = useCallback(() => {
+    void runWithUnsavedCheck(() => createSong());
   }, [createSong, runWithUnsavedCheck]);
 
   const onImportSong = useCallback(() => {
@@ -146,7 +153,7 @@ export const MusicWebApp = () => {
           localeId={localeId}
           onThemeChange={onThemeChange}
           onLocaleChange={onLocaleChange}
-          onCreateSong={onCreateSong}
+          onCreateSong={onAddSong}
           onImportSong={onImportSong}
           onOpenDirectoryWorkspace={
             singleDocumentMode ? undefined : onOpenDirectoryWorkspace
@@ -157,7 +164,7 @@ export const MusicWebApp = () => {
       <AppContent data-id="app-content">
         {hasSongs ? (
           <StandaloneMusicPage
-            onCreateSong={onCreateSong}
+            onCreateSong={onAddSong}
             onImportSong={onImportSong}
             onOpenDirectoryWorkspace={onOpenDirectoryWorkspace}
             onSelectSong={onSelectSong}

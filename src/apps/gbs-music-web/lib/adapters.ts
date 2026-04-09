@@ -218,13 +218,12 @@ const createFallbackWorkspaceRoot = (files: File[]) => {
 
 const findAvailableSongName = async (
   directoryHandle: FileSystemDirectoryHandle,
+  baseName: string = newSongBaseName,
 ) => {
   let index = 0;
   while (true) {
     const candidate =
-      index === 0
-        ? `${newSongBaseName}.uge`
-        : `${newSongBaseName} ${index + 1}.uge`;
+      index === 0 ? `${baseName}.uge` : `${baseName} ${index + 1}.uge`;
     try {
       await directoryHandle.getFileHandle(candidate);
       index += 1;
@@ -237,12 +236,10 @@ const findAvailableSongName = async (
   }
 };
 
-const createFallbackNewSongReference = () => {
+const createFallbackNewSongReference = (baseName: string = newSongBaseName) => {
   const suffix = fallbackDocumentId++ || 0;
   const fileName =
-    suffix === 0
-      ? `${newSongBaseName}.uge`
-      : `${newSongBaseName} ${suffix + 1}.uge`;
+    suffix === 0 ? `${baseName}.uge` : `${baseName} ${suffix + 1}.uge`;
   const reference = createReference(fileName.replace(/\.uge$/, ""), fileName, {
     id: `fallback-new-${suffix}-${fileName}`,
   });
@@ -432,14 +429,19 @@ export const importMusicDocument =
 export const createTemplateMusicDocument = async (
   data: Uint8Array,
   workspace?: Pick<MusicWorkspace, "openMode" | "rootName">,
+  suggestedBaseName?: string,
 ): Promise<MusicDocumentReference | null> => {
+  const baseName = suggestedBaseName || newSongBaseName;
   try {
     if (
       workspace?.openMode === "directory" &&
       currentDirectoryHandle &&
       supportsFileSystemAccess()
     ) {
-      const filename = await findAvailableSongName(currentDirectoryHandle);
+      const filename = await findAvailableSongName(
+        currentDirectoryHandle,
+        baseName,
+      );
       const handle = await currentDirectoryHandle.getFileHandle(filename, {
         create: true,
       });
@@ -451,7 +453,7 @@ export const createTemplateMusicDocument = async (
 
     if (supportsSavePicker()) {
       const handle = await getSaveFilePicker()({
-        suggestedName: `${newSongBaseName}.uge`,
+        suggestedName: `${baseName}.uge`,
         types: [accept],
       });
       await writeFileHandle(handle, data);
@@ -461,7 +463,7 @@ export const createTemplateMusicDocument = async (
       return reference;
     }
 
-    const reference = createFallbackNewSongReference();
+    const reference = createFallbackNewSongReference(baseName);
     storeInMemoryDocument(reference, data, false);
     currentDirectoryHandle = undefined;
     return reference;

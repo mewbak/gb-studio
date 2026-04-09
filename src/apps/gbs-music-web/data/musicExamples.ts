@@ -1,16 +1,14 @@
 export interface MusicExample {
   filename: string;
   displayName: string;
-  url: string; // webpack asset/resource URL
+  url: string;
 }
 
 const formatDisplayName = (filename: string): string => {
   const base = filename.replace(/\.uge$/i, "");
-  // Strip "Artist_" prefix (e.g. "Rulz_" or "Tronimal_")
   const withoutArtist = base.includes("_")
     ? base.slice(base.indexOf("_") + 1)
     : base;
-  // Insert spaces before uppercase letters following lowercase (CamelCase → words)
   return withoutArtist.replace(/([a-z])([A-Z])/g, "$1 $2");
 };
 
