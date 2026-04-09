@@ -477,9 +477,6 @@ export const InstrumentSubpatternScript = ({
                                 ? undefined
                                 : selectedCell.effectcode
                             }
-                            effectParam={selectedCell.effectparam ?? 0}
-                            note={selectedCell.note ?? undefined}
-                            instrumentId={instrumentId}
                             allowedEffectCodes={[...validSubpatternEffectCodes]}
                             onChange={onChangeEffectCode}
                             noneLabel={l10n("FIELD_NONE")}
@@ -494,7 +491,6 @@ export const InstrumentSubpatternScript = ({
                           effectCode={selectedCell.effectcode}
                           value={selectedCell.effectparam}
                           note={selectedCell.note ?? undefined}
-                          instrumentId={instrumentId}
                           onChange={onChangeEffectParam}
                         />
                       )}

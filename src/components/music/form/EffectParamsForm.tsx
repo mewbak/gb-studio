@@ -24,7 +24,6 @@ interface EffectParamsFormProps {
   onChange?: (effectParam: number | null) => void;
   onChangeNote?: (note: number | null) => void;
   note?: number;
-  instrumentId?: number;
 }
 
 const waveformOptions: SelectOption[] = [

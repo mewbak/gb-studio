@@ -254,7 +254,6 @@ export const PatternCellSelectionEditor = () => {
               effectParam: sharedEffectParam.value ?? undefined,
             });
           }}
-          instrumentId={sharedInstrumentId.value ?? undefined}
         />
       )}
       <FormDivider />
