@@ -23,7 +23,7 @@ import ConnectionsWorker, {
   ConnectionsWorkerResult,
   SceneTransitionCoords,
 } from "./Connections.worker";
-import { throttle } from "lodash";
+import throttle from "lodash/throttle";
 import { optimiseScriptValue } from "shared/lib/scriptValue/helpers";
 import { ensureScriptValue } from "shared/lib/scriptValue/types";
 import { filterUndefined } from "shared/lib/helpers/array";

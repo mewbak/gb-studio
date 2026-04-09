@@ -16,7 +16,7 @@ import {
 import { getKeys } from "renderer/lib/keybindings/keyBindings";
 import trackerActions from "store/features/tracker/trackerActions";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
-import { mergeWith } from "lodash";
+import mergeWith from "lodash/mergeWith";
 import { Position, SelectionRect } from "components/music/tracker/helpers";
 import API from "renderer/lib/api";
 import { useAppDispatch, useAppSelector } from "store/hooks";

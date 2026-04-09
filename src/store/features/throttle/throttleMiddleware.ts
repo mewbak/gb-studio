@@ -1,7 +1,7 @@
 import { Dispatch, Middleware } from "@reduxjs/toolkit";
 import { RootState } from "store/storeTypes";
 import throttle from "lodash/throttle";
-import { DebouncedFunc } from "lodash";
+import type { DebouncedFunc } from "lodash";
 
 type ThrottleableAction = {
   type: string;

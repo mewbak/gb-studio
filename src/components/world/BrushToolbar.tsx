@@ -47,7 +47,7 @@ import navigationActions from "store/features/navigation/navigationActions";
 import entitiesActions from "store/features/entities/entitiesActions";
 import { PaletteSelect } from "components/forms/PaletteSelect";
 import { Brush } from "store/features/editor/editorState";
-import { cloneDeep } from "lodash";
+import cloneDeep from "lodash/cloneDeep";
 import { NavigationSection } from "store/features/navigation/navigationState";
 import styled, { css } from "styled-components";
 import { FloatingPanel, FloatingPanelDivider } from "ui/panels/FloatingPanel";

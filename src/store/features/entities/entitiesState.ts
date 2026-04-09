@@ -91,7 +91,7 @@ import { addNewSongFile } from "store/features/trackerDocument/trackerDocumentSt
 import type { LoadProjectResult } from "lib/project/loadProjectData";
 import { decompressProjectResources } from "shared/lib/resources/compression";
 import { omit } from "shared/types";
-import { isEqual } from "lodash";
+import isEqual from "lodash/isEqual";
 import {
   AvatarAsset,
   AvatarResourceAsset,

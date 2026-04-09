@@ -1,4 +1,4 @@
-import { keyBy } from "lodash";
+import keyBy from "lodash/keyBy";
 import { ProjectResources, ScriptEvent } from "shared/lib/resources/types";
 import { mapActorScript, mapTriggerScript } from "shared/lib/scripts/walk";
 

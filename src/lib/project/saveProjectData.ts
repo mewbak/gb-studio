@@ -5,7 +5,8 @@ import { writeFileWithBackupAsync } from "lib/helpers/fs/writeFileWithBackup";
 import Path from "path";
 import { WriteResourcesPatch } from "shared/lib/resources/types";
 import promiseLimit from "lib/helpers/promiseLimit";
-import { uniq, throttle } from "lodash";
+import uniq from "lodash/uniq";
+import throttle from "lodash/throttle";
 import { pathToPosix } from "shared/lib/helpers/path";
 import { encodeResource } from "shared/lib/resources/save";
 

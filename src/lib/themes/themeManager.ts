@@ -8,7 +8,8 @@ import glob from "glob";
 import { promisify } from "util";
 import { join, relative } from "path";
 import { readJSON } from "fs-extra";
-import { merge, cloneDeep } from "lodash";
+import merge from "lodash/merge";
+import cloneDeep from "lodash/cloneDeep";
 
 const globAsync = promisify(glob);
 

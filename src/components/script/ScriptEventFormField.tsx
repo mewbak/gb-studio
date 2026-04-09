@@ -37,7 +37,8 @@ import {
 } from "store/features/entities/entitiesState";
 import { ScriptEditorContext } from "./ScriptEditorContext";
 import { ScriptEventUserPresets } from "./ScriptEventUserPresets";
-import { throttle, isEqual } from "lodash";
+import throttle from "lodash/throttle";
+import isEqual from "lodash/isEqual";
 
 interface ScriptEventFormFieldProps {
   scriptEvent: ScriptEventNormalized;

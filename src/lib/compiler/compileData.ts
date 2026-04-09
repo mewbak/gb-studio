@@ -132,7 +132,7 @@ import {
 import { applyPrefabs } from "./applyPrefabs";
 import { EngineSchema } from "lib/project/loadEngineSchema";
 import { createLinkToResource } from "shared/lib/helpers/resourceLinks";
-import { difference } from "lodash";
+import difference from "lodash/difference";
 import { toProjectileHash } from "./scriptBuilder/helpers";
 
 type CompiledTilemapData = {

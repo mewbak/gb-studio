@@ -28,7 +28,7 @@ import glob from "glob";
 import { promisify } from "util";
 import promiseLimit from "lib/helpers/promiseLimit";
 import groupBy from "lodash/groupBy";
-import { identity } from "lodash";
+import identity from "lodash/identity";
 import { defaultProjectSettings } from "consts";
 import { readJson } from "lib/helpers/fs/readJson";
 import { Value } from "@sinclair/typebox/value";

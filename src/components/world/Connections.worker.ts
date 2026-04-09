@@ -1,5 +1,5 @@
 import { EVENT_SWITCH_SCENE, MAX_NESTED_SCRIPT_DEPTH } from "consts";
-import { uniqBy } from "lodash";
+import uniqBy from "lodash/uniqBy";
 import {
   SceneNormalized,
   ScriptEventNormalized,

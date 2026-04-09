@@ -7,7 +7,7 @@ import {
   ProjectResourcesMigrationFn,
   pipeMigrationFns,
 } from "lib/project/migration/helpers";
-import { keyBy } from "lodash";
+import keyBy from "lodash/keyBy";
 import { ensureNumber } from "shared/types";
 
 export const migrateFrom410r1To420r1Event: ScriptEventMigrationFn = (

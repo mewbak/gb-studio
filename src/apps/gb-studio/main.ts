@@ -159,7 +159,7 @@ import { monoOverrideForFilename } from "shared/lib/assets/backgrounds";
 import { getMonoTilesImage } from "lib/helpers/getMonoTilesImage";
 import { readFileToIndexedImage } from "lib/tiles/readFileToTiles";
 import { tileDataIndexFn } from "shared/lib/tiles/tileData";
-import { isEqual } from "lodash";
+import isEqual from "lodash/isEqual";
 import { writeIndexedImagePNG } from "lib/helpers/writeIndexedImage";
 import { clearAppCache } from "lib/helpers/cache";
 import { ensureNonEmptyBasename } from "shared/lib/helpers/path";

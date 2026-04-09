@@ -72,7 +72,7 @@ import {
   Trigger,
   Variable,
 } from "shared/lib/resources/types";
-import { uniqBy } from "lodash";
+import uniqBy from "lodash/uniqBy";
 import {
   canMoveFolder,
   reparentEntityPath,
