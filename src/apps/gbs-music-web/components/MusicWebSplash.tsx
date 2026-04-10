@@ -18,6 +18,7 @@ import trackerImageUrl from "gbs-music-web/static/tracker.png";
 import pianoImageUrl from "gbs-music-web/static/piano.png";
 import {
   SplashAppTitle,
+  SplashAppTitleWrapper,
   SplashContent,
   SplashForm,
   SplashLogo,
@@ -76,11 +77,17 @@ const StyledSplashPage = styled.div`
     ${SplashLogo} {
       display: flex;
       justify-content: center;
-      margin-top: 0;
+      margin-top: 40px;
       margin-bottom: 20px;
       img {
         max-width: min(calc(100% - 100px), 140px);
       }
+    }
+
+    ${SplashAppTitleWrapper} {
+      color: #fff;
+      font-size: 16px;
+      text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.3);
     }
 
     ${StyledSplashWindow} {
@@ -93,9 +100,11 @@ const StyledSplashPage = styled.div`
     }
 
     ${SplashContent} {
-      border-top-left-radius: 20px;
-      border-top-right-radius: 20px;
+      border-top-left-radius: 12px;
+      border-top-right-radius: 12px;
       padding: 30px 0px 20px 0px;
+      border-top: 1px solid ${(props) => props.theme.colors.sidebar.border};
+      box-shadow: 0px -5px 10px rgba(0, 0, 0, 0.1);
     }
   }
 `;
@@ -149,10 +158,6 @@ const StyledSplashRestorePanel = styled.div<{ $variant?: "glass" }>`
 
   span {
     flex-grow: 1;
-  }
-
-  ${StyledButton} {
-    height: 50px;
   }
 
   ${(props) =>
@@ -290,6 +295,8 @@ const StyledSplashFooter = styled.div`
   text-align: center;
   color: #fff;
   padding: 20px;
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.3);
+
   a {
     color: #fff;
     font-weight: bold;
@@ -378,16 +385,20 @@ export const MusicWebSplash = ({
   return (
     <StyledSplashPage>
       <FlexGrow />
-      <div style={{ color: "white", margin: 20, textAlign: "center" }}>
+      {/* <div style={{ color: "white", margin: 20, textAlign: "center" }}>
         GBS Music: Chiptune Music Editor
-      </div>
+      </div> */}
       <StyledSplashWindowChrome>
         <SplashWindow focus>
           <SplashSidebar>
             <SplashLogo>
               <img src={appIconUrl} alt="GBS Music" draggable={false} />
             </SplashLogo>
-            {!isCompactLayout && <SplashAppTitle appName="GBS Music" />}
+            <SplashAppTitleWrapper>
+              <strong>GBS Music</strong>
+              <br />
+              Chiptune Music Editor
+            </SplashAppTitleWrapper>
             <StyledSplashTabs>
               <SplashTab
                 selected={section === "new"}
@@ -712,14 +723,11 @@ export const MusicWebSplash = ({
         <div style={{ maxWidth: 420, marginTop: 20 }}>
           <StyledSplashRestorePanel $variant="glass">
             <span>
-              A previous session has been recovered{" "}
+              A previous session has been recovered
+              <br />
               {backupSongName ? `"${backupSongName}"` : ""}
             </span>
-            <Button
-              style={{ flexGrow: 1 }}
-              size="large"
-              onClick={onRestoreBackup}
-            >
+            <Button style={{ flexGrow: 1 }} onClick={onRestoreBackup}>
               Restore File
             </Button>
           </StyledSplashRestorePanel>

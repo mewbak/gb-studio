@@ -109,7 +109,7 @@ export const SplashEasterEggButton = styled.button`
   }
 `;
 
-const SplashAppTitleWrapper = styled.div`
+export const SplashAppTitleWrapper = styled.div`
   color: ${(props) => props.theme.colors.secondaryText};
   font-size: 11px;
   text-align: center;
