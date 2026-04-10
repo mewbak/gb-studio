@@ -61,10 +61,7 @@ import {
 } from "store/features/trackerDocument/trackerDocumentHelpers";
 import renderPianoContextMenu from "components/music/contextMenus/renderPianoContextMenu";
 import { useContextMenu } from "ui/hooks/use-context-menu";
-import {
-  pasteAbsoluteCells,
-  PianoRollToolType,
-} from "store/features/tracker/trackerState";
+import { PianoRollToolType } from "store/features/tracker/trackerState";
 import { PatternCellAddress } from "shared/lib/uge/editor/types";
 import { useMusicNotePreview } from "components/music/hooks/useMusicNotePreview";
 import {
@@ -1167,7 +1164,7 @@ export const PianoRollCanvas = ({
   );
 
   const onPaste = useCallback(() => {
-    dispatch(pasteAbsoluteCells());
+    dispatch(trackerActions.pasteAbsoluteCells());
   }, [dispatch]);
 
   const onPasteInPlace = useCallback(() => {
