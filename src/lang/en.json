@@ -1380,6 +1380,7 @@
   "FIELD_SET_DUTY_CYCLE": "Set Duty Cycle",
   "FIELD_SET_SPEED": "Set Speed",
   "FIELD_CLOSE_PROJECT": "Close Project",
+  "FIELD_FULLSCREEN": "Fullscreen",
 
   "// 7": "Asset Viewer ---------------------------------------------",
   "ASSET_SEARCH": "Search...",

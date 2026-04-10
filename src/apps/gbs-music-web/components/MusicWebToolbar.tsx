@@ -7,6 +7,7 @@ import { MenuDivider, MenuItem, MenuItemIcon } from "ui/menu/Menu";
 import {
   BlankIcon,
   CheckIcon,
+  CloseIcon,
   FullscreenCloseIcon,
   FullscreenIcon,
 } from "ui/icons/Icons";
@@ -82,6 +83,14 @@ export const MusicWebToolbar = ({
   const [showAbout, setShowAbout] = useState(false);
 
   const view = useAppSelector((state) => state.tracker.view);
+
+  const { isFullscreen, toggleFullscreen } = useWebFullscreen();
+
+  const windowSize = useWindowSize();
+  const windowWidth = windowSize.width || 0;
+
+  const isCompactLayout =
+    windowWidth > 0 && windowWidth <= COMPACT_LAYOUT_BREAKPOINT;
 
   const setTrackerView = useCallback(() => {
     dispatch(trackerActions.setViewAndSave("tracker"));
@@ -168,8 +177,22 @@ export const MusicWebToolbar = ({
       >
         {l10n("FIELD_TRACKER")}
       </MenuItem>,
+      <MenuDivider key="fullscreen-div" />,
+      <MenuItem key={"fullscreen"} onClick={() => toggleFullscreen()}>
+        <MenuItemIcon>
+          {isFullscreen ? <CheckIcon /> : <BlankIcon />}
+        </MenuItemIcon>
+        {l10n("FIELD_FULLSCREEN")}
+      </MenuItem>,
     ],
-    [localeId, setRollView, setTrackerView, view],
+    [
+      isFullscreen,
+      localeId,
+      setRollView,
+      setTrackerView,
+      toggleFullscreen,
+      view,
+    ],
   );
 
   const themeMenu = useMemo(
@@ -202,14 +225,6 @@ export const MusicWebToolbar = ({
       )),
     [localeId, onLocaleChange],
   );
-
-  const { isFullscreen, toggleFullscreen } = useWebFullscreen();
-
-  const windowSize = useWindowSize();
-  const windowWidth = windowSize.width || 0;
-
-  const isCompactLayout =
-    windowWidth > 0 && windowWidth <= COMPACT_LAYOUT_BREAKPOINT;
 
   return (
     <>
@@ -246,8 +261,8 @@ export const MusicWebToolbar = ({
             <>
               <FlexGrow />
               <FixedSpacer width={58} />
-              <Button onClick={toggleFullscreen}>
-                {isFullscreen ? <FullscreenCloseIcon /> : <FullscreenIcon />}
+              <Button onClick={onCloseWorkspace}>
+                <CloseIcon />
               </Button>
             </>
           )}
