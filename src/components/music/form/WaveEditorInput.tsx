@@ -72,13 +72,17 @@ const InputWrapper = styled.div<InputWrapperProps>`
   }
 
   input {
-    opacity: 0;
     position: absolute;
     pointer-events: none;
+    caret-color: transparent;
+    color: transparent;
+    background: transparent;
+    border: 0;
     top: 0;
     bottom: 0;
     left: 0;
     right: 0;
+    border-radius: ${(props) => props.theme.borderRadius}px;
   }
 `;
 
