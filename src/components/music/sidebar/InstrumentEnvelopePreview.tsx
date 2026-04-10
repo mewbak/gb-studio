@@ -79,14 +79,13 @@ export const InstrumentEnvelopePreview = ({
       // fade down
       localsweep = sweep + 8;
       const envLength = ((localsweep / 64) * volume) / 2;
+      const progress = envLength > 0 ? Math.min(secLength / envLength, 1) : 1;
+      const currentVolume = volume * (1 - progress);
+      const currentY = height - PADDING - (currentVolume / 15) * drawHeight;
 
       ctx.lineTo(
         PADDING + Math.min(envLength, secLength) * drawWidth,
-        drawHeight +
-          PADDING -
-          (1 - Math.min(secLength / envLength, 1)) *
-            normalisedVolume *
-            drawHeight,
+        currentY,
       );
 
       ctx.lineTo(PADDING + secLength * drawWidth, height - PADDING);
@@ -94,22 +93,16 @@ export const InstrumentEnvelopePreview = ({
       // fade up
       localsweep = 8 - sweep;
       const envLength = ((localsweep / 64) * (15 - volume)) / 2;
+      const progress = envLength > 0 ? Math.min(secLength / envLength, 1) : 1;
+      const currentVolume = volume + (15 - volume) * progress;
+      const currentY = height - PADDING - (currentVolume / 15) * drawHeight;
 
       ctx.lineTo(
         PADDING + Math.min(envLength, secLength) * drawWidth,
-        (1 - Math.min(secLength / envLength, 1)) *
-          normalisedVolume *
-          drawHeight +
-          PADDING,
+        currentY,
       );
 
-      ctx.lineTo(
-        PADDING + secLength * drawWidth,
-        (1 - Math.min(secLength / envLength, 1)) *
-          normalisedVolume *
-          drawHeight +
-          PADDING,
-      );
+      ctx.lineTo(PADDING + secLength * drawWidth, currentY);
     } else {
       // no fade
       ctx.lineTo(
