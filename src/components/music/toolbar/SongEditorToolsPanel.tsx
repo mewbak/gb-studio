@@ -212,7 +212,7 @@ const SongEditorToolsPanel = ({ musicAsset }: SongEditorToolsPanelProps) => {
         e.preventDefault();
         toggleTool();
       }
-      if (!subpatternEditorFocus) {
+      if (!subpatternEditorFocus && !e.ctrlKey && !e.metaKey) {
         if (e.code === "Digit1") {
           setSelectedInstrumentId(0);
         } else if (e.code === "Digit2") {
