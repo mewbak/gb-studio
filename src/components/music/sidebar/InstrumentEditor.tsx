@@ -331,17 +331,27 @@ export const InstrumentEditor = ({
   }, [resolvedInstrument]);
 
   const onExportWave = useCallback(async () => {
-    if (!song || !resolvedInstrument || !isWaveInstrument(resolvedInstrument.instrument)) {
+    if (
+      !song ||
+      !resolvedInstrument ||
+      !isWaveInstrument(resolvedInstrument.instrument)
+    ) {
       return;
     }
     const waveIndex = resolvedInstrument.instrument.wave_index;
     const wave = song.waves[waveIndex];
     if (!wave) return;
-    await API.tracker.exportWave(wave, resolvedInstrument.instrument.name || "wave");
+    await API.tracker.exportWave(
+      wave,
+      resolvedInstrument.instrument.name || "wave",
+    );
   }, [song, resolvedInstrument]);
 
   const onImportWave = useCallback(async () => {
-    if (!resolvedInstrument || !isWaveInstrument(resolvedInstrument.instrument)) {
+    if (
+      !resolvedInstrument ||
+      !isWaveInstrument(resolvedInstrument.instrument)
+    ) {
       return;
     }
     const waveData = await API.tracker.importWave();
@@ -447,22 +457,22 @@ export const InstrumentEditor = ({
           {String(resolvedInstrument.instrument.index + 1).padStart(2, "0")}
           <FlexGrow />
           <DropdownButton variant="transparent" size="small">
-            <MenuItem onClick={onExportInstrument}>
-              {l10n("FIELD_EXPORT_INSTRUMENT")}
-            </MenuItem>
             <MenuItem onClick={onImportInstrument}>
               {l10n("FIELD_IMPORT_INSTRUMENT")}
             </MenuItem>
-            {isWaveInstrument(resolvedInstrument.instrument) && (
-              <>
-                <MenuDivider />
-                <MenuItem onClick={onExportWave}>
-                  {l10n("FIELD_EXPORT_WAVE")}
-                </MenuItem>
-                <MenuItem onClick={onImportWave}>
-                  {l10n("FIELD_IMPORT_WAVE")}
-                </MenuItem>
-              </>
+            <MenuItem onClick={onExportInstrument}>
+              {l10n("FIELD_EXPORT_INSTRUMENT")}
+            </MenuItem>
+            {resolvedInstrument.instrumentType === "wave" && <MenuDivider />}
+            {resolvedInstrument.instrumentType === "wave" && (
+              <MenuItem onClick={onImportWave}>
+                {l10n("FIELD_IMPORT_WAVE")}
+              </MenuItem>
+            )}
+            {resolvedInstrument.instrumentType === "wave" && (
+              <MenuItem onClick={onExportWave}>
+                {l10n("FIELD_EXPORT_WAVE")}
+              </MenuItem>
             )}
           </DropdownButton>
         </FormSectionTitle>
