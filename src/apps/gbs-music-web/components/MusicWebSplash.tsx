@@ -95,7 +95,7 @@ const StyledSplashPage = styled.div`
     ${SplashContent} {
       border-top-left-radius: 20px;
       border-top-right-radius: 20px;
-      padding: 30px 0px 10px 0px;
+      padding: 30px 0px 20px 0px;
     }
   }
 `;
@@ -118,6 +118,9 @@ const StyledSplashWindowChrome = styled.div`
     box-shadow: none;
     border-radius: 0;
     overflow: visible;
+
+    max-width: 500px;
+    margin: 0px auto;
   }
 `;
 
@@ -130,7 +133,7 @@ const StyledSplashTabs = styled.div`
   }
 `;
 
-const StyledSplashRestorePanel = styled.div`
+const StyledSplashRestorePanel = styled.div<{ $variant?: "glass" }>`
   display: flex;
   border: 1px solid ${(props) => props.theme.colors.panel.border};
   background: ${(props) => props.theme.colors.panel.background};
@@ -142,7 +145,6 @@ const StyledSplashRestorePanel = styled.div`
   gap: 10px;
   box-sizing: border-box;
   width: 100%;
-  margin-bottom: 20px;
   flex-grow: 1;
 
   span {
@@ -152,6 +154,28 @@ const StyledSplashRestorePanel = styled.div`
   ${StyledButton} {
     height: 50px;
   }
+
+  ${(props) =>
+    props.$variant === "glass" &&
+    css`
+      color: #fff;
+      background: rgba(255, 255, 255, 0.2);
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      padding-left: 20px;
+      gap: 20px;
+
+      ${StyledButton} {
+        color: #fff;
+        background: rgba(255, 255, 255, 0.2);
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+      }
+    `}
 `;
 
 const StyledSplashSectionHeader = styled.div<{ $sticky?: boolean }>`
@@ -501,7 +525,7 @@ export const MusicWebSplash = ({
                       Open File
                     </Button>
                   ) : null}
-                  {onOpenDirectoryWorkspace ? (
+                  {onOpenDirectoryWorkspace && !isCompactLayout ? (
                     <Button
                       size="large"
                       onClick={(e) => {
@@ -514,6 +538,7 @@ export const MusicWebSplash = ({
                   ) : null}
                 </StyledFileActions>
               </SplashForm>
+
               {isCompactLayout && onRestoreBackup ? (
                 <div
                   style={{
@@ -537,9 +562,9 @@ export const MusicWebSplash = ({
                     </Button>
                   </StyledSplashRestorePanel>
                 </div>
-              ) : (
-                <FlexGrow />
-              )}
+              ) : null}
+
+              {isCompactLayout && <FixedSpacer height={20} />}
 
               {isCompactLayout && (
                 <StyledMobileListMenu>
@@ -667,7 +692,7 @@ export const MusicWebSplash = ({
 
       {!isCompactLayout && onRestoreBackup ? (
         <div style={{ maxWidth: 420, marginTop: 20 }}>
-          <StyledSplashRestorePanel>
+          <StyledSplashRestorePanel $variant="glass">
             <span>
               A previous session has been recovered{" "}
               {backupSongName ? `"${backupSongName}"` : ""}
