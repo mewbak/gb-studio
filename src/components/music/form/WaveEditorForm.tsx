@@ -159,22 +159,12 @@ export const WaveEditorForm = ({ waveId, onChange }: WaveEditorFormProps) => {
     let mousedown = false;
     let newWaves = new Uint8Array(song.waves[waveId]);
 
-    const handleMouseOut = () => {
-      if (!mousedown) {
-        redraw(song.waves[waveId]);
-      }
-    };
-
-    const handleMouseMove = (e: MouseEvent) => {
-      if (e.target !== canvasRef.current) {
-        return;
-      }
-
+    const updateWaveAtPosition = (clientX: number, clientY: number) => {
       const { rect, pointLength, pointHeight } = getLayout();
 
       const pos = {
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top,
+        x: clientX - rect.left,
+        y: clientY - rect.top,
       };
 
       const gridP = {
@@ -196,13 +186,64 @@ export const WaveEditorForm = ({ waveId, onChange }: WaveEditorFormProps) => {
       }
     };
 
+    const handleMouseOut = () => {
+      if (!mousedown) {
+        redraw(song.waves[waveId]);
+      }
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!mousedown) {
+        return;
+      }
+
+      updateWaveAtPosition(e.clientX, e.clientY);
+    };
+
     const handleMouseDown = (e: MouseEvent) => {
       if (e.target === canvasRef.current) {
         mousedown = true;
+        updateWaveAtPosition(e.clientX, e.clientY);
       }
     };
 
     const handleMouseUp = () => {
+      if (mousedown) {
+        mousedown = false;
+        onEditWave(newWaves);
+      }
+    };
+
+    const handleTouchStart = (e: TouchEvent) => {
+      if (e.target !== canvasRef.current) {
+        return;
+      }
+
+      const touch = e.touches[0];
+      if (!touch) {
+        return;
+      }
+
+      mousedown = true;
+      e.preventDefault();
+      updateWaveAtPosition(touch.clientX, touch.clientY);
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (!mousedown) {
+        return;
+      }
+
+      const touch = e.touches[0];
+      if (!touch) {
+        return;
+      }
+
+      e.preventDefault();
+      updateWaveAtPosition(touch.clientX, touch.clientY);
+    };
+
+    const handleTouchEnd = () => {
       if (mousedown) {
         mousedown = false;
         onEditWave(newWaves);
@@ -214,16 +255,24 @@ export const WaveEditorForm = ({ waveId, onChange }: WaveEditorFormProps) => {
     };
 
     canvas.addEventListener("mouseout", handleMouseOut);
+    canvas.addEventListener("touchstart", handleTouchStart, { passive: false });
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mousedown", handleMouseDown);
     window.addEventListener("mouseup", handleMouseUp);
+    window.addEventListener("touchmove", handleTouchMove, { passive: false });
+    window.addEventListener("touchend", handleTouchEnd);
+    window.addEventListener("touchcancel", handleTouchEnd);
     window.addEventListener("resize", handleResize);
 
     return () => {
       canvas.removeEventListener("mouseout", handleMouseOut);
+      canvas.removeEventListener("touchstart", handleTouchStart);
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mousedown", handleMouseDown);
       window.removeEventListener("mouseup", handleMouseUp);
+      window.removeEventListener("touchmove", handleTouchMove);
+      window.removeEventListener("touchend", handleTouchEnd);
+      window.removeEventListener("touchcancel", handleTouchEnd);
       window.removeEventListener("resize", handleResize);
     };
   }, [song, waveId, onEditWave, themeContext]);
@@ -250,6 +299,7 @@ export const WaveEditorForm = ({ waveId, onChange }: WaveEditorFormProps) => {
             borderRadius: 4,
             cursor: "pointer",
             display: "block",
+            touchAction: "none",
           }}
         />
       </FormRow>
