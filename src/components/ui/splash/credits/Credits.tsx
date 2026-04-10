@@ -107,6 +107,7 @@ interface CreditsPersonProps {
   gold?: boolean;
   href?: string;
   target?: string;
+  rel?: string;
   onClick?: () => void;
 }
 
@@ -115,6 +116,7 @@ export const CreditsPerson = ({
   gold,
   href,
   target,
+  rel,
   onClick,
 }: CreditsPersonProps) => (
   <StyledCreditsPerson
@@ -122,6 +124,7 @@ export const CreditsPerson = ({
     onClick={onClick}
     href={href}
     target={target}
+    rel={rel}
   >
     <span>{children}</span>
   </StyledCreditsPerson>

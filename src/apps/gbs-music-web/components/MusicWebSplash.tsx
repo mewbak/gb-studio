@@ -184,7 +184,7 @@ const StyledSplashSectionHeader = styled.div<{ $sticky?: boolean }>`
   border-top: 1px solid ${(props) => props.theme.colors.sidebar.header.border};
   border-bottom: 1px solid
     ${(props) => props.theme.colors.sidebar.header.border};
-  padding: 20px 30px;
+  padding: 20px 20px;
   font-size: 16px;
   font-weight: bold;
 
@@ -213,7 +213,7 @@ const SplashProjectWrapper = styled.button`
   border: 0;
   border-bottom: 1px solid ${(props) => props.theme.colors.input.border};
   border-radius: 0px;
-  padding: 15px 30px;
+  padding: 15px 20px;
   width: 100%;
 
   img {
@@ -284,6 +284,16 @@ export const StyledFileForm = styled.div`
   flex-direction: column;
   width: 100%;
   height: 100%;
+`;
+
+const StyledSplashFooter = styled.div`
+  text-align: center;
+  color: #fff;
+  padding: 20px;
+  a {
+    color: #fff;
+    font-weight: bold;
+  }
 `;
 
 export const SplashExampleMusic = ({
@@ -367,6 +377,7 @@ export const MusicWebSplash = ({
 
   return (
     <StyledSplashPage>
+      <FlexGrow />
       <div style={{ color: "white", margin: 20, textAlign: "center" }}>
         GBS Music: Chiptune Music Editor
       </div>
@@ -394,6 +405,7 @@ export const MusicWebSplash = ({
 
               <SplashTabLink
                 target="_blank"
+                rel="noreferrer"
                 href="https://www.gbstudio.dev/docs/assets/music/music-huge"
               >
                 {l10n("SPLASH_DOCUMENTATION")}
@@ -405,6 +417,7 @@ export const MusicWebSplash = ({
               <FlexGrow />
               <SplashTabLink
                 target="_blank"
+                rel="noreferrer"
                 href="https://github.com/chrismaltby/gb-studio"
               >
                 GitHub
@@ -570,6 +583,7 @@ export const MusicWebSplash = ({
                 <StyledMobileListMenu>
                   <StyledMobileListMenuLink
                     target="_blank"
+                    rel="noreferrer"
                     href="https://www.gbstudio.dev/docs/assets/music/music-huge"
                   >
                     <span>{l10n("SPLASH_DOCUMENTATION")}</span>
@@ -591,6 +605,7 @@ export const MusicWebSplash = ({
 
                   <StyledMobileListMenuLink
                     target="_blank"
+                    rel="noreferrer"
                     href="https://github.com/chrismaltby/gb-studio"
                   >
                     <span>GitHub</span>
@@ -637,6 +652,7 @@ export const MusicWebSplash = ({
               <CreditsPerson
                 href="https://nickfa.ro/wiki/Main_Page"
                 target="_blank"
+                rel="noreferrer"
               >
                 Nick "SuperDisk" Faro
               </CreditsPerson>
@@ -648,6 +664,7 @@ export const MusicWebSplash = ({
                   key={contributor.login}
                   href={contributor.html_url}
                   target="_blank"
+                  rel="noreferrer"
                 >
                   {contributor.login}
                 </CreditsPerson>
@@ -658,6 +675,7 @@ export const MusicWebSplash = ({
                     key={contributor.login}
                     href={contributor.html_url}
                     target="_blank"
+                    rel="noreferrer"
                   >
                     {contributor.login}
                   </CreditsPerson>
@@ -707,6 +725,15 @@ export const MusicWebSplash = ({
           </StyledSplashRestorePanel>
         </div>
       ) : null}
+
+      <FlexGrow />
+      <StyledSplashFooter>
+        Also, check out{" "}
+        <a href="https://gbstudio.dev" target="_blank" rel="noreferrer">
+          GB Studio
+        </a>
+        .
+      </StyledSplashFooter>
     </StyledSplashPage>
   );
 };
