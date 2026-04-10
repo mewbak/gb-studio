@@ -113,7 +113,11 @@ export const NoiseMacroEditorForm = ({
         const barY = Math.round(drawTop + drawHeight / 2);
         const barH = Math.round(-y * ratio);
 
+        ctx.shadowColor = color ?? defaultColor;
+        ctx.shadowBlur = 15;
+
         ctx.fillRect(barX, barY, barW, barH);
+        ctx.shadowBlur = 0;
       });
     };
 
