@@ -14,14 +14,9 @@ import API from "renderer/lib/api";
 import projectActions from "store/features/project/projectActions";
 import trackerActions from "store/features/tracker/trackerActions";
 
-const ignoreActions = ["tracker/setHover"];
-
 const trackerMiddleware: ThunkMiddleware<RootState> =
   (store) => (next) => async (action) => {
     const state = store.getState();
-    if (!ignoreActions.includes((action as any).type)) {
-      console.warn("ACTION", (action as any).type, action, state);
-    }
 
     if (
       (navigationActions.setSection.match(action) &&
