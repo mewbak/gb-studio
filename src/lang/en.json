@@ -1318,6 +1318,8 @@
   "FIELD_SOLO_CHANNEL": "Solo Channel",
   "FIELD_OCTAVE": "Octave",
   "FIELD_EXPORT_SONG": "Export Song",
+  "FIELD_EXPORT_INSTRUMENT": "Export Instrument (.ugi)...",
+  "FIELD_IMPORT_INSTRUMENT": "Import Instrument (.ugi)...",
   "FIELD_EXPORTING": "Exporting...",
   "FIELD_FILE_FORMAT": "File Format",
   "FIELD_LOOPS": "Loops",
@@ -2034,6 +2036,7 @@
   "ERROR_UNABLE_TO_INSTALL_PLUGIN": "Unable to install plugin",
   "ERROR_FILE_DOESNT_BELONG_TO_CURRENT_PLUGIN": "Attempt to access \"{file}\". This file does not belong to the plugin which is trying to access it. Plugins can only access files in the `plugins/<PLUGIN_NAME>/events/` folder.",
   "ERROR_EXPORT_FILE_FAILED": "Export {filetype} failed",
+  "ERROR_INSTRUMENT_TYPE_MISMATCH": "Cannot import: instrument is a {got} type but the selected slot expects a {expected} type.",
   "ERROR_TIMED_OUT": "Operation timed out",
   "ERROR_AUDIO_ENCODE_FAILED": "Unable to encode audio",
 

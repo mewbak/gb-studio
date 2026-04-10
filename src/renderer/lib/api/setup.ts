@@ -16,6 +16,7 @@ import type {
 import type { SettingsState } from "store/features/settings/settingsState";
 import type { BackgroundInfo } from "lib/helpers/validation";
 import type { Song } from "shared/lib/uge/types";
+import type { UGIInstrument } from "shared/lib/uge/ugiHelper";
 import type { PrecompiledSpriteSheetData } from "lib/compiler/compileSprites";
 import type { NavigationSection } from "store/features/navigation/navigationState";
 import type { ScriptEventDefs } from "shared/lib/scripts/scriptDefHelpers";
@@ -350,6 +351,10 @@ const APISetup = {
       ipcRenderer.invoke("tracker:save", song),
     convertModToUge: (asset: MusicAsset): Promise<MusicResourceAsset> =>
       ipcRenderer.invoke("tracker:convert-mod", asset),
+    exportInstrument: (instrument: UGIInstrument): Promise<void> =>
+      ipcRenderer.invoke("tracker:export-instrument", instrument),
+    importInstrument: (): Promise<UGIInstrument | null> =>
+      ipcRenderer.invoke("tracker:import-instrument"),
   },
   sprite: {
     compileSprite: (

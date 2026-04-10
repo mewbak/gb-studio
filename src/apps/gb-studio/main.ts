@@ -19,6 +19,7 @@ import {
   stat,
   statSync,
   move,
+  writeFile,
 } from "fs-extra";
 import menu, {
   refreshScreenGridMenuItems,
@@ -59,6 +60,11 @@ import { writeFileWithBackupAsync } from "lib/helpers/fs/writeFileWithBackup";
 import { guardAssetWithinProject } from "lib/helpers/assets";
 import type { Song } from "shared/lib/uge/types";
 import { loadUGESong, saveUGESong } from "shared/lib/uge/ugeHelper";
+import {
+  loadUGIInstrument,
+  saveUGIInstrument,
+} from "shared/lib/uge/ugiHelper";
+import type { UGIInstrument } from "shared/lib/uge/ugiHelper";
 import confirmUnsavedChangesTrackerDialog from "lib/electron/dialog/confirmUnsavedChangesTrackerDialog";
 import type {
   MusicDataPacket,
@@ -1870,6 +1876,32 @@ ipcMain.handle(
       console.error(`Unable to load asset ${newFilename}`);
     }
     return resourceData;
+  },
+);
+
+ipcMain.handle(
+  "tracker:export-instrument",
+  async (_event, instrument: UGIInstrument) => {
+    const savePath = dialog.showSaveDialogSync({
+      defaultPath: `${instrument.name || "instrument"}.ugi`,
+      filters: [{ name: "hUGETracker Instruments", extensions: ["ugi"] }],
+    });
+    if (!savePath) return;
+    const data = saveUGIInstrument(instrument);
+    await writeFile(savePath, data);
+  },
+);
+
+ipcMain.handle(
+  "tracker:import-instrument",
+  async (): Promise<UGIInstrument | null> => {
+    const files = dialog.showOpenDialogSync({
+      properties: ["openFile"],
+      filters: [{ name: "hUGETracker Instruments", extensions: ["ugi"] }],
+    });
+    if (!files || !files[0]) return null;
+    const data = await readFile(files[0]);
+    return loadUGIInstrument(data);
   },
 );
 

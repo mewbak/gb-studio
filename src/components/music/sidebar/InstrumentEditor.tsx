@@ -37,6 +37,13 @@ import {
 import { createSubPattern } from "shared/lib/uge/song";
 import { InstrumentTester } from "components/music/form/InstrumentTester";
 import { FixedSpacer } from "ui/spacing/Spacing";
+import API from "renderer/lib/api";
+import {
+  isDutyInstrument,
+  isNoiseInstrument,
+  isWaveInstrument,
+  ugiInstrumentType,
+} from "shared/lib/uge/ugiHelper";
 
 type Instrument = DutyInstrument | NoiseInstrument | WaveInstrument;
 type InstrumentType = "duty" | "wave" | "noise";
@@ -316,6 +323,82 @@ export const InstrumentEditor = ({
     );
   }, [dispatch, editInstrument, resolvedInstrument]);
 
+  const onExportInstrument = useCallback(async () => {
+    if (!resolvedInstrument) {
+      return;
+    }
+    await API.tracker.exportInstrument(resolvedInstrument.instrument);
+  }, [resolvedInstrument]);
+
+  const onImportInstrument = useCallback(async () => {
+    if (!resolvedInstrument) {
+      return;
+    }
+    const imported = await API.tracker.importInstrument();
+    if (!imported) {
+      return;
+    }
+    // Validate that the imported instrument matches the current channel type
+    if (ugiInstrumentType(imported) !== resolvedInstrument.instrumentType) {
+      // eslint-disable-next-line no-alert
+      alert(
+        l10n("ERROR_INSTRUMENT_TYPE_MISMATCH", {
+          expected: resolvedInstrument.instrumentType,
+          got: ugiInstrumentType(imported),
+        }),
+      );
+      return;
+    }
+    // Apply all fields from the imported instrument (except index)
+    if (isDutyInstrument(imported) && isDutyInstrument(resolvedInstrument.instrument)) {
+      dispatch(
+        editInstrument({
+          instrumentId: resolvedInstrument.instrument.index,
+          changes: {
+            name: imported.name,
+            length: imported.length,
+            duty_cycle: imported.duty_cycle,
+            initial_volume: imported.initial_volume,
+            volume_sweep_change: imported.volume_sweep_change,
+            frequency_sweep_time: imported.frequency_sweep_time,
+            frequency_sweep_shift: imported.frequency_sweep_shift,
+            subpattern_enabled: imported.subpattern_enabled,
+            subpattern: imported.subpattern,
+          },
+        }),
+      );
+    } else if (isWaveInstrument(imported) && isWaveInstrument(resolvedInstrument.instrument)) {
+      dispatch(
+        editInstrument({
+          instrumentId: resolvedInstrument.instrument.index,
+          changes: {
+            name: imported.name,
+            length: imported.length,
+            volume: imported.volume,
+            wave_index: imported.wave_index,
+            subpattern_enabled: imported.subpattern_enabled,
+            subpattern: imported.subpattern,
+          },
+        }),
+      );
+    } else if (isNoiseInstrument(imported) && isNoiseInstrument(resolvedInstrument.instrument)) {
+      dispatch(
+        editInstrument({
+          instrumentId: resolvedInstrument.instrument.index,
+          changes: {
+            name: imported.name,
+            length: imported.length,
+            initial_volume: imported.initial_volume,
+            volume_sweep_change: imported.volume_sweep_change,
+            bit_count: imported.bit_count,
+            subpattern_enabled: imported.subpattern_enabled,
+            subpattern: imported.subpattern,
+          },
+        }),
+      );
+    }
+  }, [dispatch, editInstrument, resolvedInstrument]);
+
   if (!song || !resolvedInstrument || !resolvedInstrument.instrument) {
     return null;
   }
@@ -329,6 +412,14 @@ export const InstrumentEditor = ({
           {" / "}
           {l10n("SIDEBAR_INSTRUMENT")}{" "}
           {String(resolvedInstrument.instrument.index + 1).padStart(2, "0")}
+          <DropdownButton variant="transparent" size="small">
+            <MenuItem onClick={onExportInstrument}>
+              {l10n("FIELD_EXPORT_INSTRUMENT")}
+            </MenuItem>
+            <MenuItem onClick={onImportInstrument}>
+              {l10n("FIELD_IMPORT_INSTRUMENT")}
+            </MenuItem>
+          </DropdownButton>
         </FormSectionTitle>
 
         <FormRow>
