@@ -3,9 +3,9 @@ import { UnknownAction } from "redux";
 import l10n from "shared/lib/lang/l10n";
 import { PatternCellAddress } from "shared/lib/uge/editor/types";
 import { AppThunk } from "store/storeTypes";
-import { pasteAbsoluteCells } from "store/features/tracker/trackerState";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
 import { MenuAccelerator, MenuDivider, MenuItem } from "ui/menu/Menu";
+import trackerActions from "store/features/tracker/trackerActions";
 
 interface PianoContextMenuProps {
   dispatch: Dispatch<UnknownAction | AppThunk>;
@@ -25,7 +25,7 @@ const renderPianoContextMenu = ({
       <MenuItem
         key="paste"
         onClick={() => {
-          dispatch(pasteAbsoluteCells());
+          dispatch(trackerActions.pasteAbsoluteCells());
         }}
       >
         {l10n("MENU_PASTE")}
@@ -138,7 +138,7 @@ const renderPianoContextMenu = ({
     <MenuItem
       key="paste"
       onClick={() => {
-        dispatch(pasteAbsoluteCells());
+        dispatch(trackerActions.pasteAbsoluteCells());
       }}
     >
       {l10n("MENU_PASTE")}

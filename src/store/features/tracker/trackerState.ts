@@ -44,22 +44,21 @@ interface CellAddress {
   channelId: number;
 }
 
-export const pasteAbsoluteCells =
-  (): AppThunk<Promise<void>> => async (dispatch) => {
-    const clipboardText = await API.clipboard.readText();
-    const pastedPattern = parseClipboardToPattern(clipboardText);
+const pasteAbsoluteCells = (): AppThunk<Promise<void>> => async (dispatch) => {
+  const clipboardText = await API.clipboard.readText();
+  const pastedPattern = parseClipboardToPattern(clipboardText);
 
-    if (!pastedPattern || pastedPattern.length === 0) {
-      return;
-    }
+  if (!pastedPattern || pastedPattern.length === 0) {
+    return;
+  }
 
-    dispatch(
-      actions.setPastedPattern({
-        pattern: pastedPattern,
-      }),
-    );
-    dispatch(actions.setSelectedPatternCells([]));
-  };
+  dispatch(
+    actions.setPastedPattern({
+      pattern: pastedPattern,
+    }),
+  );
+  dispatch(actions.setSelectedPatternCells([]));
+};
 
 export interface TrackerState {
   status: "loading" | "error" | "loaded" | "init";
@@ -367,6 +366,6 @@ const trackerSlice = createSlice({
       ),
 });
 
-export const { actions } = trackerSlice;
+export const actions = { ...trackerSlice.actions, pasteAbsoluteCells };
 
 export default trackerSlice.reducer;
