@@ -290,6 +290,50 @@ export const pickUGIFile = async (): Promise<Uint8Array | null> => {
   }
 };
 
+export const pickUGWFile = async (): Promise<Uint8Array | null> => {
+  const ugwAccept = {
+    description: "hUGETracker Wave",
+    accept: { "application/octet-stream": [".ugw"] },
+  };
+  try {
+    if (supportsFileOpenPicker()) {
+      const [handle] = await getOpenFilePicker()({
+        multiple: false,
+        types: [ugwAccept],
+      });
+      const file = await handle.getFile();
+      return new Uint8Array(await file.arrayBuffer());
+    }
+
+    const data = await new Promise<Uint8Array | null>((resolve, reject) => {
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = ".ugw";
+      input.onchange = async () => {
+        if (input.parentNode) input.parentNode.removeChild(input);
+        const file = input.files?.[0];
+        if (!file) {
+          resolve(null);
+          return;
+        }
+        resolve(new Uint8Array(await file.arrayBuffer()));
+      };
+      input.oncancel = () => {
+        if (input.parentNode) input.parentNode.removeChild(input);
+        reject(new DOMException("The operation was aborted.", "AbortError"));
+      };
+      document.body.appendChild(input);
+      input.click();
+    });
+    return data;
+  } catch (error) {
+    if (isAbortError(error)) {
+      return null;
+    }
+    throw error;
+  }
+};
+
 export const webMusicEnvironment: MusicEnvironment<MusicBinaryDocument> = {
   confirmDiscardChanges: async () => "discard",
   setWindowTitle: (title) => {

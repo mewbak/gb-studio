@@ -5,7 +5,7 @@ import type {
 } from "shared/lib/music/types";
 import type { Song } from "shared/lib/uge/types";
 import type { MusicAsset } from "shared/lib/resources/types";
-import { downloadBytes, pickUGIFile, webMusicEnvironment } from "./adapters";
+import { downloadBytes, pickUGIFile, pickUGWFile, webMusicEnvironment } from "./adapters";
 import {
   deleteStoredSetting,
   defaultLocaleData,
@@ -320,6 +320,17 @@ export const installWebRendererApi = (store: MusicEditorStore) => {
         const bytes = await pickUGIFile();
         if (!bytes) return null;
         return loadUGIInstrument(Buffer.from(bytes));
+      },
+      exportWave: async (wave: Uint8Array, suggestedName: string) => {
+        const { saveUGWave } = await import("shared/lib/uge/ugwHelper");
+        const data = saveUGWave(wave);
+        downloadBytes(`${suggestedName || "wave"}.ugw`, new Uint8Array(data));
+      },
+      importWave: async (): Promise<Uint8Array | null> => {
+        const { loadUGWave } = await import("shared/lib/uge/ugwHelper");
+        const bytes = await pickUGWFile();
+        if (!bytes) return null;
+        return loadUGWave(Buffer.from(bytes));
       },
     },
     music: {

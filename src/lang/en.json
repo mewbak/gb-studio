@@ -1320,6 +1320,8 @@
   "FIELD_EXPORT_SONG": "Export Song",
   "FIELD_EXPORT_INSTRUMENT": "Export Instrument (.ugi)...",
   "FIELD_IMPORT_INSTRUMENT": "Import Instrument (.ugi)...",
+  "FIELD_EXPORT_WAVE": "Export Wave (.ugw)...",
+  "FIELD_IMPORT_WAVE": "Import Wave (.ugw)...",
   "FIELD_EXPORTING": "Exporting...",
   "FIELD_FILE_FORMAT": "File Format",
   "FIELD_LOOPS": "Loops",

@@ -65,6 +65,7 @@ import {
   saveUGIInstrument,
 } from "shared/lib/uge/ugiHelper";
 import type { UGIInstrument } from "shared/lib/uge/ugiHelper";
+import { loadUGWave, saveUGWave } from "shared/lib/uge/ugwHelper";
 import confirmUnsavedChangesTrackerDialog from "lib/electron/dialog/confirmUnsavedChangesTrackerDialog";
 import type {
   MusicDataPacket,
@@ -1902,6 +1903,32 @@ ipcMain.handle(
     if (!files || !files[0]) return null;
     const data = await readFile(files[0]);
     return loadUGIInstrument(data);
+  },
+);
+
+ipcMain.handle(
+  "tracker:export-wave",
+  async (_event, wave: number[], suggestedName: string) => {
+    const savePath = dialog.showSaveDialogSync({
+      defaultPath: `${suggestedName || "wave"}.ugw`,
+      filters: [{ name: "hUGETracker Waves", extensions: ["ugw"] }],
+    });
+    if (!savePath) return;
+    const data = saveUGWave(new Uint8Array(wave));
+    await writeFile(savePath, data);
+  },
+);
+
+ipcMain.handle(
+  "tracker:import-wave",
+  async (): Promise<number[] | null> => {
+    const files = dialog.showOpenDialogSync({
+      properties: ["openFile"],
+      filters: [{ name: "hUGETracker Waves", extensions: ["ugw"] }],
+    });
+    if (!files || !files[0]) return null;
+    const data = await readFile(files[0]);
+    return Array.from(loadUGWave(data));
   },
 );
 
