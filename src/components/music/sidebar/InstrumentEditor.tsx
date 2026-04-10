@@ -36,7 +36,7 @@ import {
 } from "components/music/form/subpattern/helpers";
 import { createSubPattern } from "shared/lib/uge/song";
 import { InstrumentTester } from "components/music/form/InstrumentTester";
-import { FixedSpacer } from "ui/spacing/Spacing";
+import { FixedSpacer, FlexGrow } from "ui/spacing/Spacing";
 import API from "renderer/lib/api";
 import {
   isDutyInstrument,
@@ -350,7 +350,10 @@ export const InstrumentEditor = ({
       return;
     }
     // Apply all fields from the imported instrument (except index)
-    if (isDutyInstrument(imported) && isDutyInstrument(resolvedInstrument.instrument)) {
+    if (
+      isDutyInstrument(imported) &&
+      isDutyInstrument(resolvedInstrument.instrument)
+    ) {
       dispatch(
         editInstrument({
           instrumentId: resolvedInstrument.instrument.index,
@@ -367,7 +370,10 @@ export const InstrumentEditor = ({
           },
         }),
       );
-    } else if (isWaveInstrument(imported) && isWaveInstrument(resolvedInstrument.instrument)) {
+    } else if (
+      isWaveInstrument(imported) &&
+      isWaveInstrument(resolvedInstrument.instrument)
+    ) {
       dispatch(
         editInstrument({
           instrumentId: resolvedInstrument.instrument.index,
@@ -381,7 +387,10 @@ export const InstrumentEditor = ({
           },
         }),
       );
-    } else if (isNoiseInstrument(imported) && isNoiseInstrument(resolvedInstrument.instrument)) {
+    } else if (
+      isNoiseInstrument(imported) &&
+      isNoiseInstrument(resolvedInstrument.instrument)
+    ) {
       dispatch(
         editInstrument({
           instrumentId: resolvedInstrument.instrument.index,
@@ -412,6 +421,7 @@ export const InstrumentEditor = ({
           {" / "}
           {l10n("SIDEBAR_INSTRUMENT")}{" "}
           {String(resolvedInstrument.instrument.index + 1).padStart(2, "0")}
+          <FlexGrow />
           <DropdownButton variant="transparent" size="small">
             <MenuItem onClick={onExportInstrument}>
               {l10n("FIELD_EXPORT_INSTRUMENT")}
