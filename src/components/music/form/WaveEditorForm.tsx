@@ -55,97 +55,113 @@ export const WaveEditorForm = ({ waveId, onChange }: WaveEditorFormProps) => {
   );
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
+
   useEffect(() => {
     if (!song) {
       return;
     }
+
     const canvas = canvasRef.current;
     if (!canvas) {
       return;
     }
 
-    const rect = canvas.getBoundingClientRect();
-
-    canvas.width = rect.width;
-
-    const drawWidth = canvas.width - PADDING * 2;
-    const drawHeight = canvas.height - PADDING * 2;
-    const pointLength = drawWidth / (song.waves[waveId].length - 1);
-    const pointHeight = drawHeight / 15;
-
     const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      return;
+    }
 
     const defaultColor = themeContext?.colors.highlight ?? "black";
 
-    // eslint-disable-next-line no-self-assign
-    canvas.width = canvas.width;
-    // eslint-disable-next-line no-self-assign
-    canvas.height = canvas.height;
+    const getLayout = () => {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
 
-    const drawGrid = (waves: Uint8Array) => {
-      if (!ctx) return;
+      const width = rect.width;
+      const height = rect.height;
 
+      const pixelWidth = Math.round(width * dpr);
+      const pixelHeight = Math.round(height * dpr);
+
+      if (canvas.width !== pixelWidth || canvas.height !== pixelHeight) {
+        canvas.width = pixelWidth;
+        canvas.height = pixelHeight;
+      }
+
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      const drawWidth = width - PADDING * 2;
+      const drawHeight = height - PADDING * 2;
+      const waveLength = song.waves[waveId].length;
+      const pointLength = drawWidth / (waveLength - 1);
+      const pointHeight = drawHeight / 15;
+
+      return {
+        rect,
+        width,
+        height,
+        drawWidth,
+        drawHeight,
+        pointLength,
+        pointHeight,
+      };
+    };
+
+    const clear = () => {
+      const { width, height } = getLayout();
+      ctx.clearRect(0, 0, width, height);
       ctx.fillStyle = "#000";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      ctx.beginPath();
-      ctx.strokeStyle = "#333";
-      ctx.lineWidth = 1;
-
-      for (let i = -1; i < waves.length + 1; i++) {
-        const x = PADDING + i * pointLength + 0.5;
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, canvas.height);
-      }
-
-      for (let i = -1; i <= 16; i++) {
-        const y = PADDING + i * pointHeight + 0.5;
-        ctx.moveTo(0, y);
-        ctx.lineTo(canvas.width, y);
-      }
-
-      ctx.stroke();
+      ctx.fillRect(0, 0, width, height);
     };
 
     const drawWave = (waves: Uint8Array, color?: string) => {
-      if (ctx) {
-        ctx.beginPath();
+      const { drawHeight, pointLength, pointHeight } = getLayout();
 
-        ctx.strokeStyle = color ? color : defaultColor;
-        ctx.lineWidth = 2;
-        waves.forEach((y: number, x: number) => {
-          ctx.lineTo(
-            PADDING + x * pointLength,
-            PADDING + drawHeight - y * pointHeight,
-          );
-        });
+      ctx.beginPath();
+      ctx.strokeStyle = color ?? defaultColor;
+      ctx.lineWidth = 2;
 
-        ctx.shadowColor = defaultColor;
-        ctx.lineWidth = 1;
-        ctx.strokeStyle = "black";
-        for (let i = 0; i < 10; i++) {
-          ctx.stroke();
-          ctx.shadowBlur = i * 6;
+      waves.forEach((y, x) => {
+        const px = PADDING + x * pointLength;
+        const py = PADDING + drawHeight - y * pointHeight;
+
+        if (x === 0) {
+          ctx.moveTo(px, py);
+        } else {
+          ctx.lineTo(px, py);
         }
+      });
 
-        ctx.lineWidth = 2;
-        ctx.lineCap = "round";
-        ctx.shadowBlur = 0;
-        ctx.strokeStyle = defaultColor;
+      ctx.shadowColor = color ?? defaultColor;
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = "black";
+
+      for (let i = 0; i < 8; i++) {
         ctx.stroke();
+        ctx.shadowBlur = i * 6;
       }
+
+      ctx.lineWidth = 2;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = color ?? defaultColor;
+      ctx.stroke();
     };
 
-    drawGrid(song.waves[waveId]);
-    drawWave(song.waves[waveId]);
+    const redraw = (waves: Uint8Array, color?: string) => {
+      clear();
+      drawWave(waves, color);
+    };
+
+    redraw(song.waves[waveId]);
 
     let mousedown = false;
     let newWaves = new Uint8Array(song.waves[waveId]);
 
-    canvas.onmouseout = () => {
+    const handleMouseOut = () => {
       if (!mousedown) {
-        drawGrid(song.waves[waveId]);
-        drawWave(song.waves[waveId]);
+        redraw(song.waves[waveId]);
       }
     };
 
@@ -154,34 +170,29 @@ export const WaveEditorForm = ({ waveId, onChange }: WaveEditorFormProps) => {
         return;
       }
 
-      if (ctx) {
-        const rect = canvas.getBoundingClientRect();
+      const { rect, pointLength, pointHeight } = getLayout();
 
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
+      const pos = {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top,
+      };
 
-        const pos = {
-          x: (e.clientX - rect.left) * scaleX,
-          y: (e.clientY - rect.top) * scaleY,
-        };
+      const gridP = {
+        i: clamp(
+          Math.round((pos.x - PADDING) / pointLength),
+          0,
+          song.waves[waveId].length - 1,
+        ),
+        j: clamp(Math.round((pos.y - PADDING) / pointHeight), 0, 15),
+      };
 
-        const gridP = {
-          i: clamp(
-            Math.round((pos.x - PADDING) / pointLength),
-            0,
-            song.waves[waveId].length - 1,
-          ),
-          j: clamp(Math.round((pos.y - PADDING) / pointHeight), 0, 15),
-        };
-
-        if (gridP.j < 16) {
-          drawGrid(song.waves[waveId]);
-          if (!mousedown) {
-            newWaves = new Uint8Array(song.waves[waveId]);
-          }
-          newWaves[gridP.i] = clamp(15 - gridP.j, 0, 15);
-          drawWave(newWaves);
+      if (gridP.j < 16) {
+        if (!mousedown) {
+          newWaves = new Uint8Array(song.waves[waveId]);
         }
+
+        newWaves[gridP.i] = clamp(15 - gridP.j, 0, 15);
+        redraw(newWaves);
       }
     };
 
@@ -191,23 +202,31 @@ export const WaveEditorForm = ({ waveId, onChange }: WaveEditorFormProps) => {
       }
     };
 
-    const handleMouseUp = (_e: MouseEvent) => {
+    const handleMouseUp = () => {
       if (mousedown) {
         mousedown = false;
         onEditWave(newWaves);
       }
     };
 
+    const handleResize = () => {
+      redraw(song.waves[waveId]);
+    };
+
+    canvas.addEventListener("mouseout", handleMouseOut);
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mousedown", handleMouseDown);
     window.addEventListener("mouseup", handleMouseUp);
+    window.addEventListener("resize", handleResize);
 
     return () => {
+      canvas.removeEventListener("mouseout", handleMouseOut);
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mousedown", handleMouseDown);
       window.removeEventListener("mouseup", handleMouseUp);
+      window.removeEventListener("resize", handleResize);
     };
-  });
+  }, [song, waveId, onEditWave, themeContext]);
 
   return (
     <>
@@ -226,12 +245,12 @@ export const WaveEditorForm = ({ waveId, onChange }: WaveEditorFormProps) => {
           ref={canvasRef}
           style={{
             width: "100%",
-            height: "120px",
+            height: 100,
             backgroundColor: "#000",
             borderRadius: 4,
             cursor: "pointer",
+            display: "block",
           }}
-          height={120}
         />
       </FormRow>
       <FormRow>
