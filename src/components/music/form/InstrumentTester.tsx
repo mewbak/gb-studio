@@ -142,8 +142,14 @@ export const InstrumentTester = ({
 
     if (keyRef.current === newKey) {
       const ignoreFields = ["name"];
-      const before = omit(prevInstrument.instrument, ignoreFields);
-      const after = omit(currentInstrumentRef.current.instrument, ignoreFields);
+      const before = {
+        ...prevInstrument,
+        instrument: omit(prevInstrument.instrument, ignoreFields),
+      };
+      const after = {
+        ...currentInstrumentRef.current,
+        instrument: omit(currentInstrumentRef.current.instrument, ignoreFields),
+      };
       if (!isEqual(before, after)) {
         throttledTestInstrumentRef.current();
       }
