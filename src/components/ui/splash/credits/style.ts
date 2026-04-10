@@ -33,6 +33,10 @@ export const StyledCredits = styled.div`
   -webkit-app-region: drag;
   background: red;
   z-index: 100000;
+
+  @media (max-width: 840px) {
+    position: fixed;
+  }
 `;
 
 export const StyledCreditsTitle = styled.div`
@@ -42,6 +46,10 @@ export const StyledCreditsTitle = styled.div`
   font-weight: bold;
   text-decoration: none;
   margin-bottom: 80px;
+
+  @media (max-width: 840px) {
+    font-size: 30px;
+  }
 `;
 
 export const StyledCreditsSubHeading = styled.div`
@@ -52,6 +60,10 @@ export const StyledCreditsSubHeading = styled.div`
   text-decoration: none;
   margin-top: 80px;
   margin-bottom: 60px;
+
+  @media (max-width: 840px) {
+    font-size: 20px;
+  }
 `;
 
 interface StyledCreditsPersonProps {
@@ -71,6 +83,7 @@ export const StyledCreditsPerson = styled.a<StyledCreditsPersonProps>`
   font-size: 20px;
   text-decoration: none;
   margin-bottom: 30px;
+  touch-action: manipulation;
 
   ${(props) =>
     props.onClick
@@ -104,6 +117,7 @@ export const StyledCreditsPerson = styled.a<StyledCreditsPersonProps>`
 
 interface StyledCreditsContentProps {
   $duration: number;
+  $paused: boolean;
 }
 
 export const StyledCreditsContent = styled.div<StyledCreditsContentProps>`
@@ -115,9 +129,17 @@ export const StyledCreditsContent = styled.div<StyledCreditsContentProps>`
   display: flex;
   flex-direction: column;
   animation: ${scrollAnim} ${(props) => props.$duration}s linear infinite;
+  animation-play-state: ${(props) => (props.$paused ? "paused" : "running")};
 
   &:has(${StyledCreditsPerson} > span:hover) {
     animation-play-state: paused;
+  }
+
+  @media (max-width: 840px) {
+    &:has(${StyledCreditsPerson} > span:hover) {
+      animation-play-state: ${(props) =>
+        props.$paused ? "paused" : "running"};
+    }
   }
 `;
 
