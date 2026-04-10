@@ -8,6 +8,7 @@ import { testNotes } from "components/music/sidebar/helpers";
 import { NOTE_C5 } from "consts";
 import isEqual from "lodash/isEqual";
 import throttle from "lodash/throttle";
+import omit from "lodash/omit";
 import l10n from "shared/lib/lang/l10n";
 import {
   DutyInstrument,
@@ -140,7 +141,10 @@ export const InstrumentTester = ({
     const newKey = genKey(instrumentId, instrumentType);
 
     if (keyRef.current === newKey) {
-      if (!isEqual(prevInstrument, currentInstrumentRef.current)) {
+      const ignoreFields = ["name"];
+      const before = omit(prevInstrument.instrument, ignoreFields);
+      const after = omit(currentInstrumentRef.current.instrument, ignoreFields);
+      if (!isEqual(before, after)) {
         throttledTestInstrumentRef.current();
       }
     }
