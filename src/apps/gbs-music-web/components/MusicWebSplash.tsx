@@ -19,8 +19,6 @@ import pianoImageUrl from "gbs-music-web/static/piano.png";
 import {
   SplashAppTitle,
   SplashContent,
-  SplashCreateButton,
-  SplashEasterEggButton,
   SplashForm,
   SplashLogo,
   SplashScroll,
@@ -30,20 +28,25 @@ import {
   SplashWindow,
 } from "ui/splash/Splash";
 import { FixedSpacer, FlexGrow } from "ui/spacing/Spacing";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import { musicExamples } from "gbs-music-web/data/musicExamples";
 import projectIcon from "ui/icons/gbsproj.png";
 import { StyledButton } from "ui/buttons/style";
 import { Label } from "ui/form/Label";
-import { FormDivider, FormRow } from "ui/form/layout/FormLayout";
-import { DropdownButton } from "ui/buttons/DropdownButton";
+import { FormRow } from "ui/form/layout/FormLayout";
 import trackerActions from "store/features/tracker/trackerActions";
 import { useAppDispatch, useAppSelector } from "store/hooks";
 import { TextField } from "ui/form/TextField";
 import { useLocalStorageState } from "ui/hooks/use-local-storage-state";
 import { StyledSplashWindow } from "ui/splash/style";
 import useWindowSize from "ui/hooks/use-window-size";
-import { StyledSplitPaneHeader } from "ui/splitpane/style";
+import {
+  StyledMobileListMenu,
+  StyledMobileListMenuItem,
+  StyledMobileListMenuCaret,
+  StyledMobileListMenuLink,
+} from "gbs-music-web/components/ui/style";
+import { CaretRightIcon } from "ui/icons/Icons";
 
 const COMPACT_LAYOUT_BREAKPOINT = 840;
 
@@ -86,11 +89,13 @@ const StyledSplashPage = styled.div`
 
     ${SplashSidebar} {
       background: transparent;
+      box-shadow: none;
     }
 
     ${SplashContent} {
       border-top-left-radius: 20px;
       border-top-right-radius: 20px;
+      padding: 30px 0px 10px 0px;
     }
   }
 `;
@@ -137,26 +142,36 @@ const StyledSplashRestorePanel = styled.div`
   gap: 10px;
   box-sizing: border-box;
   width: 100%;
-  margin-bottom: 10px;
+  margin-bottom: 20px;
   flex-grow: 1;
+
+  span {
+    flex-grow: 1;
+  }
 
   ${StyledButton} {
     height: 50px;
   }
 `;
 
-const StyledSplashSectionHeader = styled.div`
-  position: sticky;
-  top: 0;
+const StyledSplashSectionHeader = styled.div<{ $sticky?: boolean }>`
   background-color: ${(props) => props.theme.colors.sidebar.header.background};
   color: ${(props) => props.theme.colors.sidebar.header.text};
   border-top: 1px solid ${(props) => props.theme.colors.sidebar.header.border};
   border-bottom: 1px solid
     ${(props) => props.theme.colors.sidebar.header.border};
-  padding: 10px 30px;
+  padding: 20px 30px;
   font-size: 16px;
   font-weight: bold;
-  z-index: 1;
+
+  ${(props) =>
+    props.$sticky
+      ? css`
+          position: sticky;
+          top: 0;
+          z-index: 1;
+        `
+      : ""}
 `;
 
 interface SplashExampleMusicProps {
@@ -336,10 +351,6 @@ export const MusicWebSplash = ({
           <SplashSidebar>
             <SplashLogo>
               <img src={appIconUrl} alt="GBS Music" draggable={false} />
-              <SplashEasterEggButton
-                onClick={() => setOpenCredits(true)}
-                tabIndex={-1}
-              />
             </SplashLogo>
             {!isCompactLayout && <SplashAppTitle appName="GBS Music" />}
             <StyledSplashTabs>
@@ -504,10 +515,19 @@ export const MusicWebSplash = ({
                 </StyledFileActions>
               </SplashForm>
               {isCompactLayout && onRestoreBackup ? (
-                <div style={{ padding: "0px 10px", marginTop: 20 }}>
+                <div
+                  style={{
+                    width: "100%",
+                    padding: "0px 10px",
+                    marginTop: 20,
+                    boxSizing: "border-box",
+                  }}
+                >
                   <StyledSplashRestorePanel>
-                    A previous session has been recovered{" "}
-                    {backupSongName ? `"${backupSongName}"` : ""}
+                    <span>
+                      A previous session has been recovered{" "}
+                      {backupSongName ? `"${backupSongName}"` : ""}
+                    </span>
                     <Button
                       style={{ flexGrow: 1 }}
                       size="large"
@@ -520,11 +540,48 @@ export const MusicWebSplash = ({
               ) : (
                 <FlexGrow />
               )}
+
+              {isCompactLayout && (
+                <StyledMobileListMenu>
+                  <StyledMobileListMenuLink
+                    target="_blank"
+                    href="https://www.gbstudio.dev/docs/assets/music/music-huge"
+                  >
+                    <span>{l10n("SPLASH_DOCUMENTATION")}</span>
+                    <StyledMobileListMenuCaret>
+                      <CaretRightIcon />
+                    </StyledMobileListMenuCaret>
+                  </StyledMobileListMenuLink>
+
+                  <StyledMobileListMenuItem
+                    onClick={() => {
+                      setOpenCredits(true);
+                    }}
+                  >
+                    <span>{l10n("SPLASH_CREDITS")}</span>
+                    <StyledMobileListMenuCaret>
+                      <CaretRightIcon />
+                    </StyledMobileListMenuCaret>
+                  </StyledMobileListMenuItem>
+
+                  <StyledMobileListMenuLink
+                    target="_blank"
+                    href="https://github.com/chrismaltby/gb-studio"
+                  >
+                    <span>GitHub</span>
+                    <StyledMobileListMenuCaret>
+                      <CaretRightIcon />
+                    </StyledMobileListMenuCaret>
+                  </StyledMobileListMenuLink>
+                </StyledMobileListMenu>
+              )}
             </SplashContent>
           )}
 
           {isCompactLayout && (
-            <StyledSplashSectionHeader>Examples</StyledSplashSectionHeader>
+            <StyledSplashSectionHeader $sticky>
+              Example Songs
+            </StyledSplashSectionHeader>
           )}
 
           {(section === "examples" || isCompactLayout) && (
@@ -608,11 +665,13 @@ export const MusicWebSplash = ({
         )}
       </StyledSplashWindowChrome>
 
-      <div style={{ maxWidth: 420, marginTop: 20 }}>
-        {!isCompactLayout && onRestoreBackup ? (
+      {!isCompactLayout && onRestoreBackup ? (
+        <div style={{ maxWidth: 420, marginTop: 20 }}>
           <StyledSplashRestorePanel>
-            A previous session has been recovered{" "}
-            {backupSongName ? `"${backupSongName}"` : ""}
+            <span>
+              A previous session has been recovered{" "}
+              {backupSongName ? `"${backupSongName}"` : ""}
+            </span>
             <Button
               style={{ flexGrow: 1 }}
               size="large"
@@ -621,10 +680,8 @@ export const MusicWebSplash = ({
               Restore File
             </Button>
           </StyledSplashRestorePanel>
-        ) : (
-          <FlexGrow />
-        )}
-      </div>
+        </div>
+      ) : null}
     </StyledSplashPage>
   );
 };

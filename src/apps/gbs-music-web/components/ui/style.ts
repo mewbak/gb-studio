@@ -241,6 +241,35 @@ export const StyledMobileListMenuItem = styled.button`
   font-weight: bold;
   width: 100%;
   text-align: left;
+  box-sizing: border-box;
+
+  span {
+    flex-grow: 1;
+  }
+
+  &:focus {
+    position: relative;
+    z-index: 1;
+  }
+`;
+
+export const StyledMobileListMenuLink = styled.a`
+  background: ${(props) => props.theme.colors.input.background};
+  color: ${(props) => props.theme.colors.input.text};
+  border-left: 1px solid ${(props) => props.theme.colors.input.border};
+  border-right: 1px solid ${(props) => props.theme.colors.input.border};
+  border-bottom: 1px solid ${(props) => props.theme.colors.input.border};
+  border-top: 0;
+  height: 50px;
+  font-size: 14px;
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  font-weight: bold;
+  width: 100%;
+  text-align: left;
+  box-sizing: border-box;
+  text-decoration: none;
 
   span {
     flex-grow: 1;

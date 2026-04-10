@@ -113,6 +113,10 @@ export const StyledCreditsPerson = styled.a<StyledCreditsPersonProps>`
           animation: ${goldPersonAnimation} 2s linear infinite;
         `
       : ""}
+
+  @media (max-width: 840px) {
+    align-self: center;
+  }
 `;
 
 interface StyledCreditsContentProps {

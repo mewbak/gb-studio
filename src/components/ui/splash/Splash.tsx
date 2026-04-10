@@ -47,7 +47,6 @@ export const SplashSidebar = styled.div`
 export const SplashContent = styled.div`
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
   background: ${(props) => props.theme.colors.background};
   color: ${(props) => props.theme.colors.text};
   padding: 20px;
