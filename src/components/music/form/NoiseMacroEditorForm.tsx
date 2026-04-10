@@ -15,81 +15,121 @@ export const NoiseMacroEditorForm = ({
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) {
-      return;
-    }
-    if (!themeContext) {
+    if (!canvas || !themeContext) {
       return;
     }
 
-    const drawWidth = canvas.width - 10;
-    const drawHeight = canvas.height - 10;
     const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      return;
+    }
 
     const defaultColor = themeContext.colors.highlight;
 
-    // eslint-disable-next-line no-self-assign
-    canvas.width = canvas.width;
-    // eslint-disable-next-line no-self-assign
-    canvas.height = canvas.height;
+    const getLayout = () => {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+
+      const cssWidth = rect.width;
+      const cssHeight = rect.height;
+
+      const pixelWidth = Math.round(cssWidth * dpr);
+      const pixelHeight = Math.round(cssHeight * dpr);
+
+      if (canvas.width !== pixelWidth || canvas.height !== pixelHeight) {
+        canvas.width = pixelWidth;
+        canvas.height = pixelHeight;
+      }
+
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      return {
+        rect,
+        width: cssWidth,
+        height: cssHeight,
+        drawLeft: 5,
+        drawTop: 5,
+        drawWidth: cssWidth - 10,
+        drawHeight: cssHeight - 10,
+      };
+    };
+
+    const clear = () => {
+      const { width, height } = getLayout();
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = "#000";
+      ctx.fillRect(0, 0, width, height);
+    };
 
     const drawGrid = (noiseMacros: number[]) => {
-      if (ctx) {
-        ctx.fillStyle = "#000";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      const { width, height, drawLeft, drawTop, drawWidth, drawHeight } =
+        getLayout();
 
-        // Draw grid
-        ctx.beginPath();
-        ctx.strokeStyle = "#333";
-        ctx.lineWidth = 1;
+      clear();
 
-        for (let i = 0; i <= noiseMacros.length; i++) {
-          ctx.moveTo(5 + (i * drawWidth) / noiseMacros.length, 0);
-          ctx.lineTo(5 + (i * drawWidth) / noiseMacros.length, canvas.height);
-        }
-        for (let i = 0; i <= 64; i++) {
-          ctx.moveTo(0, 5 + (i * drawHeight) / 32);
-          ctx.lineTo(canvas.width, 5 + (i * drawHeight) / 32);
-        }
-        ctx.stroke();
+      ctx.beginPath();
+      ctx.strokeStyle = "#333";
+      ctx.lineWidth = 1;
+
+      for (let i = 0; i <= noiseMacros.length; i++) {
+        const gridX =
+          Math.round(drawLeft + (i * drawWidth) / noiseMacros.length) + 0.5;
+        ctx.moveTo(gridX, 0);
+        ctx.lineTo(gridX, height);
       }
+
+      for (let i = 0; i <= 72; i += 12) {
+        const gridY = Math.round(drawTop + (i * drawHeight) / 72) + 0.5;
+        ctx.moveTo(0, gridY);
+        ctx.lineTo(width, gridY);
+      }
+
+      ctx.stroke();
     };
 
     const drawMacros = (noiseMacros: number[], color?: string) => {
-      if (ctx) {
-        const ratio = drawHeight / 64;
+      const { drawLeft, drawTop, drawWidth, drawHeight } = getLayout();
+      const ratio = drawHeight / 72;
 
-        ctx.beginPath();
+      ctx.beginPath();
+      ctx.fillStyle = color || defaultColor;
+      ctx.strokeStyle = color || defaultColor;
+      ctx.lineWidth = 1;
 
-        ctx.fillStyle = color || defaultColor;
-        ctx.strokeStyle = color || defaultColor;
-        ctx.lineWidth = 1;
+      const midY = Math.round(drawTop + 36 * ratio) + 0.5;
+      ctx.moveTo(drawLeft, midY);
+      ctx.lineTo(drawLeft + drawWidth, midY);
+      ctx.stroke();
 
-        ctx.moveTo(5, 5 + 32 * ratio);
-        ctx.lineTo(5 + drawWidth, 5 + 32 * ratio);
-        ctx.stroke();
+      noiseMacros.forEach((y, x) => {
+        const left =
+          Math.round(drawLeft + (x * drawWidth) / noiseMacros.length) + 1;
+        const right = Math.round(
+          drawLeft + ((x + 1) * drawWidth) / noiseMacros.length,
+        );
 
-        noiseMacros.forEach((y: number, x: number) => {
-          ctx.fillRect(
-            5 + x * (drawWidth / noiseMacros.length),
-            5 + drawHeight / 2,
-            drawWidth / noiseMacros.length,
-            -y * ratio,
-          );
-        });
-      }
+        const barX = left;
+        const barW = Math.max(1, right - left);
+        const barY = Math.round(drawTop + drawHeight / 2);
+        const barH = Math.round(-y * ratio);
+
+        ctx.fillRect(barX, barY, barW, barH);
+      });
     };
 
-    drawGrid(macros);
-    drawMacros(macros);
+    const redraw = (noiseMacros: number[], previewColor?: string) => {
+      drawGrid(noiseMacros);
+      drawMacros(noiseMacros, previewColor);
+    };
+
+    redraw(macros);
 
     let mousedown = false;
     let newMacros = [...macros];
 
-    canvas.onmouseout = () => {
+    const handleMouseOut = () => {
       if (!mousedown) {
-        drawGrid(macros);
-        drawMacros(macros);
+        redraw(macros);
       }
     };
 
@@ -98,32 +138,36 @@ export const NoiseMacroEditorForm = ({
         return;
       }
 
-      if (ctx) {
-        const rect = canvas.getBoundingClientRect();
+      const { rect, drawLeft, drawTop, drawWidth, drawHeight } = getLayout();
 
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
+      const pos = {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top,
+      };
 
-        const pos = {
-          x: (e.clientX - rect.left) * scaleX,
-          y: (e.clientY - rect.top) * scaleY,
-        };
+      const columnWidth = drawWidth / macros.length;
+      const rowHeight = drawHeight / 72;
 
-        const gridP = {
-          i: Math.floor((pos.x - 5) / (drawWidth / macros.length)),
-          j: Math.floor((pos.y - 5) / (drawHeight / 64)),
-        };
+      const gridP = {
+        i: Math.floor((pos.x - drawLeft) / columnWidth),
+        j: Math.floor((pos.y - drawTop) / rowHeight),
+      };
 
-        if (gridP.j <= 64 && gridP.j >= 0 && gridP.i < macros.length) {
-          drawGrid(macros);
-          drawMacros(macros, "#FF000066");
+      if (
+        gridP.j <= 72 &&
+        gridP.j >= 0 &&
+        gridP.i >= 0 &&
+        gridP.i < macros.length
+      ) {
+        drawGrid(macros);
+        drawMacros(macros, "#FF000066");
 
-          if (!mousedown) {
-            newMacros = [...macros];
-          }
-          newMacros[gridP.i] = 32 - gridP.j;
-          drawMacros(newMacros);
+        if (!mousedown) {
+          newMacros = [...macros];
         }
+
+        newMacros[gridP.i] = 36 - gridP.j;
+        drawMacros(newMacros);
       }
     };
 
@@ -133,23 +177,29 @@ export const NoiseMacroEditorForm = ({
       }
     };
 
-    const handleMouseUp = (_e: MouseEvent) => {
+    const handleMouseUp = () => {
       if (mousedown) {
         mousedown = false;
         onChange(newMacros);
       }
     };
 
+    const handleResize = () => redraw(macros);
+
+    canvas.addEventListener("mouseout", handleMouseOut);
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mousedown", handleMouseDown);
     window.addEventListener("mouseup", handleMouseUp);
+    window.addEventListener("resize", handleResize);
 
     return () => {
+      canvas.removeEventListener("mouseout", handleMouseOut);
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mousedown", handleMouseDown);
       window.removeEventListener("mouseup", handleMouseUp);
+      window.removeEventListener("resize", handleResize);
     };
-  });
+  }, [macros, onChange, themeContext]);
 
   return (
     <canvas
@@ -158,10 +208,9 @@ export const NoiseMacroEditorForm = ({
         width: "100%",
         height: 100,
         backgroundColor: "#000",
-        imageRendering: "pixelated",
         cursor: "pointer",
+        display: "block",
       }}
-      height={100}
     />
   );
 };
