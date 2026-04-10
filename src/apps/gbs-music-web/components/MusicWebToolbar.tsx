@@ -250,7 +250,7 @@ export const MusicWebToolbar = ({
               <MenuItem subMenu={localeMenu}>{l10n("MENU_LANGUAGE")}</MenuItem>
               <MenuDivider />
               <MenuItem onClick={() => setShowAbout(true)}>
-                {l10n("MENU_ABOUT")}
+                About GBS Music
               </MenuItem>
             </DropdownButton>
           </Brand>
