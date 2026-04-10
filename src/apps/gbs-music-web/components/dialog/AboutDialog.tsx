@@ -65,6 +65,7 @@ const AboutText = styled.p`
   margin: 0 0 10px;
   line-height: 1.5;
   text-align: center;
+  font-size: 14px;
 `;
 
 export const AboutDialog = ({ onClose }: AboutDialogProps) => {
@@ -83,9 +84,10 @@ export const AboutDialog = ({ onClose }: AboutDialogProps) => {
           <AboutLogo src={appIconUrl} alt="GB Studio" />
           <AboutHeaderText>
             <AboutTitle>GBS Music</AboutTitle>
-            <div>
+            <AboutText>Chiptune Music Editor</AboutText>
+            <AboutText>
               {VERSION} ({COMMITHASH})
-            </div>
+            </AboutText>
           </AboutHeaderText>
         </AboutHeader>
         <AboutText>{l10n("GBSTUDIO_COPYRIGHT")}</AboutText>

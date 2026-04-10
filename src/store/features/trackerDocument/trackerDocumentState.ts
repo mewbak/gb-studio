@@ -82,9 +82,6 @@ export const saveSongFile = createAsyncThunk<void, void>(
   async (_, thunkApi) => {
     const state = thunkApi.getState() as RootState;
 
-    if (!state.tracker.modified) {
-      throw new Error("Cannot save unmodified song");
-    }
     if (!state.trackerDocument.present.song) {
       throw new Error("No song selected");
     }

@@ -22,6 +22,7 @@ import { useAppDispatch, useAppSelector } from "store/hooks";
 import { StyledButton } from "ui/buttons/style";
 import { TRACKER_REDO, TRACKER_UNDO } from "consts";
 import { AboutDialog } from "gbs-music-web/components/dialog/AboutDialog";
+import { saveSongFile } from "store/features/trackerDocument/trackerDocumentState";
 
 const COMPACT_LAYOUT_BREAKPOINT = 590;
 
@@ -98,11 +99,14 @@ export const MusicWebToolbar = ({
     dispatch({ type: TRACKER_REDO });
   }, [dispatch]);
 
+  const onSave = useCallback(() => {
+    dispatch(saveSongFile());
+  }, [dispatch]);
+
   const fileMenu = useMemo(() => {
     return [
-      <MenuItem key="new" onClick={onCreateSong}>
-        {/* {l10n("TOOL_ADD_SONG_LABEL")} */}
-        New File
+      <MenuItem key={`new${localeId}`} onClick={onCreateSong}>
+        {l10n("FIELD_NEW_FILE")}
       </MenuItem>,
       <MenuDivider key="dir-open" />,
       ...(onImportSong
@@ -120,29 +124,38 @@ export const MusicWebToolbar = ({
           ]
         : []),
       <MenuDivider key="dir-save" />,
-      <MenuItem key="save" onClick={() => {}}>
-        Save
+      <MenuItem key="save" onClick={onSave}>
+        {l10n("MENU_SAVE")}
       </MenuItem>,
       <MenuDivider key="dir-close" />,
-      <MenuItem onClick={onCloseWorkspace}>Close Project</MenuItem>,
+      <MenuItem onClick={onCloseWorkspace}>
+        {l10n("FIELD_CLOSE_PROJECT")}
+      </MenuItem>,
     ];
-  }, [onCloseWorkspace, onCreateSong, onImportSong, onOpenDirectoryWorkspace]);
+  }, [
+    localeId,
+    onCreateSong,
+    onImportSong,
+    onOpenDirectoryWorkspace,
+    onSave,
+    onCloseWorkspace,
+  ]);
 
   const editMenu = useMemo(() => {
     return [
-      <MenuItem key="undo" onClick={onUndo}>
+      <MenuItem key={`undo${localeId}`} onClick={onUndo}>
         {l10n("MENU_UNDO")}
       </MenuItem>,
       <MenuItem key="redo" onClick={onRedo}>
         {l10n("MENU_REDO")}
       </MenuItem>,
     ];
-  }, [onRedo, onUndo]);
+  }, [onRedo, onUndo, localeId]);
 
   const viewMenu = useMemo(
     () => [
       <MenuItem
-        key="roll"
+        key={`roll${localeId}`}
         onClick={setRollView}
         icon={view === "roll" ? <CheckIcon /> : <BlankIcon />}
       >
@@ -156,12 +169,12 @@ export const MusicWebToolbar = ({
         {l10n("FIELD_TRACKER")}
       </MenuItem>,
     ],
-    [setRollView, setTrackerView, view],
+    [localeId, setRollView, setTrackerView, view],
   );
 
   const themeMenu = useMemo(
     () => [
-      <MenuItem key={"light"} onClick={() => onThemeChange("light")}>
+      <MenuItem key={`light${localeId}`} onClick={() => onThemeChange("light")}>
         <MenuItemIcon>
           {themeId === "light" ? <CheckIcon /> : <BlankIcon />}
         </MenuItemIcon>
@@ -174,7 +187,7 @@ export const MusicWebToolbar = ({
         {l10n("MENU_THEME_DARK")}
       </MenuItem>,
     ],
-    [onThemeChange, themeId],
+    [localeId, onThemeChange, themeId],
   );
 
   const localeMenu = useMemo(

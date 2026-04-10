@@ -1321,6 +1321,7 @@
   "FIELD_EXPORTING": "Exporting...",
   "FIELD_FILE_FORMAT": "File Format",
   "FIELD_LOOPS": "Loops",
+  "FIELD_NEW_FILE": "New File",
   "FIELD_OPEN_FILE": "Open File",
   "FIELD_OPEN_FOLDER": "Open Folder",
   "FIELD_CHANNELS": "Channels",
@@ -1378,6 +1379,7 @@
   "FIELD_CALL_ROUTINE": "Call Routine",
   "FIELD_SET_DUTY_CYCLE": "Set Duty Cycle",
   "FIELD_SET_SPEED": "Set Speed",
+  "FIELD_CLOSE_PROJECT": "Close Project",
 
   "// 7": "Asset Viewer ---------------------------------------------",
   "ASSET_SEARCH": "Search...",
