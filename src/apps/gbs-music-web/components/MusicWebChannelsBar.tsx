@@ -76,7 +76,7 @@ export const MusicWebChannelsBar = ({
       {channels.map((channel) => (
         <StyledMobileToolbarButton
           $isActive={selectedChannel === channel.index}
-          onPointerDown={() => {
+          onClick={() => {
             onOpenChannel(channel.index);
           }}
         >
