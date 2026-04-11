@@ -59,14 +59,6 @@ export const PianoRollPlaybackController = ({
       playbackRow,
     );
     const viewportWidth = scrollEl.clientWidth;
-    const followMargin = viewportWidth * 0.2;
-    const visibleLeft = scrollEl.scrollLeft + followMargin;
-    const visibleRight = scrollEl.scrollLeft + viewportWidth - followMargin;
-
-    if (playheadLeft >= visibleLeft && playheadLeft <= visibleRight) {
-      return;
-    }
-
     const maxScrollLeft = Math.max(
       0,
       calculateDocumentWidth(sequenceLength) - viewportWidth,
@@ -75,6 +67,10 @@ export const PianoRollPlaybackController = ({
       0,
       Math.min(playheadLeft - viewportWidth * 0.5, maxScrollLeft),
     );
+
+    if (Math.abs(scrollEl.scrollLeft - nextScrollLeft) < 1) {
+      return;
+    }
 
     targetScrollLeftRef.current = nextScrollLeft;
 
