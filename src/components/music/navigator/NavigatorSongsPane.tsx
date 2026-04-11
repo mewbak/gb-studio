@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { musicSelectors } from "store/features/entities/entitiesState";
 import { FlatList } from "ui/lists/FlatList";
 import { EntityListItem, EntityListSearch } from "ui/lists/EntityListItem";
@@ -68,6 +68,7 @@ export const NavigatorSongsPane = ({
   const [songsSearchTerm, setSongsSearchTerm] = useState("");
   const [songsSearchEnabled, setSongsSearchEnabled] = useState(false);
   const [renameId, setRenameId] = useState("");
+  const [selectedNavigatorId, setSelectedNavigatorId] = useState(selectedSongId);
 
   const nestedSongItems = useMemo(
     () => buildAssetNavigatorItems(allSongs, openFolders, songsSearchTerm),
@@ -83,6 +84,21 @@ export const NavigatorSongsPane = ({
       dispatch(trackerActions.setSelectedSongId(id));
     },
     [dispatch, onSelectSong],
+  );
+
+  useEffect(() => {
+    setSelectedNavigatorId(selectedSongId);
+  }, [selectedSongId]);
+
+  const setSelectedId = useCallback(
+    (id: string, item: FileSystemNavigatorItem<MusicAsset>) => {
+      setSelectedNavigatorId(id);
+
+      if (item.type === "file") {
+        setSelectedSongId(id);
+      }
+    },
+    [setSelectedSongId],
   );
 
   const addSong = useCallback(
@@ -249,9 +265,9 @@ export const NavigatorSongsPane = ({
       )}
 
       <FlatList
-        selectedId={selectedSongId}
+        selectedId={selectedNavigatorId}
         items={nestedSongItems}
-        setSelectedId={setSelectedSongId}
+        setSelectedId={setSelectedId}
         height={(height ?? 0) - (showSongsSearch ? 60 : 30)}
         onKeyDown={(e: KeyboardEvent, item) => {
           if (e.key === "Enter" && item?.type === "file") {
