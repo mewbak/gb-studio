@@ -385,9 +385,6 @@ export const MusicWebSplash = ({
   return (
     <StyledSplashPage>
       <FlexGrow />
-      {/* <div style={{ color: "white", margin: 20, textAlign: "center" }}>
-        GBS Music: Chiptune Music Editor
-      </div> */}
       <StyledSplashWindowChrome>
         <SplashWindow focus>
           <SplashSidebar>
