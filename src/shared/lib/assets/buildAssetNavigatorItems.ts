@@ -24,7 +24,32 @@ const sortByName = <T>(
   a: FileSystemNavigatorItem<T>,
   b: FileSystemNavigatorItem<T>,
 ) => {
-  return collator.compare(a.name, b.name);
+  const aSegments = a.name.split(/[\\/]/);
+  const bSegments = b.name.split(/[\\/]/);
+  const sharedLength = Math.min(aSegments.length, bSegments.length);
+
+  for (let i = 0; i < sharedLength; i++) {
+    const comparison = collator.compare(aSegments[i], bSegments[i]);
+    if (comparison !== 0) {
+      return comparison;
+    }
+  }
+
+  if (aSegments.length !== bSegments.length) {
+    const shorterItem = aSegments.length < bSegments.length ? a : b;
+
+    if (shorterItem.type === "folder") {
+      return aSegments.length - bSegments.length;
+    }
+
+    return aSegments.length < bSegments.length ? 1 : -1;
+  }
+
+  if (a.type !== b.type) {
+    return a.type === "folder" ? -1 : 1;
+  }
+
+  return collator.compare(a.id, b.id);
 };
 
 export const buildAssetNavigatorItems = <T extends Asset>(
