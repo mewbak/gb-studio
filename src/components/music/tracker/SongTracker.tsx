@@ -11,7 +11,6 @@ import trackerDocumentActions from "store/features/trackerDocument/trackerDocume
 import { getKeys } from "renderer/lib/keybindings/keyBindings";
 import trackerActions from "store/features/tracker/trackerActions";
 import API from "renderer/lib/api";
-import { MusicDataReceivePacket } from "shared/lib/music/types";
 import { useAppDispatch, useAppSelector } from "store/hooks";
 import {
   StyledTrackerWrapper,
@@ -28,7 +27,6 @@ import {
   normalizeFieldIndex,
   Position,
   SelectionRect,
-  TRACKER_CELL_HEIGHT,
   TRACKER_HEADER_HEIGHT,
   TRACKER_INDEX_WIDTH,
   trackerFieldsToPatternCells,
@@ -51,6 +49,7 @@ import {
   VirtualTrackerKey,
 } from "components/music/tracker/TrackerKeyboard";
 import { SongTrackerPattern } from "components/music/tracker/SongTrackerPattern";
+import { SongTrackerPlaybackController } from "components/music/tracker/SongTrackerPlaybackController";
 import l10n from "shared/lib/lang/l10n";
 import { PlusIcon } from "ui/icons/Icons";
 
@@ -89,9 +88,6 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
   const editStep = useAppSelector((state) => state.tracker.editStep);
   const channelStatus = useAppSelector((state) => state.tracker.channelStatus);
   const octaveOffset = useAppSelector((state) => state.tracker.octaveOffset);
-  const startPlaybackPosition = useAppSelector(
-    (state) => state.tracker.startPlaybackPosition,
-  );
   const subpatternEditorFocus = useAppSelector(
     (state) => state.tracker.subpatternEditorFocus,
   );
@@ -126,8 +122,6 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
   >();
 
   const [activeField, setActiveFieldState] = useState<number | undefined>();
-  const [playbackState, setPlaybackState] = useState<[number, number]>([0, 0]);
-
   // #endregion Component State
 
   // #region Derived State
@@ -187,8 +181,6 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
     return -1;
   }, [channelStatus]);
 
-  const playbackSequence = playbackState[0];
-  const playbackRow = playbackState[1];
   const sequenceLength = song?.sequence.length ?? 0;
   const numPatterns = song?.patterns.length ?? 0;
   const selectedSequenceId = selectionOrigin?.sequenceId;
@@ -1342,39 +1334,6 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
 
   // #endregion Selection Effects
 
-  // #region Playback Effects
-
-  useEffect(() => {
-    setPlaybackState(startPlaybackPosition);
-  }, [startPlaybackPosition]);
-
-  useEffect(() => {
-    const listener = (_event: unknown, data: MusicDataReceivePacket) => {
-      if (data.action === "update") {
-        setPlaybackState(data.update);
-      } else if (data.action === "initialized") {
-        setPlaybackState([0, 0]);
-      }
-    };
-
-    const unsubscribeMusicData = API.events.music.response.subscribe(listener);
-
-    return () => {
-      unsubscribeMusicData();
-    };
-  }, []);
-
-  useEffect(() => {
-    if (playbackSequence >= sequenceLength) {
-      API.music.sendToMusicWindow({
-        action: "position",
-        position: [0, 0],
-      });
-    }
-  }, [playbackSequence, sequenceLength]);
-
-  // #endregion Playback Effects
-
   // #region Scroll Effects
 
   useLayoutEffect(() => {
@@ -1389,7 +1348,6 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
 
     const scrollEl = scrollRef.current;
     const fieldEl = activeFieldRef.current;
-
     const scrollRect = scrollEl.getBoundingClientRect();
     const fieldRect = fieldEl.getBoundingClientRect();
 
@@ -1410,22 +1368,6 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
       scrollEl.scrollLeft += fieldRect.right - visibleRight;
     }
   }, [playing, activeField]);
-
-  useLayoutEffect(() => {
-    if (!scrollRef.current || !playing) {
-      return;
-    }
-
-    const rect = scrollRef.current.getBoundingClientRect();
-    const halfHeight = rect.height * 0.5;
-
-    scrollRef.current.scrollTop =
-      playbackSequence *
-        (TRACKER_HEADER_HEIGHT + TRACKER_CELL_HEIGHT * TRACKER_PATTERN_LENGTH) +
-      TRACKER_HEADER_HEIGHT +
-      playbackRow * TRACKER_CELL_HEIGHT -
-      halfHeight;
-  }, [playing, playbackRow, playbackSequence]);
 
   // #endregion Scroll Effects
 
@@ -1582,7 +1524,6 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
                 activeSequenceId={activeSequenceId}
                 activeLocalField={activeLocalFieldForPattern}
                 selectedTrackerFieldSet={selectedTrackerFieldSetForPattern}
-                playbackState={playbackState}
                 defaultStartPlaybackPosition={defaultStartPlaybackPosition}
                 channelStatus={channelStatus}
                 soloChannel={soloChannel}
@@ -1614,8 +1555,13 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
           >
             <PlusIcon />
           </StyledAddPatternButton>
-        </StyledAddPatternWrapper>
-      </StyledTrackerScrollWrapper>
+          </StyledAddPatternWrapper>
+        </StyledTrackerScrollWrapper>
+
+        <SongTrackerPlaybackController
+          scrollRef={scrollRef}
+          sequenceLength={sequenceLength}
+        />
 
       <TrackerKeyboard
         type="pattern"

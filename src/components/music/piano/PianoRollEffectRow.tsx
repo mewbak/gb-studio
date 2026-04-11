@@ -57,12 +57,14 @@ export const PianoRollEffectRow = React.memo(
     );
 
     const selectedRowIds = useMemo(() => {
-      return selectedPatternCells
+      return new Set(
+        selectedPatternCells
         .filter(
           (cell) =>
             cell.sequenceId === sequenceId && cell.channelId === channelId,
         )
-        .map((cell) => cell.rowId);
+        .map((cell) => cell.rowId),
+      );
     }, [channelId, selectedPatternCells, sequenceId]);
 
     const songDocument = useAppSelector(
@@ -147,7 +149,7 @@ export const PianoRollEffectRow = React.memo(
         {renderPattern?.map((column: PatternCell[], columnIdx: number) => {
           const cell = column[channelId];
 
-          const isSelected = selectedRowIds.includes(columnIdx);
+          const isSelected = selectedRowIds.has(columnIdx);
 
           if (!cell || cell.effectcode === null) {
             return null;

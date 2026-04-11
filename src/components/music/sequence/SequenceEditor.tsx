@@ -32,7 +32,6 @@ interface SequenceOption {
 interface SequenceEditorProps {
   sequence: number[];
   patterns: number;
-  playingSequence: number;
   height?: number;
   direction: "vertical" | "horizontal";
 }
@@ -151,7 +150,6 @@ const SequenceItem = ({
 const SequenceEditorFwd = ({
   sequence,
   patterns,
-  playingSequence,
   height,
   direction,
 }: SequenceEditorProps) => {
@@ -159,6 +157,9 @@ const SequenceEditorFwd = ({
 
   const [selectHasFocus, setSelectHasFocus] = useState(false);
   const sequenceId = useAppSelector((state) => state.tracker.selectedSequence);
+  const playingSequence = useAppSelector(
+    (state) => state.tracker.playbackPosition[0],
+  );
   const sequenceLengthRef = useRef(sequence?.length ?? 0);
 
   const setSequenceId = useCallback(
@@ -186,9 +187,11 @@ const SequenceEditorFwd = ({
 
   const play = useAppSelector((state) => state.tracker.playing);
 
-  if (play && playingSequence !== -1) {
-    setSequenceId(playingSequence);
-  }
+  useEffect(() => {
+    if (play && playingSequence !== -1 && playingSequence !== sequenceId) {
+      setSequenceId(playingSequence);
+    }
+  }, [play, playingSequence, sequenceId, setSequenceId]);
 
   const sequenceOptions: SequenceOption[] = Array.from(
     Array(patterns || 0).keys(),

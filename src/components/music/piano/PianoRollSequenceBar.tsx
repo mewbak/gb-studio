@@ -1,4 +1,4 @@
-import React, { useRef, useCallback, useEffect, useMemo } from "react";
+import React, { memo, useRef, useCallback, useMemo } from "react";
 import { Song } from "shared/lib/uge/types";
 import { useAppDispatch, useAppSelector } from "store/hooks";
 import {
@@ -31,8 +31,7 @@ import { fromAbsRow } from "store/features/trackerDocument/trackerDocumentHelper
 
 interface PianoRollSequenceBarProps {
   song: Song;
-  playbackOrder: number;
-  playbackRow: number;
+  children?: React.ReactNode;
 }
 
 interface PianoRollSequenceBarPatternProps {
@@ -44,7 +43,7 @@ interface PianoRollSequenceBarPatternProps {
 
 const tickMarkers = [8, 16, 24, 32, 40, 48, 56] as const;
 
-const PianoRollSequenceBarPattern = ({
+const PianoRollSequenceBarPattern = memo(({
   patternIndex,
   orderIndex,
   orderLength,
@@ -89,13 +88,10 @@ const PianoRollSequenceBarPattern = ({
       {contextMenuElement}
     </StyledPianoRollSequenceHeaderPattern>
   );
-};
+});
 
-export const PianoRollSequenceBar = ({
-  song,
-  playbackOrder,
-  playbackRow,
-}: PianoRollSequenceBarProps) => {
+export const PianoRollSequenceBar = memo(
+  ({ song, children }: PianoRollSequenceBarProps) => {
   const dispatch = useAppDispatch();
 
   const sequenceLength = song.sequence.length;
@@ -128,17 +124,6 @@ export const PianoRollSequenceBar = ({
     },
     [dispatch],
   );
-
-  useEffect(() => {
-    if (playbackOrder >= sequenceLength) {
-      // Playback has overflowed song
-      // e.g. deleted a pattern when playback was inside that pattern
-      API.music.sendToMusicWindow({
-        action: "position",
-        position: [0, 0],
-      });
-    }
-  }, [playbackOrder, sequenceLength]);
 
   const updatePlaybackPosition = useCallback(
     (e: MouseEvent) => {
@@ -184,11 +169,6 @@ export const PianoRollSequenceBar = ({
     [updatePlaybackPosition],
   );
 
-  const playheadX = calculatePlaybackTrackerPosition(
-    playbackOrder,
-    playbackRow,
-  );
-
   const defaultPlayheadX = calculatePlaybackTrackerPosition(
     defaultStartPlaybackPosition[0],
     defaultStartPlaybackPosition[1],
@@ -224,9 +204,8 @@ export const PianoRollSequenceBar = ({
           style={{ transform: `translateX(${defaultPlayheadX}px)` }}
         />
       )}
-      <StyledPianoRollPlayhead
-        style={{ transform: `translateX(${playheadX}px)` }}
-      />
+      {children}
     </StyledPianoRollScrollTopWrapper>
   );
-};
+  },
+);

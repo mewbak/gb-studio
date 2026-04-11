@@ -32,8 +32,6 @@ import SongDocument from "components/music/SongDocument";
 import { SequenceEditor } from "components/music/sequence/SequenceEditor";
 import l10n from "shared/lib/lang/l10n";
 import { SplitPaneHeader } from "ui/splitpane/SplitPaneHeader";
-import API from "renderer/lib/api";
-import { MusicDataReceivePacket } from "shared/lib/music/types";
 import { InstrumentEditor } from "components/music/sidebar/InstrumentEditor";
 import SongEditorToolsPanel from "components/music/toolbar/SongEditorToolsPanel";
 import { PatternCellSelectionEditor } from "components/music/sidebar/PatternCellSelectionEditor";
@@ -288,31 +286,6 @@ const StandaloneMusicPage = ({
     setMobileOverlayView("settings");
   }, [setMobileOverlayView]);
 
-  const [playbackState, setPlaybackState] = useState<[number, number]>([0, 0]);
-
-  const startPlaybackPosition = useAppSelector(
-    (state) => state.tracker.startPlaybackPosition,
-  );
-
-  useEffect(() => {
-    setPlaybackState(startPlaybackPosition);
-  }, [startPlaybackPosition]);
-
-  useEffect(() => {
-    const listener = (_event: unknown, d: MusicDataReceivePacket) => {
-      if (d.action === "update") {
-        setPlaybackState(d.update);
-      } else if (d.action === "initialized") {
-        setPlaybackState([0, 0]);
-      }
-    };
-
-    const unsubscribeMusicData = API.events.music.response.subscribe(listener);
-    return () => {
-      unsubscribeMusicData();
-    };
-  }, []);
-
   useEffect(() => {
     dispatch(trackerActions.setShowVirtualKeyboard(isProbablyPhone()));
   }, [dispatch]);
@@ -419,7 +392,6 @@ const StandaloneMusicPage = ({
                       direction="horizontal"
                       sequence={songDocument.sequence}
                       patterns={songDocument.patterns.length}
-                      playingSequence={playbackState[0]}
                     />
                   ) : (
                     <div
@@ -490,7 +462,6 @@ const StandaloneMusicPage = ({
                     direction="vertical"
                     sequence={songDocument.sequence}
                     patterns={songDocument.patterns.length}
-                    playingSequence={playbackState[0]}
                   />
                 )}
               </MobileOverlay>

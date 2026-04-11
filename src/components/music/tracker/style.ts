@@ -231,7 +231,6 @@ export const StyledTrackerRow = styled.tr<StyledTrackerRowProps>`
 `;
 
 interface StyledTrackerCellProps {
-  $isPlaying?: boolean;
   $isDefaultPlayhead?: boolean;
   $isMuted?: boolean;
 }
@@ -280,29 +279,21 @@ export const StyledTrackerCell = styled.td<StyledTrackerCellProps>`
         `
       : ""}
 
-  ${(props) =>
-    props.$isPlaying
-      ? css`
-          && {
-            position: relative;
-            background-color: ${props.theme.colors.highlight};
-            color: ${props.theme.colors.highlightText};
+  &[data-playing="true"] {
+    position: relative;
+    background-color: ${(props) => props.theme.colors.highlight};
+    color: ${(props) => props.theme.colors.highlightText};
 
-            &:after {
-              content: "";
-              position: absolute;
-              top: 0px;
-              right: -14px;
-              border-top: 14px solid transparent;
-              border-bottom: 14px solid transparent;
-              border-left: 14px solid ${props.theme.colors.highlight};
-            }
-          }
-          ${StyledTrackerField} {
-            color: ${props.theme.colors.highlightText};
-          }
-        `
-      : ""}
+    &:after {
+      content: "";
+      position: absolute;
+      top: 0px;
+      right: -14px;
+      border-top: 14px solid transparent;
+      border-bottom: 14px solid transparent;
+      border-left: 14px solid ${(props) => props.theme.colors.highlight};
+    }
+  }
 
   ${(props) =>
     props.$isMuted

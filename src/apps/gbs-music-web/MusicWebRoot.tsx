@@ -10,9 +10,11 @@ import initRendererL10N from "renderer/lib/lang/initRendererL10N";
 import { initKeyBindings } from "renderer/lib/keybindings/keyBindings";
 import { MusicWebApp } from "gbs-music-web/components/MusicWebApp";
 import { initTheme } from "renderer/lib/theme";
+import { initMusicPlaybackListener } from "renderer/lib/music/initMusicPlaybackListener";
 
 const store = createMusicEditorStore();
 installWebRendererApi(store);
+initMusicPlaybackListener(store.dispatch);
 initKeyBindings();
 
 (async () => {

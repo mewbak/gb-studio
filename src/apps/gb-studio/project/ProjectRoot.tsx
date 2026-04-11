@@ -10,8 +10,11 @@ import { initTheme } from "renderer/lib/theme";
 import { initFullScreenDetector } from "renderer/lib/handleFullScreen";
 import initRendererL10N from "renderer/lib/lang/initRendererL10N";
 import { initMouseTracking } from "renderer/lib/helpers/mouse";
+import { initMusicPlaybackListener } from "renderer/lib/music/initMusicPlaybackListener";
 import "./initProject";
 import "./appHotkeys";
+
+initMusicPlaybackListener(store.dispatch);
 
 (async () => {
   await initRendererL10N();

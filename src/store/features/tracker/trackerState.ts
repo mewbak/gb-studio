@@ -80,6 +80,7 @@ export interface TrackerState {
   hoverNote: number | null;
   hoverColumn: number | null;
   hoverSequence: number | null;
+  playbackPosition: [number, number];
   startPlaybackPosition: [number, number];
   defaultStartPlaybackPosition: [number, number];
   selectedSongId: string;
@@ -120,6 +121,7 @@ export const initialState: TrackerState = {
   hoverNote: null,
   hoverColumn: null,
   hoverSequence: null,
+  playbackPosition: [0, 0],
   startPlaybackPosition: [0, 0],
   defaultStartPlaybackPosition: [0, 0],
   selectedSongId: "",
@@ -156,6 +158,7 @@ const trackerSlice = createSlice({
     stopTracker: (state, _action: PayloadAction<void>) => {
       state.playing = false;
       state.startPlaybackPosition = [...state.defaultStartPlaybackPosition];
+      state.playbackPosition = [...state.defaultStartPlaybackPosition];
     },
     setExporting: (state, action: PayloadAction<boolean>) => {
       state.exporting = action.payload;
@@ -209,7 +212,17 @@ const trackerSlice = createSlice({
       _action: PayloadAction<[number, number]>,
     ) => {
       state.startPlaybackPosition = _action.payload;
+      state.playbackPosition = _action.payload;
       state.defaultStartPlaybackPosition = _action.payload;
+    },
+    setPlaybackPosition: (
+      state,
+      action: PayloadAction<[number, number]>,
+    ) => {
+      state.playbackPosition = action.payload;
+    },
+    resetPlaybackPosition: (state) => {
+      state.playbackPosition = [0, 0];
     },
     setSelectedSongId: (state, action: PayloadAction<string>) => {
       state.selectedSongId = action.payload;
@@ -323,6 +336,7 @@ const trackerSlice = createSlice({
         state.modified = false;
         state.status = "init";
         state.playerReady = false;
+        state.playbackPosition = [0, 0];
       })
       .addCase(trackerDocumentActions.moveSequence, (state, action) => {
         state.selectedSequence = action.payload.toIndex;

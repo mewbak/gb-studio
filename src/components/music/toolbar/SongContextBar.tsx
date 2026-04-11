@@ -7,7 +7,6 @@ import React, {
 } from "react";
 import API from "renderer/lib/api";
 import l10n from "shared/lib/lang/l10n";
-import { MusicDataReceivePacket } from "shared/lib/music/types";
 import trackerActions from "store/features/tracker/trackerActions";
 import { useAppDispatch, useAppSelector } from "store/hooks";
 import styled, { css, ThemeContext } from "styled-components";
@@ -124,16 +123,13 @@ export const SongContextBar = ({
   );
 
   const [playbackFromStart, setPlaybackFromStart] = useState(false);
-
-  const [playbackState, setPlaybackState] = useState([0, 0]);
-
-  const startPlaybackPosition = useAppSelector(
-    (state) => state.tracker.startPlaybackPosition,
+  const playbackPosition = useAppSelector(
+    (state) => state.tracker.playbackPosition,
   );
 
-  const orderIndex = playbackState[0];
-  const patternIndex = sequence?.[playbackState[0]] ?? 0;
-  const rowIndex = playbackState[1];
+  const orderIndex = playbackPosition[0];
+  const patternIndex = sequence?.[playbackPosition[0]] ?? 0;
+  const rowIndex = playbackPosition[1];
   const themeContext = useContext(ThemeContext);
 
   const setTrackerView = useCallback(() => {
@@ -231,24 +227,6 @@ export const SongContextBar = ({
       window.removeEventListener("keyup", onKeyUp);
     };
   });
-
-  useEffect(() => {
-    setPlaybackState(startPlaybackPosition);
-  }, [setPlaybackState, startPlaybackPosition]);
-
-  useEffect(() => {
-    const listener = (_event: unknown, d: MusicDataReceivePacket) => {
-      if (d.action === "update") {
-        setPlaybackState(d.update);
-      } else if (d.action === "initialized") {
-        setPlaybackState([0, 0]);
-      }
-    };
-    const unsubscribeMusicData = API.events.music.response.subscribe(listener);
-    return () => {
-      unsubscribeMusicData();
-    };
-  }, [setPlaybackState]);
 
   const themePianoIcon =
     themeContext?.type === "light" ? <PianoIcon /> : <PianoInverseIcon />;

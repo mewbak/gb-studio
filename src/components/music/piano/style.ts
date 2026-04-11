@@ -549,7 +549,9 @@ export const StyledPianoRollPatternBlock = styled.div<StyledPianoRollPatternBloc
   width: ${PIANO_ROLL_CELL_SIZE * TRACKER_PATTERN_LENGTH}px;
   height: ${PIANO_ROLL_CELL_SIZE * TOTAL_NOTES}px;
   overflow: hidden;
-  transition: all 0.2s ease-in-out;
+  transition:
+    opacity 0.2s ease-in-out,
+    box-shadow 0.2s ease-in-out;
   transition-delay: 0.1s;
   &:last-child {
     border-right: 1px solid ${(props) => props.theme.colors.sidebar.border};

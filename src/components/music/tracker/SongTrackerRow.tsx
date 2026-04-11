@@ -28,7 +28,6 @@ interface SongTrackerRowProps {
   channelStatus: boolean[];
   activeFieldInRow: number | undefined;
   selectedFieldsInRow?: Set<number>;
-  isPlaying: boolean;
   isDefaultPlayhead: boolean;
   isStepMarker: boolean;
   activeFieldRef: React.RefObject<HTMLSpanElement | null>;
@@ -42,7 +41,6 @@ export const SongTrackerRow = memo(
     channelStatus,
     activeFieldInRow,
     selectedFieldsInRow,
-    isPlaying,
     isDefaultPlayhead,
     isStepMarker,
     activeFieldRef,
@@ -54,7 +52,7 @@ export const SongTrackerRow = memo(
     return (
       <StyledTrackerRow $isStepMarker={isStepMarker} $isActive={isActive}>
         <StyledTrackerCell
-          $isPlaying={isPlaying}
+          id={`tracker_playhead_${renderSequenceId}_${rowIndex}`}
           $isDefaultPlayhead={isDefaultPlayhead}
           $isMuted={false}
           data-row={rowIndex}

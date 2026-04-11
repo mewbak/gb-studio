@@ -1,5 +1,5 @@
-import React from "react";
-import { useAppSelector } from "store/hooks";
+import React, { memo } from "react";
+import { PatternCell } from "shared/lib/uge/types";
 import { PatternChannelNotes } from "./PatternChannelNotes";
 import { PianoRollCrosshair } from "./PianoRollCrosshair";
 import {
@@ -8,37 +8,30 @@ import {
 } from "./style";
 
 interface PianoRollPatternBlockProps {
-  patternId: number;
+  pattern: PatternCell[][];
   sequenceId: number;
   displayChannels: number[];
   isDragging: boolean;
+  playing: boolean;
+  selectedChannel: number;
+  hoverColumn: number | null;
+  hoverNote: number | null;
+  hoverSequence: number | null;
+  selectedRowsByChannel: ReadonlyMap<number, ReadonlySet<number>>;
 }
 
-export const PianoRollPatternBlock = ({
-  patternId,
+export const PianoRollPatternBlock = memo(({
+  pattern,
   sequenceId,
   displayChannels,
   isDragging,
+  playing,
+  selectedChannel,
+  hoverColumn,
+  hoverNote,
+  hoverSequence,
+  selectedRowsByChannel,
 }: PianoRollPatternBlockProps) => {
-  const songDocument = useAppSelector(
-    (state) => state.trackerDocument.present.song,
-  );
-  const playing = useAppSelector((state) => state.tracker.playing);
-
-  const selectedChannel = useAppSelector(
-    (state) => state.tracker.selectedChannel,
-  );
-
-  const hoverColumn = useAppSelector((state) => state.tracker.hoverColumn);
-  const hoverNote = useAppSelector((state) => state.tracker.hoverNote);
-  const hoverSequence = useAppSelector((state) => state.tracker.hoverSequence);
-
-  const selectedPatternCells = useAppSelector(
-    (state) => state.tracker.selectedPatternCells,
-  );
-
-  const pattern = songDocument?.patterns[patternId] ?? [];
-
   const isSequenceHovered =
     hoverSequence === sequenceId ||
     (hoverSequence === null && sequenceId === 0);
@@ -62,13 +55,12 @@ export const PianoRollPatternBlock = ({
         <PatternChannelNotes
           key={channelId}
           channelId={channelId}
-          sequenceId={sequenceId}
           isActive={selectedChannel === channelId}
           pattern={pattern}
-          selectedPatternCells={selectedPatternCells}
+          selectedRowIds={selectedRowsByChannel.get(channelId)}
           isDragging={isDragging}
         />
       ))}
     </StyledPianoRollPatternBlock>
   );
-};
+});

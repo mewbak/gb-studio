@@ -1,4 +1,4 @@
-import React, { memo } from "react";
+import React, { memo, useMemo } from "react";
 import { PatternCell } from "shared/lib/uge/types";
 import { TrackerHeaderCell } from "./TrackerHeaderCell";
 import {
@@ -20,7 +20,6 @@ interface SongTrackerPatternProps {
   activeSequenceId: number;
   activeLocalField: number | undefined;
   selectedTrackerFieldSet?: Set<number>;
-  playbackState: [number, number];
   defaultStartPlaybackPosition: [number, number];
   channelStatus: boolean[];
   soloChannel: number;
@@ -41,7 +40,6 @@ export const SongTrackerPattern = memo(
     activeSequenceId,
     activeLocalField,
     selectedTrackerFieldSet,
-    playbackState,
     defaultStartPlaybackPosition,
     channelStatus,
     soloChannel,
@@ -54,6 +52,33 @@ export const SongTrackerPattern = memo(
     onSelectionContextMenu,
   }: SongTrackerPatternProps) => {
     const isActivePattern = renderSequenceId === activeSequenceId;
+    const activeRowIndex =
+      activeLocalField !== undefined
+        ? Math.floor(activeLocalField / TRACKER_ROW_SIZE)
+        : undefined;
+
+    const selectedFieldsByRow = useMemo(() => {
+      if (!selectedTrackerFieldSet) {
+        return undefined;
+      }
+
+      const next = new Map<number, Set<number>>();
+
+      for (const field of selectedTrackerFieldSet) {
+        const rowIndex = Math.floor(field / TRACKER_ROW_SIZE);
+        const rowStart = rowIndex * TRACKER_ROW_SIZE;
+        let rowFields = next.get(rowIndex);
+
+        if (!rowFields) {
+          rowFields = new Set<number>();
+          next.set(rowIndex, rowFields);
+        }
+
+        rowFields.add(field - rowStart);
+      }
+
+      return next;
+    }, [selectedTrackerFieldSet]);
 
     return (
       <StyledTrackerContentTable $type="pattern">
@@ -123,27 +148,6 @@ export const SongTrackerPattern = memo(
           onContextMenu={onSelectionContextMenu}
         >
           {pattern?.map((row: PatternCell[], rowIndex: number) => {
-            let selectedFieldsInRow: Set<number> | undefined;
-
-            if (selectedTrackerFieldSet) {
-              const rowStart = rowIndex * TRACKER_ROW_SIZE;
-              const rowEnd = rowStart + TRACKER_ROW_SIZE - 1;
-
-              for (const field of selectedTrackerFieldSet) {
-                if (field >= rowStart && field <= rowEnd) {
-                  if (!selectedFieldsInRow) {
-                    selectedFieldsInRow = new Set<number>();
-                  }
-                  selectedFieldsInRow.add(field - rowStart);
-                }
-              }
-            }
-
-            const activeRowIndex =
-              activeLocalField !== undefined
-                ? Math.floor(activeLocalField / TRACKER_ROW_SIZE)
-                : undefined;
-
             const activeFieldInRow =
               activeRowIndex === rowIndex && activeLocalField !== undefined
                 ? activeLocalField - rowIndex * TRACKER_ROW_SIZE
@@ -157,11 +161,7 @@ export const SongTrackerPattern = memo(
                 renderSequenceId={renderSequenceId}
                 channelStatus={channelStatus}
                 activeFieldInRow={activeFieldInRow}
-                selectedFieldsInRow={selectedFieldsInRow}
-                isPlaying={
-                  playbackState[0] === renderSequenceId &&
-                  playbackState[1] === rowIndex
-                }
+                selectedFieldsInRow={selectedFieldsByRow?.get(rowIndex)}
                 isDefaultPlayhead={
                   defaultStartPlaybackPosition[0] === renderSequenceId &&
                   defaultStartPlaybackPosition[1] === rowIndex

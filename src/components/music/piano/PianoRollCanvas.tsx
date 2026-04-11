@@ -4,7 +4,6 @@ import React, {
   useMemo,
   useCallback,
   useState,
-  useLayoutEffect,
 } from "react";
 import { PatternCell, Song } from "shared/lib/uge/types";
 import { useAppDispatch, useAppSelector } from "store/hooks";
@@ -52,7 +51,6 @@ import { Selection } from "ui/document/Selection";
 import { CaretRightIcon, FXIcon, PlusIcon } from "ui/icons/Icons";
 import useResizeObserver from "ui/hooks/use-resize-observer";
 import l10n from "shared/lib/lang/l10n";
-import { mergeRefs } from "ui/hooks/merge-refs";
 import {
   resolveAbsRow,
   toAbsRow,
@@ -73,6 +71,7 @@ import {
 } from "components/music/piano/types";
 import { FixedSpacer } from "ui/spacing/Spacing";
 import { wrapNote } from "shared/lib/uge/display";
+import { PianoRollPlaybackController } from "./PianoRollPlaybackController";
 
 const TAP_MAX_MOVEMENT = 20;
 const TWO_FINGER_TAP_MAX_DURATION = 300;
@@ -81,15 +80,11 @@ const DRAG_COMMIT_TAP_MAX_MOVEMENT = 5;
 
 interface PianoRollCanvasProps {
   song: Song;
-  playbackOrder: number;
-  playbackRow: number;
 }
 
-export const PianoRollCanvas = ({
-  song,
-  playbackOrder,
-  playbackRow,
-}: PianoRollCanvasProps) => {
+const EMPTY_SELECTED_ROWS_BY_CHANNEL = new Map<number, ReadonlySet<number>>();
+
+export const PianoRollCanvas = ({ song }: PianoRollCanvasProps) => {
   const dispatch = useAppDispatch();
   const playPreview = useMusicNotePreview();
 
@@ -131,6 +126,9 @@ export const PianoRollCanvas = ({
 
   const documentRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [scrollElement, setScrollElement] = useState<HTMLDivElement | null>(
+    null,
+  );
   const [wrapperEl, wrapperSize] = useResizeObserver<HTMLDivElement>();
 
   // Redux State
@@ -187,6 +185,7 @@ export const PianoRollCanvas = ({
   const hoverSequenceIdRef = useRef(hoverSequenceId);
   const selectedPatternCellsRef = useRef(selectedPatternCells);
   const lastSelectedSequenceId = useRef(selectedSequenceId);
+  const playingRef = useRef(playing);
 
   // Sync refs to contain latest data on changes
   useEffect(() => {
@@ -195,7 +194,8 @@ export const PianoRollCanvas = ({
     hoverColumnRef.current = hoverColumn;
     hoverSequenceIdRef.current = hoverSequenceId;
     selectedPatternCellsRef.current = selectedPatternCells;
-  }, [song, hoverNote, hoverColumn, hoverSequenceId, selectedPatternCells]);
+    playingRef.current = playing;
+  }, [song, hoverNote, hoverColumn, hoverSequenceId, selectedPatternCells, playing]);
 
   // Cached State
 
@@ -302,6 +302,28 @@ export const PianoRollCanvas = ({
         } => note !== null,
       );
   }, [selectedPatternCells, totalAbsRows, dragPreviewState]);
+
+  const selectedRowsBySequence = useMemo(() => {
+    const next = new Map<number, Map<number, Set<number>>>();
+
+    for (const cell of selectedPatternCells) {
+      let rowsByChannel = next.get(cell.sequenceId);
+      if (!rowsByChannel) {
+        rowsByChannel = new Map<number, Set<number>>();
+        next.set(cell.sequenceId, rowsByChannel);
+      }
+
+      let selectedRows = rowsByChannel.get(cell.channelId);
+      if (!selectedRows) {
+        selectedRows = new Set<number>();
+        rowsByChannel.set(cell.channelId, selectedRows);
+      }
+
+      selectedRows.add(cell.rowId);
+    }
+
+    return next;
+  }, [selectedPatternCells]);
 
   // If selected pattern cells contains any cells outside of currently
   // selected channel, filter the selection to only include channel cells
@@ -975,6 +997,10 @@ export const PianoRollCanvas = ({
   // Keyboard listeners
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
+      if (playingRef.current) {
+        return;
+      }
+
       interactionRef.current = {
         ...interactionRef.current,
         modifiers: {
@@ -2044,6 +2070,10 @@ export const PianoRollCanvas = ({
 
   const onPointerMove = useCallback(
     (e: PointerEvent) => {
+      if (playingRef.current) {
+        return;
+      }
+
       updateActivePointer(e);
 
       if (handleTwoFingerGestureMove(e)) {
@@ -2297,16 +2327,6 @@ export const PianoRollCanvas = ({
   }, []);
 
   // Scroll to playhead while song is playing
-  useLayoutEffect(() => {
-    if (scrollRef.current && playing) {
-      const rect = scrollRef.current.getBoundingClientRect();
-      const halfWidth = rect.width * 0.5;
-      scrollRef.current.scrollLeft =
-        calculatePlaybackTrackerPosition(playbackOrder, playbackRow) -
-        halfWidth;
-    }
-  }, [playing, playbackOrder, playbackRow]);
-
   // On sequenceId change, smoothly scroll
   // to newly selected pattern
   useEffect(() => {
@@ -2334,15 +2354,25 @@ export const PianoRollCanvas = ({
 
   // #endregion Scroll Handling Effects
 
+  const onScrollWrapperRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      scrollRef.current = node;
+      setScrollElement(node);
+      wrapperEl.current = node;
+    },
+    [wrapperEl],
+  );
+
   return (
-    <StyledPianoRollScrollWrapper ref={mergeRefs(scrollRef, wrapperEl)}>
+    <StyledPianoRollScrollWrapper ref={onScrollWrapperRef}>
       <StyledPianoRollScrollCanvas>
         <div style={{ minWidth: PIANO_ROLL_PIANO_WIDTH + documentWidth }}>
-          <PianoRollSequenceBar
-            song={song}
-            playbackOrder={playbackOrder}
-            playbackRow={playbackRow}
-          />
+          <PianoRollSequenceBar song={song}>
+            <PianoRollPlaybackController
+              scrollElement={scrollElement}
+              sequenceLength={song.sequence.length}
+            />
+          </PianoRollSequenceBar>
           <StyledPianoRollScrollLeftWrapper>
             <StyledPianoRollScrollLeftHeaderSpacer
               onClick={onJumpToSongStart}
@@ -2373,10 +2403,18 @@ export const PianoRollCanvas = ({
               {song.sequence.map((p, i) => (
                 <PianoRollPatternBlock
                   key={`roll_pattern_${i}:${p}`}
-                  patternId={p}
+                  pattern={song.patterns[p] ?? []}
                   sequenceId={i}
                   displayChannels={displayChannels}
                   isDragging={dragPreviewState.type === "dragging"}
+                  playing={playing}
+                  selectedChannel={selectedChannel}
+                  hoverColumn={hoverColumn}
+                  hoverNote={hoverNote}
+                  hoverSequence={hoverSequenceId}
+                  selectedRowsByChannel={
+                    selectedRowsBySequence.get(i) ?? EMPTY_SELECTED_ROWS_BY_CHANNEL
+                  }
                 />
               ))}
             </StyledPianoRollPatternsWrapper>

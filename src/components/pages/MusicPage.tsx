@@ -34,8 +34,6 @@ import SongDocument from "components/music/SongDocument";
 import { SequenceEditor } from "components/music/sequence/SequenceEditor";
 import l10n from "shared/lib/lang/l10n";
 import { SplitPaneHeader } from "ui/splitpane/SplitPaneHeader";
-import API from "renderer/lib/api";
-import { MusicDataReceivePacket } from "shared/lib/music/types";
 import { InstrumentEditor } from "components/music/sidebar/InstrumentEditor";
 import SongEditorToolsPanel from "components/music/toolbar/SongEditorToolsPanel";
 import { FixedSpacer } from "ui/spacing/Spacing";
@@ -218,31 +216,6 @@ const MusicPage = () => {
     setPatternsPanelOpen((value) => !value);
   }, []);
 
-  const [playbackState, setPlaybackState] = useState<[number, number]>([0, 0]);
-
-  const startPlaybackPosition = useAppSelector(
-    (state) => state.tracker.startPlaybackPosition,
-  );
-
-  useEffect(() => {
-    setPlaybackState(startPlaybackPosition);
-  }, [startPlaybackPosition]);
-
-  useEffect(() => {
-    const listener = (_event: unknown, d: MusicDataReceivePacket) => {
-      if (d.action === "update") {
-        setPlaybackState(d.update);
-      } else if (d.action === "initialized") {
-        setPlaybackState([0, 0]);
-      }
-    };
-
-    const unsubscribeMusicData = API.events.music.response.subscribe(listener);
-    return () => {
-      unsubscribeMusicData();
-    };
-  }, []);
-
   const songsPane = useMemo(
     () => (
       <NavigatorSongsPane
@@ -370,7 +343,6 @@ const MusicPage = () => {
                       direction="horizontal"
                       sequence={songDocument.sequence}
                       patterns={songDocument.patterns.length}
-                      playingSequence={playbackState[0]}
                     />
                   ) : (
                     <div
