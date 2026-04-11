@@ -7,12 +7,12 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { renderEffect, renderEffectParam } from "components/music/helpers";
+import { renderEffect, renderEffectParam } from "shared/lib/uge/display";
 import {
   NO_CHANGE_ON_PASTE,
   parseClipboardToSubPattern,
   parseSubPatternFieldsToClipboard,
-} from "components/music/musicClipboardHelpers";
+} from "shared/lib/uge/clipboard";
 import { getKeys } from "renderer/lib/keybindings/keyBindings";
 import trackerActions from "store/features/tracker/trackerActions";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";

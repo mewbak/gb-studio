@@ -36,7 +36,7 @@ import clamp from "shared/lib/helpers/clamp";
 import trackerActions from "store/features/tracker/trackerActions";
 import API from "renderer/lib/api";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
-import { NO_CHANGE_ON_PASTE } from "components/music/musicClipboardHelpers";
+import { NO_CHANGE_ON_PASTE } from "shared/lib/uge/clipboard";
 import {
   calculateDocumentWidth,
   calculatePlaybackTrackerPosition,
@@ -46,7 +46,6 @@ import {
   pixelRangeToGridRange,
   pixelToGridIndex,
   rowToNote,
-  wrapNote,
 } from "./helpers";
 import { PianoRollSequenceBar } from "./PianoRollSequenceBar";
 import { Selection } from "ui/document/Selection";
@@ -73,6 +72,7 @@ import {
   TwoFingerTapState,
 } from "components/music/piano/types";
 import { FixedSpacer } from "ui/spacing/Spacing";
+import { wrapNote } from "shared/lib/uge/display";
 
 const TAP_MAX_MOVEMENT = 20;
 const TWO_FINGER_TAP_MAX_DURATION = 300;

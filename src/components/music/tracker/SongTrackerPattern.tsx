@@ -7,7 +7,7 @@ import {
   StyledTrackerTableHeaderRow,
   StyledTrackerTableBody,
 } from "./style";
-import { patternHue } from "components/music/helpers";
+import { patternHue } from "shared/lib/uge/display";
 import renderPatternContextMenu from "components/music/contextMenus/renderPatternContextMenu";
 import { DropdownButton } from "ui/buttons/DropdownButton";
 import { SongTrackerRow } from "./SongTrackerRow";

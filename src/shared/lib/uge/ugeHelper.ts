@@ -40,6 +40,10 @@ interface InstrumentData {
   noise_macro: number[];
 }
 
+/**
+ * Parses a `.uge` binary buffer and returns a fully populated Song object.
+ * Supports all versions of the hUGETracker format up to version 6.
+ */
 export const loadUGESong = (buffer: Buffer): Song => {
   const data = buffer.buffer.slice(
     buffer.byteOffset,
@@ -436,6 +440,10 @@ export const loadUGESong = (buffer: Buffer): Song => {
   return song;
 };
 
+/**
+ * Serialises a Song object into a `.uge` binary buffer that is compatible
+ * with hUGETracker version 6.
+ */
 export const saveUGESong = (song: Song): Buffer => {
   const buffer = new ArrayBuffer(1024 * 1024);
   const view = new DataView(buffer);
@@ -621,6 +629,14 @@ const patternEqual = function (a: PatternCell[], b: PatternCell[]) {
   return true;
 };
 
+/**
+ * Exports a Song to a GBDK-compatible C source file. The output contains
+ * instrument definitions, wave data, patterns, and sequence data ready for
+ * inclusion in a GB Studio game ROM.
+ *
+ * @param song - The song to export.
+ * @param trackName - C identifier used as the base name for exported symbols.
+ */
 export const exportToC = (song: Song, trackName: string): string => {
   const decHex = (n: number, maxLength = 2) => {
     return "0x" + n.toString(16).toUpperCase().padStart(maxLength, "0");

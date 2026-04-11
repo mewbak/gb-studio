@@ -1,5 +1,5 @@
 import { InstrumentSelect } from "components/music/form/InstrumentSelect";
-import { channelIdToInstrumentType } from "components/music/helpers";
+import { channelIdToInstrumentType } from "shared/lib/uge/display";
 import React, { useCallback, useMemo } from "react";
 import API from "renderer/lib/api";
 import l10n from "shared/lib/lang/l10n";

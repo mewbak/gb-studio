@@ -18,9 +18,11 @@ export const TRACKER_HEADER_HEIGHT = 40;
 export const TRACKER_INDEX_WIDTH = 56;
 export const TRACKER_CELL_HEIGHT = 28;
 
+/** Wraps a field index into the valid range `[0, TRACKER_NUM_FIELDS)`. */
 export const normalizeFieldIndex = (field: number) =>
   ((field % TRACKER_NUM_FIELDS) + TRACKER_NUM_FIELDS) % TRACKER_NUM_FIELDS;
 
+/** Converts a flat field index to its (column, row) grid position. */
 export const fieldToPosition = (field: number): Position => ({
   x: field % TRACKER_ROW_SIZE,
   y: Math.floor(field / TRACKER_ROW_SIZE),
@@ -29,6 +31,10 @@ export const fieldToPosition = (field: number): Position => ({
 const positionToField = (position: Position) =>
   position.y * TRACKER_ROW_SIZE + position.x;
 
+/**
+ * Builds a normalised SelectionRect from a fixed origin position and a target
+ * field index. The rect always has non-negative width and height.
+ */
 export const buildSelectionRect = (
   origin: Position,
   targetField: number,
@@ -43,6 +49,10 @@ export const buildSelectionRect = (
   };
 };
 
+/**
+ * Returns all field indices covered by `selectionRect`, or the single field at
+ * `selectionOrigin` when no rect is active.
+ */
 export const getSelectedTrackerFields = (
   selectionRect: SelectionRect | undefined,
   selectionOrigin: Position | undefined,
@@ -70,6 +80,7 @@ export const getSelectedTrackerFields = (
   return selectedTrackerFields;
 };
 
+/** Returns which column-focus type (note / instrument / effect code / effect param) a field index maps to. */
 export const getFieldColumnFocus = (
   field: number,
 ):
@@ -91,6 +102,10 @@ export const getFieldColumnFocus = (
   }
 };
 
+/**
+ * Converts a list of tracker field indices for a given sequence/pattern into
+ * unique PatternCellAddress objects, deduplicating multi-field cells.
+ */
 export const trackerFieldsToPatternCells = (
   sequenceId: number,
   patternId: number,

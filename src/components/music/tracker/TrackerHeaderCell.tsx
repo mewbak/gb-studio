@@ -10,7 +10,7 @@ import trackerActions from "store/features/tracker/trackerActions";
 import { useAppDispatch } from "store/hooks";
 import l10n from "shared/lib/lang/l10n";
 import { ChannelMuteIcon, ChannelSoloIcon } from "ui/icons/Icons";
-import { patternHue } from "components/music/helpers";
+import { patternHue } from "shared/lib/uge/display";
 
 interface TrackerHeaderCellProps {
   channel?: 0 | 1 | 2 | 3;

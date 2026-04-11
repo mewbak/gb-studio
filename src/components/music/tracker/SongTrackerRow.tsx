@@ -14,7 +14,7 @@ import {
   renderEffectParam,
   renderInstrument,
   renderNote,
-} from "components/music/helpers";
+} from "shared/lib/uge/display";
 import { TRACKER_CHANNEL_FIELDS, TRACKER_ROW_SIZE } from "consts";
 
 const renderCounter = (n: number): string => {

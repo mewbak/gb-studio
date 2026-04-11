@@ -20,7 +20,7 @@ import {
   InputGroupAppend,
   InputGroupLabel,
 } from "ui/form/InputGroup";
-import { getBPM } from "components/music/helpers";
+import { getBPM } from "shared/lib/uge/display";
 import l10n from "shared/lib/lang/l10n";
 
 export const SongMetadataEditor = () => {

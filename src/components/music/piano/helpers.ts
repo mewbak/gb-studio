@@ -5,6 +5,7 @@ import {
 } from "consts";
 import clamp from "shared/lib/helpers/clamp";
 
+/** Calculates the pixel offset of the playback cursor in the piano-roll timeline. */
 export const calculatePlaybackTrackerPosition = (
   playbackOrder: number,
   playbackRow: number,
@@ -12,20 +13,25 @@ export const calculatePlaybackTrackerPosition = (
   playbackOrder * TRACKER_PATTERN_LENGTH * PIANO_ROLL_CELL_SIZE +
   playbackRow * PIANO_ROLL_CELL_SIZE;
 
+/** Calculates the total pixel width of the piano-roll document for a given sequence length. */
 export const calculateDocumentWidth = (sequenceLength: number) =>
   sequenceLength * TRACKER_PATTERN_LENGTH * PIANO_ROLL_CELL_SIZE;
 
+/** Converts a MIDI-style note number to a piano-roll row index (top = highest note). */
 export const noteToRow = (note: number) => TOTAL_NOTES - 1 - note;
 
+/** Converts a piano-roll row index back to a MIDI-style note number. */
 export const rowToNote = (row: number) => TOTAL_NOTES - 1 - row;
 
-export const wrapNote = (note: number) =>
-  ((note % TOTAL_NOTES) + TOTAL_NOTES) % TOTAL_NOTES;
 export interface RollGridPoint {
   absRow: number;
   note: number;
 }
 
+/**
+ * Bresenham line interpolation between two grid points. Returns all grid
+ * positions that should be filled when drawing from `from` to `to`.
+ */
 export const interpolateGridLine = (
   from: RollGridPoint | null,
   to: RollGridPoint,
@@ -61,12 +67,17 @@ export const interpolateGridLine = (
   return points;
 };
 
+/** Converts a pixel offset to a grid cell index using `PIANO_ROLL_CELL_SIZE`. */
 export const pixelToGridIndex = (pixel: number) =>
   Math.floor(pixel / PIANO_ROLL_CELL_SIZE);
 
 export const pixelToGridStart = (pixel: number) =>
   pixelToGridIndex(pixel) * PIANO_ROLL_CELL_SIZE;
 
+/**
+ * Converts a pixel range [start, start+size] to a clamped grid cell range
+ * [from, to]. Useful for determining which cells overlap a viewport region.
+ */
 export const pixelRangeToGridRange = (
   start: number,
   size: number,
@@ -83,6 +94,10 @@ export const pixelRangeToGridRange = (
   return { from, to };
 };
 
+/**
+ * Converts page coordinates to a snapped grid point within the piano-roll
+ * canvas. Clamps the result to the valid document bounds.
+ */
 export const pageToSnappedGridPoint = (
   pageX: number,
   pageY: number,

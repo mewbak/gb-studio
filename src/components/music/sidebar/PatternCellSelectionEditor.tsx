@@ -20,10 +20,10 @@ import {
   TrashIcon,
 } from "ui/icons/Icons";
 import trackerActions from "store/features/tracker/trackerActions";
-import { channelIdToInstrumentType } from "components/music/helpers";
+import { channelIdToInstrumentType } from "shared/lib/uge/display";
 import { InputGroup, InputGroupAppend } from "ui/form/InputGroup";
 import { useMusicNotePreview } from "components/music/hooks/useMusicNotePreview";
-import { transposeNoteValue } from "store/features/trackerDocument/trackerDocumentHelpers";
+import { transposeNoteValue } from "shared/lib/uge/display";
 import { OCTAVE_SIZE } from "consts";
 
 const getSharedValue = <T extends keyof PatternCell>(

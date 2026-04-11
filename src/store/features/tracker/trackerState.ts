@@ -12,7 +12,7 @@ import trackerDocumentActions from "store/features/trackerDocument/trackerDocume
 import type { PatternCell } from "shared/lib/uge/types";
 import { AppThunk } from "store/storeTypes";
 import API from "renderer/lib/api";
-import { parseClipboardToPattern } from "store/features/trackerDocument/trackerDocumentHelpers";
+import { parseClipboardToPattern } from "shared/lib/uge/clipboard";
 import { PatternCellAddress } from "shared/lib/uge/editor/types";
 
 export type PianoRollToolType = "pencil" | "eraser" | "selection" | null;

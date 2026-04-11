@@ -10,7 +10,7 @@ import {
   parseClipboardOrigin,
   NO_CHANGE_ON_PASTE,
   parsePatternFieldsToClipboard,
-} from "components/music/musicClipboardHelpers";
+} from "shared/lib/uge/clipboard";
 import {
   TRACKER_ROW_SIZE,
   TRACKER_CHANNEL_FIELDS,
@@ -24,8 +24,8 @@ import {
   fromAbsRow,
   toAbsRow,
   resolveAbsRow,
-  wrapNote,
 } from "store/features/trackerDocument/trackerDocumentHelpers";
+import { wrapNote } from "shared/lib/uge/display";
 
 const convertModToUgeSong = createAsyncThunk<
   {

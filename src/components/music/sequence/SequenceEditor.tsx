@@ -12,7 +12,7 @@ import trackerActions from "store/features/tracker/trackerActions";
 import { useAppDispatch, useAppSelector } from "store/hooks";
 import { SingleValue } from "react-select";
 import { SortableList } from "ui/lists/SortableList";
-import { patternHue } from "components/music/helpers";
+import { patternHue } from "shared/lib/uge/display";
 import l10n from "shared/lib/lang/l10n";
 import renderPatternContextMenu from "components/music/contextMenus/renderPatternContextMenu";
 import { useContextMenu } from "ui/hooks/use-context-menu";

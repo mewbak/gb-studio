@@ -8,7 +8,7 @@ import {
   TOTAL_NOTES,
   TRACKER_PATTERN_LENGTH,
 } from "consts";
-import { patternHue } from "components/music/helpers";
+import { patternHue } from "shared/lib/uge/display";
 import { StyledButton } from "ui/buttons/style";
 
 export const StyledPianoRollWrapper = styled.div`

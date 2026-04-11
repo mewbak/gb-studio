@@ -1,35 +1,24 @@
 import {
   OCTAVE_SIZE,
-  TOTAL_NOTES,
   TRACKER_CHANNEL_FIELDS,
   TRACKER_NUM_CHANNELS,
   TRACKER_PATTERN_LENGTH,
   TRACKER_ROW_SIZE,
 } from "consts";
-import clamp from "shared/lib/helpers/clamp";
 import { PatternCell } from "shared/lib/uge/types";
-import { createPatternCell } from "shared/lib/uge/song";
-import { noteStringsForClipboard } from "shared/lib/music/constants";
 import { toValidChannelId } from "shared/lib/uge/editor/helpers";
-
-export const NO_CHANGE_ON_PASTE = -9;
-
-type PatternCellKey = keyof PatternCell;
-const patternCellFields: PatternCellKey[] = [
-  "note",
-  "instrument",
-  "effectcode",
-  "effectparam",
-];
+import { transposeNoteValue } from "shared/lib/uge/display";
 
 export interface AbsRowPosition {
   sequenceId: number;
   rowId: number;
 }
 
+/** Converts a (sequenceId, rowId) pair to a single absolute row index. */
 export const toAbsRow = (sequenceId: number, rowId: number) =>
   sequenceId * TRACKER_PATTERN_LENGTH + rowId;
 
+/** Splits an absolute row index back into its (sequenceId, rowId) components. */
 export const fromAbsRow = (absRow: number): AbsRowPosition => ({
   sequenceId: Math.floor(absRow / TRACKER_PATTERN_LENGTH),
   rowId: absRow % TRACKER_PATTERN_LENGTH,
@@ -39,6 +28,11 @@ export interface ResolvedAbsRow extends AbsRowPosition {
   patternId: number;
 }
 
+/**
+ * Resolves an absolute row index against the song sequence, returning the
+ * sequenceId, rowId, and patternId. Returns null when the sequence slot is
+ * out of bounds.
+ */
 export const resolveAbsRow = (
   sequence: number[],
   absRow: number,
@@ -51,23 +45,10 @@ export const resolveAbsRow = (
   return { sequenceId, rowId, patternId };
 };
 
-export const transposeNoteValue = (note: number | null, noteDelta: number) => {
-  if (note === null) {
-    return note;
-  }
-
-  if (Math.abs(noteDelta) === OCTAVE_SIZE) {
-    const noteClass = note % OCTAVE_SIZE;
-    const min = noteClass;
-    const max =
-      noteClass + Math.floor((71 - noteClass) / OCTAVE_SIZE) * OCTAVE_SIZE;
-    const next = note + noteDelta;
-    return clamp(next, min, max);
-  }
-
-  return clamp(note + noteDelta, 0, 71);
-};
-
+/**
+ * Mutates a PatternCell's note in-place by transposing it by `noteDelta`
+ * semitones. No-ops when the cell is undefined or its note is null.
+ */
 export const transposePatternCellNote = (
   cell: PatternCell | undefined,
   noteDelta: number,
@@ -83,6 +64,10 @@ export const transposePatternCellNote = (
   cell.note = transposeNoteValue(cell.note, noteDelta);
 };
 
+/**
+ * Returns the semitone delta for a transpose operation.
+ * "octave" uses ±12 semitones; "note" uses ±1.
+ */
 export const getTransposeNoteDelta = (
   direction: "up" | "down",
   size: "note" | "octave",
@@ -97,6 +82,10 @@ interface ResolvedTrackerCell {
   channelIndex: 0 | 1 | 2 | 3;
 }
 
+/**
+ * Converts a list of tracker field indices into unique (patternId, rowIndex,
+ * channelIndex) tuples, deduplicating fields that map to the same cell.
+ */
 export const resolveUniqueTrackerCells = (
   patternId: number,
   selectedTrackerFields: number[],
@@ -133,6 +122,11 @@ interface ResolvedTrackerCellField {
   fieldIndex: number;
 }
 
+/**
+ * Converts a list of tracker field indices into unique (patternId, rowIndex,
+ * channelIndex, fieldIndex) tuples, preserving individual cell field granularity
+ * and deduplicating exact field positions.
+ */
 export const resolveTrackerCellFields = (
   patternId: number,
   selectedTrackerFields: number[],
@@ -162,195 +156,3 @@ export const resolveTrackerCellFields = (
 
   return resolvedCells;
 };
-
-export const renderNote = (note: number | null): string => {
-  if (note === null) {
-    return "...";
-  }
-  const octave = ~~(note / 12) + 3;
-  return `${noteName[note % 12]}${octave}`;
-};
-
-export const renderInstrument = (instrument: number | null): string => {
-  if (instrument === null) return "..";
-  return (instrument + 1).toString().padStart(2, "0") || "..";
-};
-
-export const renderEffect = (effectcode: number | null): string => {
-  return effectcode?.toString(16).toUpperCase() || ".";
-};
-
-export const renderEffectParam = (effectparam: number | null): string => {
-  return effectparam?.toString(16).toUpperCase().padStart(2, "0") || "..";
-};
-
-const noteName = [
-  "C-",
-  "C#",
-  "D-",
-  "D#",
-  "E-",
-  "F-",
-  "F#",
-  "G-",
-  "G#",
-  "A-",
-  "A#",
-  "B-",
-];
-
-const patternCelltoString = (
-  p: PatternCell,
-  fields: PatternCellKey[] = [
-    "note",
-    "instrument",
-    "effectcode",
-    "effectparam",
-  ],
-) => {
-  return `|${fields.includes("note") ? renderNote(p.note) : "   "}${
-    fields.includes("instrument") ? renderInstrument(p.instrument) : "  "
-  }...${fields.includes("effectcode") ? renderEffect(p.effectcode) : " "}${
-    fields.includes("effectparam") ? renderEffectParam(p.effectparam) : "  "
-  }`;
-};
-
-export const parseClipboardOrigin = (clipboard: string): number | null => {
-  const match = clipboard.match(/^GBStudio origin: (\d+)$/m);
-  return match ? parseInt(match[1], 10) : null;
-};
-
-export const parsePatternToClipboard = (
-  pattern: PatternCell[][],
-  channelId?: number,
-  selectedCells?: number[],
-  originAbsRow?: number,
-) => {
-  let parsed: string[] = [
-    "GBStudio hUGETracker Piano format compatible with...",
-    "ModPlug Tracker  XM",
-  ];
-
-  if (originAbsRow !== undefined) {
-    parsed.push(`GBStudio origin: ${originAbsRow}`);
-  }
-
-  if (!selectedCells) {
-    parsed = pattern.map((p) => {
-      if (channelId !== undefined) {
-        const row = p[channelId];
-        return patternCelltoString(row);
-      } else {
-        return `${patternCelltoString(p[0])}${patternCelltoString(
-          p[1],
-        )}${patternCelltoString(p[2])}${patternCelltoString(p[3])}`;
-      }
-    });
-  } else if (selectedCells.length > 0) {
-    const sortedSelectedCells = [...selectedCells].sort((a, b) => a - b);
-    console.log(selectedCells, sortedSelectedCells);
-    for (
-      let i = sortedSelectedCells[0];
-      i <= sortedSelectedCells[sortedSelectedCells.length - 1];
-      i++
-    ) {
-      if (channelId !== undefined) {
-        if (selectedCells.indexOf(i) > -1) {
-          parsed.push(patternCelltoString(pattern[i][channelId]));
-        } else {
-          parsed.push(patternCelltoString(createPatternCell()));
-        }
-      }
-    }
-  }
-
-  return parsed.join("\n");
-};
-
-export const parsePatternFieldsToClipboard = (
-  pattern: PatternCell[][],
-  selectedFields: number[],
-) => {
-  const parsed: string[] = [
-    "GBStudio hUGETracker paste format compatible with...",
-    "ModPlug Tracker  XM",
-  ];
-
-  const w =
-    (selectedFields[selectedFields.length - 1] - selectedFields[0]) % 16;
-  const h = Math.floor(
-    (selectedFields[selectedFields.length - 1] - selectedFields[0]) / 16,
-  );
-  const firstRow = Math.floor(selectedFields[0] / 16);
-  const firstColumn = selectedFields[0] % 16;
-  for (let i = firstRow; i <= firstRow + h; i++) {
-    let rowStr = "";
-    for (
-      let j = Math.floor(firstColumn / 4);
-      j <= Math.floor((firstColumn + w) / 4);
-      j++
-    ) {
-      const start = firstColumn - j * 4;
-      const end = w + 1;
-      rowStr += `${patternCelltoString(
-        pattern[i][j],
-        patternCellFields.slice(Math.max(0, start), start + end),
-      )}`;
-    }
-    parsed.push(rowStr);
-  }
-  return parsed.join("\n");
-};
-
-export const parseClipboardToPattern = (clipboard: string) => {
-  const strToInt = (string: string, radix: number, offset = 0) => {
-    const int = parseInt(string, radix);
-    return isNaN(int) ? null : int + offset;
-  };
-  const rows = clipboard.split("\n");
-  const pattern = rows
-    .filter((r) => r[0] === "|")
-    .map((r, i) => {
-      console.log(`ROW ${i}: `, r);
-      if (r[0] === "|") {
-        const channel = r.substring(1).split("|");
-        return channel.map((c, j) => {
-          console.log(`CELL ${j}:`, c);
-          const patternCell = createPatternCell();
-          const cellString = [
-            c.substring(0, 3),
-            c.substring(3, 5),
-            c.substring(8, 9),
-            c.substring(9, 11),
-          ];
-          // Send NO_CHANGE_ON_PASTE to not change parameter when merging
-          const note = noteStringsForClipboard.indexOf(cellString[0]);
-          patternCell.note =
-            cellString[0] !== "   "
-              ? note === -1
-                ? null
-                : note
-              : NO_CHANGE_ON_PASTE;
-          patternCell.instrument =
-            cellString[1] !== "  "
-              ? strToInt(cellString[1], 10, -1)
-              : NO_CHANGE_ON_PASTE;
-          patternCell.effectcode =
-            cellString[2] !== " "
-              ? strToInt(cellString[2], 16)
-              : NO_CHANGE_ON_PASTE;
-          patternCell.effectparam =
-            cellString[3] !== "  "
-              ? strToInt(cellString[3], 16)
-              : NO_CHANGE_ON_PASTE;
-          return patternCell;
-        });
-      }
-      throw new Error("Unsupported format");
-    });
-
-  return pattern;
-};
-
-export const wrapNote = (note: number) =>
-  ((note % TOTAL_NOTES) + TOTAL_NOTES) % TOTAL_NOTES;

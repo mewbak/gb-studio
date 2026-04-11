@@ -7,6 +7,11 @@ type SharedSelectionValue<T> =
   | { type: "shared"; value: T }
   | { type: "multiple"; value: null };
 
+/**
+ * Extracts a single value from a set of selected PatternCells using `getValue`.
+ * Returns `{type:"shared"}` if all cells agree, `{type:"multiple"}` if they
+ * differ, or `{type:"none"}` if no cells have a value.
+ */
 export const getPatternCellSelectionValue = <T>(
   song: Song,
   patternCells: PatternCellAddress[],
@@ -43,6 +48,7 @@ export const getPatternCellSelectionValue = <T>(
   return { type: "shared", value: sharedValue };
 };
 
+/** Clamps `index` to the valid channel range 0–3. */
 export const toValidChannelId = (index: number): 0 | 1 | 2 | 3 => {
   return clamp(index, 0, 3) as 0 | 1 | 2 | 3;
 };

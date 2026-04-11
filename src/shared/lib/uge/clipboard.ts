@@ -1,13 +1,17 @@
 import { PatternCell, SubPatternCell } from "shared/lib/uge/types";
 import { noteStringsForClipboard } from "shared/lib/music/constants";
+import { createPatternCell, createSubPatternCell } from "shared/lib/uge/song";
 import {
   renderNote,
   renderInstrument,
   renderEffect,
   renderEffectParam,
-} from "./helpers";
-import { createPatternCell, createSubPatternCell } from "shared/lib/uge/song";
+} from "shared/lib/uge/display";
 
+/**
+ * Sentinel value used in clipboard paste operations to signal "leave this
+ * field unchanged" rather than writing a real value or null.
+ */
 export const NO_CHANGE_ON_PASTE = -9;
 
 type PatternCellKey = keyof PatternCell;
@@ -26,17 +30,13 @@ const subPatternCellFields: SubPatternCellKey[] = [
   "effectparam",
 ];
 
-// -- PATTERNS --
+// ── Pattern cell string formatting ──────────────────────────────────────────
 
-const patternCelltoString = (
+/** Serialises a single PatternCell to the MOD-compatible tracker clipboard format. */
+const patternCellToString = (
   p: PatternCell,
-  fields: PatternCellKey[] = [
-    "note",
-    "instrument",
-    "effectcode",
-    "effectparam",
-  ],
-) => {
+  fields: PatternCellKey[] = patternCellFields,
+): string => {
   return `|${fields.includes("note") ? renderNote(p.note) : "   "}${
     fields.includes("instrument") ? renderInstrument(p.instrument) : "  "
   }...${fields.includes("effectcode") ? renderEffect(p.effectcode) : " "}${
@@ -44,17 +44,40 @@ const patternCelltoString = (
   }`;
 };
 
+/** Serialises a single SubPatternCell to the MOD-compatible tracker clipboard format. */
+const subPatternCellToString = (
+  p: SubPatternCell,
+  fields: SubPatternCellKey[] = subPatternCellFields,
+): string => {
+  return `|${fields.includes("note") ? renderNote(p.note) : "   "}${
+    fields.includes("jump") ? renderInstrument(p.jump) : "  "
+  }...${fields.includes("effectcode") ? renderEffect(p.effectcode) : " "}${
+    fields.includes("effectparam") ? renderEffectParam(p.effectparam) : "  "
+  }`;
+};
+
+// ── Patterns ─────────────────────────────────────────────────────────────────
+
+/**
+ * Extracts the GBStudio absolute-row origin number from a clipboard string header.
+ * Returns null when the header is absent.
+ */
 export const parseClipboardOrigin = (clipboard: string): number | null => {
   const match = clipboard.match(/^GBStudio origin: (\d+)$/m);
   return match ? parseInt(match[1], 10) : null;
 };
 
+/**
+ * Converts pattern cell data to a MOD-format compatible clipboard string.
+ * Optionally filters to a single channel, a set of selected row indices, and
+ * embeds an absolute-row origin marker for relative paste operations.
+ */
 export const parsePatternToClipboard = (
   pattern: PatternCell[][],
   channelId?: number,
   selectedCells?: number[],
   originAbsRow?: number,
-) => {
+): string => {
   let parsed: string[] = [
     "GBStudio hUGETracker Piano format compatible with...",
     "ModPlug Tracker  XM",
@@ -68,16 +91,15 @@ export const parsePatternToClipboard = (
     parsed = pattern.map((p) => {
       if (channelId !== undefined) {
         const row = p[channelId];
-        return patternCelltoString(row);
+        return patternCellToString(row);
       } else {
-        return `${patternCelltoString(p[0])}${patternCelltoString(
+        return `${patternCellToString(p[0])}${patternCellToString(
           p[1],
-        )}${patternCelltoString(p[2])}${patternCelltoString(p[3])}`;
+        )}${patternCellToString(p[2])}${patternCellToString(p[3])}`;
       }
     });
   } else if (selectedCells.length > 0) {
     const sortedSelectedCells = [...selectedCells].sort((a, b) => a - b);
-    console.log(selectedCells, sortedSelectedCells);
     for (
       let i = sortedSelectedCells[0];
       i <= sortedSelectedCells[sortedSelectedCells.length - 1];
@@ -85,9 +107,9 @@ export const parsePatternToClipboard = (
     ) {
       if (channelId !== undefined) {
         if (selectedCells.indexOf(i) > -1) {
-          parsed.push(patternCelltoString(pattern[i][channelId]));
+          parsed.push(patternCellToString(pattern[i][channelId]));
         } else {
-          parsed.push(patternCelltoString(createPatternCell()));
+          parsed.push(patternCellToString(createPatternCell()));
         }
       }
     }
@@ -96,10 +118,14 @@ export const parsePatternToClipboard = (
   return parsed.join("\n");
 };
 
+/**
+ * Converts a rectangular selection of tracker fields (by field index) to a
+ * MOD-format compatible clipboard string, preserving only the selected columns.
+ */
 export const parsePatternFieldsToClipboard = (
   pattern: PatternCell[][],
   selectedFields: number[],
-) => {
+): string => {
   const parsed: string[] = [
     "GBStudio hUGETracker paste format compatible with...",
     "ModPlug Tracker  XM",
@@ -121,7 +147,7 @@ export const parsePatternFieldsToClipboard = (
     ) {
       const start = firstColumn - j * 4;
       const end = w + 1;
-      rowStr += `${patternCelltoString(
+      rowStr += `${patternCellToString(
         pattern[i][j],
         patternCellFields.slice(Math.max(0, start), start + end),
       )}`;
@@ -131,7 +157,12 @@ export const parsePatternFieldsToClipboard = (
   return parsed.join("\n");
 };
 
-export const parseClipboardToPattern = (clipboard: string) => {
+/**
+ * Parses a MOD-format clipboard string back into a 2D array of PatternCells.
+ * Unknown or empty fields are represented as `NO_CHANGE_ON_PASTE` so callers
+ * can distinguish "leave unchanged" from an explicit null.
+ */
+export const parseClipboardToPattern = (clipboard: string): PatternCell[][] => {
   const strToInt = (string: string, radix: number, offset = 0) => {
     const int = parseInt(string, radix);
     return isNaN(int) ? null : int + offset;
@@ -139,12 +170,10 @@ export const parseClipboardToPattern = (clipboard: string) => {
   const rows = clipboard.split("\n");
   const pattern = rows
     .filter((r) => r[0] === "|")
-    .map((r, i) => {
-      console.log(`ROW ${i}: `, r);
+    .map((r) => {
       if (r[0] === "|") {
         const channel = r.substring(1).split("|");
-        return channel.map((c, j) => {
-          console.log(`CELL ${j}:`, c);
+        return channel.map((c) => {
           const patternCell = createPatternCell();
           const cellString = [
             c.substring(0, 3),
@@ -152,7 +181,6 @@ export const parseClipboardToPattern = (clipboard: string) => {
             c.substring(8, 9),
             c.substring(9, 11),
           ];
-          // Send NO_CHANGE_ON_PASTE to not change parameter when merging
           const note = noteStringsForClipboard.indexOf(cellString[0]);
           patternCell.note =
             cellString[0] !== "   "
@@ -181,29 +209,23 @@ export const parseClipboardToPattern = (clipboard: string) => {
   return pattern;
 };
 
-// -- SUBPATTERNS --
+// ── SubPatterns ───────────────────────────────────────────────────────────────
 
-const subPatternCelltoString = (
-  p: SubPatternCell,
-  fields: SubPatternCellKey[] = ["note", "jump", "effectcode", "effectparam"],
-) => {
-  return `|${fields.includes("note") ? renderNote(p.note) : "   "}${
-    fields.includes("jump") ? renderInstrument(p.jump) : "  "
-  }...${fields.includes("effectcode") ? renderEffect(p.effectcode) : " "}${
-    fields.includes("effectparam") ? renderEffectParam(p.effectparam) : "  "
-  }`;
-};
-
+/**
+ * Converts a rectangular selection of subpattern fields to a
+ * MOD-format compatible clipboard string.
+ */
 export const parseSubPatternFieldsToClipboard = (
   subpattern: SubPatternCell[],
   selectedFields: number[],
-) => {
+): string => {
   const parsed: string[] = [
     "GBStudio hUGETracker paste format compatible with...",
     "ModPlug Tracker  XM",
   ];
 
-  const w = (selectedFields[selectedFields.length - 1] - selectedFields[0]) % 4;
+  const w =
+    (selectedFields[selectedFields.length - 1] - selectedFields[0]) % 4;
   const h = Math.floor(
     (selectedFields[selectedFields.length - 1] - selectedFields[0]) / 4,
   );
@@ -218,7 +240,7 @@ export const parseSubPatternFieldsToClipboard = (
     ) {
       const start = firstColumn - j;
       const end = w + 1;
-      rowStr += `${subPatternCelltoString(
+      rowStr += `${subPatternCellToString(
         subpattern[i],
         subPatternCellFields.slice(Math.max(0, start), start + end),
       )}`;
@@ -228,7 +250,13 @@ export const parseSubPatternFieldsToClipboard = (
   return parsed.join("\n");
 };
 
-export const parseClipboardToSubPattern = (clipboard: string) => {
+/**
+ * Parses a MOD-format clipboard string back into a 2D array of SubPatternCells.
+ * Unknown or empty fields are represented as `NO_CHANGE_ON_PASTE`.
+ */
+export const parseClipboardToSubPattern = (
+  clipboard: string,
+): SubPatternCell[][] => {
   const strToInt = (string: string, radix: number, offset = 0) => {
     const int = parseInt(string, radix);
     return isNaN(int) ? null : int + offset;
@@ -236,12 +264,10 @@ export const parseClipboardToSubPattern = (clipboard: string) => {
   const rows = clipboard.split("\n");
   const pattern = rows
     .filter((r) => r[0] === "|")
-    .map((r, i) => {
-      console.log(`ROW ${i}: `, r);
+    .map((r) => {
       if (r[0] === "|") {
         const channel = r.substring(1).split("|");
-        return channel.map((c, j) => {
-          console.log(`CELL ${j}:`, c);
+        return channel.map((c) => {
           const patternCell = createSubPatternCell();
           const cellString = [
             c.substring(0, 3),
@@ -249,7 +275,6 @@ export const parseClipboardToSubPattern = (clipboard: string) => {
             c.substring(8, 9),
             c.substring(9, 11),
           ];
-          // Send NO_CHANGE_ON_PASTE to not change parameter when merging
           const note = noteStringsForClipboard.indexOf(cellString[0]);
           patternCell.note =
             cellString[0] !== "   "
