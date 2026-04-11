@@ -6,7 +6,6 @@ import { SongPianoRoll } from "components/music/piano/SongPianoRoll";
 import l10n from "shared/lib/lang/l10n";
 import { UgePlayer } from "components/music/UgePlayer";
 import { useAppSelector } from "store/hooks";
-import { MusicAsset } from "shared/lib/resources/types";
 
 const ContentWrapper = styled.div`
   flex: 1 1 0;
@@ -56,10 +55,8 @@ const SongDocument = () => {
     }
   }, [song]);
 
-  const sequenceId = useAppSelector((state) => state.tracker.selectedSequence);
-
-  const songDocument = useAppSelector(
-    (state) => state.trackerDocument.present.song,
+  const hasSongDocument = useAppSelector(
+    (state) => !!state.trackerDocument.present.song,
   );
   const status = useAppSelector((state) => state.tracker.status);
   const error = useAppSelector((state) => state.tracker.error);
@@ -85,7 +82,7 @@ const SongDocument = () => {
     );
   }
 
-  if (songDocument === undefined) {
+  if (!hasSongDocument) {
     return (
       <ContentWrapper>
         <ContentMessage>No Song Loaded</ContentMessage>
@@ -95,11 +92,9 @@ const SongDocument = () => {
 
   return (
     <>
-      {view === "tracker" && (
-        <SongTracker sequenceId={sequenceId} song={songDocument} />
-      )}
-      {view === "roll" && <SongPianoRoll song={songDocument} />}
-      <UgePlayer data={songDocument} />
+      {view === "tracker" && <SongTracker />}
+      {view === "roll" && <SongPianoRoll />}
+      <UgePlayer />
     </>
   );
 };

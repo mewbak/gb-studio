@@ -12,9 +12,9 @@ import renderPatternContextMenu from "components/music/contextMenus/renderPatter
 import { DropdownButton } from "ui/buttons/DropdownButton";
 import { SongTrackerRow } from "./SongTrackerRow";
 import { TRACKER_ROW_SIZE } from "consts";
+import { useAppSelector } from "store/hooks";
 
 interface SongTrackerPatternProps {
-  pattern: PatternCell[][];
   sequencePatternId: number;
   renderSequenceId: number;
   activeSequenceId: number;
@@ -34,7 +34,6 @@ interface SongTrackerPatternProps {
 
 export const SongTrackerPattern = memo(
   ({
-    pattern,
     sequencePatternId,
     renderSequenceId,
     activeSequenceId,
@@ -51,6 +50,11 @@ export const SongTrackerPattern = memo(
     onFocus,
     onSelectionContextMenu,
   }: SongTrackerPatternProps) => {
+    const pattern = useAppSelector(
+      (state) =>
+        state.trackerDocument.present.song?.patterns[sequencePatternId],
+    );
+
     const isActivePattern = renderSequenceId === activeSequenceId;
     const activeRowIndex =
       activeLocalField !== undefined

@@ -5,7 +5,7 @@ import React, {
   useCallback,
   useState,
 } from "react";
-import { PatternCell, Song } from "shared/lib/uge/types";
+import { PatternCell } from "shared/lib/uge/types";
 import { useAppDispatch, useAppSelector } from "store/hooks";
 import { PianoRollPatternBlock } from "./PianoRollPatternBlock";
 import {
@@ -78,13 +78,9 @@ const TWO_FINGER_TAP_MAX_DURATION = 300;
 const NOTE_DRAG_MARGIN_PX = 20;
 const DRAG_COMMIT_TAP_MAX_MOVEMENT = 5;
 
-interface PianoRollCanvasProps {
-  song: Song;
-}
-
 const EMPTY_SELECTED_ROWS_BY_CHANNEL = new Map<number, ReadonlySet<number>>();
 
-export const PianoRollCanvas = ({ song }: PianoRollCanvasProps) => {
+export const PianoRollCanvas = () => {
   const dispatch = useAppDispatch();
   const playPreview = useMusicNotePreview();
 
@@ -133,6 +129,7 @@ export const PianoRollCanvas = ({ song }: PianoRollCanvasProps) => {
 
   // Redux State
 
+  const song = useAppSelector((state) => state.trackerDocument.present.song);
   const hoverNote = useAppSelector((state) => state.tracker.hoverNote);
   const hoverColumn = useAppSelector((state) => state.tracker.hoverColumn);
   const hoverSequenceId = useAppSelector(
@@ -166,10 +163,10 @@ export const PianoRollCanvas = ({ song }: PianoRollCanvasProps) => {
     (state) => state.tracker.selectedInstrumentId,
   );
 
-  const documentWidth = song.sequence
+  const documentWidth = song?.sequence
     ? calculateDocumentWidth(song.sequence.length) + 100
     : 0;
-  const totalAbsRows = song.sequence.length * TRACKER_PATTERN_LENGTH;
+  const totalAbsRows = (song?.sequence.length ?? 0) * TRACKER_PATTERN_LENGTH;
 
   const playing = useAppSelector((state) => state.tracker.playing);
 
@@ -195,7 +192,14 @@ export const PianoRollCanvas = ({ song }: PianoRollCanvasProps) => {
     hoverSequenceIdRef.current = hoverSequenceId;
     selectedPatternCellsRef.current = selectedPatternCells;
     playingRef.current = playing;
-  }, [song, hoverNote, hoverColumn, hoverSequenceId, selectedPatternCells, playing]);
+  }, [
+    song,
+    hoverNote,
+    hoverColumn,
+    hoverSequenceId,
+    selectedPatternCells,
+    playing,
+  ]);
 
   // Cached State
 
@@ -371,6 +375,9 @@ export const PianoRollCanvas = ({ song }: PianoRollCanvasProps) => {
       nextSelectionRect: SelectionRect,
     ) => {
       const song = songRef.current;
+      if (!song) {
+        return [];
+      }
       const totalAbsRows = song.sequence.length * TRACKER_PATTERN_LENGTH;
       const totalNoteRows = TOTAL_NOTES;
 
@@ -445,6 +452,10 @@ export const PianoRollCanvas = ({ song }: PianoRollCanvasProps) => {
       const localY = clientY - rect.top;
 
       const song = songRef.current;
+      if (!song) {
+        return undefined;
+      }
+
       const selectedCells = selectedPatternCellsRef.current;
 
       for (const selectedCell of selectedCells) {
@@ -483,7 +494,9 @@ export const PianoRollCanvas = ({ song }: PianoRollCanvasProps) => {
 
   const calculatePositionFromClientPoint = useCallback(
     (clientX: number, clientY: number) => {
-      if (!documentRef.current) {
+      const song = songRef.current;
+
+      if (!documentRef.current || !song) {
         return {
           noteIndex: null,
           patternRow: null,
@@ -516,7 +529,7 @@ export const PianoRollCanvas = ({ song }: PianoRollCanvasProps) => {
         sequenceId: resolved.sequenceId,
       };
     },
-    [song.sequence, totalAbsRows],
+    [totalAbsRows],
   );
 
   const resetPointerPreviewState = useCallback(() => {
@@ -612,6 +625,10 @@ export const PianoRollCanvas = ({ song }: PianoRollCanvasProps) => {
       }
 
       const song = songRef.current;
+      if (!song) {
+        return;
+      }
+
       const bounds = documentRef.current.getBoundingClientRect();
 
       const { x, y } = pageToSnappedGridPoint(
@@ -871,7 +888,7 @@ export const PianoRollCanvas = ({ song }: PianoRollCanvasProps) => {
       e.stopPropagation();
       dispatch(
         trackerDocumentActions.insertSequence({
-          sequenceIndex: songRef.current.sequence.length,
+          sequenceIndex: songRef.current?.sequence.length ?? 0,
           position: "after",
         }),
       );
@@ -900,6 +917,10 @@ export const PianoRollCanvas = ({ song }: PianoRollCanvasProps) => {
     lastSelectAllTimeRef.current = Date.now();
 
     const song = songRef.current;
+    if (!song) {
+      return;
+    }
+
     const sequenceId = lastSelectedSequenceId.current;
     const selectedPatternCells = selectedPatternCellsRef.current;
 
@@ -1645,6 +1666,10 @@ export const PianoRollCanvas = ({ song }: PianoRollCanvasProps) => {
       const { noteIndex, sequenceId, patternRow, modifiers } = ctx;
 
       const song = songRef.current;
+      if (!song) {
+        return;
+      }
+
       const absRow = toAbsRow(sequenceId, patternRow);
       const nextDragDelta = {
         rows: absRow - interaction.origin.absRow,
@@ -1716,6 +1741,10 @@ export const PianoRollCanvas = ({ song }: PianoRollCanvasProps) => {
       const { noteIndex, sequenceId, patternRow } = ctx;
 
       const song = songRef.current;
+      if (!song) {
+        return;
+      }
+
       const absRow = toAbsRow(sequenceId, patternRow);
       const currentCellId = `${absRow}:${noteIndex}`;
 
@@ -1828,6 +1857,10 @@ export const PianoRollCanvas = ({ song }: PianoRollCanvasProps) => {
       }
 
       const song = songRef.current;
+      if (!song) {
+        return;
+      }
+
       const bounds = documentRef.current.getBoundingClientRect();
       const { x: x2, y: y2 } = pageToSnappedGridPoint(
         e.pageX,
@@ -2367,10 +2400,10 @@ export const PianoRollCanvas = ({ song }: PianoRollCanvasProps) => {
     <StyledPianoRollScrollWrapper ref={onScrollWrapperRef}>
       <StyledPianoRollScrollCanvas>
         <div style={{ minWidth: PIANO_ROLL_PIANO_WIDTH + documentWidth }}>
-          <PianoRollSequenceBar song={song}>
+          <PianoRollSequenceBar>
             <PianoRollPlaybackController
               scrollElement={scrollElement}
-              sequenceLength={song.sequence.length}
+              sequenceLength={song?.sequence.length ?? 0}
             />
           </PianoRollSequenceBar>
           <StyledPianoRollScrollLeftWrapper>
@@ -2400,7 +2433,7 @@ export const PianoRollCanvas = ({ song }: PianoRollCanvasProps) => {
             onPointerDown={!playing ? onPointerDown : undefined}
           >
             <StyledPianoRollPatternsWrapper>
-              {song.sequence.map((p, i) => (
+              {song?.sequence.map((p, i) => (
                 <PianoRollPatternBlock
                   key={`roll_pattern_${i}:${p}`}
                   pattern={song.patterns[p] ?? []}
@@ -2413,7 +2446,8 @@ export const PianoRollCanvas = ({ song }: PianoRollCanvasProps) => {
                   hoverNote={hoverNote}
                   hoverSequence={hoverSequenceId}
                   selectedRowsByChannel={
-                    selectedRowsBySequence.get(i) ?? EMPTY_SELECTED_ROWS_BY_CHANNEL
+                    selectedRowsBySequence.get(i) ??
+                    EMPTY_SELECTED_ROWS_BY_CHANNEL
                   }
                 />
               ))}
@@ -2475,7 +2509,7 @@ export const PianoRollCanvas = ({ song }: PianoRollCanvasProps) => {
             style={{ minWidth: PIANO_ROLL_PIANO_WIDTH + documentWidth }}
           >
             <StyledPianoRollScrollHeaderFooterSpacer />
-            {song.sequence.map((p, i) => (
+            {song?.sequence.map((p, i) => (
               <PianoRollEffectRow
                 key={`roll_pattern_effects_${i}:${p}`}
                 patternId={p}

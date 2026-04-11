@@ -6,7 +6,7 @@ import React, {
   useMemo,
   useLayoutEffect,
 } from "react";
-import { Song, PatternCell } from "shared/lib/uge/types";
+import { PatternCell } from "shared/lib/uge/types";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
 import { getKeys } from "renderer/lib/keybindings/keyBindings";
 import trackerActions from "store/features/tracker/trackerActions";
@@ -53,11 +53,6 @@ import { SongTrackerPlaybackController } from "components/music/tracker/SongTrac
 import l10n from "shared/lib/lang/l10n";
 import { PlusIcon } from "ui/icons/Icons";
 
-interface SongTrackerProps {
-  sequenceId: number;
-  song: Song | null;
-}
-
 type TrackerInput =
   | { type: "keyboard"; code: string }
   | { type: "hex"; value: number | null };
@@ -75,10 +70,12 @@ const getLocalFieldFromGlobalField = (field: number) =>
 const getGlobalField = (sequenceId: number, localField: number) =>
   sequenceId * PATTERN_FIELD_COUNT + localField;
 
-const getPatternIdAtSequence = (song: Song | null, sequenceId: number) =>
-  song?.sequence[sequenceId] ?? 0;
+const getPatternIdAtSequence = (
+  sequence: number[] | undefined,
+  sequenceId: number,
+) => sequence?.[sequenceId] ?? 0;
 
-export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
+export const SongTracker = () => {
   const dispatch = useAppDispatch();
   const playPreview = useMusicNotePreview();
 
@@ -86,6 +83,7 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
 
   const playing = useAppSelector((state) => state.tracker.playing);
   const editStep = useAppSelector((state) => state.tracker.editStep);
+  const sequenceId = useAppSelector((state) => state.tracker.selectedSequence);
   const channelStatus = useAppSelector((state) => state.tracker.channelStatus);
   const octaveOffset = useAppSelector((state) => state.tracker.octaveOffset);
   const subpatternEditorFocus = useAppSelector(
@@ -100,6 +98,15 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
   );
   const defaultStartPlaybackPosition = useAppSelector(
     (state) => state.tracker.defaultStartPlaybackPosition,
+  );
+  const songSequence = useAppSelector(
+    (state) => state.trackerDocument.present.song?.sequence,
+  );
+  const sequenceLength = useAppSelector(
+    (state) => state.trackerDocument.present.song?.sequence.length ?? 0,
+  );
+  const numPatterns = useAppSelector(
+    (state) => state.trackerDocument.present.song?.patterns.length ?? 0,
   );
 
   // #endregion Redux State
@@ -131,8 +138,10 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
       ? getSequenceIdFromGlobalField(activeField)
       : sequenceId;
 
-  const patternId = getPatternIdAtSequence(song, activeSequenceId);
-  const pattern = song?.patterns[patternId];
+  const patternId = getPatternIdAtSequence(songSequence, activeSequenceId);
+  const pattern = useAppSelector(
+    (state) => state.trackerDocument.present.song?.patterns[patternId],
+  );
 
   const currentFocus = useMemo(
     () =>
@@ -181,15 +190,13 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
     return -1;
   }, [channelStatus]);
 
-  const sequenceLength = song?.sequence.length ?? 0;
-  const numPatterns = song?.patterns.length ?? 0;
   const selectedSequenceId = selectionOrigin?.sequenceId;
 
   // #endregion Derived State
 
   // #region Stable Refs
 
-  const songRef = useRef(song);
+  const songSequenceRef = useRef(songSequence);
   const patternRef = useRef(pattern);
   const patternIdRef = useRef(patternId);
 
@@ -216,7 +223,7 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
   // #region Ref Synchronization
 
   useEffect(() => {
-    songRef.current = song;
+    songSequenceRef.current = songSequence;
     patternRef.current = pattern;
     patternIdRef.current = patternId;
     octaveOffsetRef.current = octaveOffset;
@@ -226,7 +233,7 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
     selectedTrackerFieldsRef.current = selectedTrackerFields;
     selectedPatternCellsRef.current = selectedPatternCells;
   }, [
-    song,
+    songSequence,
     pattern,
     patternId,
     octaveOffset,
@@ -260,7 +267,7 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
   }, []);
 
   const getMaxField = useCallback(() => {
-    const currentSequenceLength = songRef.current?.sequence.length ?? 0;
+    const currentSequenceLength = songSequenceRef.current?.length ?? 0;
     return (
       currentSequenceLength * TRACKER_PATTERN_LENGTH * TRACKER_ROW_SIZE - 1
     );
@@ -522,7 +529,7 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
     (direction: "up" | "down" | "left" | "right", extendSelection: boolean) => {
       const currentActiveField = activeFieldRefValue.current;
       const currentSelectionRect = selectionRectRef.current;
-      const currentSequenceLength = songRef.current?.sequence.length ?? 0;
+      const currentSequenceLength = songSequenceRef.current?.length ?? 0;
 
       if (currentActiveField === undefined || currentSequenceLength <= 0) {
         return false;
@@ -651,7 +658,7 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
 
       dispatch(
         trackerDocumentActions.insertSequence({
-          sequenceIndex: songRef.current?.sequence.length ?? 0,
+          sequenceIndex: songSequenceRef.current?.length ?? 0,
           position: "after",
         }),
       );
@@ -1498,7 +1505,7 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
     <StyledTrackerWrapper>
       <StyledTrackerScrollWrapper ref={scrollRef}>
         <StyledTrackerScrollCanvas>
-          {song?.sequence.map((sequencePatternId, renderSequenceId) => {
+          {songSequence?.map((sequencePatternId, renderSequenceId) => {
             const selectedTrackerFieldSetForPattern =
               selectedSequenceId === renderSequenceId
                 ? selectedTrackerFieldSet
@@ -1518,7 +1525,7 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
             return (
               <SongTrackerPattern
                 key={renderSequenceId}
-                pattern={song.patterns[sequencePatternId]}
+                // pattern={song.patterns[sequencePatternId]}
                 sequencePatternId={sequencePatternId}
                 renderSequenceId={renderSequenceId}
                 activeSequenceId={activeSequenceId}
@@ -1555,13 +1562,13 @@ export const SongTracker = ({ song, sequenceId }: SongTrackerProps) => {
           >
             <PlusIcon />
           </StyledAddPatternButton>
-          </StyledAddPatternWrapper>
-        </StyledTrackerScrollWrapper>
+        </StyledAddPatternWrapper>
+      </StyledTrackerScrollWrapper>
 
-        <SongTrackerPlaybackController
-          scrollRef={scrollRef}
-          sequenceLength={sequenceLength}
-        />
+      <SongTrackerPlaybackController
+        scrollRef={scrollRef}
+        sequenceLength={sequenceLength}
+      />
 
       <TrackerKeyboard
         type="pattern"

@@ -5,12 +5,11 @@ import API from "renderer/lib/api";
 import { MusicDataReceivePacket } from "shared/lib/music/types";
 import { useAppDispatch, useAppSelector } from "store/hooks";
 
-interface UgePlayerProps {
-  data: Song | null;
-}
-
-export const UgePlayer = ({ data }: UgePlayerProps) => {
+export const UgePlayer = () => {
   const dispatch = useAppDispatch();
+
+  const data = useAppSelector((state) => state.trackerDocument.present.song);
+
   const currentSongRef = useRef<Song | null>(data);
 
   useEffect(() => {
