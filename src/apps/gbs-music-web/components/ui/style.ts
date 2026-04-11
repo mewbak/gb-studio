@@ -121,6 +121,7 @@ export const StyledMobileOverlayContainer = styled.div<{
       ? css`
           top: 40px;
           height: calc(100dvh - 50px);
+          max-height: 800px;
           border-top-left-radius: 12px;
           border-top-right-radius: 12px;
           padding-top: 28px;

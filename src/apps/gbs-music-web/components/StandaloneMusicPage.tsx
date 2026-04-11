@@ -301,7 +301,14 @@ const StandaloneMusicPage = ({
         onRenameSong={onRenameSong}
       />
     ),
-    [modified, onCreateSong, onImportSong, onRenameSong, onSelectSong, viewSongId],
+    [
+      modified,
+      onCreateSong,
+      onImportSong,
+      onRenameSong,
+      onSelectSong,
+      viewSongId,
+    ],
   );
 
   const mobileOverlayView = useAppSelector(
@@ -426,6 +433,7 @@ const StandaloneMusicPage = ({
 
               <MobileOverlay
                 open={mobileOverlayView === "instrumentsList"}
+                fullHeight
                 onClose={() => {
                   setMobileOverlayView("none");
                 }}
