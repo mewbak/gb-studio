@@ -17,7 +17,6 @@ import appIconUrl from "gbs-music-web/components/ui/icons/app_music_icon_180.png
 import trackerImageUrl from "gbs-music-web/static/tracker.png";
 import pianoImageUrl from "gbs-music-web/static/piano.png";
 import {
-  SplashAppTitle,
   SplashAppTitleWrapper,
   SplashContent,
   SplashForm,
@@ -300,6 +299,10 @@ const StyledSplashFooter = styled.div`
   a {
     color: #fff;
     font-weight: bold;
+  }
+
+  @media (max-width: 840px) {
+    padding: 40px 20px;
   }
 `;
 
