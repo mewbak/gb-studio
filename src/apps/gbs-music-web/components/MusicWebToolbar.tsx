@@ -8,7 +8,6 @@ import { BlankIcon, CheckIcon, CloseIcon } from "ui/icons/Icons";
 import { FixedSpacer, FlexGrow } from "ui/spacing/Spacing";
 import l10n from "shared/lib/lang/l10n";
 import appPixelIconUrl from "gbs-music-web/components/ui/icons/app_music_icon_pixel.png";
-import { webLocaleOptions } from "gbs-music-web/lib/preferences";
 import { useWebFullscreen } from "ui/hooks/use-web-fullscreen";
 import { SongContextBar } from "components/music/toolbar/SongContextBar";
 import useWindowSize from "ui/hooks/use-window-size";
@@ -18,6 +17,7 @@ import { StyledButton } from "ui/buttons/style";
 import { TRACKER_REDO, TRACKER_UNDO } from "consts";
 import { AboutDialog } from "gbs-music-web/components/dialog/AboutDialog";
 import { saveSongFile } from "store/features/trackerDocument/trackerDocumentState";
+import { useMusicWebPreferenceMenus } from "gbs-music-web/components/MusicWebPreferencesDropdowns";
 
 const COMPACT_LAYOUT_BREAKPOINT = 590;
 
@@ -195,36 +195,12 @@ export const MusicWebToolbar = ({
     ],
   );
 
-  const themeMenu = useMemo(
-    () => [
-      <MenuItem key={`light${localeId}`} onClick={() => onThemeChange("light")}>
-        <MenuItemIcon>
-          {themeId === "light" ? <CheckIcon /> : <BlankIcon />}
-        </MenuItemIcon>
-        {l10n("MENU_THEME_LIGHT")}
-      </MenuItem>,
-      <MenuItem key={"dark"} onClick={() => onThemeChange("dark")}>
-        <MenuItemIcon>
-          {themeId === "dark" ? <CheckIcon /> : <BlankIcon />}
-        </MenuItemIcon>
-        {l10n("MENU_THEME_DARK")}
-      </MenuItem>,
-    ],
-    [localeId, onThemeChange, themeId],
-  );
-
-  const localeMenu = useMemo(
-    () =>
-      webLocaleOptions.map((option) => (
-        <MenuItem key={option.id} onClick={() => onLocaleChange(option.id)}>
-          <MenuItemIcon>
-            {localeId === option.id ? <CheckIcon /> : <BlankIcon />}
-          </MenuItemIcon>
-          {option.label}
-        </MenuItem>
-      )),
-    [localeId, onLocaleChange],
-  );
+  const { themeMenu, localeMenu } = useMusicWebPreferenceMenus({
+    themeId,
+    localeId,
+    onThemeChange,
+    onLocaleChange,
+  });
 
   return (
     <>

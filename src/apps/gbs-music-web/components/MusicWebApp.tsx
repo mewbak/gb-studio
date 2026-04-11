@@ -172,6 +172,10 @@ export const MusicWebApp = () => {
           />
         ) : (
           <MusicWebSplash
+            themeId={themeId}
+            localeId={localeId}
+            onThemeChange={onThemeChange}
+            onLocaleChange={onLocaleChange}
             onCreateSong={onCreateSong}
             onImportSong={onImportSong}
             onOpenDirectoryWorkspace={

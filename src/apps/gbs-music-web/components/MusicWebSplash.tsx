@@ -47,6 +47,10 @@ import {
   StyledMobileListMenuLink,
 } from "gbs-music-web/components/ui/style";
 import { CaretRightIcon } from "ui/icons/Icons";
+import {
+  MusicWebLocaleDropdown,
+  MusicWebThemeDropdown,
+} from "gbs-music-web/components/MusicWebPreferencesDropdowns";
 
 const COMPACT_LAYOUT_BREAKPOINT = 840;
 
@@ -76,7 +80,7 @@ const StyledSplashPage = styled.div`
     ${SplashLogo} {
       display: flex;
       justify-content: center;
-      margin-top: 40px;
+      margin-top: 10px;
       margin-bottom: 20px;
       img {
         max-width: min(calc(100% - 100px), 140px);
@@ -129,6 +133,35 @@ const StyledSplashWindowChrome = styled.div`
 
     max-width: 500px;
     margin: 0px auto;
+  }
+`;
+
+const StyledSplashPreferenceBar = styled.div`
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  pointer-events: none;
+
+  ${StyledButton} {
+    pointer-events: auto;
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: #fff;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    svg {
+      fill: #fff;
+    }
+  }
+
+  @media (max-width: 840px) {
+    top: 10px;
+    left: 10px;
+    right: 10px;
   }
 `;
 
@@ -321,6 +354,10 @@ export const SplashExampleMusic = ({
 );
 
 interface MusicWebSplashProps {
+  themeId: string;
+  localeId: string;
+  onThemeChange: (themeId: string) => void;
+  onLocaleChange: (localeId: string) => void;
   onCreateSong: (name: string, artist: string) => void;
   onImportSong?: () => void;
   onOpenDirectoryWorkspace?: () => void;
@@ -333,6 +370,10 @@ interface MusicWebSplashProps {
 const ARTIST_STORAGE_KEY = "gbsMusicWeb:artist";
 
 export const MusicWebSplash = ({
+  themeId,
+  localeId,
+  onThemeChange,
+  onLocaleChange,
   onCreateSong,
   onImportSong,
   onOpenDirectoryWorkspace,
@@ -387,6 +428,22 @@ export const MusicWebSplash = ({
 
   return (
     <StyledSplashPage>
+      <StyledSplashPreferenceBar>
+        <MusicWebLocaleDropdown
+          themeId={themeId}
+          localeId={localeId}
+          onThemeChange={onThemeChange}
+          onLocaleChange={onLocaleChange}
+          menuDirection="left"
+        />
+        <MusicWebThemeDropdown
+          themeId={themeId}
+          localeId={localeId}
+          onThemeChange={onThemeChange}
+          onLocaleChange={onLocaleChange}
+          menuDirection="right"
+        />
+      </StyledSplashPreferenceBar>
       <FlexGrow />
       <StyledSplashWindowChrome>
         <SplashWindow focus>
