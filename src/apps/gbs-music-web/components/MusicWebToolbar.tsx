@@ -4,13 +4,7 @@ import { Toolbar } from "ui/toolbar/Toolbar";
 import { Button } from "ui/buttons/Button";
 import { DropdownButton } from "ui/buttons/DropdownButton";
 import { MenuDivider, MenuItem, MenuItemIcon } from "ui/menu/Menu";
-import {
-  BlankIcon,
-  CheckIcon,
-  CloseIcon,
-  FullscreenCloseIcon,
-  FullscreenIcon,
-} from "ui/icons/Icons";
+import { BlankIcon, CheckIcon, CloseIcon } from "ui/icons/Icons";
 import { FixedSpacer, FlexGrow } from "ui/spacing/Spacing";
 import l10n from "shared/lib/lang/l10n";
 import appPixelIconUrl from "gbs-music-web/components/ui/icons/app_music_icon_pixel.png";
@@ -84,7 +78,8 @@ export const MusicWebToolbar = ({
 
   const view = useAppSelector((state) => state.tracker.view);
 
-  const { isFullscreen, toggleFullscreen } = useWebFullscreen();
+  const { supportsFullscreen, isFullscreen, toggleFullscreen } =
+    useWebFullscreen();
 
   const windowSize = useWindowSize();
   const windowWidth = windowSize.width || 0;
@@ -177,19 +172,24 @@ export const MusicWebToolbar = ({
       >
         {l10n("FIELD_TRACKER")}
       </MenuItem>,
-      <MenuDivider key="fullscreen-div" />,
-      <MenuItem key={"fullscreen"} onClick={() => toggleFullscreen()}>
-        <MenuItemIcon>
-          {isFullscreen ? <CheckIcon /> : <BlankIcon />}
-        </MenuItemIcon>
-        {l10n("FIELD_FULLSCREEN")}
-      </MenuItem>,
+      ...(supportsFullscreen
+        ? [
+            <MenuDivider key="fullscreen-div" />,
+            <MenuItem key={"fullscreen"} onClick={() => toggleFullscreen()}>
+              <MenuItemIcon>
+                {isFullscreen ? <CheckIcon /> : <BlankIcon />}
+              </MenuItemIcon>
+              {l10n("FIELD_FULLSCREEN")}
+            </MenuItem>,
+          ]
+        : []),
     ],
     [
       isFullscreen,
       localeId,
       setRollView,
       setTrackerView,
+      supportsFullscreen,
       toggleFullscreen,
       view,
     ],
