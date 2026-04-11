@@ -55,6 +55,7 @@ export const PianoKeyboard = ({
   const handleTouchStart = useCallback(
     (e: React.TouchEvent<HTMLDivElement>) => {
       e.preventDefault();
+      e.stopPropagation();
 
       for (const touch of Array.from(e.changedTouches)) {
         const noteNumber = getNoteFromTouch(touch);
@@ -71,6 +72,7 @@ export const PianoKeyboard = ({
   const handleTouchMove = useCallback(
     (e: React.TouchEvent<HTMLDivElement>) => {
       e.preventDefault();
+      e.stopPropagation();
 
       for (const touch of Array.from(e.changedTouches)) {
         const previousNote = activeTouchesRef.current.get(touch.identifier);
@@ -97,6 +99,7 @@ export const PianoKeyboard = ({
 
   const handleTouchCancel = useCallback(
     (e: React.TouchEvent<HTMLDivElement>) => {
+      e.stopPropagation();
       for (const touch of Array.from(e.changedTouches)) {
         activeTouchesRef.current.delete(touch.identifier);
       }
@@ -162,6 +165,8 @@ export const PianoKeyboard = ({
                   $tall={isTall || undefined}
                   title={`${note}${octave}`}
                   onMouseDown={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
                     if (e.buttons & 1) {
                       handleMouseDown(noteNumber);
                     }

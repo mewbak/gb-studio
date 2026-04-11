@@ -115,6 +115,7 @@ export const StyledPianoRollScrollContentWrapper = styled.div`
   position: absolute;
   top: ${PIANO_ROLL_HEADER_HEIGHT}px;
   left: ${PIANO_ROLL_PIANO_WIDTH}px;
+  z-index: 0;
   height: ${PIANO_ROLL_CELL_SIZE * TOTAL_NOTES}px;
   display: flex;
 `;
