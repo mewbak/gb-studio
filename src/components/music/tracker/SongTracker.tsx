@@ -27,6 +27,7 @@ import {
   normalizeFieldIndex,
   Position,
   SelectionRect,
+  TRACKER_CELL_HEIGHT,
   TRACKER_HEADER_HEIGHT,
   TRACKER_INDEX_WIDTH,
   trackerFieldsToPatternCells,
@@ -60,6 +61,8 @@ type TrackerInput =
 type TrackerSelectionOrigin = Position & { sequenceId: number };
 
 const PATTERN_FIELD_COUNT = TRACKER_PATTERN_LENGTH * TRACKER_ROW_SIZE;
+const TRACKER_PATTERN_HEIGHT =
+  TRACKER_HEADER_HEIGHT + TRACKER_CELL_HEIGHT * TRACKER_PATTERN_LENGTH;
 
 const getSequenceIdFromGlobalField = (field: number) =>
   Math.floor(field / PATTERN_FIELD_COUNT);
@@ -217,6 +220,8 @@ export const SongTracker = () => {
   const isSelectingRef = useRef(false);
   const isMouseDownRef = useRef(false);
   const hasHadFocusRef = useRef(false);
+  const lastSelectedSequenceId = useRef(sequenceId);
+  const suppressActiveFieldScrollRef = useRef(false);
 
   // #endregion Stable Refs
 
@@ -1326,9 +1331,12 @@ export const SongTracker = () => {
 
   useLayoutEffect(() => {
     const firstField = getGlobalField(sequenceId, 0);
+    if (!playing && sequenceId !== lastSelectedSequenceId.current) {
+      suppressActiveFieldScrollRef.current = true;
+    }
     setActiveField(firstField);
     setSingleFieldSelection(firstField);
-  }, [sequenceId, setActiveField, setSingleFieldSelection]);
+  }, [playing, sequenceId, setActiveField, setSingleFieldSelection]);
 
   useLayoutEffect(() => {
     if (hasHadFocusRef.current) {
@@ -1350,6 +1358,11 @@ export const SongTracker = () => {
       !scrollRef.current ||
       !activeFieldRef.current
     ) {
+      return;
+    }
+
+    if (suppressActiveFieldScrollRef.current) {
+      suppressActiveFieldScrollRef.current = false;
       return;
     }
 
@@ -1375,6 +1388,32 @@ export const SongTracker = () => {
       scrollEl.scrollLeft += fieldRect.right - visibleRight;
     }
   }, [playing, activeField]);
+
+  useEffect(() => {
+    if (
+      playing ||
+      sequenceId === lastSelectedSequenceId.current ||
+      !scrollRef.current
+    ) {
+      return;
+    }
+
+    const scrollEl = scrollRef.current;
+    const maxScrollTop = Math.max(0, scrollEl.scrollHeight - scrollEl.clientHeight);
+    const nextScrollTop = Math.max(
+      0,
+      Math.min(sequenceId * TRACKER_PATTERN_HEIGHT, maxScrollTop),
+    );
+
+    scrollEl.scrollTo({
+      top: nextScrollTop,
+      behavior: "smooth",
+    });
+  }, [playing, sequenceId]);
+
+  useEffect(() => {
+    lastSelectedSequenceId.current = sequenceId;
+  }, [sequenceId]);
 
   // #endregion Scroll Effects
 
