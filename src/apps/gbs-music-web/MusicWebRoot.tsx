@@ -11,11 +11,13 @@ import { initKeyBindings } from "renderer/lib/keybindings/keyBindings";
 import { MusicWebApp } from "gbs-music-web/components/MusicWebApp";
 import { initTheme } from "renderer/lib/theme";
 import { initMusicPlaybackListener } from "renderer/lib/music/initMusicPlaybackListener";
+import trackerActions from "store/features/tracker/trackerActions";
 
 const store = createMusicEditorStore();
 installWebRendererApi(store);
 initMusicPlaybackListener(store.dispatch);
 initKeyBindings();
+store.dispatch(trackerActions.initViewFromSaved());
 
 (async () => {
   await initRendererL10N();
