@@ -7,7 +7,6 @@ interface StyledToolbarProps {
 
 export const StyledToolbar = styled.div<StyledToolbarProps>`
   display: flex;
-  box-sizing: border-box;
   height: 38px;
   font-size: ${(props) => props.theme.typography.toolbarFontSize};
   flex-shrink: 0;
@@ -22,6 +21,7 @@ export const StyledToolbar = styled.div<StyledToolbarProps>`
   z-index: 1;
   -webkit-app-region: drag;
   position: relative;
+  padding-top: env(safe-area-inset-top);
   z-index: 1000;
 
   .Platform__darwin & {
