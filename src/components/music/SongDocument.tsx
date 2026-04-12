@@ -2,10 +2,10 @@ import React, { useEffect, useRef } from "react";
 import styled from "styled-components";
 import { SongTracker } from "components/music/tracker/SongTracker";
 import { musicSelectors } from "store/features/entities/entitiesState";
-import { SongPianoRoll } from "components/music/piano/SongPianoRoll";
 import l10n from "shared/lib/lang/l10n";
 import { UgePlayer } from "components/music/UgePlayer";
 import { useAppSelector } from "store/hooks";
+import { SongPianoRoll } from "components/music/piano/SongPianoRoll";
 
 const ContentWrapper = styled.div`
   flex: 1 1 0;
