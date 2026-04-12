@@ -216,14 +216,6 @@ const registerFallbackFileReference = async (file: File) => {
   return reference;
 };
 
-const createFallbackWorkspaceRoot = (files: File[]) => {
-  const firstPath = files[0]?.webkitRelativePath;
-  if (!firstPath) {
-    return "Imported Songs";
-  }
-  return firstPath.split("/")[0] || "Imported Songs";
-};
-
 const findAvailableSongName = async (
   directoryHandle: FileSystemDirectoryHandle,
   baseName: string = getNewSongBaseName(),
@@ -405,26 +397,7 @@ export const webMusicEnvironment: MusicEnvironment<MusicBinaryDocument> = {
         documents: sortedDocuments,
       });
     }
-
-    const files = await openFilesWithInput({ multiple: true, directory: true });
-    const musicFiles = files.filter((file) =>
-      musicExtensions.some((extension) =>
-        file.name.toLowerCase().endsWith(extension),
-      ),
-    );
-    const rootName = createFallbackWorkspaceRoot(musicFiles);
-    currentDirectoryHandle = undefined;
-    const documents = await Promise.all(
-      musicFiles.map((file) => registerFallbackFileReference(file)),
-    );
-    const sortedDocuments = sortByName(documents);
-    return createMusicWorkspace({
-      source: "browser",
-      openMode: "directory",
-      rootName,
-      activeDocumentId: sortedDocuments[0]?.id,
-      documents: sortedDocuments,
-    });
+    throw new Error("openDirectoryWorkspace not supported");
   },
   loadDocument: async (document) => {
     const handle = fileHandles.get(document.filename);
