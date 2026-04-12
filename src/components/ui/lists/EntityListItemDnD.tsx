@@ -24,8 +24,11 @@ export const EntityListItemDnD = <
   onDrop,
   ...rest
 }: EntityListItemDnDProps<T>) => {
+  const rename = "rename" in rest && !!rest.rename;
+
   const [{ isOver }, drop] = useDrop<T, void, { isOver: boolean }>({
     accept: acceptTypes || [],
+    canDrop: () => !rename,
     collect: (monitor: DropTargetMonitor) => ({
       isOver: monitor.isOver({ shallow: true }),
     }),
@@ -38,6 +41,7 @@ export const EntityListItemDnD = <
   const [_, drag, dragPreview] = useDrag({
     type: dragType,
     item: (): T => item,
+    canDrag: () => !rename,
     options: { dropEffect: "move" },
     collect: (monitor: DragSourceMonitor) => ({
       isDragging: monitor.isDragging(),

@@ -68,11 +68,19 @@ const Row = ({
     return <div style={style} {...ariaAttributes} />;
   }
 
+  const onClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement;
+    if (target.closest("input, textarea, select, button")) {
+      return;
+    }
+    setSelectedId?.(item.id, item);
+  };
+
   return (
     <div
       {...ariaAttributes}
       style={style}
-      onClick={() => setSelectedId?.(item.id, item)}
+      onClick={onClick}
       data-id={item.id}
     >
       <ListItem
