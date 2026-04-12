@@ -2,6 +2,7 @@ import { InstrumentType } from "shared/lib/music/types";
 import { PatternCell } from "shared/lib/uge/types";
 import clamp from "shared/lib/helpers/clamp";
 import { OCTAVE_SIZE } from "consts";
+import l10n from "shared/lib/lang/l10n";
 
 /** Note name labels indexed by semitone within an octave (C through B). */
 export const noteName = [
@@ -18,6 +19,21 @@ export const noteName = [
   "A#",
   "B-",
 ];
+
+/**
+ * Get localised channel name
+ */
+export const getL10NChannelName = (channelId: 0 | 1 | 2 | 3): string => {
+  if (channelId === 0) {
+    return l10n("FIELD_DUTY_1");
+  } else if (channelId === 1) {
+    return l10n("FIELD_DUTY_2");
+  } else if (channelId === 2) {
+    return l10n("FIELD_WAVE");
+  } else {
+    return l10n("FIELD_NOISE");
+  }
+};
 
 /**
  * Calculates BPM from a ticks-per-row value.

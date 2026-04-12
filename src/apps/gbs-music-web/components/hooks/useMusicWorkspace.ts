@@ -22,9 +22,10 @@ import {
   getBackupInfo,
 } from "gbs-music-web/lib/songBackup";
 import API from "renderer/lib/api";
+import l10n from "shared/lib/lang/l10n";
 
 const toSafeBaseName = (name: string) =>
-  name.replace(/[/\\]/g, "").trim() || "New Song";
+  name.replace(/[/\\]/g, "").trim() || l10n("FIELD_NEW_SONG");
 
 const sortDocuments = (documents: MusicDocumentReference[]) =>
   [...documents].sort((a, b) =>
@@ -147,9 +148,9 @@ export const useMusicWorkspace = ({
 
   const createSong = useCallback(
     async (options?: { name?: string; artist?: string }) => {
-      const songName = options?.name?.trim() || "New Song";
+      const songName = options?.name?.trim() || l10n("FIELD_NEW_SONG");
       const songArtist =
-        options?.artist !== undefined ? options.artist : "Artist";
+        options?.artist !== undefined ? options.artist : l10n("FIELD_ARTIST");
       const baseName = toSafeBaseName(songName);
 
       // Stamp the template UGE data with the requested name and artist before

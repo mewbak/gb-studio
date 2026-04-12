@@ -1,5 +1,8 @@
 import { InstrumentSelect } from "components/music/form/InstrumentSelect";
-import { channelIdToInstrumentType } from "shared/lib/uge/display";
+import {
+  channelIdToInstrumentType,
+  getL10NChannelName,
+} from "shared/lib/uge/display";
 import React, { useCallback, useMemo } from "react";
 import API from "renderer/lib/api";
 import l10n from "shared/lib/lang/l10n";
@@ -136,10 +139,7 @@ export const MusicWebChannelPane = () => {
         <span>
           {l10n("FIELD_CHANNELS")}
           {" / "}
-          {channelId === 0 && "Duty 1"}
-          {channelId === 1 && "Duty 2"}
-          {channelId === 2 && "Wave"}
-          {channelId === 3 && "Noise"}
+          {getL10NChannelName(channelId)}
         </span>
         <ButtonGroup>
           <Button

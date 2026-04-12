@@ -7,6 +7,7 @@ import type {
   MusicEnvironment,
   MusicWorkspaceDocument,
 } from "shared/lib/music/environment";
+import l10n from "shared/lib/lang/l10n";
 
 type MusicBinaryDocument = Uint8Array;
 
@@ -35,9 +36,9 @@ declare global {
 }
 
 const musicExtensions = [".uge"];
-const newSongBaseName = "New Song";
+const getNewSongBaseName = () => l10n("FIELD_NEW_SONG");
 const accept = {
-  description: "GBS Music files",
+  description: "hUGETracker .uge",
   accept: {
     "application/octet-stream": [".uge"],
   },
@@ -218,7 +219,7 @@ const createFallbackWorkspaceRoot = (files: File[]) => {
 
 const findAvailableSongName = async (
   directoryHandle: FileSystemDirectoryHandle,
-  baseName: string = newSongBaseName,
+  baseName: string = getNewSongBaseName(),
 ) => {
   let index = 0;
   while (true) {
@@ -236,7 +237,9 @@ const findAvailableSongName = async (
   }
 };
 
-const createFallbackNewSongReference = (baseName: string = newSongBaseName) => {
+const createFallbackNewSongReference = (
+  baseName: string = getNewSongBaseName(),
+) => {
   const suffix = fallbackDocumentId++ || 0;
   const fileName =
     suffix === 0 ? `${baseName}.uge` : `${baseName} ${suffix + 1}.uge`;
@@ -248,7 +251,7 @@ const createFallbackNewSongReference = (baseName: string = newSongBaseName) => {
 
 export const pickUGIFile = async (): Promise<Uint8Array | null> => {
   const ugiAccept = {
-    description: "hUGETracker Instrument",
+    description: "hUGETracker .ugi",
     accept: { "application/octet-stream": [".ugi"] },
   };
   try {
@@ -292,7 +295,7 @@ export const pickUGIFile = async (): Promise<Uint8Array | null> => {
 
 export const pickUGWFile = async (): Promise<Uint8Array | null> => {
   const ugwAccept = {
-    description: "hUGETracker Wave",
+    description: "hUGETracker .ugw",
     accept: { "application/octet-stream": [".ugw"] },
   };
   try {
@@ -519,7 +522,7 @@ export const createTemplateMusicDocument = async (
   workspace?: Pick<MusicWorkspace, "openMode" | "rootName">,
   suggestedBaseName?: string,
 ): Promise<MusicDocumentReference | null> => {
-  const baseName = suggestedBaseName || newSongBaseName;
+  const baseName = suggestedBaseName || getNewSongBaseName();
   try {
     if (
       workspace?.openMode === "directory" &&

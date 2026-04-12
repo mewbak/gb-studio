@@ -29,6 +29,7 @@ import {
 import { ButtonGroup } from "ui/buttons/ButtonGroup";
 import { FixedSpacer } from "ui/spacing/Spacing";
 import { toValidChannelId } from "shared/lib/uge/editor/helpers";
+import { getL10NChannelName } from "shared/lib/uge/display";
 
 interface ChannelNavigatorItem {
   id: string;
@@ -67,6 +68,13 @@ const StyledChannelIcon = styled.div<{ channel: number }>`
     height: 20px;
     margin-right: 10px;
   }
+`;
+
+const StyledChannelName = styled.div`
+  flex-grow: 1;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
 `;
 
 const Row = ({
@@ -182,9 +190,9 @@ const Row = ({
           {item.index === 3 && <Noise4Icon />}
         </StyledChannelIcon>
 
-        <div data-selected={selectedId === item.id} style={{ flexGrow: 1 }}>
-          {item.name}
-        </div>
+        <StyledChannelName data-selected={selectedId === item.id}>
+          {getL10NChannelName(item.index)}
+        </StyledChannelName>
 
         <Button
           variant="normal"

@@ -75,16 +75,16 @@ export const AboutDialog = ({ onClose }: AboutDialogProps) => {
       <StyledConfirmModal
         role="dialog"
         aria-modal="true"
-        aria-label={l10n("MENU_ABOUT")}
+        aria-label={l10n("FIELD_ABOUT_APPNAME", { name: "GBS Music" })}
       >
         <AboutHeader>
           <StyledConfirmCloseButton onClick={onClose}>
             <CloseIcon />
           </StyledConfirmCloseButton>
-          <AboutLogo src={appIconUrl} alt="GB Studio" />
+          <AboutLogo src={appIconUrl} alt="GBS Music" />
           <AboutHeaderText>
             <AboutTitle>GBS Music</AboutTitle>
-            <AboutText>Chiptune Music Editor</AboutText>
+            <AboutText>{l10n("FIELD_CHIPTUNE_MUSIC_EDITOR")}</AboutText>
             <AboutText>
               {VERSION} ({COMMITHASH})
             </AboutText>
@@ -92,7 +92,9 @@ export const AboutDialog = ({ onClose }: AboutDialogProps) => {
         </AboutHeader>
         <AboutText>{l10n("GBSTUDIO_COPYRIGHT")}</AboutText>
         <StyledConfirmActions>
-          <Button onClick={clearAppCache}>Clear App Cache</Button>
+          <Button onClick={clearAppCache}>
+            {l10n("FIELD_CLEAR_APP_CACHE")}
+          </Button>
         </StyledConfirmActions>
       </StyledConfirmModal>
     </>

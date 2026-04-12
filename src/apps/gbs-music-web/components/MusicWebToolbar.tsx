@@ -210,7 +210,7 @@ export const MusicWebToolbar = ({
             <DropdownButton
               label={
                 <>
-                  <Logo src={appPixelIconUrl} alt="GB Studio" />
+                  <Logo src={appPixelIconUrl} alt="GBS Music" />
                   <BrandText>GBS Music</BrandText>
                 </>
               }
@@ -226,7 +226,7 @@ export const MusicWebToolbar = ({
               <MenuItem subMenu={localeMenu}>{l10n("MENU_LANGUAGE")}</MenuItem>
               <MenuDivider />
               <MenuItem onClick={() => setShowAbout(true)}>
-                About GBS Music
+                {l10n("FIELD_ABOUT_APPNAME", { name: "GBS Music" })}
               </MenuItem>
             </DropdownButton>
           </Brand>

@@ -387,7 +387,7 @@ export const MusicWebSplash = ({
   const [patrons, _setPatrons] = useState<Patrons>(inbuiltPatrons as Patrons);
   const [section, setSection] = useState<string>("new");
 
-  const [name, setName] = useState<string>("New Song");
+  const [name, setName] = useState<string>(l10n("FIELD_NEW_SONG"));
   const [artist, setArtist] = useLocalStorageState<string>(
     l10n("FIELD_ARTIST"),
     ARTIST_STORAGE_KEY,
@@ -454,7 +454,7 @@ export const MusicWebSplash = ({
             <SplashAppTitleWrapper>
               <strong>GBS Music</strong>
               <br />
-              Chiptune Music Editor
+              {l10n("FIELD_CHIPTUNE_MUSIC_EDITOR")}
             </SplashAppTitleWrapper>
             <StyledSplashTabs>
               <SplashTab
@@ -468,7 +468,7 @@ export const MusicWebSplash = ({
                 selected={section === "examples"}
                 onClick={() => setSection("examples")}
               >
-                Example Songs
+                {l10n("FIELD_EXAMPLE_SONGS")}
               </SplashTab>
 
               <SplashTabLink
@@ -578,8 +578,8 @@ export const MusicWebSplash = ({
                 <FormRow>
                   <div style={{ marginTop: 5, fontSize: 11, marginBottom: 20 }}>
                     {view === "roll"
-                      ? "Piano Roll description"
-                      : "Tracker description"}
+                      ? l10n("FIELD_PIANO_ROLL_DESCRIPTION")
+                      : l10n("FIELD_TRACKER_DESCRIPTION")}
                   </div>
                 </FormRow>
                 <FlexGrow />
@@ -593,7 +593,7 @@ export const MusicWebSplash = ({
                         onCreateSong(name, artist);
                       }}
                     >
-                      Create Song
+                      {l10n("FIELD_CREATE_SONG")}
                     </Button>
                   ) : null}
                   <FlexGrow />
@@ -605,7 +605,7 @@ export const MusicWebSplash = ({
                         onImportSong();
                       }}
                     >
-                      Open File
+                      {l10n("FIELD_OPEN_FILE")}
                     </Button>
                   ) : null}
                   {onOpenDirectoryWorkspace && !isCompactLayout ? (
@@ -632,13 +632,13 @@ export const MusicWebSplash = ({
                   }}
                 >
                   <StyledSplashRestorePanel>
-                    <span>Recover previous session</span>
+                    <span>{l10n("FIELD_RECOVER_PREVIOUS_SESSION")}</span>
                     <Button
                       style={{ flexGrow: 1 }}
                       size="large"
                       onClick={onRestoreBackup}
                     >
-                      Restore File
+                      {l10n("FIELD_RESTORE_FILE")}
                     </Button>
                   </StyledSplashRestorePanel>
                 </div>
@@ -687,7 +687,7 @@ export const MusicWebSplash = ({
 
           {isCompactLayout && (
             <StyledSplashSectionHeader $sticky>
-              Example Songs
+              {l10n("FIELD_EXAMPLE_SONGS")}
             </StyledSplashSectionHeader>
           )}
 
@@ -778,9 +778,9 @@ export const MusicWebSplash = ({
       {!isCompactLayout && onRestoreBackup ? (
         <div style={{ maxWidth: 420, marginTop: 20 }}>
           <StyledSplashRestorePanel $variant="glass">
-            <span>Recover previous session</span>
+            <span>{l10n("FIELD_RECOVER_PREVIOUS_SESSION")}</span>
             <Button style={{ flexGrow: 1 }} onClick={onRestoreBackup}>
-              Restore File
+              {l10n("FIELD_RESTORE_FILE")}
             </Button>
           </StyledSplashRestorePanel>
         </div>
