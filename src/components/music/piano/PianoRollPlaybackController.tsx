@@ -62,7 +62,7 @@ export const PianoRollPlaybackController = ({
     const maxScrollLeft = Math.max(0, calculateDocumentWidth(sequenceLength));
     const nextScrollLeft = Math.max(
       0,
-      Math.min(playheadLeft - viewportWidth * 0.2, maxScrollLeft),
+      Math.min(playheadLeft - viewportWidth * 0.3, maxScrollLeft),
     );
 
     if (Math.abs(scrollEl.scrollLeft - nextScrollLeft) < 1) {
