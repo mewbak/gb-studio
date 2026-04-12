@@ -96,11 +96,11 @@ export const SongMetadataEditor = () => {
 
   const onRenameFileOnEnter = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
-      if (e.key === "Enter") {
-        onRenameFile();
+      if (e.code === "Enter") {
+        e.currentTarget.blur();
       }
     },
-    [onRenameFile],
+    [],
   );
 
   if (!song) {
