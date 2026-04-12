@@ -201,6 +201,30 @@ export const StyledMobileBackButton = styled.button`
   }
 `;
 
+export const StyledMobileCloseButton = styled.button`
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 60px;
+  margin-bottom: -40px;
+  background: ${(props) => props.theme.colors.input.background};
+  border: 1px solid ${(props) => props.theme.colors.input.border};
+  top: 15px;
+  right: 10px;
+  transform: rotate(-90deg);
+  z-index: 10;
+
+  svg {
+    fill: ${(props) => props.theme.colors.text};
+    width: 20px;
+    height: 20px;
+    opacity: 0.75;
+  }
+`;
+
 export const StyledMobileListMenu = styled.div`
   margin: 0 10px;
   > :first-child {

@@ -1,8 +1,10 @@
 import {
+  StyledMobileCloseButton,
   StyledMobileListMenu,
   StyledMobileListMenuCaret,
   StyledMobileListMenuHeader,
   StyledMobileListMenuItem,
+  StyledMobileOverlayClose,
 } from "gbs-music-web/components/ui/style";
 import React from "react";
 import l10n from "shared/lib/lang/l10n";
@@ -15,7 +17,13 @@ import {
 import trackerActions from "store/features/tracker/trackerActions";
 import { useAppDispatch, useAppSelector } from "store/hooks";
 import styled from "styled-components";
-import { DutyIcon, WaveIcon, NoiseIcon, CaretRightIcon } from "ui/icons/Icons";
+import {
+  DutyIcon,
+  WaveIcon,
+  NoiseIcon,
+  CaretRightIcon,
+  CloseIcon,
+} from "ui/icons/Icons";
 
 const emptyDutyInstruments: DutyInstrument[] = [];
 const emptyWaveInstruments: WaveInstrument[] = [];
@@ -237,6 +245,8 @@ const InstrumentRow = ({ type, instrument }: InstrumentRowProps) => {
 };
 
 export const MusicWebInstrumentsPane = () => {
+  const dispatch = useAppDispatch();
+
   const dutyInstruments = useAppSelector(
     (state) =>
       state.trackerDocument.present.song?.duty_instruments ??
@@ -258,6 +268,14 @@ export const MusicWebInstrumentsPane = () => {
   return (
     <>
       <StyledInstrumentSection>
+        <StyledMobileCloseButton
+          onClick={() => {
+            dispatch(trackerActions.setMobileOverlayView("none"));
+          }}
+        >
+          <CloseIcon />
+        </StyledMobileCloseButton>
+
         <StyledMobileListMenuHeader>
           <DutyIcon /> Duty
         </StyledMobileListMenuHeader>
