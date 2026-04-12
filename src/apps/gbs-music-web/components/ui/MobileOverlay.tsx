@@ -29,10 +29,32 @@ export const MobileOverlay = ({
   const [isDragging, setIsDragging] = useState(false);
 
   const handleStartY = useRef(-1);
+  const suppressNextClick = useCallback(() => {
+    let timeoutId = 0;
+
+    const onClickCapture = (e: MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      window.clearTimeout(timeoutId);
+      window.removeEventListener("click", onClickCapture, true);
+    };
+
+    timeoutId = window.setTimeout(() => {
+      window.removeEventListener("click", onClickCapture, true);
+    }, 100);
+
+    window.addEventListener("click", onClickCapture, {
+      capture: true,
+    });
+  }, []);
 
   const onPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     e.stopPropagation();
     e.preventDefault();
+    if (e.currentTarget.hasPointerCapture?.(e.pointerId) === false) {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    }
     handleStartY.current = e.clientY;
     setIsDragging(true);
   }, []);
@@ -54,11 +76,21 @@ export const MobileOverlay = ({
       e.preventDefault();
       const diffY = e.pageY - handleStartY.current;
       if (diffY > MOBILE_OVERLAY_DRAG_CLOSE_THRESHOLD_PX) {
+        suppressNextClick();
         onClose();
       } else {
         setOffsetY(0);
       }
       setIsDragging(false);
+    },
+    [onClose, suppressNextClick],
+  );
+
+  const onHandleClick = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      e.stopPropagation();
+      e.preventDefault();
+      onClose();
     },
     [onClose],
   );
@@ -95,7 +127,7 @@ export const MobileOverlay = ({
         {open && (
           <StyledMobileOverlayHandle
             onPointerDown={onPointerDown}
-            onClick={onClose}
+            onClick={onHandleClick}
           />
         )}
         <StyledMobileOverlayContent>{children}</StyledMobileOverlayContent>

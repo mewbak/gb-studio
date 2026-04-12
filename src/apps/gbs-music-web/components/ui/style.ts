@@ -161,6 +161,7 @@ export const StyledMobileOverlayHandle = styled.div`
   left: 0px;
   right: 0px;
   background: transparent;
+  touch-action: none;
 
   &:before {
     position: relative;
