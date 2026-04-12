@@ -30,6 +30,7 @@ const KNOB_START_ANGLE = -135;
 const KNOB_END_ANGLE = 135;
 const KNOB_SWEEP = KNOB_END_ANGLE - KNOB_START_ANGLE;
 const DEAD_ZONE_PX = 15;
+const AXIS_SWITCH_DEAD_ZONE_PX = 24;
 const PAGE_STEP_MULTIPLIER = 10;
 
 const clampAndSnap = (
@@ -224,6 +225,7 @@ export const Knob = ({
 
   const [isDragging, setIsDragging] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [isKeyboardAdjusting, setIsKeyboardAdjusting] = useState(false);
   const [draftValue, setDraftValue] = useState("");
   const [overlayValue, setOverlayValue] = useState<number | null>(null);
   const [dragAxisState, setDragAxisState] = useState<DragAxis>(null);
@@ -273,10 +275,12 @@ export const Knob = ({
     setIsEditing(true);
     dragAxisRef.current = null;
     setDragAxisState(null);
+    setIsKeyboardAdjusting(false);
   }, []);
 
   const beginEditingWithCurrentValue = useCallback(() => {
     beginEditing(String(safeValue));
+    setIsKeyboardAdjusting(false);
   }, [beginEditing, safeValue]);
 
   const cancelEditing = useCallback(() => {
@@ -346,12 +350,29 @@ export const Knob = ({
 
         dragStartXRef.current = event.clientX;
         dragStartYRef.current = event.clientY;
+        dragStartValueRef.current = lastEmittedValueRef.current;
 
         setDragAxisState(dragAxisRef.current);
         return;
       }
 
-      const primaryDelta = dragAxisRef.current === "horizontal" ? dx : dy;
+      const currentAxis = dragAxisRef.current;
+      const perpendicularDelta = currentAxis === "horizontal" ? dy : dx;
+
+      if (Math.abs(perpendicularDelta) >= AXIS_SWITCH_DEAD_ZONE_PX) {
+        const nextAxis =
+          currentAxis === "horizontal" ? "vertical" : "horizontal";
+
+        dragAxisRef.current = nextAxis;
+        dragStartXRef.current = event.clientX;
+        dragStartYRef.current = event.clientY;
+        dragStartValueRef.current = lastEmittedValueRef.current;
+
+        setDragAxisState(nextAxis);
+        return;
+      }
+
+      const primaryDelta = currentAxis === "horizontal" ? dx : dy;
       const nextValue = clampAndSnap(
         dragStartValueRef.current + primaryDelta * sensitivity * (max - min),
         min,
@@ -419,6 +440,7 @@ export const Knob = ({
       setDragAxisState(null);
       setOverlayValue(safeValue);
       setIsDragging(true);
+      setIsKeyboardAdjusting(false);
 
       // Calculate value at touch start
       const rect = event.currentTarget.getBoundingClientRect();
@@ -448,36 +470,42 @@ export const Knob = ({
       if (event.key === "ArrowUp" || event.key === "ArrowRight") {
         event.preventDefault();
         commitValue(safeValue + step);
+        setIsKeyboardAdjusting(true);
         return;
       }
 
       if (event.key === "ArrowDown" || event.key === "ArrowLeft") {
         event.preventDefault();
         commitValue(safeValue - step);
+        setIsKeyboardAdjusting(true);
         return;
       }
 
       if (event.key === "PageUp") {
         event.preventDefault();
         commitValue(safeValue + step * PAGE_STEP_MULTIPLIER);
+        setIsKeyboardAdjusting(true);
         return;
       }
 
       if (event.key === "PageDown") {
         event.preventDefault();
         commitValue(safeValue - step * PAGE_STEP_MULTIPLIER);
+        setIsKeyboardAdjusting(true);
         return;
       }
 
       if (event.key === "Home") {
         event.preventDefault();
         commitValue(min);
+        setIsKeyboardAdjusting(true);
         return;
       }
 
       if (event.key === "End") {
         event.preventDefault();
         commitValue(max);
+        setIsKeyboardAdjusting(true);
         return;
       }
 
@@ -538,6 +566,10 @@ export const Knob = ({
     [cancelEditing, commitDraft],
   );
 
+  const onBlur = useCallback(() => {
+    setIsKeyboardAdjusting(false);
+  }, []);
+
   const normalized = normalizeValue(safeValue, min, max);
   const valueAngle = KNOB_START_ANGLE + normalized * KNOB_SWEEP;
 
@@ -597,6 +629,7 @@ export const Knob = ({
         onPointerDown={onPointerDown}
         onKeyDown={onKeyDown}
         onDoubleClick={beginEditingWithCurrentValue}
+        onBlur={onBlur}
       >
         <KnobSvg width="60" height="60" viewBox="0 0 60 60" aria-hidden="true">
           <path
@@ -672,7 +705,9 @@ export const Knob = ({
           />
         )}
       </KnobButton>
-      {isDragging && <ValueOverlay>{displayText}</ValueOverlay>}
+      {(isDragging || isKeyboardAdjusting) && (
+        <ValueOverlay>{displayText}</ValueOverlay>
+      )}
     </Root>
   );
 };
