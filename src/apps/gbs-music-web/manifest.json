@@ -1,15 +1,23 @@
 {
   "name": "GBS Music",
   "short_name": "GBS Music",
-  "description": "GB Studio Music Editor",
+  "description": "GBS Music is a chiptune music editor by the creators of GB Studio.",
   "start_url": "./",
+  "scope": "./",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#c92c61",
   "theme_color": "#c92c61",
   "icons": [
     {
       "src": "./icons/app_music_icon_180.png",
-      "sizes": "1024x1024",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icons/app_music_icon_256.png",
+      "sizes": "256x256",
       "type": "image/png",
       "purpose": "any maskable"
     }
