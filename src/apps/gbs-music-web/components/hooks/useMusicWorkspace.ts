@@ -21,6 +21,7 @@ import {
   deserializeSong,
   getBackupInfo,
 } from "gbs-music-web/lib/songBackup";
+import API from "renderer/lib/api";
 
 const toSafeBaseName = (name: string) =>
   name.replace(/[/\\]/g, "").trim() || "New Song";
@@ -101,6 +102,9 @@ export const useMusicWorkspace = ({
   );
 
   const closeWorkspace = useCallback(() => {
+    API.music.sendToMusicWindow({
+      action: "stop",
+    });
     setWorkspace(undefined);
     dispatch(musicAssetActions.setMusicAssets([]));
     dispatch(trackerActions.reset());
