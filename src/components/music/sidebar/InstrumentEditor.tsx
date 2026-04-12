@@ -28,7 +28,7 @@ import trackerDocumentActions from "store/features/trackerDocument/trackerDocume
 import { useAppDispatch, useAppSelector } from "store/hooks";
 import { BlankIcon, CheckIcon } from "ui/icons/Icons";
 import { DropdownButton } from "ui/buttons/DropdownButton";
-import { MenuDivider, MenuItem } from "ui/menu/Menu";
+import { MenuDivider, MenuGroup, MenuItem } from "ui/menu/Menu";
 import {
   doubleSubpattern,
   halfSubpattern,
@@ -77,56 +77,139 @@ const instrumentTypeLabels: Record<InstrumentType, string> = {
 };
 
 type SubpatternPreset = {
+  type: "preset";
   name: string;
   value: SubPatternCell[];
 };
 
+type SubpatternPresetGroup = {
+  type: "group";
+  name: string;
+};
+
 type SubpatternJump = readonly [fromIndex: number, toIndex: number];
+
+type SubpatternEffect = readonly [
+  rowIndex: number,
+  effectCode: number,
+  effectParam: number,
+];
 
 const createSubpatternPreset = (
   name: string,
   pitch: number[],
   jump: SubpatternJump[] = [],
+  effects: SubpatternEffect[] = [],
 ): SubpatternPreset => {
   const cells = createSubPattern();
 
   const jumpMap = new Map<number, number>(jump);
+  const effectMap = new Map<number, readonly [number, number]>(
+    effects.map(([rowIndex, effectCode, effectParam]) => [
+      rowIndex,
+      [effectCode, effectParam] as const,
+    ]),
+  );
 
-  pitch.forEach((offset, index) => {
+  const lastPitchIndex = pitch.length - 1;
+  const lastJumpIndex = jump.reduce(
+    (max, [fromIndex]) => Math.max(max, fromIndex),
+    -1,
+  );
+  const lastEffectIndex = effects.reduce(
+    (max, [rowIndex]) => Math.max(max, rowIndex),
+    -1,
+  );
+
+  const maxLength = Math.min(
+    cells.length,
+    Math.max(lastPitchIndex, lastJumpIndex, lastEffectIndex) + 1,
+  );
+
+  for (let index = 0; index < maxLength; index++) {
+    const offset = pitch[index];
     const jumpTo = jumpMap.get(index);
+    const effect = effectMap.get(index);
+
     cells[index] = {
-      note: offsetToStoredPitch(offset),
+      note: offset !== undefined ? offsetToStoredPitch(offset) : null,
       jump: jumpTo !== undefined ? jumpTo + 1 : null,
-      effectcode: null,
-      effectparam: null,
+      effectcode: effect?.[0] ?? null,
+      effectparam: effect?.[1] ?? null,
     };
-  });
+  }
 
   return {
+    type: "preset",
     name,
     value: cells,
   };
 };
 
-const presets: (SubpatternPreset | "divider")[] = [
-  createSubpatternPreset("Major (0 +4 +7)", [0, 4, 7], [[2, 0]]),
-  createSubpatternPreset("Minor (0 +3 +7)", [0, 3, 7], [[2, 0]]),
-  createSubpatternPreset("Diminished (0 +3 +6)", [0, 3, 6], [[2, 0]]),
-  createSubpatternPreset("Augmented (0 +4 +8)", [0, 4, 8], [[2, 0]]),
-  "divider",
-  createSubpatternPreset("Major 7 (0 +4 +7 +11)", [0, 4, 7, 11], [[3, 0]]),
-  createSubpatternPreset("Dominant 7 (0 +4 +7 +10)", [0, 4, 7, 10], [[3, 0]]),
-  createSubpatternPreset("Minor 7 (0 +3 +7 +10)", [0, 3, 7, 10], [[3, 0]]),
-  "divider",
-  createSubpatternPreset("Sus2 (0 +2 +7)", [0, 2, 7], [[2, 0]]),
-  createSubpatternPreset("Sus4 (0 +5 +7)", [0, 5, 7], [[2, 0]]),
-  "divider",
-  createSubpatternPreset("Power (0 +7)", [0, 7], [[1, 0]]),
-  createSubpatternPreset("Octave (0 +12)", [0, 12], [[1, 0]]),
-  createSubpatternPreset("Octave + Fifth (0 +7 +12)", [0, 7, 12], [[2, 0]]),
-  "divider",
-  createSubpatternPreset("Major Up-Down (0 +4 +7 +4)", [0, 4, 7, 4], [[3, 0]]),
-  createSubpatternPreset("Minor Up-Down (0 +3 +7 +3)", [0, 3, 7, 3], [[3, 0]]),
+const createSubpatternPresetGroup = (name: string): SubpatternPresetGroup => ({
+  type: "group",
+  name,
+});
+
+const presets: (SubpatternPreset | SubpatternPresetGroup)[] = [
+  createSubpatternPresetGroup("Arpeggio"),
+  createSubpatternPreset("Major Arp (0 +4 +7)", [0, 4, 7], [[2, 0]]),
+  createSubpatternPreset("Minor Arp (0 +3 +7)", [0, 3, 7], [[2, 0]]),
+  createSubpatternPreset("Major 7 Arp (0 +4 +7 +11)", [0, 4, 7, 11], [[3, 0]]),
+  createSubpatternPreset(
+    "Dominant 7 Arp (0 +4 +7 +10)",
+    [0, 4, 7, 10],
+    [[3, 0]],
+  ),
+  createSubpatternPreset("Minor 7 Arp (0 +3 +7 +10)", [0, 3, 7, 10], [[3, 0]]),
+  createSubpatternPreset("Sus2 Arp (0 +2 +7)", [0, 2, 7], [[2, 0]]),
+  createSubpatternPreset("Sus4 Arp (0 +5 +7)", [0, 5, 7], [[2, 0]]),
+  createSubpatternPreset("Power Arp (0 +7)", [0, 7], [[1, 0]]),
+
+  createSubpatternPresetGroup("Pluck"),
+  createSubpatternPreset("Pluck (+12 0)", [12, 0], [[1, 1]]),
+  createSubpatternPreset("Pluck (+12 +7 0)", [12, 7, 0], [[2, 2]]),
+  createSubpatternPreset("Pluck (+24 +12 0)", [24, 12, 0], [[2, 2]]),
+
+  createSubpatternPresetGroup("Vibrato"),
+  createSubpatternPreset(
+    "Vibrato Light",
+    [0],
+    [[3, 0]],
+    [
+      [0, 0x4, 0x11],
+      [1, 0x4, 0x11],
+      [2, 0x4, 0x11],
+      [3, 0x4, 0x11],
+    ],
+  ),
+  createSubpatternPreset(
+    "Vibrato Medium",
+    [0],
+    [[3, 0]],
+    [
+      [0, 0x4, 0x22],
+      [1, 0x4, 0x22],
+      [2, 0x4, 0x22],
+      [3, 0x4, 0x22],
+    ],
+  ),
+  createSubpatternPreset(
+    "Vibrato Heavy",
+    [0],
+    [[3, 0]],
+    [
+      [0, 0x4, 0x34],
+      [1, 0x4, 0x34],
+      [2, 0x4, 0x34],
+      [3, 0x4, 0x34],
+    ],
+  ),
+  createSubpatternPresetGroup("Noise"),
+  createSubpatternPreset("Hi-Hat", [32, 32]),
+  createSubpatternPreset("Crash", [24, 24]),
+  createSubpatternPreset("Bass", [16, 15]),
+  createSubpatternPreset("Explosion", [13, 11, 9, 7, 7, 7]),
 ];
 
 const getDefaultInstrumentName = (
@@ -265,7 +348,7 @@ export const InstrumentEditor = ({
       console.log(e.currentTarget, e.currentTarget.dataset);
       const presetId = parseInt(e.currentTarget.dataset.presetId ?? "0", 10);
       const preset = presets[presetId];
-      if (preset !== "divider" && preset.value) {
+      if (preset.type === "preset" && preset.value) {
         dispatch(
           editInstrument({
             instrumentId: resolvedInstrument.instrument.index,
@@ -550,8 +633,8 @@ export const InstrumentEditor = ({
                   <MenuDivider />
                   <MenuItem
                     subMenu={presets.map((preset, presetIndex) =>
-                      preset === "divider" ? (
-                        <MenuDivider key={presetIndex} />
+                      preset.type === "group" ? (
+                        <MenuGroup>{preset.name}</MenuGroup>
                       ) : (
                         <MenuItem
                           key={preset.name}
