@@ -389,7 +389,7 @@ export const MusicWebSplash = ({
 
   const [name, setName] = useState<string>("New Song");
   const [artist, setArtist] = useLocalStorageState<string>(
-    "Artist",
+    l10n("FIELD_ARTIST"),
     ARTIST_STORAGE_KEY,
   );
 
@@ -505,11 +505,11 @@ export const MusicWebSplash = ({
                 <FormRow>
                   <TextField
                     name="name"
-                    label="Song Name"
+                    label={l10n("FIELD_NAME")}
                     errorLabel={undefined}
                     size="large"
                     value={name}
-                    placeholder="Song Name"
+                    placeholder={l10n("FIELD_NAME")}
                     onChange={(e) => {
                       setName(e.currentTarget.value);
                     }}
@@ -519,11 +519,11 @@ export const MusicWebSplash = ({
                 <FormRow>
                   <TextField
                     name="name"
-                    label="Artist"
+                    label={l10n("FIELD_ARTIST")}
                     errorLabel={undefined}
                     size="large"
                     value={artist}
-                    placeholder="Artist Name"
+                    placeholder={l10n("FIELD_ARTIST")}
                     onChange={(e) => {
                       setArtist(e.currentTarget.value);
                     }}
@@ -630,10 +630,7 @@ export const MusicWebSplash = ({
                   }}
                 >
                   <StyledSplashRestorePanel>
-                    <span>
-                      A previous session has been recovered{" "}
-                      {backupSongName ? `"${backupSongName}"` : ""}
-                    </span>
+                    <span>Recover previous session</span>
                     <Button
                       style={{ flexGrow: 1 }}
                       size="large"
@@ -779,11 +776,7 @@ export const MusicWebSplash = ({
       {!isCompactLayout && onRestoreBackup ? (
         <div style={{ maxWidth: 420, marginTop: 20 }}>
           <StyledSplashRestorePanel $variant="glass">
-            <span>
-              A previous session has been recovered
-              <br />
-              {backupSongName ? `"${backupSongName}"` : ""}
-            </span>
+            <span>Recover previous session</span>
             <Button style={{ flexGrow: 1 }} onClick={onRestoreBackup}>
               Restore File
             </Button>
