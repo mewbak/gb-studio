@@ -553,6 +553,7 @@ export const MusicWebSplash = ({
                         borderRadius: 4,
                         backgroundImage: `url(${pianoImageUrl})`,
                         backgroundSize: "cover",
+                        backgroundPosition: "0% 50%",
                       }}
                       onClick={setRollView}
                     />
@@ -568,6 +569,7 @@ export const MusicWebSplash = ({
                         borderRadius: 4,
                         backgroundImage: `url(${trackerImageUrl})`,
                         backgroundSize: "cover",
+                        backgroundPosition: "0% 0%",
                       }}
                       onClick={setTrackerView}
                     />
