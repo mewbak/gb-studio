@@ -1398,7 +1398,7 @@
   "FIELD_DUTY_2": "Duty 2",
   "FIELD_WAVE": "Wave",
   "FIELD_NOISE": "Noise",
-  "FIELD_PIANO_ROLL_DESCRIPTION": "Compose visually by drawning notes on a timeline.",
+  "FIELD_PIANO_ROLL_DESCRIPTION": "Compose visually by drawing notes on a timeline.",
   "FIELD_TRACKER_DESCRIPTION": "Compose using a grid of note values and effect codes.",
 
   "// 7": "Asset Viewer ---------------------------------------------",
