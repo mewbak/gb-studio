@@ -95,18 +95,16 @@ const MusicPage = () => {
     musicSelectors.selectById(state, viewSongId),
   );
 
-  const [selectedSongPath, setSelectedSongPath] = useState("");
-  useEffect(() => {
-    if (viewSong) {
-      setSelectedSongPath(assetPath("music", viewSong));
-    }
-  }, [viewSong]);
+  const selectedSongPath = useMemo(
+    () => (viewSong?.type === "uge" ? assetPath("music", viewSong) : ""),
+    [viewSong],
+  );
 
   useEffect(() => {
-    if (selectedSongPath !== "" && viewSong?.type === "uge") {
+    if (selectedSongPath !== "") {
       dispatch(loadSongFile(selectedSongPath));
     }
-  }, [dispatch, selectedSongPath, viewSong.type]);
+  }, [dispatch, selectedSongPath]);
 
   const modified = useAppSelector((state) => state.tracker.modified);
   const status = useAppSelector((state) => state.tracker.status);
