@@ -46,14 +46,8 @@ const DEFAULT_COLLAPSED_SIZE = 30;
 const sum = (values: number[]) =>
   values.reduce((memo, value) => memo + value, 0);
 
-const clamp = (value: number, min: number, max: number) =>
-  Math.max(min, Math.min(max, value));
-
 const getSafeMaxSize = (value: number | undefined) =>
   value == null ? Number.POSITIVE_INFINITY : Math.max(0, Math.floor(value));
-
-const getSafeMinSize = (value: number | undefined) =>
-  Math.max(0, Math.floor(value ?? 0));
 
 export const getDefaultSizes = (count: number, totalHeight: number) => {
   if (count <= 0) {
@@ -287,6 +281,11 @@ export const fitSizesToTotal = (
     Math.max(0, Math.floor(size)),
   );
   const result = new Array<number>(count).fill(0);
+  const getPreferredSize = (index: number) =>
+    Math.min(
+      safeMaxSizes[index],
+      Math.max(safeMinSizes[index], preferredSizes[index]),
+    );
 
   // Important: collapsed panes stay collapsed, even if minSize > collapsedSize
   const lockedIndexes = Array.from(
@@ -316,17 +315,8 @@ export const fitSizesToTotal = (
     return result;
   }
 
-  const remainingPreferredSizes = remainingIndexes.map((index) =>
-    Math.min(
-      safeMaxSizes[index],
-      Math.max(safeMinSizes[index], preferredSizes[index]),
-    ),
-  );
   const remainingMinSizes = remainingIndexes.map(
     (index) => safeMinSizes[index],
-  );
-  const remainingMaxSizes = remainingIndexes.map(
-    (index) => safeMaxSizes[index],
   );
 
   const remainingMinTotal = sum(remainingMinSizes);
@@ -344,14 +334,7 @@ export const fitSizesToTotal = (
 
   // First enforce mins if shrinking below them
   while (activeIndexes.length > 0) {
-    const activePreferredTotal = sum(
-      activeIndexes.map((index) =>
-        Math.min(
-          safeMaxSizes[index],
-          Math.max(safeMinSizes[index], preferredSizes[index]),
-        ),
-      ),
-    );
+    const activePreferredTotal = sum(activeIndexes.map(getPreferredSize));
 
     if (activePreferredTotal <= 0) {
       const fallback = getDefaultSizes(activeIndexes.length, activeHeight);
@@ -361,16 +344,16 @@ export const fitSizesToTotal = (
       break;
     }
 
-    const forcedIndexes = activeIndexes.filter((index) => {
-      const preferred = Math.min(
-        safeMaxSizes[index],
-        Math.max(safeMinSizes[index], preferredSizes[index]),
-      );
+    const forcedIndexes: number[] = [];
+    for (let i = 0; i < activeIndexes.length; i++) {
+      const index = activeIndexes[i];
       const proposed = Math.floor(
-        (activeHeight * preferred) / activePreferredTotal,
+        (activeHeight * getPreferredSize(index)) / activePreferredTotal,
       );
-      return proposed < safeMinSizes[index];
-    });
+      if (proposed < safeMinSizes[index]) {
+        forcedIndexes.push(index);
+      }
+    }
 
     if (forcedIndexes.length === 0) {
       break;
@@ -382,21 +365,13 @@ export const fitSizesToTotal = (
       activeHeight -= safeMinSizes[index];
     }
 
-    activeIndexes = activeIndexes.filter(
-      (index) => !forcedIndexes.includes(index),
-    );
+    const forcedIndexSet = new Set(forcedIndexes);
+    activeIndexes = activeIndexes.filter((index) => !forcedIndexSet.has(index));
   }
 
   // Then distribute remaining height proportionally, respecting maxes too
   while (activeIndexes.length > 0) {
-    const activePreferredTotal = sum(
-      activeIndexes.map((index) =>
-        Math.min(
-          safeMaxSizes[index],
-          Math.max(safeMinSizes[index], preferredSizes[index]),
-        ),
-      ),
-    );
+    const activePreferredTotal = sum(activeIndexes.map(getPreferredSize));
 
     if (activePreferredTotal <= 0) {
       const fallback = getDefaultSizes(activeIndexes.length, activeHeight);
@@ -406,16 +381,16 @@ export const fitSizesToTotal = (
       break;
     }
 
-    const forcedMaxIndexes = activeIndexes.filter((index) => {
-      const preferred = Math.min(
-        safeMaxSizes[index],
-        Math.max(safeMinSizes[index], preferredSizes[index]),
-      );
+    const forcedMaxIndexes: number[] = [];
+    for (let i = 0; i < activeIndexes.length; i++) {
+      const index = activeIndexes[i];
       const proposed = Math.floor(
-        (activeHeight * preferred) / activePreferredTotal,
+        (activeHeight * getPreferredSize(index)) / activePreferredTotal,
       );
-      return proposed > safeMaxSizes[index];
-    });
+      if (proposed > safeMaxSizes[index]) {
+        forcedMaxIndexes.push(index);
+      }
+    }
 
     if (forcedMaxIndexes.length > 0) {
       for (let i = 0; i < forcedMaxIndexes.length; i++) {
@@ -424,26 +399,19 @@ export const fitSizesToTotal = (
         activeHeight -= safeMaxSizes[index];
       }
 
+      const forcedMaxIndexSet = new Set(forcedMaxIndexes);
       activeIndexes = activeIndexes.filter(
-        (index) => !forcedMaxIndexes.includes(index),
+        (index) => !forcedMaxIndexSet.has(index),
       );
       continue;
     }
 
     let used = 0;
-    let lastIndex = -1;
 
     for (let i = 0; i < activeIndexes.length; i++) {
       const index = activeIndexes[i];
-      lastIndex = index;
-
-      const preferred = Math.min(
-        safeMaxSizes[index],
-        Math.max(safeMinSizes[index], preferredSizes[index]),
-      );
-
       const size = Math.floor(
-        (activeHeight * preferred) / activePreferredTotal,
+        (activeHeight * getPreferredSize(index)) / activePreferredTotal,
       );
       result[index] = size;
       used += size;
