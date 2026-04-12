@@ -74,7 +74,6 @@ export const MusicWebApp = () => {
     openDirectoryWorkspace,
     restoreBackupSong,
     openExample,
-    renameSong,
     closeWorkspace,
   } = useMusicWorkspace({
     templateSongData,
@@ -168,7 +167,6 @@ export const MusicWebApp = () => {
             onImportSong={onImportSong}
             onOpenDirectoryWorkspace={onOpenDirectoryWorkspace}
             onSelectSong={onSelectSong}
-            onRenameSong={renameSong}
           />
         ) : (
           <MusicWebSplash

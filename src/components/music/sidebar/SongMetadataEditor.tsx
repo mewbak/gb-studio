@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   FormColumn,
   FormColumns,
@@ -13,7 +13,6 @@ import { castEventToInt } from "renderer/lib/helpers/castEventValue";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
 import { NumberInput } from "ui/form/NumberInput";
 import { useAppDispatch, useAppSelector } from "store/hooks";
-import { SidebarHeader } from "ui/form/SidebarHeader";
 import { getBaseName } from "shared/lib/helpers/virtualFilesystem";
 import {
   InputGroup,
@@ -22,11 +21,18 @@ import {
 } from "ui/form/InputGroup";
 import { getBPM } from "shared/lib/uge/display";
 import l10n from "shared/lib/lang/l10n";
+import { EditableText, EditableTextOverlay } from "ui/form/EditableText";
+import { FlexGrow } from "ui/spacing/Spacing";
+import projectActions from "store/features/project/projectActions";
+import { stripInvalidPathCharacters } from "shared/lib/helpers/stripInvalidFilenameCharacters";
 
 export const SongMetadataEditor = () => {
   const dispatch = useAppDispatch();
 
   const song = useAppSelector((state) => state.trackerDocument.present.song);
+  const selectedSongId = useAppSelector(
+    (state) => state.tracker.selectedSongId,
+  );
 
   const onChangeSongProp = useCallback(
     <K extends keyof Song>(key: K, value: Song[K]) => {
@@ -59,6 +65,46 @@ export const SongMetadataEditor = () => {
     [onChangeSongProp],
   );
 
+  const [localFilename, setLocalFilename] = useState(
+    song?.filename.replace(/\.uge$/i, "") ?? "",
+  );
+
+  useEffect(() => {
+    setLocalFilename(song?.filename.replace(/\.uge$/i, "") ?? "");
+  }, [song?.filename]);
+
+  const onRenameFile = useCallback(() => {
+    const currentFilename = getBaseName(
+      song?.filename.replace(/\.uge$/i, "") ?? "",
+    );
+    const sanitizedFilename = stripInvalidPathCharacters(localFilename).trim();
+
+    if (
+      !selectedSongId ||
+      !sanitizedFilename ||
+      sanitizedFilename === currentFilename
+    ) {
+      setLocalFilename(currentFilename);
+      return;
+    }
+
+    dispatch(
+      projectActions.renameMusicAsset({
+        musicId: selectedSongId,
+        newFilename: sanitizedFilename,
+      }),
+    );
+  }, [dispatch, localFilename, selectedSongId, song?.filename]);
+
+  const onRenameFileOnEnter = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "Enter") {
+        onRenameFile();
+      }
+    },
+    [onRenameFile],
+  );
+
   if (!song) {
     return null;
   }
@@ -66,7 +112,20 @@ export const SongMetadataEditor = () => {
   return (
     <>
       <FormHeader>
-        <SidebarHeader>{getBaseName(song.filename)}</SidebarHeader>
+        <FlexGrow style={{ minWidth: 0 }}>
+          <EditableText
+            name="name"
+            placeholder={getBaseName(song.filename)}
+            value={localFilename}
+            onChange={(e) => setLocalFilename(e.currentTarget.value)}
+            onBlur={onRenameFile}
+            onKeyDown={onRenameFileOnEnter}
+            autoComplete="off"
+          />
+          <EditableTextOverlay>
+            {getBaseName(song.filename)}
+          </EditableTextOverlay>
+        </FlexGrow>
       </FormHeader>
       <SidebarColumns>
         <SidebarColumn>

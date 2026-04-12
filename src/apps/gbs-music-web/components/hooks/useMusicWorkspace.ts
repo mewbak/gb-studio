@@ -10,19 +10,17 @@ import {
   importMusicDocument,
   registerExampleData,
   registerSongBackupData,
-  renameWebDocument,
   supportsPersistentSave,
   webMusicEnvironment,
 } from "gbs-music-web/lib/adapters";
 import { musicAssetActions } from "gbs-music-web/store/features/musicAssets/musicAssetsState";
 import { musicWorkspaceToAssets } from "gbs-music-web/store/features/musicAssets/musicAssetsHelpers";
-import { useAppDispatch, useAppSelector } from "store/hooks";
+import { useAppDispatch } from "store/hooks";
 import {
   BACKUP_SONG_KEY,
   deserializeSong,
   getBackupInfo,
 } from "gbs-music-web/lib/songBackup";
-import { actions as trackerDocumentActions } from "store/features/trackerDocument/trackerDocumentState";
 
 const toSafeBaseName = (name: string) =>
   name.replace(/[/\\]/g, "").trim() || "New Song";
@@ -75,7 +73,6 @@ interface UseMusicWorkspaceResult {
   openDirectoryWorkspace: () => Promise<void>;
   restoreBackupSong: () => Promise<void>;
   openExample: (name: string, filename: string, url: string) => Promise<void>;
-  renameSong: (musicId: string, newBaseName: string) => Promise<void>;
   closeWorkspace: () => void;
 }
 
@@ -85,9 +82,6 @@ export const useMusicWorkspace = ({
   const dispatch = useAppDispatch();
   const [workspace, setWorkspace] = useState<MusicWorkspace>();
   const singleDocumentMode = !supportsPersistentSave();
-  const selectedSongId = useAppSelector(
-    (state) => state.tracker.selectedSongId,
-  );
 
   const backupInfo = getBackupInfo();
   const hasBackup = backupInfo !== null;
@@ -257,49 +251,6 @@ export const useMusicWorkspace = ({
     [applyWorkspace],
   );
 
-  const renameSong = useCallback(
-    async (musicId: string, newBaseName: string) => {
-      const doc = workspace?.documents.find((d) => d.id === musicId);
-      if (!doc) {
-        return;
-      }
-
-      const safeName = newBaseName.replace(/[/\\]/g, "").trim();
-      if (!safeName) {
-        return;
-      }
-
-      const newFilename = `${safeName}.uge`;
-      const newRef = await renameWebDocument(
-        musicId,
-        doc.filename,
-        newFilename,
-      );
-
-      setWorkspace((prev) => {
-        if (!prev) {
-          return prev;
-        }
-        return {
-          ...prev,
-          documents: prev.documents.map((d) => (d.id === musicId ? newRef : d)),
-        };
-      });
-
-      dispatch(
-        musicAssetActions.renameMusicAsset({
-          musicId,
-          newFilename,
-        }),
-      );
-
-      if (musicId === selectedSongId) {
-        dispatch(trackerDocumentActions.setSongFilename(newFilename));
-      }
-    },
-    [dispatch, selectedSongId, workspace],
-  );
-
   return {
     singleDocumentMode,
     hasBackup,
@@ -309,7 +260,6 @@ export const useMusicWorkspace = ({
     openDirectoryWorkspace,
     restoreBackupSong,
     openExample,
-    renameSong,
     closeWorkspace,
   };
 };
