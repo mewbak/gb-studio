@@ -421,7 +421,6 @@ interface MusicWebSplashProps {
   onImportSong?: () => void;
   onOpenDirectoryWorkspace?: () => void;
   onRestoreBackup?: () => void;
-  backupSongName?: string;
   onOpenExample: (name: string, filename: string, url: string) => void;
   initialArtist?: string;
 }
@@ -437,7 +436,6 @@ export const MusicWebSplash = ({
   onImportSong,
   onOpenDirectoryWorkspace,
   onRestoreBackup,
-  backupSongName,
   onOpenExample,
 }: MusicWebSplashProps) => {
   const dispatch = useAppDispatch();

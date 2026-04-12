@@ -68,7 +68,6 @@ export const MusicWebApp = () => {
   const {
     singleDocumentMode,
     hasBackup,
-    backupSongName,
     createSong,
     importSong,
     openDirectoryWorkspace,
@@ -180,7 +179,6 @@ export const MusicWebApp = () => {
               singleDocumentMode ? undefined : onOpenDirectoryWorkspace
             }
             onRestoreBackup={hasBackup ? onRestoreBackup : undefined}
-            backupSongName={backupSongName}
             onOpenExample={onOpenExample}
           />
         )}
