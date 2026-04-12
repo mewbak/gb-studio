@@ -1385,6 +1385,7 @@
   "FIELD_IMPORT_INSTRUMENT": "Import Instrument",
   "FIELD_EXPORT_WAVE": "Export Wave",
   "FIELD_IMPORT_WAVE": "Import Wave",
+  "FIELD_SELECTION": "Selection",
 
   "// 7": "Asset Viewer ---------------------------------------------",
   "ASSET_SEARCH": "Search...",

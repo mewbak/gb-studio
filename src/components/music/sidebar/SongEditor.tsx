@@ -5,6 +5,7 @@ import { SongMetadataEditor } from "./SongMetadataEditor";
 import { useAppSelector } from "store/hooks";
 import { InstrumentEditor } from "./InstrumentEditor";
 import { PatternCellSelectionEditor } from "./PatternCellSelectionEditor";
+import l10n from "shared/lib/lang/l10n";
 
 export const SongEditor = () => {
   const selectedPatternCells = useAppSelector(
@@ -24,7 +25,7 @@ export const SongEditor = () => {
         <div style={{ marginTop: -1 }}>
           {sidebarView === "cell" && selectedPatternCells.length > 0 ? (
             <>
-              <FormSectionTitle>NOTES</FormSectionTitle>
+              <FormSectionTitle>{l10n("FIELD_SELECTION")}</FormSectionTitle>
               <PatternCellSelectionEditor />
             </>
           ) : (
