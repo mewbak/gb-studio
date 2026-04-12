@@ -1,6 +1,6 @@
-import React, { FC, useMemo } from "react";
+import React, { FC, useCallback, useMemo } from "react";
 import styled, { css } from "styled-components";
-import { GroupBase, SingleValue } from "react-select";
+import { FilterOptionOption, GroupBase, SingleValue } from "react-select";
 import {
   Select,
   OptionLabelWithPreview,
@@ -103,6 +103,9 @@ const NoteLabel = styled.span`
   font-variant-numeric: tabular-nums;
 `;
 
+const normalisePitchSearch = (value: string) =>
+  value.toLocaleUpperCase().replace(/-/g, "").trim();
+
 export const PitchSelect: FC<PitchSelectProps> = ({
   value,
   onChange,
@@ -135,11 +138,43 @@ export const PitchSelect: FC<PitchSelectProps> = ({
     }
   };
 
+  const filterOption = useCallback(
+    (item: FilterOptionOption<PitchOption>, searchTerm: string) => {
+      const rawSearch = searchTerm.toLocaleUpperCase().trim();
+      const normalisedLabel = normalisePitchSearch(item.label);
+
+      if (!rawSearch) {
+        return true;
+      }
+
+      // Explicit sharp search
+      if (rawSearch.includes("#")) {
+        return normalisedLabel.includes(rawSearch);
+      }
+
+      // Explicit natural search
+      if (rawSearch.includes("-")) {
+        return item.label.toLocaleUpperCase().includes(rawSearch);
+      }
+
+      // Vague natural search: C4 -> match both C-4 and C#4
+      const normalisedSearch = normalisePitchSearch(rawSearch);
+      const sharpVariant = normalisedSearch.replace(/^([A-G])(\d+)$/, "$1#$2");
+
+      return (
+        normalisedLabel.includes(normalisedSearch) ||
+        normalisedLabel.includes(sharpVariant)
+      );
+    },
+    [],
+  );
+
   return (
     <Select<PitchOption, false, GroupBase<PitchOption>>
       value={currentValue}
       options={groupedOptions}
       onChange={onSelectChange}
+      filterOption={filterOption}
       formatOptionLabel={(option: PitchOption) => (
         <OptionLabelWithPreview
           preview={<PitchPreview $isSharp={option.isSharp} />}
