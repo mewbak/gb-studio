@@ -19,12 +19,16 @@ const projectMiddleware: Middleware<Dispatch, MusicEditorRootState> =
       return result;
     }
 
-    const safeName = action.payload.newFilename.trim();
+    const safeName = action.payload.newFilename.replace(/[/\\]/g, "").trim();
     if (!safeName) {
       return result;
     }
 
     const newFilename = `${safeName}.${asset.type === "uge" ? "uge" : "mod"}`;
+    if (newFilename === asset.filename) {
+      return result;
+    }
+
     await renameWebDocument(action.payload.musicId, asset.filename, newFilename);
 
     store.dispatch(

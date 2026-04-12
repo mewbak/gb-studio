@@ -74,9 +74,7 @@ export const SongMetadataEditor = () => {
   }, [song?.filename]);
 
   const onRenameFile = useCallback(() => {
-    const currentFilename = getBaseName(
-      song?.filename.replace(/\.uge$/i, "") ?? "",
-    );
+    const currentFilename = song?.filename.replace(/\.[^.]+$/i, "") ?? "";
     const sanitizedFilename = stripInvalidPathCharacters(localFilename).trim();
 
     if (

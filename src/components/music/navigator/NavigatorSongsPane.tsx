@@ -112,16 +112,25 @@ export const NavigatorSongsPane = ({
   const onRenameSongComplete = useCallback(
     (name: string) => {
       if (renameId) {
+        const song = allSongs.find((item) => item.id === renameId);
+        const sanitizedFilename = stripInvalidPathCharacters(name).trim();
+        const currentFilename = song?.filename.replace(/\.[^.]+$/i, "") ?? "";
+
+        if (!sanitizedFilename || sanitizedFilename === currentFilename) {
+          setRenameId("");
+          return;
+        }
+
         dispatch(
           projectActions.renameMusicAsset({
             musicId: renameId,
-            newFilename: stripInvalidPathCharacters(name),
+            newFilename: sanitizedFilename,
           }),
         );
       }
       setRenameId("");
     },
-    [dispatch, renameId],
+    [allSongs, dispatch, renameId],
   );
 
   const onRenameCancel = useCallback(() => {
