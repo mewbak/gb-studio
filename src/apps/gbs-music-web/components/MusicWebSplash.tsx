@@ -444,9 +444,9 @@ export const MusicWebSplash = ({
   const [patrons, _setPatrons] = useState<Patrons>(inbuiltPatrons as Patrons);
   const [section, setSection] = useState<string>("new");
 
-  const [name, setName] = useState<string>(l10n("FIELD_NEW_SONG"));
+  const [name, setName] = useState<string>("");
   const [artist, setArtist] = useLocalStorageState<string>(
-    l10n("FIELD_ARTIST"),
+    "",
     ARTIST_STORAGE_KEY,
   );
 
@@ -566,7 +566,7 @@ export const MusicWebSplash = ({
                     errorLabel={undefined}
                     size="large"
                     value={name}
-                    placeholder={l10n("FIELD_NAME")}
+                    placeholder={l10n("FIELD_NEW_SONG")}
                     onChange={(e) => {
                       setName(e.currentTarget.value);
                     }}
