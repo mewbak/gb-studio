@@ -56,6 +56,13 @@ let currentDirectoryHandle:
   | undefined;
 let fallbackDocumentId = 0;
 
+const resetMusicWorkspaceStorage = () => {
+  fileHandles.clear();
+  inMemoryDocuments.clear();
+  currentDirectoryHandle = undefined;
+  fallbackDocumentId = 0;
+};
+
 const isFileHandle = (
   handle: FileSystemHandle,
 ): handle is FileSystemFileHandle => handle.kind === "file";
@@ -676,6 +683,10 @@ export const registerExampleData = (
   });
   storeInMemoryDocument(reference, data);
   return reference;
+};
+
+export const resetMusicWorkspaceAdapterState = () => {
+  resetMusicWorkspaceStorage();
 };
 
 export const dataUriToUint8Array = (dataUri: string): Uint8Array => {

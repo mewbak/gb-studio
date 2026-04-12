@@ -9,6 +9,7 @@ import {
   createTemplateMusicDocument,
   importMusicDocument,
   registerExampleData,
+  resetMusicWorkspaceAdapterState,
   registerSongBackupData,
   supportsPersistentSave,
   webMusicEnvironment,
@@ -106,6 +107,7 @@ export const useMusicWorkspace = ({
     API.music.sendToMusicWindow({
       action: "stop",
     });
+    resetMusicWorkspaceAdapterState();
     setWorkspace(undefined);
     dispatch(musicAssetActions.setMusicAssets([]));
     dispatch(trackerActions.reset());
