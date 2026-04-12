@@ -135,7 +135,15 @@ const StandaloneMusicPage = ({
   const status = useAppSelector((state) => state.tracker.status);
   const view = useAppSelector((state) => state.tracker.view);
 
-  const selectedSongPath = useMemo(() => viewSong?.filename ?? "", [viewSong]);
+  const [selectedSongPath, setSelectedSongPath] = useState("");
+  const loadedSongIdRef = useRef("");
+
+  useEffect(() => {
+    if (viewSong && viewSong.id !== loadedSongIdRef.current) {
+      loadedSongIdRef.current = viewSong.id;
+      setSelectedSongPath(viewSong.filename);
+    }
+  }, [viewSong]);
 
   useEffect(() => {
     if (selectedSongPath !== "") {
