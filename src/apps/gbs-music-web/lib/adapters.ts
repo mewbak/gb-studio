@@ -559,50 +559,57 @@ export const renameWebDocument = async (
 ): Promise<MusicDocumentReference> => {
   if (currentDirectoryHandle && fileHandles.has(oldFilename)) {
     // Directory mode: rename the actual file on disk
-    const oldHandle = fileHandles.get(oldFilename)!;
-    const oldFile = await oldHandle.getFile();
-    const data = new Uint8Array(await oldFile.arrayBuffer());
+    const oldHandle = fileHandles.get(oldFilename);
+    if (oldHandle) {
+      const oldFile = await oldHandle.getFile();
+      const data = new Uint8Array(await oldFile.arrayBuffer());
 
-    const newHandle = await currentDirectoryHandle.getFileHandle(newFilename, {
-      create: true,
-    });
-    await writeFileHandle(newHandle, data);
-    await currentDirectoryHandle.removeEntry(oldFilename);
-
-    fileHandles.delete(oldFilename);
-    fileHandles.set(newFilename, newHandle);
-
-    const inMemDoc = inMemoryDocuments.get(oldFilename);
-    if (inMemDoc) {
-      const newMeta = createReference(
-        newFilename.replace(/\.[^.]+$/, ""),
+      const newHandle = await currentDirectoryHandle.getFileHandle(
         newFilename,
-        { id: musicId },
+        {
+          create: true,
+        },
       );
-      inMemoryDocuments.delete(oldFilename);
-      inMemoryDocuments.set(newFilename, {
-        ...inMemDoc,
-        meta: newMeta,
-      });
+      await writeFileHandle(newHandle, data);
+      await currentDirectoryHandle.removeEntry(oldFilename);
+
+      fileHandles.delete(oldFilename);
+      fileHandles.set(newFilename, newHandle);
+
+      const inMemDoc = inMemoryDocuments.get(oldFilename);
+      if (inMemDoc) {
+        const newMeta = createReference(
+          newFilename.replace(/\.[^.]+$/, ""),
+          newFilename,
+          { id: musicId },
+        );
+        inMemoryDocuments.delete(oldFilename);
+        inMemoryDocuments.set(newFilename, {
+          ...inMemDoc,
+          meta: newMeta,
+        });
+      }
     }
   } else if (fileHandles.has(oldFilename)) {
     // Single-file handle mode: re-key the handle (actual file path on disk is preserved)
-    const handle = fileHandles.get(oldFilename)!;
-    fileHandles.delete(oldFilename);
-    fileHandles.set(newFilename, handle);
+    const handle = fileHandles.get(oldFilename);
+    if (handle) {
+      fileHandles.delete(oldFilename);
+      fileHandles.set(newFilename, handle);
 
-    const inMemDoc = inMemoryDocuments.get(oldFilename);
-    if (inMemDoc) {
-      const newMeta = createReference(
-        newFilename.replace(/\.[^.]+$/, ""),
-        newFilename,
-        { id: musicId },
-      );
-      inMemoryDocuments.delete(oldFilename);
-      inMemoryDocuments.set(newFilename, {
-        ...inMemDoc,
-        meta: newMeta,
-      });
+      const inMemDoc = inMemoryDocuments.get(oldFilename);
+      if (inMemDoc) {
+        const newMeta = createReference(
+          newFilename.replace(/\.[^.]+$/, ""),
+          newFilename,
+          { id: musicId },
+        );
+        inMemoryDocuments.delete(oldFilename);
+        inMemoryDocuments.set(newFilename, {
+          ...inMemDoc,
+          meta: newMeta,
+        });
+      }
     }
   } else {
     // In-memory only (single document mode / fallback)
