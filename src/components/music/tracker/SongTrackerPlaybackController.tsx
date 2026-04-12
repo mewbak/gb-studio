@@ -1,10 +1,7 @@
 import React, { useEffect, useLayoutEffect, useRef } from "react";
 import API from "renderer/lib/api";
 import { useAppSelector } from "store/hooks";
-import {
-  TRACKER_CELL_HEIGHT,
-  TRACKER_HEADER_HEIGHT,
-} from "./helpers";
+import { TRACKER_CELL_HEIGHT, TRACKER_HEADER_HEIGHT } from "./helpers";
 import { TRACKER_PATTERN_LENGTH } from "consts";
 
 interface SongTrackerPlaybackControllerProps {
@@ -80,17 +77,8 @@ export const SongTrackerPlaybackController = ({
       TRACKER_HEADER_HEIGHT +
       playbackRow * TRACKER_CELL_HEIGHT;
     const viewportHeight = scrollEl.clientHeight;
-    const followMarginTop = TRACKER_HEADER_HEIGHT + TRACKER_CELL_HEIGHT * 2;
-    const followMarginBottom = TRACKER_CELL_HEIGHT * 3;
-    const visibleTop = scrollEl.scrollTop + followMarginTop;
-    const visibleBottom = scrollEl.scrollTop + viewportHeight - followMarginBottom;
 
-    if (playheadTop >= visibleTop && playheadTop <= visibleBottom) {
-      return;
-    }
-
-    const scrollHeight =
-      sequenceLength * patternHeight + TRACKER_HEADER_HEIGHT;
+    const scrollHeight = sequenceLength * patternHeight + TRACKER_HEADER_HEIGHT;
     const maxScrollTop = Math.max(0, scrollHeight - viewportHeight);
     const nextScrollTop = Math.max(
       0,
