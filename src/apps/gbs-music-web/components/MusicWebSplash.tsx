@@ -1,5 +1,4 @@
 import React, { lazy, Suspense, useState } from "react";
-import FocusLock from "react-focus-lock";
 import l10n from "shared/lib/lang/l10n";
 import { Button } from "ui/buttons/Button";
 import appIconUrl from "gbs-music-web/components/ui/icons/app_music_icon_180.png";
@@ -634,11 +633,9 @@ export const MusicWebSplash = ({
         </SplashWindow>
 
         {openCredits && (
-          <FocusLock>
-            <Suspense fallback={null}>
-              <MusicWebCredits onClose={() => setOpenCredits(false)} />
-            </Suspense>
-          </FocusLock>
+          <Suspense fallback={null}>
+            <MusicWebCredits onClose={() => setOpenCredits(false)} />
+          </Suspense>
         )}
       </StyledSplashWindowChrome>
 

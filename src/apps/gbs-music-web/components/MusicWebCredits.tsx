@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import FocusLock from "react-focus-lock";
 import l10n from "shared/lib/lang/l10n";
 import {
   Credits,
@@ -41,29 +42,19 @@ const MusicWebCredits = ({ onClose }: MusicWebCreditsProps) => {
   );
 
   return (
-    <Credits onClose={onClose}>
-      <CreditsTitle>GBS Music</CreditsTitle>
-      <CreditsSubHeading>Based On hUGETracker By</CreditsSubHeading>
-      <CreditsPerson
-        href="https://nickfa.ro/wiki/Main_Page"
-        target="_blank"
-        rel="noreferrer"
-      >
-        Nick "SuperDisk" Faro
-      </CreditsPerson>
-      <CreditsSubHeading>{l10n("SPLASH_CONTRIBUTORS")}</CreditsSubHeading>
-      {goldContributors.map((contributor) => (
+    <FocusLock>
+      <Credits onClose={onClose}>
+        <CreditsTitle>GBS Music</CreditsTitle>
+        <CreditsSubHeading>Based On hUGETracker By</CreditsSubHeading>
         <CreditsPerson
-          key={contributor.login}
-          href={contributor.html_url}
+          href="https://nickfa.ro/wiki/Main_Page"
           target="_blank"
           rel="noreferrer"
         >
-          {contributor.login}
+          Nick "SuperDisk" Faro
         </CreditsPerson>
-      ))}
-      <CreditsGrid>
-        {silverContributors.map((contributor) => (
+        <CreditsSubHeading>{l10n("SPLASH_CONTRIBUTORS")}</CreditsSubHeading>
+        {goldContributors.map((contributor) => (
           <CreditsPerson
             key={contributor.login}
             href={contributor.html_url}
@@ -73,30 +64,42 @@ const MusicWebCredits = ({ onClose }: MusicWebCreditsProps) => {
             {contributor.login}
           </CreditsPerson>
         ))}
-      </CreditsGrid>
-      <CreditsSubHeading>Patrons</CreditsSubHeading>
-      <CreditsGrid>
-        {(patrons.goldTier || []).map((patron) => (
-          <CreditsPerson key={patron.id} gold>
-            {patron.attributes.full_name}
-          </CreditsPerson>
-        ))}
-      </CreditsGrid>
-      <CreditsGrid>
-        {(patrons.silverTier || []).map((patron) => (
-          <CreditsPerson key={patron.id}>
-            {patron.attributes.full_name}
-          </CreditsPerson>
-        ))}
-      </CreditsGrid>
-      <CreditsGrid>
-        {(patrons.pastPatrons || []).map((patron) => (
-          <CreditsPerson key={patron.id}>
-            {patron.attributes.full_name}
-          </CreditsPerson>
-        ))}
-      </CreditsGrid>
-    </Credits>
+        <CreditsGrid>
+          {silverContributors.map((contributor) => (
+            <CreditsPerson
+              key={contributor.login}
+              href={contributor.html_url}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {contributor.login}
+            </CreditsPerson>
+          ))}
+        </CreditsGrid>
+        <CreditsSubHeading>Patrons</CreditsSubHeading>
+        <CreditsGrid>
+          {(patrons.goldTier || []).map((patron) => (
+            <CreditsPerson key={patron.id} gold>
+              {patron.attributes.full_name}
+            </CreditsPerson>
+          ))}
+        </CreditsGrid>
+        <CreditsGrid>
+          {(patrons.silverTier || []).map((patron) => (
+            <CreditsPerson key={patron.id}>
+              {patron.attributes.full_name}
+            </CreditsPerson>
+          ))}
+        </CreditsGrid>
+        <CreditsGrid>
+          {(patrons.pastPatrons || []).map((patron) => (
+            <CreditsPerson key={patron.id}>
+              {patron.attributes.full_name}
+            </CreditsPerson>
+          ))}
+        </CreditsGrid>
+      </Credits>
+    </FocusLock>
   );
 };
 
