@@ -14,7 +14,7 @@ import {
   SplashWindow,
 } from "ui/splash/Splash";
 import { FixedSpacer, FlexGrow } from "ui/spacing/Spacing";
-import styled, { css } from "styled-components";
+import styled, { css, keyframes } from "styled-components";
 import { musicExamples } from "gbs-music-web/data/musicExamples";
 import ugeIcon from "ui/icons/uge_128.png";
 import { StyledButton } from "ui/buttons/style";
@@ -31,16 +31,28 @@ import {
   StyledMobileListMenuLink,
 } from "gbs-music-web/components/ui/style";
 import { CaretRightIcon } from "ui/icons/Icons";
-import {
-  MusicWebLocaleDropdown,
-  MusicWebThemeDropdown,
-} from "gbs-music-web/components/MusicWebPreferencesDropdowns";
 import { MusicWebViewSelect } from "gbs-music-web/components/MusicWebViewSelect";
 
 const COMPACT_LAYOUT_BREAKPOINT = 840;
 
 const MusicWebCredits = lazy(
   () => import("gbs-music-web/components/MusicWebCredits"),
+);
+
+const MusicWebLocaleDropdown = lazy(() =>
+  import("gbs-music-web/components/MusicWebPreferencesDropdowns").then(
+    (module) => ({
+      default: module.MusicWebLocaleDropdown,
+    }),
+  ),
+);
+
+const MusicWebThemeDropdown = lazy(() =>
+  import("gbs-music-web/components/MusicWebPreferencesDropdowns").then(
+    (module) => ({
+      default: module.MusicWebThemeDropdown,
+    }),
+  ),
 );
 
 const StyledSplashPage = styled.div`
@@ -135,14 +147,29 @@ const StyledSplashWindowChrome = styled.div`
   }
 `;
 
+const fadeIn = keyframes`
+from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+`;
+
 const StyledSplashPreferenceBar = styled.div`
   width: 100%;
+  height: 48px;
   box-sizing: border-box;
   padding: 10px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   pointer-events: none;
+  flex-shrink: 0;
+
+  display: flex;
+  opacity: 0;
+  animation: ${fadeIn} 1s normal forwards;
 
   ${StyledButton} {
     pointer-events: auto;
@@ -161,6 +188,7 @@ const StyledSplashPreferenceBar = styled.div`
     top: 10px;
     left: 10px;
     right: 10px;
+    height: 58px;
   }
 `;
 
@@ -393,24 +421,35 @@ export const MusicWebSplash = ({
   const isCompactLayout =
     windowWidth > 0 && windowWidth <= COMPACT_LAYOUT_BREAKPOINT;
 
+  if (windowWidth === 0) {
+    return null;
+  }
+
   return (
     <StyledSplashPage>
-      <StyledSplashPreferenceBar>
-        <MusicWebLocaleDropdown
-          themeId={themeId}
-          localeId={localeId}
-          onThemeChange={onThemeChange}
-          onLocaleChange={onLocaleChange}
-          menuDirection="left"
-        />
-        <MusicWebThemeDropdown
-          themeId={themeId}
-          localeId={localeId}
-          onThemeChange={onThemeChange}
-          onLocaleChange={onLocaleChange}
-          menuDirection="right"
-        />
-      </StyledSplashPreferenceBar>
+      <Suspense
+        fallback={
+          <StyledSplashPreferenceBar />
+          // <div style={{ width: "100%", height: 38, background: "red" }} />
+        }
+      >
+        <StyledSplashPreferenceBar>
+          <MusicWebLocaleDropdown
+            themeId={themeId}
+            localeId={localeId}
+            onThemeChange={onThemeChange}
+            onLocaleChange={onLocaleChange}
+            menuDirection="left"
+          />
+          <MusicWebThemeDropdown
+            themeId={themeId}
+            localeId={localeId}
+            onThemeChange={onThemeChange}
+            onLocaleChange={onLocaleChange}
+            menuDirection="right"
+          />
+        </StyledSplashPreferenceBar>
+      </Suspense>
       <FlexGrow />
       <StyledSplashWindowChrome>
         <SplashWindow focus>
