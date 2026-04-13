@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useState } from "react";
 import FocusLock from "react-focus-lock";
 import l10n from "shared/lib/lang/l10n";
 import { Button } from "ui/buttons/Button";
@@ -14,10 +14,6 @@ import contributorsExternal from "contributors-external.json";
 import inbuiltPatrons from "patrons.json";
 import type { Patrons } from "scripts/fetchPatrons";
 import appIconUrl from "gbs-music-web/components/ui/icons/app_music_icon_180.png";
-import trackerImageUrl from "gbs-music-web/static/tracker.png";
-import pianoImageUrl from "gbs-music-web/static/piano.png";
-import trackerDarkImageUrl from "gbs-music-web/static/tracker_dark.png";
-import pianoDarkImageUrl from "gbs-music-web/static/piano_dark.png";
 import {
   SplashAppTitleWrapper,
   SplashContent,
@@ -36,8 +32,6 @@ import ugeIcon from "ui/icons/uge.png";
 import { StyledButton } from "ui/buttons/style";
 import { Label } from "ui/form/Label";
 import { FormRow } from "ui/form/layout/FormLayout";
-import trackerActions from "store/features/tracker/trackerActions";
-import { useAppDispatch, useAppSelector } from "store/hooks";
 import { TextField } from "ui/form/TextField";
 import { useLocalStorageState } from "ui/hooks/use-local-storage-state";
 import { StyledSplashWindow } from "ui/splash/style";
@@ -53,6 +47,7 @@ import {
   MusicWebLocaleDropdown,
   MusicWebThemeDropdown,
 } from "gbs-music-web/components/MusicWebPreferencesDropdowns";
+import { MusicWebViewSelect } from "gbs-music-web/components/MusicWebViewSelect";
 
 const COMPACT_LAYOUT_BREAKPOINT = 840;
 
@@ -341,63 +336,6 @@ const StyledSplashFooter = styled.div`
   }
 `;
 
-const StyledViewSelectWrapper = styled.div`
-  width: 100%;
-`;
-
-const StyledViewSelectOptions = styled.div`
-  display: flex;
-  width: 100%;
-  margin-bottom: 10px;
-  gap: 10px;
-`;
-
-const StyledViewButtonWrapper = styled.div`
-  position: relative;
-  flex-grow: 1;
-`;
-
-const StyledViewButton = styled.input.attrs({
-  type: "radio",
-})`
-  width: 100%;
-  height: 100px;
-  margin: 0;
-  padding: 0;
-  border-radius: ${(props) => props.theme.borderRadius}px;
-  -webkit-appearance: none;
-`;
-
-const SplashViewLabel = styled.label`
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #fff;
-  border: 2px solid ${(props) => props.theme.colors.input.background};
-  border-radius: ${(props) => props.theme.borderRadius}px;
-  -webkit-appearance: none;
-  box-sizing: border-box;
-  overflow: hidden;
-  background-size: cover;
-
-  ${StyledViewButton}:checked + & {
-    border: 2px solid ${(props) => props.theme.colors.highlight};
-    box-shadow: 0 0 0px 2px ${(props) => props.theme.colors.highlight};
-  }
-`;
-
-const StyledViewName = styled.div`
-  font-size: 11px;
-  font-weight: bold;
-  margin-bottom: 5px;
-`;
-
-const StyledViewDescription = styled.div`
-  font-size: 11px;
-`;
-
 export const SplashExampleMusic = ({
   name,
   artist,
@@ -438,8 +376,6 @@ export const MusicWebSplash = ({
   onRestoreBackup,
   onOpenExample,
 }: MusicWebSplashProps) => {
-  const dispatch = useAppDispatch();
-
   const [openCredits, setOpenCredits] = useState(false);
   const [patrons, _setPatrons] = useState<Patrons>(inbuiltPatrons as Patrons);
   const [section, setSection] = useState<string>("new");
@@ -450,25 +386,14 @@ export const MusicWebSplash = ({
     ARTIST_STORAGE_KEY,
   );
 
-  const view = useAppSelector((state) => state.tracker.view);
-
   const windowSize = useWindowSize();
   const windowWidth = windowSize.width || 0;
 
   const isCompactLayout =
     windowWidth > 0 && windowWidth <= COMPACT_LAYOUT_BREAKPOINT;
 
-  const setTrackerView = useCallback(() => {
-    dispatch(trackerActions.setViewAndSave("tracker"));
-  }, [dispatch]);
-
-  const setRollView = useCallback(() => {
-    dispatch(trackerActions.setViewAndSave("roll"));
-  }, [dispatch]);
-
   const goldContributors = contributors.filter((user) => user.group === "gold");
   const silverContributors = [...contributorsExternal]
-    // eslint-disable-next-line camelcase
     .map((contributor) => ({
       ...contributor,
       // eslint-disable-next-line camelcase
@@ -591,61 +516,7 @@ export const MusicWebSplash = ({
                   <Label>{l10n("MENU_VIEW")}</Label>
                 </FormRow>
                 <FormRow>
-                  <StyledViewSelectWrapper>
-                    <StyledViewSelectOptions>
-                      <StyledViewButtonWrapper>
-                        <StyledViewButton
-                          id="view_roll"
-                          name="view"
-                          checked={view === "roll"}
-                          onChange={setRollView}
-                        />
-                        <SplashViewLabel
-                          htmlFor="view_roll"
-                          title={l10n("FIELD_PIANO_ROLL")}
-                          style={{
-                            backgroundImage: `url(${
-                              themeId === "light"
-                                ? pianoImageUrl
-                                : pianoDarkImageUrl
-                            })`,
-                            backgroundPosition: "0% 50%",
-                          }}
-                        />
-                      </StyledViewButtonWrapper>
-
-                      <StyledViewButtonWrapper>
-                        <StyledViewButton
-                          id="view_tracker"
-                          name="view"
-                          checked={view === "tracker"}
-                          onChange={setTrackerView}
-                        />
-                        <SplashViewLabel
-                          htmlFor="view_tracker"
-                          title={l10n("FIELD_TRACKER")}
-                          style={{
-                            backgroundImage: `url(${
-                              themeId === "light"
-                                ? trackerImageUrl
-                                : trackerDarkImageUrl
-                            })`,
-                            backgroundPosition: "0% 0%",
-                          }}
-                        />
-                      </StyledViewButtonWrapper>
-                    </StyledViewSelectOptions>
-                    <StyledViewName>
-                      {view === "roll"
-                        ? l10n("FIELD_PIANO_ROLL")
-                        : l10n("FIELD_TRACKER")}
-                    </StyledViewName>
-                    <StyledViewDescription>
-                      {view === "roll"
-                        ? l10n("FIELD_PIANO_ROLL_DESCRIPTION")
-                        : l10n("FIELD_TRACKER_DESCRIPTION")}
-                    </StyledViewDescription>
-                  </StyledViewSelectWrapper>
+                  <MusicWebViewSelect showLabels />
                 </FormRow>
                 <FlexGrow />
                 <StyledFileActions>
