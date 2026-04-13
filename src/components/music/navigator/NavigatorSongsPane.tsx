@@ -90,11 +90,12 @@ export const NavigatorSongsPane = ({
 
   const setSelectedId = useCallback(
     (id: string, item: FileSystemNavigatorItem<MusicAsset>) => {
-      setSelectedNavigatorId(id);
-
       if (item.type === "file") {
         setSelectedSongId(id);
+        return;
       }
+
+      setSelectedNavigatorId(id);
     },
     [setSelectedSongId],
   );
