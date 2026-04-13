@@ -8,7 +8,9 @@ const { GenerateSW } = require("workbox-webpack-plugin");
 const baseRules = require("../shared/webpack.rules");
 const { repoPath, srcPath } = require("../shared/webpack.paths");
 const MusicWebLocalesPlugin = require("./lang/musicWebLocalesPlugin");
-const { defaultOutputDir: musicWebLocalesDir } = require("./lang/musicWebLocales");
+const {
+  defaultOutputDir: musicWebLocalesDir,
+} = require("./lang/musicWebLocales");
 const ReactRefreshWebpackPlugin = require("@pmmmwh/react-refresh-webpack-plugin");
 const ReactRefreshTypeScript = require("react-refresh-typescript");
 const pkg = require("../../../package.json");
@@ -197,6 +199,10 @@ module.exports = {
         {
           from: "src/apps/gbs-music-web/components/ui/icons",
           to: "icons",
+        },
+        {
+          from: "src/apps/gbs-music-web/components/ui/icons/favicon.ico",
+          to: "favicon.ico",
         },
       ],
     }),
