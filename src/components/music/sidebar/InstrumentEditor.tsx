@@ -574,6 +574,7 @@ export const InstrumentEditor = ({
             )}
             value={resolvedInstrument.instrument.name || ""}
             onChange={onChangeInstrumentName}
+            autoComplete="off"
           />
         </FormRow>
       </FormSection>

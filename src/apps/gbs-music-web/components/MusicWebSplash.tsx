@@ -495,7 +495,7 @@ export const MusicWebSplash = ({
                     onChange={(e) => {
                       setName(e.currentTarget.value);
                     }}
-                    disabled={false}
+                    autoComplete="off"
                   />
                 </FormRow>
                 <FormRow>
@@ -509,7 +509,7 @@ export const MusicWebSplash = ({
                     onChange={(e) => {
                       setArtist(e.currentTarget.value);
                     }}
-                    disabled={false}
+                    autoComplete="off"
                   />
                 </FormRow>
                 <FormRow>

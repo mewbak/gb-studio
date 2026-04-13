@@ -136,6 +136,7 @@ export const SongMetadataEditor = () => {
                 placeholder={l10n("FIELD_SONG")}
                 value={song?.name}
                 onChange={onChangeName}
+                autoComplete="off"
               />
             </FormColumn>
             <FormColumn>
@@ -147,6 +148,7 @@ export const SongMetadataEditor = () => {
                 placeholder={l10n("FIELD_ARTIST")}
                 value={song?.artist}
                 onChange={onChangeArtist}
+                autoComplete="off"
               />
             </FormColumn>
           </FormColumns>

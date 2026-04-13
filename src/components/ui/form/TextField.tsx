@@ -15,6 +15,7 @@ interface TextFieldProps {
   readonly onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
   readonly additionalRight?: ReactNode;
   readonly disabled?: boolean;
+  readonly autoComplete?: string;
 }
 
 const AdditionalWrapper = styled.div`
@@ -45,6 +46,7 @@ export const TextField: FC<TextFieldProps> = ({
   onChange,
   additionalRight,
   disabled,
+  autoComplete,
 }) => (
   <FormField
     name={name}
@@ -75,6 +77,7 @@ export const TextField: FC<TextFieldProps> = ({
         displaySize={size}
         onChange={onChange}
         disabled={disabled}
+        autoComplete={autoComplete}
       />
     )}
   </FormField>
