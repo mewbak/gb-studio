@@ -6,6 +6,8 @@ import {
   playWaveNotePreview,
 } from "components/music/helpers";
 import { NOTE_C5 } from "consts";
+import throttle from "lodash/throttle";
+import { Song } from "shared/lib/uge/types";
 
 type PreviewArgs = {
   note?: number;
@@ -14,6 +16,88 @@ type PreviewArgs = {
   effectCode?: number | null;
   effectParam?: number;
 };
+
+type ThrottledPreviewArgs = PreviewArgs & {
+  song: Song | undefined;
+  selectedChannel: 0 | 1 | 2 | 3;
+  selectedInstrumentId: number | undefined;
+};
+
+const playMusicNotePreviewThrottled = throttle(
+  ({
+    song,
+    selectedChannel,
+    selectedInstrumentId,
+    channelId,
+    note,
+    instrumentId,
+    effectCode,
+    effectParam,
+  }: ThrottledPreviewArgs) => {
+    if (!song) {
+      return;
+    }
+
+    const previewChannel = channelId ?? selectedChannel;
+    const previewNote = note ?? NOTE_C5;
+    const previewInstrumentId = instrumentId ?? selectedInstrumentId ?? 0;
+    const previewEffectCode = effectCode ?? 0;
+    const previewEffectParams = effectParam ?? 0;
+
+    if (previewChannel === 0 || previewChannel === 1) {
+      const instrument = song.duty_instruments[previewInstrumentId];
+      if (!instrument) {
+        return;
+      }
+
+      playDutyNotePreview(
+        previewNote,
+        instrument,
+        previewChannel === 1 ? 1 : 0,
+        previewEffectCode,
+        previewEffectParams,
+      );
+      return;
+    }
+
+    if (previewChannel === 2) {
+      const instrument = song.wave_instruments[previewInstrumentId];
+      if (!instrument) {
+        return;
+      }
+
+      const wave = song.waves[instrument.wave_index];
+      if (!wave) {
+        return;
+      }
+
+      playWaveNotePreview(
+        previewNote,
+        instrument,
+        wave,
+        previewEffectCode,
+        previewEffectParams,
+      );
+      return;
+    }
+
+    if (previewChannel === 3) {
+      const instrument = song.noise_instruments[previewInstrumentId];
+      if (!instrument) {
+        return;
+      }
+
+      playNoiseNotePreview(
+        previewNote,
+        instrument,
+        previewEffectCode,
+        previewEffectParams,
+      );
+    }
+  },
+  100,
+  { leading: true, trailing: true },
+);
 
 export const useMusicNotePreview = () => {
   const song = useAppSelector((state) => state.trackerDocument.present.song);
@@ -25,74 +109,14 @@ export const useMusicNotePreview = () => {
   );
 
   return useCallback(
-    ({
-      channelId,
-      note,
-      instrumentId,
-      effectCode,
-      effectParam,
-    }: PreviewArgs) => {
-      if (!song) {
-        return;
-      }
-
-      const previewChannel = channelId ?? selectedChannel;
-      const previewNote = note ?? NOTE_C5;
-      const previewInstrumentId = instrumentId ?? selectedInstrumentId ?? 0;
-      const previewEffectCode = effectCode ?? 0;
-      const previewEffectParams = effectParam ?? 0;
-
-      if (previewChannel === 0 || previewChannel === 1) {
-        const instrument = song.duty_instruments[previewInstrumentId];
-        if (!instrument) {
-          return;
-        }
-
-        playDutyNotePreview(
-          previewNote,
-          instrument,
-          previewChannel === 1 ? 1 : 0,
-          previewEffectCode,
-          previewEffectParams,
-        );
-        return;
-      }
-
-      if (previewChannel === 2) {
-        const instrument = song.wave_instruments[previewInstrumentId];
-        if (!instrument) {
-          return;
-        }
-
-        const wave = song.waves[instrument.wave_index];
-        if (!wave) {
-          return;
-        }
-
-        playWaveNotePreview(
-          previewNote,
-          instrument,
-          wave,
-          previewEffectCode,
-          previewEffectParams,
-        );
-        return;
-      }
-
-      if (previewChannel === 3) {
-        const instrument = song.noise_instruments[previewInstrumentId];
-        if (!instrument) {
-          return;
-        }
-
-        playNoiseNotePreview(
-          previewNote,
-          instrument,
-          previewEffectCode,
-          previewEffectParams,
-        );
-      }
+    (args: PreviewArgs) => {
+      playMusicNotePreviewThrottled({
+        ...args,
+        song,
+        selectedChannel,
+        selectedInstrumentId,
+      });
     },
-    [selectedChannel, selectedInstrumentId, song],
+    [song, selectedChannel, selectedInstrumentId],
   );
 };
