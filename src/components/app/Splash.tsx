@@ -12,14 +12,13 @@ import {
   SplashLoading,
   SplashLogo,
   SplashOpenButton,
-  SplashProject,
-  SplashProjectClearButton,
   SplashScroll,
   SplashSidebar,
   SplashTab,
   SplashTemplateSelect,
   SplashWindow,
 } from "ui/splash/Splash";
+import { SplashProject, SplashProjectClearButton } from "ui/splash/Projects";
 import GlobalStyle from "ui/globalStyle";
 import ThemeProvider from "ui/theme/ThemeProvider";
 import logoFile from "ui/icons/app_icon_256.png";

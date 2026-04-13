@@ -16,7 +16,7 @@ import {
 import { FixedSpacer, FlexGrow } from "ui/spacing/Spacing";
 import styled, { css } from "styled-components";
 import { musicExamples } from "gbs-music-web/data/musicExamples";
-import ugeIcon from "ui/icons/uge.png";
+import ugeIcon from "ui/icons/uge_128.png";
 import { StyledButton } from "ui/buttons/style";
 import { Label } from "ui/form/Label";
 import { FormRow } from "ui/form/layout/FormLayout";
