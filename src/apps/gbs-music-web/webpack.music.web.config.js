@@ -7,6 +7,8 @@ const { GitRevisionPlugin } = require("git-revision-webpack-plugin");
 const { GenerateSW } = require("workbox-webpack-plugin");
 const baseRules = require("../shared/webpack.rules");
 const { repoPath, srcPath } = require("../shared/webpack.paths");
+const MusicWebLocalesPlugin = require("./lang/musicWebLocalesPlugin");
+const { defaultOutputDir: musicWebLocalesDir } = require("./lang/musicWebLocales");
 const ReactRefreshWebpackPlugin = require("@pmmmwh/react-refresh-webpack-plugin");
 const ReactRefreshTypeScript = require("react-refresh-typescript");
 const pkg = require("../../../package.json");
@@ -142,7 +144,7 @@ module.exports = {
     alias: {
       store: srcPath("store"),
       components: srcPath("components"),
-      lang: srcPath("lang"),
+      lang: musicWebLocalesDir,
       lib: srcPath("lib"),
       ui: srcPath("components/ui"),
       renderer: srcPath("renderer"),
@@ -164,6 +166,7 @@ module.exports = {
     },
   },
   plugins: [
+    new MusicWebLocalesPlugin(),
     new webpack.ProvidePlugin({
       Buffer: ["buffer", "Buffer"],
     }),
