@@ -4,7 +4,7 @@ import {
   StyledConfirmDetail,
   StyledConfirmActions,
 } from "gbs-music-web/components/dialog/style";
-import React from "react";
+import React, { useEffect } from "react";
 import l10n from "shared/lib/lang/l10n";
 import { Button } from "ui/buttons/Button";
 import { MenuOverlay } from "ui/menu/Menu";
@@ -22,6 +22,18 @@ export const ConfirmUnsavedChangesDialog = ({
   onSave,
   onDiscard,
 }: ConfirmUnsavedChangesDialogProps) => {
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.code === "Escape") {
+        onCancel();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [onCancel]);
+
   return (
     <>
       <MenuOverlay onClick={onCancel} />
