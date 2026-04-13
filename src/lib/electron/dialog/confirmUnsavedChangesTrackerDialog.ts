@@ -10,7 +10,7 @@ const confirmUnsavedChangesTrackerDialog = (name: string) => {
       l10n("DIALOG_CANCEL"),
     ],
     defaultId: 0,
-    cancelId: 1,
+    cancelId: 2,
     title: l10n("DIALOG_TRACKER_CHANGES_NOT_SAVED"),
     message: l10n("DIALOG_TRACKER_CHANGES_NOT_SAVED", { name: name }),
     detail: l10n("DIALOG_TRACKER_CHANGES_NOT_SAVED_DESCRIPTION"),
