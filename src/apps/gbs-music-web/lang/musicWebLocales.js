@@ -9,6 +9,7 @@ const defaultOutputDir = path.join(repoRoot, "out", "music-web-locales");
 const defaultScanGlobs = [
   "src/apps/gbs-music-web/**/*.{ts,tsx,js,jsx}",
   "src/components/music/**/*.{ts,tsx,js,jsx}",
+  "src/shared/lib/uge/**/*.{ts,tsx,js,jsx}",
   "src/store/features/tracker/**/*.{ts,tsx,js,jsx}",
   "src/store/features/trackerDocument/**/*.{ts,tsx,js,jsx}",
   "src/store/features/clipboard/clipboardState/**/*.{ts,tsx,js,jsx}",
