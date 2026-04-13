@@ -94,6 +94,11 @@ export const StyledConfirmActions = styled.div`
   ${StyledButton}[data-variant="normal"] {
     background: rgba(255, 255, 255, 0.19);
   }
+  ${StyledButton}:focus {
+    box-shadow:
+      0 4px 30px rgba(0, 0, 0, 0.1),
+      0 0 0px 2px #c92c61;
+  }
   @media (max-width: 840px) {
     ${StyledButton} {
       height: 48px;

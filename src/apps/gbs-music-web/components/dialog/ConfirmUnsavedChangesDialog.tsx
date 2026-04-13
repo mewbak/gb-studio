@@ -35,7 +35,7 @@ export const ConfirmUnsavedChangesDialog = ({
           {l10n("DIALOG_TRACKER_CHANGES_NOT_SAVED_DESCRIPTION")}
         </StyledConfirmDetail>
         <StyledConfirmActions>
-          <Button variant="primary" onClick={onSave}>
+          <Button variant="primary" onClick={onSave} autoFocus>
             {l10n("DIALOG_SAVE_AND_CONTINUE")}
           </Button>
           <Button onClick={onDiscard}>
