@@ -1,18 +1,7 @@
-import React, { useState } from "react";
+import React, { lazy, Suspense, useState } from "react";
 import FocusLock from "react-focus-lock";
 import l10n from "shared/lib/lang/l10n";
 import { Button } from "ui/buttons/Button";
-import {
-  Credits,
-  CreditsTitle,
-  CreditsSubHeading,
-  CreditsPerson,
-  CreditsGrid,
-} from "ui/splash/credits/Credits";
-import contributors from "contributors.json";
-import contributorsExternal from "contributors-external.json";
-import inbuiltPatrons from "patrons.json";
-import type { Patrons } from "scripts/fetchPatrons";
 import appIconUrl from "gbs-music-web/components/ui/icons/app_music_icon_180.png";
 import {
   SplashAppTitleWrapper,
@@ -50,6 +39,10 @@ import {
 import { MusicWebViewSelect } from "gbs-music-web/components/MusicWebViewSelect";
 
 const COMPACT_LAYOUT_BREAKPOINT = 840;
+
+const MusicWebCredits = lazy(
+  () => import("gbs-music-web/components/MusicWebCredits"),
+);
 
 const StyledSplashPage = styled.div`
   background: radial-gradient(
@@ -387,7 +380,6 @@ export const MusicWebSplash = ({
   onOpenExample,
 }: MusicWebSplashProps) => {
   const [openCredits, setOpenCredits] = useState(false);
-  const [patrons, _setPatrons] = useState<Patrons>(inbuiltPatrons as Patrons);
   const [section, setSection] = useState<string>("new");
 
   const [name, setName] = useState<string>("");
@@ -401,22 +393,6 @@ export const MusicWebSplash = ({
 
   const isCompactLayout =
     windowWidth > 0 && windowWidth <= COMPACT_LAYOUT_BREAKPOINT;
-
-  const goldContributors = contributors.filter((user) => user.group === "gold");
-  const silverContributors = [...contributorsExternal]
-    .map((contributor) => ({
-      ...contributor,
-      // eslint-disable-next-line camelcase
-      html_url: contributor.html_url ?? "",
-    }))
-    .concat(contributors.filter((user) => user.group === "silver"))
-    .sort((a, b) => {
-      const loginA = a.login.toLowerCase();
-      const loginB = b.login.toLowerCase();
-      if (loginA < loginB) return -1;
-      if (loginA > loginB) return 1;
-      return 0;
-    });
 
   return (
     <StyledSplashPage>
@@ -659,64 +635,9 @@ export const MusicWebSplash = ({
 
         {openCredits && (
           <FocusLock>
-            <Credits onClose={() => setOpenCredits(false)}>
-              <CreditsTitle>GBS Music</CreditsTitle>
-              <CreditsSubHeading>Based On hUGETracker By</CreditsSubHeading>
-              <CreditsPerson
-                href="https://nickfa.ro/wiki/Main_Page"
-                target="_blank"
-                rel="noreferrer"
-              >
-                Nick "SuperDisk" Faro
-              </CreditsPerson>
-              <CreditsSubHeading>
-                {l10n("SPLASH_CONTRIBUTORS")}
-              </CreditsSubHeading>
-              {goldContributors.map((contributor) => (
-                <CreditsPerson
-                  key={contributor.login}
-                  href={contributor.html_url}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {contributor.login}
-                </CreditsPerson>
-              ))}
-              <CreditsGrid>
-                {silverContributors.map((contributor) => (
-                  <CreditsPerson
-                    key={contributor.login}
-                    href={contributor.html_url}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    {contributor.login}
-                  </CreditsPerson>
-                ))}
-              </CreditsGrid>
-              <CreditsSubHeading>Patrons</CreditsSubHeading>
-              <CreditsGrid>
-                {(patrons.goldTier || []).map((patron) => (
-                  <CreditsPerson key={patron.id} gold>
-                    {patron.attributes.full_name}
-                  </CreditsPerson>
-                ))}
-              </CreditsGrid>
-              <CreditsGrid>
-                {(patrons.silverTier || []).map((patron) => (
-                  <CreditsPerson key={patron.id}>
-                    {patron.attributes.full_name}
-                  </CreditsPerson>
-                ))}
-              </CreditsGrid>
-              <CreditsGrid>
-                {(patrons.pastPatrons || []).map((patron) => (
-                  <CreditsPerson key={patron.id}>
-                    {patron.attributes.full_name}
-                  </CreditsPerson>
-                ))}
-              </CreditsGrid>
-            </Credits>
+            <Suspense fallback={null}>
+              <MusicWebCredits onClose={() => setOpenCredits(false)} />
+            </Suspense>
           </FocusLock>
         )}
       </StyledSplashWindowChrome>
