@@ -80,7 +80,8 @@ const StyledSplashPage = styled.div`
       margin-top: 10px;
       margin-bottom: 20px;
       img {
-        max-width: min(calc(100% - 100px), 140px);
+        width: 160px;
+        height: 160px;
       }
     }
 
@@ -105,6 +106,15 @@ const StyledSplashPage = styled.div`
       padding: 30px 0px 20px 0px;
       border-top: 1px solid ${(props) => props.theme.colors.sidebar.border};
       box-shadow: 0px -5px 10px rgba(0, 0, 0, 0.1);
+    }
+  }
+
+  @media (max-width: 840px) {
+    ${SplashLogo} {
+      img {
+        width: 120px;
+        height: 120px;
+      }
     }
   }
 `;

@@ -74,7 +74,7 @@ const SongDocument = () => {
     );
   }
 
-  if (status === "loading") {
+  if (status === "loading" || status === "init") {
     return (
       <ContentWrapper>
         <ContentMessage>{l10n("FIELD_LOADING")}</ContentMessage>

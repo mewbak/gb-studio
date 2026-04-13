@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { Suspense, lazy, useCallback, useEffect, useState } from "react";
 import trackerActions from "store/features/tracker/trackerActions";
 import styled from "styled-components";
 import { saveSongFile } from "store/features/trackerDocument/trackerDocumentState";
@@ -6,16 +6,15 @@ import {
   webMusicEnvironment,
   dataUriToUint8Array,
 } from "gbs-music-web/lib/adapters";
-import StandaloneMusicPage from "gbs-music-web/components/StandaloneMusicPage";
 import { useAppDispatch, useAppSelector } from "store/hooks";
 import { musicSelectors } from "store/features/entities/entitiesState";
 import WebAPI from "gbs-music-web/lib/api";
 import { ConfirmUnsavedChangesDialog } from "gbs-music-web/components/dialog/ConfirmUnsavedChangesDialog";
 import { MusicWebSplash } from "gbs-music-web/components/MusicWebSplash";
-import { MusicWebToolbar } from "gbs-music-web/components/MusicWebToolbar";
 import { useUnsavedChangesGuard } from "gbs-music-web/components/hooks/useUnsavedChangesGuard";
 import templateUge from "gbs-music-web/data/template.uge";
 import { useMusicWorkspace } from "gbs-music-web/components/hooks/useMusicWorkspace";
+import l10n from "shared/lib/lang/l10n";
 
 const AppShell = styled.div`
   display: flex;
@@ -29,7 +28,22 @@ const AppContent = styled.div`
   display: flex;
 `;
 
+const LoadingContent = styled.div`
+  flex: 1 1 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
 const templateSongData = dataUriToUint8Array(templateUge);
+
+const StandaloneMusicPage = lazy(
+  () => import("gbs-music-web/components/StandaloneMusicPage"),
+);
+const MusicWebToolbar = lazy(async () => {
+  const module = await import("gbs-music-web/components/MusicWebToolbar");
+  return { default: module.MusicWebToolbar };
+});
 
 export const MusicWebApp = () => {
   const dispatch = useAppDispatch();
@@ -146,27 +160,33 @@ export const MusicWebApp = () => {
       }}
     >
       {hasSongs ? (
-        <MusicWebToolbar
-          themeId={themeId}
-          localeId={localeId}
-          onThemeChange={onThemeChange}
-          onLocaleChange={onLocaleChange}
-          onCreateSong={onAddSong}
-          onImportSong={onImportSong}
-          onOpenDirectoryWorkspace={
-            singleDocumentMode ? undefined : onOpenDirectoryWorkspace
-          }
-          onCloseWorkspace={onCloseWorkspace}
-        />
+        <Suspense fallback={null}>
+          <MusicWebToolbar
+            themeId={themeId}
+            localeId={localeId}
+            onThemeChange={onThemeChange}
+            onLocaleChange={onLocaleChange}
+            onCreateSong={onAddSong}
+            onImportSong={onImportSong}
+            onOpenDirectoryWorkspace={
+              singleDocumentMode ? undefined : onOpenDirectoryWorkspace
+            }
+            onCloseWorkspace={onCloseWorkspace}
+          />
+        </Suspense>
       ) : null}
       <AppContent data-id="app-content">
         {hasSongs ? (
-          <StandaloneMusicPage
-            onCreateSong={onAddSong}
-            onImportSong={onImportSong}
-            onOpenDirectoryWorkspace={onOpenDirectoryWorkspace}
-            onSelectSong={onSelectSong}
-          />
+          <Suspense
+            fallback={<LoadingContent>{l10n("FIELD_LOADING")}</LoadingContent>}
+          >
+            <StandaloneMusicPage
+              onCreateSong={onAddSong}
+              onImportSong={onImportSong}
+              onOpenDirectoryWorkspace={onOpenDirectoryWorkspace}
+              onSelectSong={onSelectSong}
+            />
+          </Suspense>
         ) : (
           <MusicWebSplash
             themeId={themeId}

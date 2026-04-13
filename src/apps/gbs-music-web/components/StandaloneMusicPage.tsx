@@ -299,18 +299,16 @@ const StandaloneMusicPage = ({
         onSelectSong={onSelectSong}
       />
     ),
-    [
-      modified,
-      onCreateSong,
-      onImportSong,
-      onSelectSong,
-      viewSongId,
-    ],
+    [modified, onCreateSong, onImportSong, onSelectSong, viewSongId],
   );
 
   const mobileOverlayView = useAppSelector(
     (state) => state.tracker.mobileOverlayView,
   );
+
+  if (windowWidth === 0) {
+    return null;
+  }
 
   return (
     <Wrapper>
