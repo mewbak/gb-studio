@@ -122,16 +122,14 @@ const rules = baseRules.map((rule) => {
   };
 });
 
-// Template .uge is inlined base64 to include in initial bundle
+// Emit the default template song as a separate file so it only loads
+// when the user creates a new song or opens an empty workspace.
 rules.push({
   test: /\.uge$/i,
-  include: srcPath("apps/gbs-music-web/data"),
-  type: "asset/inline",
+  include: srcPath("apps/gbs-music-web/data/template.uge"),
+  type: "asset/resource",
   generator: {
-    dataUrl: {
-      mimetype: "application/octet-stream",
-      encoding: "base64",
-    },
+    filename: "template/[name][ext]",
   },
 });
 

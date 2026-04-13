@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import {
   createMusicWorkspace,
   MusicDocumentReference,
@@ -24,6 +24,7 @@ import {
 } from "gbs-music-web/lib/songBackup";
 import API from "renderer/lib/api";
 import l10n from "shared/lib/lang/l10n";
+import templateUgeUrl from "gbs-music-web/data/template.uge";
 
 const toSafeBaseName = (name: string) =>
   name.replace(/[/\\]/g, "").trim() || l10n("FIELD_NEW_SONG");
@@ -63,10 +64,6 @@ const appendWorkspaceDocument = (
   });
 };
 
-interface UseMusicWorkspaceParams {
-  templateSongData: Uint8Array;
-}
-
 interface UseMusicWorkspaceResult {
   singleDocumentMode: boolean;
   hasBackup: boolean;
@@ -79,11 +76,12 @@ interface UseMusicWorkspaceResult {
   closeWorkspace: () => void;
 }
 
-export const useMusicWorkspace = ({
-  templateSongData,
-}: UseMusicWorkspaceParams): UseMusicWorkspaceResult => {
+export const useMusicWorkspace = (): UseMusicWorkspaceResult => {
   const dispatch = useAppDispatch();
   const [workspace, setWorkspace] = useState<MusicWorkspace>();
+  const templateSongDataPromiseRef = useRef<Promise<Uint8Array> | undefined>(
+    undefined,
+  );
   const singleDocumentMode = !supportsPersistentSave();
 
   const backupInfo = getBackupInfo();
@@ -113,6 +111,22 @@ export const useMusicWorkspace = ({
     dispatch(trackerActions.reset());
   }, [dispatch]);
 
+  const loadTemplateSongData = useCallback(async () => {
+    if (!templateSongDataPromiseRef.current) {
+      templateSongDataPromiseRef.current = fetch(templateUgeUrl).then(
+        async (response) => {
+          if (!response.ok) {
+            throw new Error("Failed to load template song.");
+          }
+
+          return new Uint8Array(await response.arrayBuffer());
+        },
+      );
+    }
+
+    return Uint8Array.from(await templateSongDataPromiseRef.current);
+  }, []);
+
   const openMusicWorkspace = useCallback(
     async (mode: "file" | "directory") => {
       try {
@@ -126,8 +140,9 @@ export const useMusicWorkspace = ({
         }
 
         if (nextWorkspace.documents.length === 0) {
+          const templateSongData = await loadTemplateSongData();
           const document = await createTemplateMusicDocument(
-            new Uint8Array(templateSongData),
+            templateSongData,
             nextWorkspace,
           );
 
@@ -145,7 +160,7 @@ export const useMusicWorkspace = ({
         }
       }
     },
-    [applyWorkspace, templateSongData],
+    [applyWorkspace, loadTemplateSongData],
   );
 
   const createSong = useCallback(
@@ -154,6 +169,7 @@ export const useMusicWorkspace = ({
       const songArtist =
         options?.artist !== undefined ? options.artist : l10n("FIELD_ARTIST");
       const baseName = toSafeBaseName(songName);
+      const templateSongData = await loadTemplateSongData();
 
       // Stamp the template UGE data with the requested name and artist before
       // writing it to disk / the in-memory store.
@@ -187,7 +203,7 @@ export const useMusicWorkspace = ({
 
       applyWorkspace(nextWorkspace);
     },
-    [applyWorkspace, singleDocumentMode, templateSongData, workspace],
+    [applyWorkspace, loadTemplateSongData, singleDocumentMode, workspace],
   );
 
   const importSong = useCallback(async () => {

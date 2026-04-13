@@ -2,17 +2,13 @@ import React, { Suspense, lazy, useCallback, useEffect, useState } from "react";
 import trackerActions from "store/features/tracker/trackerActions";
 import styled from "styled-components";
 import { saveSongFile } from "store/features/trackerDocument/trackerDocumentState";
-import {
-  webMusicEnvironment,
-  dataUriToUint8Array,
-} from "gbs-music-web/lib/adapters";
+import { webMusicEnvironment } from "gbs-music-web/lib/adapters";
 import { useAppDispatch, useAppSelector } from "store/hooks";
 import { musicSelectors } from "store/features/entities/entitiesState";
 import WebAPI from "gbs-music-web/lib/api";
 import { ConfirmUnsavedChangesDialog } from "gbs-music-web/components/dialog/ConfirmUnsavedChangesDialog";
 import { MusicWebSplash } from "gbs-music-web/components/MusicWebSplash";
 import { useUnsavedChangesGuard } from "gbs-music-web/components/hooks/useUnsavedChangesGuard";
-import templateUge from "gbs-music-web/data/template.uge";
 import { useMusicWorkspace } from "gbs-music-web/components/hooks/useMusicWorkspace";
 import l10n from "shared/lib/lang/l10n";
 
@@ -34,8 +30,6 @@ const LoadingContent = styled.div`
   align-items: center;
   justify-content: center;
 `;
-
-const templateSongData = dataUriToUint8Array(templateUge);
 
 const StandaloneMusicPage = lazy(
   () => import("gbs-music-web/components/StandaloneMusicPage"),
@@ -88,9 +82,7 @@ export const MusicWebApp = () => {
     restoreBackupSong,
     openExample,
     closeWorkspace,
-  } = useMusicWorkspace({
-    templateSongData,
-  });
+  } = useMusicWorkspace();
 
   const onSelectSong = useCallback(
     (nextSongId: string) => {
