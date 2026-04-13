@@ -16,6 +16,15 @@ const pkg = require("../../../package.json");
 const gzip = promisify(zlib.gzip);
 const brotliCompress = promisify(zlib.brotliCompress);
 const isProduction = process.env.NODE_ENV !== "development";
+const styledComponentsPlugin = [
+  require.resolve("babel-plugin-styled-components"),
+  {
+    displayName: !isProduction,
+    minify: isProduction,
+    pure: isProduction,
+    transpileTemplateLiterals: isProduction,
+  },
+];
 
 const gitRevisionPlugin = new GitRevisionPlugin({
   commithashCommand: "rev-list --max-count=1 --no-merges --abbrev-commit HEAD",
@@ -76,27 +85,40 @@ const rules = baseRules.map((rule) => {
     return rule;
   }
 
+  const tsLoaderRule = rule.rules.find(
+    (nestedRule) => nestedRule.loader === "ts-loader",
+  );
+
+  if (!tsLoaderRule) {
+    return rule;
+  }
+
   return {
     ...rule,
-    rules: rule.rules.map((nestedRule) => {
-      if (nestedRule.loader !== "ts-loader") {
-        return nestedRule;
-      }
-
-      return {
-        ...nestedRule,
+    rules: undefined,
+    use: [
+      {
+        loader: "babel-loader",
         options: {
-          ...nestedRule.options,
+          babelrc: false,
+          configFile: false,
+          plugins: [styledComponentsPlugin],
+        },
+      },
+      {
+        loader: tsLoaderRule.loader,
+        options: {
+          ...tsLoaderRule.options,
           getCustomTransformers: () => ({
             before: [!isProduction && ReactRefreshTypeScript()].filter(Boolean),
           }),
           compilerOptions: {
-            ...(nestedRule.options?.compilerOptions || {}),
+            ...(tsLoaderRule.options?.compilerOptions || {}),
             module: "esnext",
           },
         },
-      };
-    }),
+      },
+    ],
   };
 });
 
