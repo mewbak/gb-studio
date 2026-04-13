@@ -173,6 +173,7 @@ export const MusicWebApp = () => {
             fallback={<LoadingContent>{l10n("FIELD_LOADING")}</LoadingContent>}
           >
             <StandaloneMusicPage
+              localeId={localeId}
               onCreateSong={onAddSong}
               onImportSong={onImportSong}
               onOpenDirectoryWorkspace={onOpenDirectoryWorkspace}

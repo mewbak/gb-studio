@@ -60,6 +60,7 @@ const defaultPaneLayout: SplitPaneLayout[] = [
 const COMPACT_LAYOUT_BREAKPOINT = 840;
 
 interface StandaloneMusicPageProps {
+  localeId: string;
   onCreateSong?: () => void;
   onOpenDirectoryWorkspace?: () => void;
   onImportSong?: () => void;
@@ -78,6 +79,7 @@ const isProbablyPhone = () => {
 };
 
 const StandaloneMusicPage = ({
+  localeId,
   onCreateSong,
   onImportSong,
   onSelectSong,
@@ -311,7 +313,7 @@ const StandaloneMusicPage = ({
   }
 
   return (
-    <Wrapper>
+    <Wrapper key={localeId}>
       {!isCompactLayout && (
         <>
           <div
