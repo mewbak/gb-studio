@@ -25,13 +25,19 @@ import { EditableText, EditableTextOverlay } from "ui/form/EditableText";
 import { FlexGrow } from "ui/spacing/Spacing";
 import projectActions from "store/features/project/projectActions";
 import { stripInvalidPathCharacters } from "shared/lib/helpers/stripInvalidFilenameCharacters";
+import { musicSelectors } from "store/features/entities/entitiesState";
 
 export const SongMetadataEditor = () => {
   const dispatch = useAppDispatch();
 
   const song = useAppSelector((state) => state.trackerDocument.present.song);
+
   const selectedSongId = useAppSelector(
     (state) => state.tracker.selectedSongId,
+  );
+
+  const musicAsset = useAppSelector((state) =>
+    musicSelectors.selectById(state, selectedSongId),
   );
 
   const onChangeSongProp = useCallback(
@@ -66,15 +72,15 @@ export const SongMetadataEditor = () => {
   );
 
   const [localFilename, setLocalFilename] = useState(
-    song?.filename.replace(/\.uge$/i, "") ?? "",
+    musicAsset?.filename.replace(/\.uge$/i, "") ?? "",
   );
 
   useEffect(() => {
-    setLocalFilename(song?.filename.replace(/\.uge$/i, "") ?? "");
-  }, [song?.filename]);
+    setLocalFilename(musicAsset?.filename.replace(/\.uge$/i, "") ?? "");
+  }, [musicAsset?.filename]);
 
   const onRenameFile = useCallback(() => {
-    const currentFilename = song?.filename.replace(/\.[^.]+$/i, "") ?? "";
+    const currentFilename = musicAsset?.filename.replace(/\.[^.]+$/i, "") ?? "";
     const sanitizedFilename = stripInvalidPathCharacters(localFilename).trim();
 
     if (
@@ -92,7 +98,7 @@ export const SongMetadataEditor = () => {
         newFilename: sanitizedFilename,
       }),
     );
-  }, [dispatch, localFilename, selectedSongId, song?.filename]);
+  }, [dispatch, localFilename, selectedSongId, musicAsset?.filename]);
 
   const onRenameFileOnEnter = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -103,7 +109,7 @@ export const SongMetadataEditor = () => {
     [],
   );
 
-  if (!song) {
+  if (!song || !musicAsset) {
     return null;
   }
 
@@ -113,7 +119,7 @@ export const SongMetadataEditor = () => {
         <FlexGrow style={{ minWidth: 0 }}>
           <EditableText
             name="name"
-            placeholder={getBaseName(song.filename)}
+            placeholder={getBaseName(musicAsset.filename)}
             value={localFilename}
             onChange={(e) => setLocalFilename(e.currentTarget.value)}
             onBlur={onRenameFile}
@@ -121,7 +127,7 @@ export const SongMetadataEditor = () => {
             autoComplete="off"
           />
           <EditableTextOverlay>
-            {getBaseName(song.filename)}
+            {getBaseName(musicAsset.filename)}
           </EditableTextOverlay>
         </FlexGrow>
       </FormHeader>
