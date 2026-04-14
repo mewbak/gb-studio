@@ -13,7 +13,7 @@ export const StyledMobileToolbar = styled.div`
   background: red;
   background: ${(props) => props.theme.colors.panel.background};
   border-top: 1px solid ${(props) => props.theme.colors.panel.border};
-  padding-bottom: calc(5px + env(safe-area-inset-bottom));
+  padding-bottom: 5px;
 
   ${StyledButton} {
     height: 100%;
@@ -101,7 +101,6 @@ export const StyledMobileOverlayContainer = styled.div<{
   $isDragging?: boolean;
 }>`
   background: ${(props) => props.theme.colors.sidebar.background};
-  padding-bottom: calc(0px + env(safe-area-inset-bottom));
   box-sizing: border-box;
   box-shadow: ${(props) =>
     props.$open ? "0px -10px 10px rgba(0, 0, 0, 0.3)" : "none"};

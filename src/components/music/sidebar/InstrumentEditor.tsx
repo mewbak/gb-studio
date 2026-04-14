@@ -67,7 +67,7 @@ const StyledStickyFooter = styled.div`
   background: ${(props) => props.theme.colors.sidebar.background};
   border-top: 1px solid ${(props) => props.theme.colors.sidebar.border};
   padding-top: 10px;
-  padding-bottom: env(safe-area-inset-bottom);
+  padding-bottom: 5px;
 `;
 
 const instrumentTypeLabels: Record<InstrumentType, string> = {

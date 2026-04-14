@@ -29,7 +29,7 @@ const StyledChannelPane = styled.div`
   display: flex;
   flex-direction: column;
   padding: 0 10px;
-  padding-bottom: calc(10px + env(safe-area-inset-bottom));
+  padding-bottom: 10px;
 `;
 
 const StyledChannelHeader = styled.div`

@@ -129,8 +129,7 @@ const StyledTrackerKeyboard = styled.div<{ $open?: boolean }>`
   }
 
   @media (max-width: 840px) {
-    max-height: ${(props) =>
-      props.$open ? "240px" : "calc(50px + env(safe-area-inset-bottom))"};
+    max-height: ${(props) => (props.$open ? "240px" : "70px")};
     pointer-events: auto;
 
     ${StyledButton} {
@@ -166,8 +165,7 @@ const StyledTrackerNavigationButtons = styled.div<{ $open?: boolean }>`
 
   @media (max-width: 840px) {
     transition: padding-bottom 200ms ease-in-out;
-    padding-bottom: ${(props) =>
-      props.$open ? "5px" : "calc(40px + env(safe-area-inset-bottom))"};
+    padding-bottom: ${(props) => (props.$open ? "5px" : "60px")};
   }
 `;
 
@@ -185,7 +183,7 @@ const StyledTrackerKeyboardActions = styled.div<{ $overflow: boolean }>`
   padding: 10px;
   z-index: 10;
   gap: 10px;
-  padding-bottom: calc(10px + env(safe-area-inset-bottom));
+  padding-bottom: 30px;
 
   ${(props) =>
     props.$overflow &&
@@ -214,7 +212,7 @@ const StyledTrackerKeyboardActions = styled.div<{ $overflow: boolean }>`
 const StyledTrackerEffectButtons = styled.div`
   background: ${(props) => props.theme.colors.sidebar.background};
   padding: 10px;
-  padding-bottom: calc(10px + env(safe-area-inset-bottom));
+  padding-bottom: 30px;
   flex-grow: 1;
   display: flex;
   flex-direction: column;
@@ -242,7 +240,7 @@ const StyledTrackerKeyboardNotesInner = styled.div`
   flex-grow: 1;
   height: 100%;
   box-sizing: border-box;
-  padding-bottom: calc(10px + env(safe-area-inset-bottom));
+  padding-bottom: 30px;
   max-width: 0;
 `;
 
