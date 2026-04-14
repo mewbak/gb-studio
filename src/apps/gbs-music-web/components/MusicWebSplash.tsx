@@ -201,7 +201,10 @@ const StyledSplashTabs = styled.div`
   }
 `;
 
-const StyledSplashRestorePanel = styled.div<{ $variant?: "glass" }>`
+const StyledSplashRestorePanel = styled.div<{
+  $variant?: "glass";
+  $visible?: boolean;
+}>`
   display: flex;
   border: 1px solid ${(props) => props.theme.colors.panel.border};
   background: ${(props) => props.theme.colors.panel.background};
@@ -218,6 +221,16 @@ const StyledSplashRestorePanel = styled.div<{ $variant?: "glass" }>`
   span {
     flex-grow: 1;
   }
+
+  transition: opacity 0.3s ease-in-out;
+  opacity: 1;
+
+  ${(props) =>
+    props.$visible === false &&
+    css`
+      opacity: 0;
+      pointer-events: none;
+    `}
 
   ${(props) =>
     props.$variant === "glass" &&
@@ -680,7 +693,10 @@ export const MusicWebSplash = ({
 
       {!isCompactLayout && onRestoreBackup ? (
         <div style={{ maxWidth: 420, marginTop: 20 }}>
-          <StyledSplashRestorePanel $variant="glass">
+          <StyledSplashRestorePanel
+            $variant="glass"
+            $visible={section === "new"}
+          >
             <span>{l10n("FIELD_RECOVER_PREVIOUS_SESSION")}</span>
             <Button style={{ flexGrow: 1 }} onClick={onRestoreBackup}>
               {l10n("FIELD_RESTORE_FILE")}
