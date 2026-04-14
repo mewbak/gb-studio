@@ -237,6 +237,9 @@ module.exports = {
       chunks: "async",
     },
   },
+  watchOptions: {
+    ignored: [musicWebLocalesDir],
+  },
   devServer: {
     static: {
       directory: repoPath("out", "music-web"),
