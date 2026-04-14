@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
+const UPDATE_PENDING_STORAGE_KEY = "gbsMusicWeb:updatePending";
+
 const isLocalhost = () =>
   location.hostname === "localhost" ||
   location.hostname === "127.0.0.1" ||
@@ -10,11 +12,32 @@ const supportsServiceWorker = () =>
   "serviceWorker" in navigator &&
   !isLocalhost();
 
+const getStoredUpdatePending = () => {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  return window.localStorage.getItem(UPDATE_PENDING_STORAGE_KEY) === "true";
+};
+
+const setStoredUpdatePending = (value: boolean) => {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  if (value) {
+    window.localStorage.setItem(UPDATE_PENDING_STORAGE_KEY, "true");
+  } else {
+    window.localStorage.removeItem(UPDATE_PENDING_STORAGE_KEY);
+  }
+};
+
 export const useMusicWebUpdate = () => {
   const [waitingRegistration, setWaitingRegistration] =
     useState<ServiceWorkerRegistration | null>(null);
   const registrationRef = useRef<ServiceWorkerRegistration | null>(null);
   const shouldReloadOnControllerChangeRef = useRef(false);
+  const shouldAutoApplyOnLoadRef = useRef(getStoredUpdatePending());
 
   useEffect(() => {
     if (!supportsServiceWorker()) {
@@ -22,12 +45,35 @@ export const useMusicWebUpdate = () => {
     }
 
     let isMounted = true;
+    const shouldAutoApplyOnLoad = shouldAutoApplyOnLoadRef.current;
+
+    const activateWaitingWorker = async (
+      registration: ServiceWorkerRegistration,
+    ) => {
+      shouldReloadOnControllerChangeRef.current = true;
+      setStoredUpdatePending(false);
+      registration.waiting?.postMessage({ type: "SKIP_WAITING" });
+
+      window.setTimeout(() => {
+        if (shouldReloadOnControllerChangeRef.current) {
+          window.location.reload();
+        }
+      }, 1500);
+    };
 
     const setWaitingWorker = (registration: ServiceWorkerRegistration) => {
       if (!isMounted) {
         return;
       }
-      setWaitingRegistration(registration.waiting ? registration : null);
+
+      if (registration.waiting) {
+        setStoredUpdatePending(true);
+        setWaitingRegistration(registration);
+        return;
+      }
+
+      setStoredUpdatePending(false);
+      setWaitingRegistration(null);
     };
 
     const trackInstallingWorker = (registration: ServiceWorkerRegistration) => {
@@ -41,6 +87,11 @@ export const useMusicWebUpdate = () => {
           installingWorker.state === "installed" &&
           navigator.serviceWorker.controller
         ) {
+          if (shouldAutoApplyOnLoad && registration.waiting) {
+            void activateWaitingWorker(registration);
+            return;
+          }
+
           setWaitingWorker(registration);
         }
       });
@@ -67,6 +118,11 @@ export const useMusicWebUpdate = () => {
       );
 
       attachRegistrationListeners(registration);
+      if (shouldAutoApplyOnLoad && registration.waiting) {
+        void activateWaitingWorker(registration);
+        return registration;
+      }
+
       setWaitingWorker(registration);
       return registration;
     };
@@ -78,6 +134,7 @@ export const useMusicWebUpdate = () => {
     };
 
     const onControllerChange = () => {
+      setStoredUpdatePending(false);
       if (!shouldReloadOnControllerChangeRef.current) {
         return;
       }
@@ -128,6 +185,7 @@ export const useMusicWebUpdate = () => {
     }
 
     shouldReloadOnControllerChangeRef.current = true;
+    setStoredUpdatePending(false);
     const registration =
       waitingRegistration ?? (await navigator.serviceWorker.getRegistration());
 
