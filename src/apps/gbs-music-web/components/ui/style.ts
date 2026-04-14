@@ -3,17 +3,17 @@ import { StyledButton } from "ui/buttons/style";
 
 export const StyledMobileToolbar = styled.div`
   display: flex;
-  height: calc(50px + env(safe-area-inset-bottom));
+  height: 50px;
   justify-content: center;
   flex-shrink: 0;
   gap: 10px;
   padding: 5px 10px;
-  box-sizing: border-box;
   background: ${(props) => props.theme.colors.background};
   z-index: 10000;
   background: red;
   background: ${(props) => props.theme.colors.panel.background};
   border-top: 1px solid ${(props) => props.theme.colors.panel.border};
+  padding-bottom: calc(5px + env(safe-area-inset-bottom));
 
   ${StyledButton} {
     height: 100%;
