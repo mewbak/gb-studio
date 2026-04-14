@@ -340,9 +340,8 @@ export const installWebRendererApi = (store: MusicEditorStore) => {
         });
       },
       closeMusic: () => {
-        void ensureMusicSession().then((session) => {
+        void ensureMusicSession().then((_session) => {
           // @TODO Should this be added?
-          console.warn("CANT CLOSE MUSIC SESSION", session);
         });
       },
       sendToMusicWindow: (data: MusicDataPacket) => {

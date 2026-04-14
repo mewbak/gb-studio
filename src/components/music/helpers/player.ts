@@ -61,16 +61,16 @@ const isPlayerPaused = () => {
 
 const doPause = () => {
   const _if = emulator.readMem(0xff0f);
-  console.log(_if);
+  // console.log(_if);
   emulator.writeMem(0xff0f, _if | 0b00001000);
-  console.log(emulator.readMem(0xff0f));
+  // console.log(emulator.readMem(0xff0f));
 
   while (!isPlayerPaused()) {
-    console.log("PAUSING...");
+    // console.log("PAUSING...");
     emulator.step("frame");
   }
 
-  console.log("PAUSED");
+  // console.log("PAUSED");
 };
 
 const doResume = () => {
@@ -78,11 +78,11 @@ const doResume = () => {
   emulator.writeMem(doResumePlayerAddr, 1);
 
   while (isPlayerPaused()) {
-    console.log("RESUMING...");
+    // console.log("RESUMING...");
     emulator.step("frame");
   }
 
-  console.log("RESUMED");
+  // console.log("RESUMED");
 };
 
 const initPlayer = (onInit: (file: Uint8Array) => void, sfx?: string) => {
@@ -138,7 +138,7 @@ const initPlayer = (onInit: (file: Uint8Array) => void, sfx?: string) => {
     setInterval(updateTracker, 1000 / 64);
   };
 
-  compiler.compile(["-t", "-w"], onCompileDone, console.log);
+  compiler.compile(["-t", "-w"], onCompileDone, () => {});
 };
 
 const setChannel = (
@@ -218,25 +218,25 @@ const loadSound = (sfx?: string) => {
 };
 
 const play = (song: Song, position?: PlaybackPosition) => {
-  console.log("PLAY");
+  // console.log("PLAY");
   updateRom(song);
   emulator.step("frame");
   stop();
 
   if (position) {
-    console.log("POS", position);
+    // console.log("POS", position);
     setStartPosition(position);
   }
 
   const ticksPerRowAddr = getRamAddress("ticks_per_row");
   emulator.writeMem(ticksPerRowAddr, song.ticks_per_row);
 
-  console.log("PLAY SONG HERE?", isPlayerPaused());
+  // console.log("PLAY SONG HERE?", isPlayerPaused());
 
   if (isPlayerPaused()) {
     isPlayingSong = true;
 
-    console.log("RESET MUTE BACK TO", channels);
+    // console.log("RESET MUTE BACK TO", channels);
     emulator.setChannel(0, channels[0]);
     emulator.setChannel(1, channels[1]);
     emulator.setChannel(2, channels[2]);
@@ -263,7 +263,7 @@ const play = (song: Song, position?: PlaybackPosition) => {
 };
 
 const playPreview = (song: Song, length: number) => {
-  console.log("PLAY PREVIEW");
+  // console.log("PLAY PREVIEW");
   updateRom(song);
   emulator.step("frame");
   stop();
@@ -294,31 +294,31 @@ const playPreview = (song: Song, length: number) => {
 const playSound = () => {
   doPause();
 
-  console.log("=======SFX=======");
+  // console.log("=======SFX=======");
 
   const mySfxAddr = getRomAddress("my_sfx");
   const sfxPlayBankAddr = getRamAddress("_sfx_play_bank");
   const sfxPlaySampleAddr = getRamAddress("_sfx_play_sample");
 
-  console.log(
-    mySfxAddr,
-    emulator.readMem(sfxPlayBankAddr),
-    emulator.readMem(sfxPlaySampleAddr),
-    emulator.readMem(sfxPlaySampleAddr + 1),
-    sfxPlaySampleAddr,
-    sfxPlayBankAddr,
-  );
+  // console.log(
+  //   mySfxAddr,
+  //   emulator.readMem(sfxPlayBankAddr),
+  //   emulator.readMem(sfxPlaySampleAddr),
+  //   emulator.readMem(sfxPlaySampleAddr + 1),
+  //   sfxPlaySampleAddr,
+  //   sfxPlayBankAddr,
+  // );
   emulator.writeMem(sfxPlayBankAddr, 1);
 
   emulator.writeMem(sfxPlaySampleAddr, lo(mySfxAddr));
   emulator.writeMem(sfxPlaySampleAddr + 1, hi(mySfxAddr));
 
-  const b0 = emulator.readMem(sfxPlaySampleAddr);
-  const b1 = emulator.readMem(sfxPlaySampleAddr + 1);
-  const v = (b1 << 8) | b0;
-  console.log("SFX", v, b0, b1);
+  // const b0 = emulator.readMem(sfxPlaySampleAddr);
+  // const b1 = emulator.readMem(sfxPlaySampleAddr + 1);
+  // const v = (b1 << 8) | b0;
+  // console.log("SFX", v, b0, b1);
 
-  console.log("=======SFX=======");
+  // console.log("=======SFX=======");
   doResume();
 
   const sfxUpdate = setInterval(() => {
@@ -326,7 +326,7 @@ const playSound = () => {
     const b1 = emulator.readMem(sfxPlaySampleAddr + 1);
     const v = (b1 << 8) | b0;
 
-    console.log("SFX", v, b0, b1);
+    // console.log("SFX", v, b0, b1);
     if (v === 0) {
       doPause();
       clearInterval(sfxUpdate);
@@ -335,7 +335,7 @@ const playSound = () => {
 };
 
 const stop = (position?: PlaybackPosition) => {
-  console.log("STOP!");
+  // console.log("STOP!");
   isPlayingSong = false;
 
   if (!isPlayerPaused()) {
@@ -608,7 +608,7 @@ const exportSong = async (
 };
 
 function patchRom(targetRomFile: Uint8Array, song: Song, startAddr: number) {
-  console.log("PATCH ROM");
+  // console.log("PATCH ROM");
   const buf = new Uint8Array(targetRomFile.buffer);
 
   let addr = startAddr;
@@ -693,7 +693,7 @@ function patchRom(targetRomFile: Uint8Array, song: Song, startAddr: number) {
     }
   }
 
-  console.log(subpatternAddr);
+  // console.log(subpatternAddr);
 
   for (let n = 0; n < song.duty_instruments.length; n++) {
     const instr = song.duty_instruments[n];

@@ -40,7 +40,6 @@ const createMusicSession = (): MusicSession => {
   };
 
   const handleAction = (data: MusicDataPacket) => {
-    console.warn("MUSIC SESSION", data.action, data);
     switch (data.action) {
       case "load-song":
         player.reset();

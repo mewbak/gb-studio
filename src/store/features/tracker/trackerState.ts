@@ -255,7 +255,6 @@ const trackerSlice = createSlice({
       }
     },
     setSubpatternEditorFocus: (state, _action: PayloadAction<boolean>) => {
-      console.log("FOCUS:", _action.payload);
       state.subpatternEditorFocus = _action.payload;
     },
     setSubpatternEditorMode: (

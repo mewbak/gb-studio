@@ -65,7 +65,7 @@ Binjgb({
 });
 
 const init = (romData: Uint8Array) => {
-  console.log("INIT EMULATOR");
+  // console.log("INIT EMULATOR");
   if (isAvailable()) destroy();
 
   if (typeof audioCtx == "undefined") {
@@ -97,7 +97,7 @@ const init = (romData: Uint8Array) => {
 
 const updateRom = (romData: Uint8Array) => {
   if (!isAvailable()) {
-    console.log("UPDATE ROM: NOT AVAILABLE");
+    // console.log("UPDATE ROM: NOT AVAILABLE");
     return false;
   }
 
@@ -150,10 +150,10 @@ const readMem = (addr: number) => {
 
 const writeMem = (addr: number, data: number) => {
   if (!isAvailable()) {
-    console.log("WRITE MEM NOT AVAILABLE");
+    // console.log("WRITE MEM NOT AVAILABLE");
     return;
   }
-  console.log("WRITE MEM", addr, data);
+  // console.log("WRITE MEM", addr, data);
   return Module._emulator_write_mem(emu, addr, data);
 };
 
