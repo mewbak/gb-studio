@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, useState } from "react";
 import {
   StyledConfirmModal,
   StyledConfirmCloseButton,
@@ -7,7 +7,7 @@ import {
 import l10n from "shared/lib/lang/l10n";
 import styled from "styled-components";
 import { Button } from "ui/buttons/Button";
-import { CloseIcon } from "ui/icons/Icons";
+import { CheckIcon, CloseIcon } from "ui/icons/Icons";
 import { MenuOverlay } from "ui/menu/Menu";
 import appIconUrl from "gbs-music-web/components/ui/icons/app_music_icon_180.png";
 
@@ -29,6 +29,7 @@ const clearAppCache = async () => {
       const keys = await caches.keys();
       await Promise.allSettled(keys.map((key) => caches.delete(key)));
     }
+    window.location.reload();
   } catch (e) {
     // ignore
   }
@@ -69,6 +70,13 @@ const AboutText = styled.p`
 `;
 
 export const AboutDialog = ({ onClose }: AboutDialogProps) => {
+  const [cacheCleared, setCacheCleared] = useState(false);
+
+  const clearCache = useCallback(async () => {
+    await clearAppCache();
+    setCacheCleared(true);
+  }, []);
+
   return (
     <>
       <MenuOverlay onClick={onClose} />
@@ -92,8 +100,8 @@ export const AboutDialog = ({ onClose }: AboutDialogProps) => {
         </AboutHeader>
         <AboutText>{l10n("GBSTUDIO_COPYRIGHT")}</AboutText>
         <StyledConfirmActions>
-          <Button onClick={clearAppCache}>
-            {l10n("FIELD_CLEAR_APP_CACHE")}
+          <Button onClick={clearCache}>
+            {cacheCleared ? <CheckIcon /> : l10n("FIELD_CLEAR_APP_CACHE")}
           </Button>
         </StyledConfirmActions>
       </StyledConfirmModal>
