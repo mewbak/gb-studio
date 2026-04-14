@@ -216,12 +216,12 @@ module.exports = {
     ...(isProduction ? [] : [new ReactRefreshWebpackPlugin()]),
     ...(isProduction ? [new PrecompressAssetsPlugin()] : []),
     ...(isProduction
-      ? [
+        ? [
           new GenerateSW({
             swDest: "service-worker.js",
-            // Activate the new service worker as soon as it finishes installing
-            // so users get updates without having to close every tab first.
-            skipWaiting: true,
+            // Keep updates waiting until the running app explicitly asks the
+            // new service worker to activate.
+            skipWaiting: false,
             clientsClaim: true,
             // Serve the cached shell for all navigation requests when offline.
             navigateFallback: "index.html",

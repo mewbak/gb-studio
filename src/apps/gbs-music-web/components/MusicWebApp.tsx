@@ -3,13 +3,16 @@ import trackerActions from "store/features/tracker/trackerActions";
 import styled from "styled-components";
 import { saveSongFile } from "store/features/trackerDocument/trackerDocumentState";
 import { webMusicEnvironment } from "gbs-music-web/lib/adapters";
+import { MusicWebStatusBanner } from "gbs-music-web/components/MusicWebStatusBanner";
 import { useAppDispatch, useAppSelector } from "store/hooks";
 import { musicSelectors } from "store/features/entities/entitiesState";
 import WebAPI from "gbs-music-web/lib/api";
 import { ConfirmUnsavedChangesDialog } from "gbs-music-web/components/dialog/ConfirmUnsavedChangesDialog";
 import { MusicWebSplash } from "gbs-music-web/components/MusicWebSplash";
+import { useMusicWebUpdate } from "gbs-music-web/components/hooks/useMusicWebUpdate";
 import { useUnsavedChangesGuard } from "gbs-music-web/components/hooks/useUnsavedChangesGuard";
 import { useMusicWorkspace } from "gbs-music-web/components/hooks/useMusicWorkspace";
+import { reloadMusicWebWithAlert } from "gbs-music-web/lib/reloadOnError";
 import l10n from "shared/lib/lang/l10n";
 
 const AppShell = styled.div`
@@ -31,16 +34,27 @@ const LoadingContent = styled.div`
   justify-content: center;
 `;
 
-const StandaloneMusicPage = lazy(
-  () => import("gbs-music-web/components/StandaloneMusicPage"),
+const recoverChunkLoad = (error: unknown) =>
+  reloadMusicWebWithAlert(
+    "GBS Music needs to reload to finish updating.",
+    error,
+  );
+
+const StandaloneMusicPage = lazy(() =>
+  import("gbs-music-web/components/StandaloneMusicPage").catch(
+    recoverChunkLoad,
+  ),
 );
 const MusicWebToolbar = lazy(async () => {
-  const module = await import("gbs-music-web/components/MusicWebToolbar");
+  const module = await import("gbs-music-web/components/MusicWebToolbar").catch(
+    recoverChunkLoad,
+  );
   return { default: module.MusicWebToolbar };
 });
 
 export const MusicWebApp = () => {
   const dispatch = useAppDispatch();
+  const { updateAvailable, reloadApp } = useMusicWebUpdate();
   const [themeId, setThemeId] = useState(WebAPI.getThemeId());
   const [localeId, setLocaleId] = useState(WebAPI.getLocaleId());
   const modified = useAppSelector((state) => state.tracker.modified);
@@ -151,6 +165,13 @@ export const MusicWebApp = () => {
         e.stopPropagation();
       }}
     >
+      {updateAvailable ? (
+        <MusicWebStatusBanner
+          title={l10n("DIALOG_UPDATE_AVAILABLE")}
+          actionLabel={l10n("DIALOG_OK")}
+          onAction={reloadApp}
+        />
+      ) : null}
       {hasSongs ? (
         <Suspense fallback={null}>
           <MusicWebToolbar
