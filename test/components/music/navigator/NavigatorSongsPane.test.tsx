@@ -8,6 +8,22 @@ import { NavigatorSongsPane } from "../../../../src/components/music/navigator/N
 
 const mockDispatch = jest.fn();
 const mockSetSelectedId = jest.fn();
+const mockNavigatorItems = [
+  {
+    id: "song-1",
+    name: "Song 1",
+    filename: "song1.uge",
+    type: "file",
+    nestLevel: 0,
+  },
+  {
+    id: "song-2",
+    name: "Song 2",
+    filename: "song2.uge",
+    type: "file",
+    nestLevel: 0,
+  },
+];
 
 jest.mock("../../../../src/store/hooks", () => ({
   useAppDispatch: () => mockDispatch,
@@ -30,22 +46,7 @@ jest.mock("../../../../src/store/features/entities/entitiesState", () => ({
 }));
 
 jest.mock("../../../../src/shared/lib/assets/buildAssetNavigatorItems", () => ({
-  buildAssetNavigatorItems: () => [
-    {
-      id: "song-1",
-      name: "Song 1",
-      filename: "song1.uge",
-      type: "file",
-      nestLevel: 0,
-    },
-    {
-      id: "song-2",
-      name: "Song 2",
-      filename: "song2.uge",
-      type: "file",
-      nestLevel: 0,
-    },
-  ],
+  buildAssetNavigatorItems: () => mockNavigatorItems,
 }));
 
 jest.mock("../../../../src/components/ui/lists/FlatList", () => ({
@@ -128,6 +129,24 @@ describe("NavigatorSongsPane", () => {
   beforeEach(() => {
     mockDispatch.mockReset();
     mockSetSelectedId.mockReset();
+    mockNavigatorItems.splice(
+      0,
+      mockNavigatorItems.length,
+      {
+        id: "song-1",
+        name: "Song 1",
+        filename: "song1.uge",
+        type: "file",
+        nestLevel: 0,
+      },
+      {
+        id: "song-2",
+        name: "Song 2",
+        filename: "song2.uge",
+        type: "file",
+        nestLevel: 0,
+      },
+    );
   });
 
   test("should keep the current selected song highlighted until file selection is accepted", () => {
@@ -147,6 +166,53 @@ describe("NavigatorSongsPane", () => {
     fireEvent.click(screen.getByText("song2.uge"));
 
     expect(onSelectSong).toHaveBeenCalledWith("song-2");
+    expect(screen.getByTestId("selected-id")).toHaveTextContent("song-1");
+  });
+
+  test("should reselect the current song after a folder is selected without reopening it", () => {
+    const onSelectSong = jest.fn();
+
+    mockNavigatorItems.splice(
+      0,
+      mockNavigatorItems.length,
+      {
+        id: "folder-1",
+        name: "Folder 1",
+        filename: "folder1",
+        type: "folder",
+        nestLevel: 0,
+      },
+      {
+        id: "song-1",
+        name: "Song 1",
+        filename: "song1.uge",
+        type: "file",
+        nestLevel: 1,
+      },
+      {
+        id: "song-2",
+        name: "Song 2",
+        filename: "song2.uge",
+        type: "file",
+        nestLevel: 1,
+      },
+    );
+
+    render(
+      <NavigatorSongsPane
+        height={300}
+        modified={false}
+        selectedSongId="song-1"
+        onSelectSong={onSelectSong}
+      />,
+    );
+
+    fireEvent.click(screen.getByText("folder1"));
+    expect(screen.getByTestId("selected-id")).toHaveTextContent("folder-1");
+
+    fireEvent.click(screen.getByText("song1.uge"));
+
+    expect(onSelectSong).not.toHaveBeenCalled();
     expect(screen.getByTestId("selected-id")).toHaveTextContent("song-1");
   });
 });
