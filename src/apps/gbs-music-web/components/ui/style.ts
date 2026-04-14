@@ -92,6 +92,7 @@ export const StyledMobileOverlayWrapper = styled.div<{
   display: flex;
   flex-direction: column;
   max-height: calc(100dvh - 50px);
+  padding-bottom: 20px;
 `;
 
 export const StyledMobileOverlayContainer = styled.div<{
