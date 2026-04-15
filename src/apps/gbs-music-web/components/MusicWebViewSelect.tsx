@@ -2,10 +2,10 @@ import React, { useCallback, useContext } from "react";
 import l10n from "shared/lib/lang/l10n";
 import trackerActions from "store/features/tracker/trackerActions";
 import { useAppDispatch, useAppSelector } from "store/hooks";
-import trackerImageUrl from "gbs-music-web/static/tracker.png";
-import pianoImageUrl from "gbs-music-web/static/piano.png";
-import trackerDarkImageUrl from "gbs-music-web/static/tracker_dark.png";
-import pianoDarkImageUrl from "gbs-music-web/static/piano_dark.png";
+import trackerImageUrl from "gbs-music-web/components/assets/tracker.png";
+import pianoImageUrl from "gbs-music-web/components/assets/piano.png";
+import trackerDarkImageUrl from "gbs-music-web/components/assets/tracker_dark.png";
+import pianoDarkImageUrl from "gbs-music-web/components/assets/piano_dark.png";
 import styled, { ThemeContext } from "styled-components";
 
 interface MusicWebViewSelectProps {

@@ -34,6 +34,27 @@ const gitRevisionPlugin = new GitRevisionPlugin({
 
 const docsUrl = "https://www.gbstudio.dev/docs/";
 
+const getPublicUrl = () => {
+  const { PUBLIC_URL } = process.env;
+
+  if (!PUBLIC_URL) {
+    return ".";
+  }
+
+  let normalizedBaseUrl;
+  try {
+    normalizedBaseUrl = new URL(
+      PUBLIC_URL.endsWith("/") ? PUBLIC_URL.slice(0, -1) : PUBLIC_URL,
+    );
+  } catch {
+    throw new Error(
+      `PUBLIC_URL must be an absolute URL, received "${PUBLIC_URL}"`,
+    );
+  }
+
+  return normalizedBaseUrl.toString().replace(/\/$/, "");
+};
+
 class PrecompressAssetsPlugin {
   apply(compiler) {
     compiler.hooks.thisCompilation.tap(
@@ -194,15 +215,17 @@ module.exports = {
     }),
     new CopyPlugin({
       patterns: [
-        { from: "src/apps/gbs-music-web/index.html", to: "index.html" },
+        {
+          from: "src/apps/gbs-music-web/index.html",
+          to: "index.html",
+          transform(content) {
+            return content.toString().replace(/%PUBLIC_URL%/g, getPublicUrl);
+          },
+        },
         { from: "src/apps/gbs-music-web/manifest.json", to: "manifest.json" },
         {
-          from: "src/apps/gbs-music-web/components/ui/icons",
-          to: "icons",
-        },
-        {
-          from: "src/apps/gbs-music-web/components/ui/icons/favicon.ico",
-          to: "favicon.ico",
+          from: "src/apps/gbs-music-web/static",
+          to: ".",
         },
       ],
     }),
@@ -216,7 +239,7 @@ module.exports = {
     ...(isProduction ? [] : [new ReactRefreshWebpackPlugin()]),
     ...(isProduction ? [new PrecompressAssetsPlugin()] : []),
     ...(isProduction
-        ? [
+      ? [
           new GenerateSW({
             swDest: "service-worker.js",
             // Keep updates waiting until the running app explicitly asks the
