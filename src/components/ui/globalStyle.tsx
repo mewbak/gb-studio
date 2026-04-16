@@ -101,6 +101,8 @@ const GlobalStyle = createGlobalStyle`
     Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
     font-size: 13px;
     user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;    
     caret-color: ${(props) => props.theme.colors.highlight};
     background: ${(props) => props.theme.colors.background};
     color: ${(props) => props.theme.colors.text};
