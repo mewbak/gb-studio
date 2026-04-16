@@ -22,10 +22,8 @@ const RangeInner = styled.div`
   width: 100%;
   height: 28px;
 
-  html[data-platform="web"] & {
-    @media (max-width: 840px) {
-      height: 38px;
-    }
+  @media (max-width: 840px) {
+    height: 38px;
   }
 `;
 
@@ -40,11 +38,9 @@ const RangeTrack = styled.div`
   box-sizing: border-box;
   padding: 0 ${TRACK_PADDING}px;
 
-  html[data-platform="web"] & {
-    @media (max-width: 840px) {
-      height: 38px;
-      padding: 0 18px;
-    }
+  @media (max-width: 840px) {
+    height: 38px;
+    padding: 0 18px;
   }
 `;
 
@@ -76,16 +72,14 @@ const RangeTrackFill = styled.div<RangeTrackFillProps>`
         `
       : ""}
 
-  html[data-platform="web"] & {
-    @media (max-width: 840px) {
-      left: 18px;
-      right: 18px;
+  @media (max-width: 840px) {
+    left: 18px;
+    right: 18px;
 
-      &:before {
-        width: 28px;
-        left: -14px;
-        border-radius: 32px;
-      }
+    &:before {
+      width: 28px;
+      left: -14px;
+      border-radius: 32px;
     }
   }
 `;
@@ -119,11 +113,9 @@ const RangeThumb = styled.div`
   border: 2px solid ${(props) => props.theme.colors.highlight};
   box-sizing: border-box;
 
-  html[data-platform="web"] & {
-    @media (max-width: 840px) {
-      width: 30px;
-      height: 30px;
-    }
+  @media (max-width: 840px) {
+    width: 30px;
+    height: 30px;
   }
 `;
 
@@ -135,11 +127,9 @@ const ShadowBorder = styled.div`
   box-shadow: 0px 0px 3px 1px ${(props) => props.theme.colors.text} inset;
   opacity: 0.3;
 
-  html[data-platform="web"] & {
-    @media (max-width: 840px) {
-      width: 26px;
-      height: 26px;
-    }
+  @media (max-width: 840px) {
+    width: 26px;
+    height: 26px;
   }
 `;
 

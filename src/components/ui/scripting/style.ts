@@ -243,11 +243,10 @@ export const StyledScriptEventHeader = styled.div<StyledScriptEventHeaderProps>`
         `
       : ""}
 
-  html[data-platform="web"] & {
-    @media (max-width: 840px) {
-      height: 38px;
-      font-size: 14px;
-    }
+
+  @media (max-width: 840px) {
+    height: 38px;
+    font-size: 14px;
   }
 `;
 

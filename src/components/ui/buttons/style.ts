@@ -47,11 +47,9 @@ export const StyledButton = styled.button.attrs<StyledButtonProps>((props) => ({
     opacity: ${(props) => (props.disabled ? 0.3 : 1)};
   }
 
-  html[data-platform="web"] & {
-    @media (max-width: 840px) {
-      min-width: 32px;
-      height: 38px;
-    }
+  @media (max-width: 840px) {
+    min-width: 32px;
+    height: 38px;
   }
 
   ${(props) => (props.$size === "small" ? smallStyles : "")}
@@ -100,10 +98,8 @@ const normalStyles = css<StyledButtonProps>`
     background: ${(props) => props.theme.colors.button.activeBackground};
   }
 
-  html[data-platform="web"] & {
-    @media (max-width: 840px) {
-      height: 38px;
-    }
+  @media (max-width: 840px) {
+    height: 38px;
   }
 `;
 

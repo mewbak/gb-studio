@@ -38,11 +38,9 @@ export const StyledInput = styled.input<StyledInputProps>`
   ${(props) => (props.$displaySize === "small" ? smallStyles : "")}
   ${(props) => (props.$displaySize === "large" ? largeStyles : "")}
 
-  html[data-platform="web"] & {
-    @media (max-width: 840px) {
-      height: 38px;
-      font-size: 14px;
-    }
+  @media (max-width: 840px) {
+    height: 38px;
+    font-size: 14px;
   }
 `;
 

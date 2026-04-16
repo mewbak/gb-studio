@@ -128,26 +128,27 @@ const StyledTrackerKeyboard = styled.div<{ $open?: boolean }>`
     }
   }
 
-  html[data-platform="web"] & {
-    @media (max-width: 840px) {
-      max-height: ${(props) => (props.$open ? "240px" : "70px")};
-      pointer-events: auto;
+  @media (max-width: 840px) {
+    max-height: ${(props) => (props.$open ? "240px" : "70px")};
+    pointer-events: auto;
 
-      ${StyledButton} {
-        font-size: 15px;
-        font-weight: bold;
-        height: auto;
-        min-height: 40px;
-        line-height: 16px;
-      }
+    ${StyledButton} {
+      font-size: 15px;
+      font-weight: bold;
+      height: auto;
+      min-height: 40px;
     }
   }
 
-  html[data-platform="web"] & {
-    @media (max-width: 340px) {
-      ${StyledButton} {
-        min-width: 40px;
-      }
+  @media (max-width: 840px) {
+    ${StyledButton} {
+      line-height: 16px;
+    }
+  }
+
+  @media (max-width: 340px) {
+    ${StyledButton} {
+      min-width: 40px;
     }
   }
 `;
@@ -162,11 +163,9 @@ const StyledTrackerNavigationButtons = styled.div<{ $open?: boolean }>`
   border-bottom: 1px solid
     ${(props) => props.theme.colors.sidebar.header.border};
 
-  html[data-platform="web"] & {
-    @media (max-width: 840px) {
-      transition: padding-bottom 200ms ease-in-out;
-      padding-bottom: ${(props) => (props.$open ? "5px" : "60px")};
-    }
+  @media (max-width: 840px) {
+    transition: padding-bottom 200ms ease-in-out;
+    padding-bottom: ${(props) => (props.$open ? "5px" : "60px")};
   }
 `;
 
@@ -321,10 +320,8 @@ export const StyledArrowIcon = styled.div<{
 
 export const StyledBreak = styled.br`
   display: none;
-  html[data-platform="web"] & {
-    @media (max-width: 840px) {
-      display: block;
-    }
+  @media (max-width: 840px) {
+    display: block;
   }
 `;
 

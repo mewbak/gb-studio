@@ -68,10 +68,8 @@ export const StyledMenu = styled.div`
   max-height: calc(100vh - 80px);
   overflow: auto;
 
-  html[data-platform="web"] & {
-    @media (max-width: 840px) {
-      min-width: 140px;
-    }
+  @media (max-width: 840px) {
+    min-width: 140px;
   }
 `;
 
@@ -116,12 +114,10 @@ export const StyledMenuItem = styled.div<StyledMenuItemProps>`
         `
       : ""}
 
-  html[data-platform="web"] & {
-    @media (max-width: 840px) {
-      height: 38px;
-      font-size: 14px;
-      box-sizing: border-box;
-    }
+  @media (max-width: 840px) {
+    height: 38px;
+    font-size: 14px;
+    box-sizing: border-box;
   }
 `;
 

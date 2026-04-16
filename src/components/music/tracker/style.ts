@@ -159,11 +159,9 @@ export const StyledTrackerHeaderCell = styled.th<StyledTrackerHeaderCellProps>`
     color: #000;
     font-weight: bold;
 
-    html[data-platform="web"] & {
-      @media (max-width: 840px) {
-        min-width: 30px;
-        height: 30px;
-      }
+    @media (max-width: 840px) {
+      min-width: 30px;
+      height: 30px;
     }
   }
 

@@ -137,10 +137,8 @@ export const StyledFormHeader = styled.div<StyledFormHeaderProps>`
         `
       : ""}
 
-  html[data-platform="web"] & {
-    @media (max-width: 840px) {
-      height: 52px;
-    }
+  @media (max-width: 840px) {
+    height: 52px;
   }
 `;
 
@@ -230,11 +228,9 @@ export const StyledFormSectionTitle = styled.div<StyledFormSectionTitleProps>`
       : ""}
       
 
-  html[data-platform="web"] & {
-    @media (max-width: 840px) {
-      font-size: 14px;
-      height: 40px;
-    }
+  @media (max-width: 840px) {
+    font-size: 14px;
+    height: 40px;
   }
 `;
 

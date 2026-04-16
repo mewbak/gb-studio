@@ -71,10 +71,8 @@ export const InputGroupPrepend = styled.div`
     border-bottom-right-radius: 0;
     border-right: 0;
     height: 28px;
-    html[data-platform="web"] & {
-      @media (max-width: 840px) {
-        height: 38px;
-      }
+    @media (max-width: 840px) {
+      height: 38px;
     }
   }
   ${InputGroupLabel} {
@@ -82,10 +80,8 @@ export const InputGroupPrepend = styled.div`
     border-bottom-right-radius: 0;
     border-right: 0;
     height: 28px;
-    html[data-platform="web"] & {
-      @media (max-width: 840px) {
-        height: 38px;
-      }
+    @media (max-width: 840px) {
+      height: 38px;
     }
   }
 `;
@@ -96,10 +92,8 @@ export const InputGroupAppend = styled.div`
     border-bottom-left-radius: 0;
     border-left: 0;
     height: 28px;
-    html[data-platform="web"] & {
-      @media (max-width: 840px) {
-        height: 38px;
-      }
+    @media (max-width: 840px) {
+      height: 38px;
     }
   }
   ${InputGroupLabel} {
@@ -107,10 +101,8 @@ export const InputGroupAppend = styled.div`
     border-bottom-left-radius: 0;
     border-left: 0;
     height: 28px;
-    html[data-platform="web"] & {
-      @media (max-width: 840px) {
-        height: 38px;
-      }
+    @media (max-width: 840px) {
+      height: 38px;
     }
   }
 `;

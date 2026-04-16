@@ -60,11 +60,7 @@ export const Select: typeof WindowedSelect = styled(WindowedSelect).attrs(
     styles: {
       option: (base) => ({
         ...base,
-        height:
-          document.documentElement.dataset.platform === "web" &&
-          window.innerWidth < 840
-            ? 38
-            : 26,
+        height: window.innerWidth < 840 ? 38 : 26,
       }),
     },
     inputId: props.name,
@@ -163,17 +159,15 @@ export const Select: typeof WindowedSelect = styled(WindowedSelect).attrs(
     box-shadow: none !important;
   }
 
-  html[data-platform="web"] & {
-    @media (max-width: 840px) {
-      .CustomSelect__control {
-        height: 38px;
-        font-size: 14px;
-      }
+  @media (max-width: 840px) {
+    .CustomSelect__control {
+      height: 38px;
+      font-size: 14px;
+    }
 
-      .CustomSelect__option {
-        padding: 10px;
-        font-size: 14px;
-      }
+    .CustomSelect__option {
+      padding: 10px;
+      font-size: 14px;
     }
   }
 `;

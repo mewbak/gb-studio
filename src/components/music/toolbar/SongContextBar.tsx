@@ -70,12 +70,10 @@ const StyledSongContextBarTimer = styled.div<{ disabled: boolean }>`
       opacity: 0.5;
     `}
 
-  html[data-platform="web"] & {
-    @media (max-width: 360px) {
-      font-size: 10px;
-      padding: 0 5px;
-      gap: 2px;
-    }
+  @media (max-width: 360px) {
+    font-size: 10px;
+    padding: 0 5px;
+    gap: 2px;
   }
 `;
 
@@ -87,10 +85,8 @@ const StyledSongContextBarTimerPart = styled.div`
 
 const StyledSongContextBarTimerPartLabel = styled.div`
   font-size: 8px;
-  html[data-platform="web"] & {
-    @media (max-width: 360px) {
-      font-size: 7px;
-    }
+  @media (max-width: 360px) {
+    font-size: 7px;
   }
 `;
 
