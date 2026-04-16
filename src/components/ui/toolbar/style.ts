@@ -36,7 +36,7 @@ export const StyledToolbar = styled.div<StyledToolbarProps>`
     -webkit-app-region: no-drag;
   }
 
-  ${StyledButton} {
+  && ${StyledButton} {
     -webkit-app-region: no-drag;
     border: 1px solid ${(props) => props.theme.colors.toolbar.button.border};
     height: 26px;

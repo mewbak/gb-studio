@@ -34,8 +34,10 @@ export const StyledCredits = styled.div`
   background: red;
   z-index: 100000;
 
-  @media (max-width: 840px) {
-    position: fixed;
+  html[data-platform="web"] & {
+    @media (max-width: 840px) {
+      position: fixed;
+    }
   }
 `;
 
@@ -47,8 +49,10 @@ export const StyledCreditsTitle = styled.div`
   text-decoration: none;
   margin-bottom: 80px;
 
-  @media (max-width: 840px) {
-    font-size: 30px;
+  html[data-platform="web"] & {
+    @media (max-width: 840px) {
+      font-size: 30px;
+    }
   }
 `;
 
@@ -61,8 +65,10 @@ export const StyledCreditsSubHeading = styled.div`
   margin-top: 80px;
   margin-bottom: 60px;
 
-  @media (max-width: 840px) {
-    font-size: 20px;
+  html[data-platform="web"] & {
+    @media (max-width: 840px) {
+      font-size: 20px;
+    }
   }
 `;
 
@@ -114,8 +120,10 @@ export const StyledCreditsPerson = styled.a<StyledCreditsPersonProps>`
         `
       : ""}
 
-  @media (max-width: 840px) {
-    align-self: center;
+  html[data-platform="web"] & {
+    @media (max-width: 840px) {
+      align-self: center;
+    }
   }
 `;
 
@@ -139,10 +147,12 @@ export const StyledCreditsContent = styled.div<StyledCreditsContentProps>`
     animation-play-state: paused;
   }
 
-  @media (max-width: 840px) {
-    &:has(${StyledCreditsPerson} > span:hover) {
-      animation-play-state: ${(props) =>
-        props.$paused ? "paused" : "running"};
+  html[data-platform="web"] {
+    @media (max-width: 840px) {
+      &:has(${StyledCreditsPerson} > span:hover) {
+        animation-play-state: ${(props) =>
+          props.$paused ? "paused" : "running"};
+      }
     }
   }
 `;
@@ -177,9 +187,11 @@ export const StyledCreditsGrid = styled.div`
     width: 30%;
   }
 
-  @media (max-width: 840px) {
-    & > * {
-      width: 50%;
+  html[data-platform="web"] & {
+    @media (max-width: 840px) {
+      & > * {
+        width: 50%;
+      }
     }
   }
 `;

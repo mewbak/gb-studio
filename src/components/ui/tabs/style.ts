@@ -70,10 +70,11 @@ export const StyledTabBar = styled.div<StyledTabBarProps>`
         `
       : ""}
 
-
-  @media (max-width: 840px) {
-    height: 45px;
-    font-size: 14px;
+  html[data-platform="web"] & {
+    @media (max-width: 840px) {
+      height: 45px;
+      font-size: 14px;
+    }
   }
 `;
 
@@ -87,16 +88,20 @@ export const StyledTabs = styled.div<StyledTabsProps>`
   box-sizing: border-box;
   align-self: flex-start;
 
-  @media (max-width: 840px) {
-    height: 45px;
+  html[data-platform="web"] & {
+    @media (max-width: 840px) {
+      height: 45px;
+    }
   }
   ${(props) =>
     props.$overflowActiveTab
       ? css`
           height: 37px;
 
-          @media (max-width: 840px) {
-            height: 46px;
+          html[data-platform="web"] & {
+            @media (max-width: 840px) {
+              height: 46px;
+            }
           }
         `
       : ""}
@@ -220,8 +225,10 @@ ${(props) =>
     overflow: hidden;
   }
 
-  @media (max-width: 840px) {
-    font-size: 14px;
+  html[data-platform="web"] & {
+    @media (max-width: 840px) {
+      font-size: 14px;
+    }
   }
 `;
 

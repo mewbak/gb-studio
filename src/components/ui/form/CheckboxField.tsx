@@ -23,8 +23,10 @@ const Wrapper = styled.div`
     margin-top: -1px;
   }
 
-  @media (max-width: 840px) {
-    height: 38px;
+  html[data-platform="web"] & {
+    @media (max-width: 840px) {
+      height: 38px;
+    }
   }
 `;
 

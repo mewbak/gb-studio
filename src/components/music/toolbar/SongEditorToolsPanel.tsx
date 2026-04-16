@@ -63,16 +63,18 @@ const SongToolsPanel = styled.div`
   box-sizing: border-box;
   justify-content: space-between;
 
-  @media (max-width: 900px) {
-    background: ${(props) => props.theme.colors.panel.background};
-    border-bottom: 1px solid ${(props) => props.theme.colors.panel.border};
+  html[data-platform="web"] & {
+    @media (max-width: 900px) {
+      background: ${(props) => props.theme.colors.panel.background};
+      border-bottom: 1px solid ${(props) => props.theme.colors.panel.border};
 
-    padding: 5px;
-    ${StyledFloatingPanel} {
-      border-color: transparent;
-      background: transparent;
-      ${StyledButton} {
-        border-radius: 4px;
+      padding: 5px;
+      ${StyledFloatingPanel} {
+        border-color: transparent;
+        background: transparent;
+        ${StyledButton} {
+          border-radius: 4px;
+        }
       }
     }
   }

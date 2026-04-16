@@ -577,11 +577,13 @@ export const StyledPianoRollPatternBlock = styled.div<StyledPianoRollPatternBloc
       `}
   }
 
-  @media (max-width: 840px) {
-    opacity: 1;
-    ${StyledPianoRollScrollCanvas} && {
+  html[data-platform="web"] & {
+    @media (max-width: 840px) {
       opacity: 1;
-      box-shadow: none;
+      ${StyledPianoRollScrollCanvas} && {
+        opacity: 1;
+        box-shadow: none;
+      }
     }
   }
 `;

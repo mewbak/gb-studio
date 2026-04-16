@@ -212,7 +212,7 @@ const GlobalStyle = createGlobalStyle`
   }
 
   @media (max-width: 840px) {
-    body .CustomSelect__option {
+    html[data-platform="web"] body .CustomSelect__option {
       padding: 10px;
       font-size: 14px;
     }

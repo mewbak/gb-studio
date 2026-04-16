@@ -46,9 +46,11 @@ export const ToggleButtonGroupWrapper = styled.div`
     border-right: 0px;
   }
 
-  @media (max-width: 840px) {
-    height: 38px;
-    font-size: 14px;
+  html[data-platform="web"] & {
+    @media (max-width: 840px) {
+      height: 38px;
+      font-size: 14px;
+    }
   }
 `;
 
