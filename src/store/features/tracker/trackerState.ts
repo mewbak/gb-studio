@@ -176,6 +176,7 @@ const trackerSlice = createSlice({
     setView: (state, action: PayloadAction<TrackerViewType>) => {
       state.view = action.payload;
       state.tool = "pencil";
+      state.selectedPatternCells = [];
     },
     setHover: (
       state,
