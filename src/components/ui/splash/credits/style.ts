@@ -28,6 +28,7 @@ export const StyledCredits = styled.div`
   top: 0;
   left: 0;
   overflow: hidden;
+  overflow: clip;
   animation: ${fadeIn} 1s linear;
   animation-fill-mode: forwards;
   -webkit-app-region: drag;
