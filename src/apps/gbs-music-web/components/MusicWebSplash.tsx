@@ -67,7 +67,7 @@ const StyledSplashPage = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  overflow: auto;
 
   @media (max-width: 840px) {
     justify-content: flex-start;
@@ -127,6 +127,7 @@ const StyledSplashWindowChrome = styled.div`
   position: relative;
   width: 700px;
   height: 430px;
+  min-height: 430px;
   border-radius: 10px;
   overflow: hidden;
   box-shadow:
@@ -143,6 +144,7 @@ const StyledSplashWindowChrome = styled.div`
     overflow: visible;
 
     max-width: 500px;
+    min-height: auto;
     margin: 0px auto;
   }
 `;
