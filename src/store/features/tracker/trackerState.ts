@@ -14,6 +14,10 @@ import { AppThunk } from "store/storeTypes";
 import API from "renderer/lib/api";
 import { parseClipboardToPattern } from "shared/lib/uge/clipboard";
 import { PatternCellAddress } from "shared/lib/uge/editor/types";
+import {
+  defaultMusicMidiState,
+  MusicMidiState,
+} from "shared/lib/music/midi";
 
 export type PianoRollToolType = "pencil" | "eraser" | "selection" | null;
 
@@ -98,6 +102,7 @@ export interface TrackerState {
   sidebarView: TrackerSidebarViewType;
   showVirtualKeyboard: boolean;
   mobileOverlayView: MobileOverlayView;
+  midiInput: MusicMidiState;
 }
 
 export const initialState: TrackerState = {
@@ -142,6 +147,7 @@ export const initialState: TrackerState = {
   sidebarView: "instrument",
   showVirtualKeyboard: false,
   mobileOverlayView: "none",
+  midiInput: defaultMusicMidiState,
 };
 
 const trackerSlice = createSlice({
@@ -307,6 +313,10 @@ const trackerSlice = createSlice({
     setMobileOverlayView: (state, action: PayloadAction<MobileOverlayView>) => {
       state.mobileOverlayView = action.payload;
     },
+
+    setMidiState: (state, action: PayloadAction<MusicMidiState>) => {
+      state.midiInput = action.payload;
+    },
   },
   extraReducers: (builder) =>
     builder
@@ -324,6 +334,7 @@ const trackerSlice = createSlice({
           view: state.view,
           subpatternEditorMode: state.subpatternEditorMode,
           showVirtualKeyboard: state.showVirtualKeyboard,
+          midiInput: state.midiInput,
           status: "loaded",
           modified: false,
         };

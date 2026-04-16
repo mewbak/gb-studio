@@ -3,7 +3,12 @@ import styled from "styled-components";
 import { Toolbar } from "ui/toolbar/Toolbar";
 import { Button } from "ui/buttons/Button";
 import { DropdownButton } from "ui/buttons/DropdownButton";
-import { MenuDivider, MenuItem, MenuItemIcon } from "ui/menu/Menu";
+import {
+  MenuDivider,
+  MenuItem,
+  MenuItemDisabled,
+  MenuItemIcon,
+} from "ui/menu/Menu";
 import { BlankIcon, CheckIcon, CloseIcon } from "ui/icons/Icons";
 import { FixedSpacer, FlexGrow } from "ui/spacing/Spacing";
 import l10n from "shared/lib/lang/l10n";
@@ -18,6 +23,11 @@ import { TRACKER_REDO, TRACKER_UNDO } from "consts";
 import { AboutDialog } from "gbs-music-web/components/dialog/AboutDialog";
 import { saveSongFile } from "store/features/trackerDocument/trackerDocumentState";
 import { useMusicWebPreferenceMenus } from "gbs-music-web/components/MusicWebPreferencesDropdowns";
+import {
+  isMidiSupported,
+  musicMidiController,
+} from "components/music/midi/musicMidiController";
+import { useMusicMidiState } from "components/music/midi/useMusicMidi";
 
 const COMPACT_LAYOUT_BREAKPOINT = 590;
 
@@ -83,6 +93,8 @@ export const MusicWebToolbar = ({
 
   const windowSize = useWindowSize();
   const windowWidth = windowSize.width || 0;
+  const midiState = useMusicMidiState();
+  const supportsMidi = midiState.supported || isMidiSupported();
 
   const isCompactLayout =
     windowWidth > 0 && windowWidth <= COMPACT_LAYOUT_BREAKPOINT;
@@ -202,6 +214,51 @@ export const MusicWebToolbar = ({
     onLocaleChange,
   });
 
+  const midiMenu = useMemo(() => {
+    const enabledItem = (
+      <MenuItem
+        key="midi-enabled"
+        onClick={() => {
+          void musicMidiController.toggleEnabled();
+        }}
+        icon={midiState.enabled ? <CheckIcon /> : <BlankIcon />}
+      >
+        {l10n("FIELD_ENABLE_MIDI_INPUT")}
+      </MenuItem>
+    );
+
+    if (!midiState.enabled) {
+      return [enabledItem];
+    }
+
+    const deviceItems =
+      midiState.inputs.length > 0
+        ? midiState.inputs.map((input) => (
+            <MenuItem
+              key={input.id}
+              onClick={() => {
+                void musicMidiController.selectInput(input.id);
+              }}
+              icon={
+                midiState.selectedInputId === input.id ? (
+                  <CheckIcon />
+                ) : (
+                  <BlankIcon />
+                )
+              }
+            >
+              {input.name}
+            </MenuItem>
+          ))
+        : [
+            <MenuItemDisabled key="midi-no-devices">
+              {l10n("FIELD_NO_DEVICES_FOUND")}
+            </MenuItemDisabled>,
+          ];
+
+    return [enabledItem, <MenuDivider key="midi-divider" />, ...deviceItems];
+  }, [midiState.enabled, midiState.inputs, midiState.selectedInputId]);
+
   return (
     <>
       <Wrapper>
@@ -222,6 +279,11 @@ export const MusicWebToolbar = ({
               <MenuItem subMenu={editMenu}>{l10n("MENU_EDIT")}</MenuItem>
               <MenuDivider />
               <MenuItem subMenu={viewMenu}>{l10n("MENU_VIEW")}</MenuItem>
+              {supportsMidi && (
+                <MenuItem subMenu={midiMenu}>
+                  {l10n("MENU_MIDI_INPUT")}
+                </MenuItem>
+              )}
               <MenuItem subMenu={themeMenu}>{l10n("MENU_THEME")}</MenuItem>
               <MenuItem subMenu={localeMenu}>{l10n("MENU_LANGUAGE")}</MenuItem>
               <MenuDivider />

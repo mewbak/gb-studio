@@ -52,6 +52,10 @@ import {
 import { SongTrackerPattern } from "components/music/tracker/SongTrackerPattern";
 import { SongTrackerPlaybackController } from "components/music/tracker/SongTrackerPlaybackController";
 import l10n from "shared/lib/lang/l10n";
+import {
+  useMusicMidiNoteSubscription,
+  useMusicMidiState,
+} from "components/music/midi/useMusicMidi";
 import { PlusIcon } from "ui/icons/Icons";
 
 type TrackerInput =
@@ -81,6 +85,7 @@ const getPatternIdAtSequence = (
 export const SongTracker = () => {
   const dispatch = useAppDispatch();
   const playPreview = useMusicNotePreview();
+  const midiState = useMusicMidiState();
 
   // #region Redux State
 
@@ -1287,6 +1292,48 @@ export const SongTracker = () => {
       showVirtualKeyboard,
     ],
   );
+
+  const handleMidiNotePressed = useCallback(
+    (note: number) => {
+      if (!midiState.recordingEnabled) {
+        playPreview({ note });
+        return;
+      }
+
+      const currentMaxField = getMaxField();
+
+      if (activeFieldRefValue.current === undefined) {
+        const firstField = getGlobalField(sequenceId, 0);
+        setActiveField(firstField);
+        setSingleFieldSelection(firstField);
+      }
+
+      const currentActiveField = activeFieldRefValue.current;
+      if (
+        currentActiveField === undefined ||
+        currentActiveField > currentMaxField ||
+        getFieldColumnFocus(getLocalFieldFromGlobalField(currentActiveField)) !==
+          "noteColumnFocus"
+      ) {
+        return;
+      }
+
+      editNoteField(note - octaveOffsetRef.current * OCTAVE_SIZE);
+      focusTable();
+    },
+    [
+      editNoteField,
+      focusTable,
+      getMaxField,
+      midiState.recordingEnabled,
+      playPreview,
+      sequenceId,
+      setActiveField,
+      setSingleFieldSelection,
+    ],
+  );
+
+  useMusicMidiNoteSubscription(handleMidiNotePressed);
 
   // #endregion Virtual Keyboard Handlers
 

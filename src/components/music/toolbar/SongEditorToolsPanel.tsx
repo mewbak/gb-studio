@@ -7,6 +7,7 @@ import {
   EraserIcon,
   SelectionIcon,
   VirtualKeyboardIcon,
+  RecordIcon,
 } from "ui/icons/Icons";
 import { FloatingPanel, FloatingPanelDivider } from "ui/panels/FloatingPanel";
 import trackerActions from "store/features/tracker/trackerActions";
@@ -25,6 +26,8 @@ import { StyledFloatingPanel } from "ui/panels/style";
 import { StyledButton } from "ui/buttons/style";
 import { OctaveOffsetSelectButton } from "components/music/form/OctaveOffsetSelectButton";
 import { TrackerStepSelectButton } from "components/music/form/TrackerStepSelectButton";
+import { musicMidiController } from "components/music/midi/musicMidiController";
+import { useMusicMidiState } from "components/music/midi/useMusicMidi";
 
 interface SongEditorToolsPanelProps {
   musicAsset?: MusicAsset;
@@ -41,6 +44,17 @@ const FloatingPanelTools = styled(FloatingPanel)`
 const ExportButtonWrapper = styled.div`
   position: relative;
   flex-shrink: 0;
+`;
+
+const MidiRecordButton = styled(Button)<{ $recordingEnabled: boolean }>`
+  &&[data-is-active="true"] svg {
+    fill: ${(props) =>
+      props.$recordingEnabled ? "#d92d20" : props.theme.colors.button.text};
+    circle {
+      stroke: ${(props) => props.theme.colors.input.background};
+      stroke-width: 2px;
+    }
+  }
 `;
 
 const SongToolsPanel = styled.div`
@@ -75,6 +89,7 @@ const SongEditorToolsPanel = ({ musicAsset }: SongEditorToolsPanelProps) => {
 
   const modified = useAppSelector((state) => state.tracker.modified);
   const song = useAppSelector((state) => state.trackerDocument.present.song);
+  const midiState = useMusicMidiState();
 
   const view = useAppSelector((state) => state.tracker.view);
 
@@ -268,6 +283,9 @@ const SongEditorToolsPanel = ({ musicAsset }: SongEditorToolsPanelProps) => {
     dispatch(trackerActions.setShowVirtualKeyboard(!showVirtualKeyboard));
   }, [dispatch, showVirtualKeyboard]);
 
+  const showMidiRecordButton =
+    midiState.enabled && midiState.selectedInputId !== null;
+
   useEffect(() => {
     window.addEventListener("keydown", onKeyDown);
     window.addEventListener("keyup", onKeyUp);
@@ -349,6 +367,23 @@ const SongEditorToolsPanel = ({ musicAsset }: SongEditorToolsPanelProps) => {
             >
               <VirtualKeyboardIcon />
             </Button>
+          </>
+        )}
+        {showMidiRecordButton && (
+          <>
+            <FloatingPanelDivider />
+            <MidiRecordButton
+              variant="transparent"
+              active={midiState.recordingEnabled}
+              $recordingEnabled={midiState.recordingEnabled}
+              onClick={() => {
+                musicMidiController.toggleRecordingEnabled();
+              }}
+              title={l10n("FIELD_RECORD")}
+              aria-pressed={midiState.recordingEnabled}
+            >
+              <RecordIcon />
+            </MidiRecordButton>
           </>
         )}
       </FloatingPanelTools>

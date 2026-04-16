@@ -2,6 +2,7 @@ import uniq from "lodash/uniq";
 import editorActions from "store/features/editor/editorActions";
 import { getSettings } from "store/features/settings/settingsState";
 import settingsActions from "store/features/settings/settingsActions";
+import navigationActions from "store/features/navigation/navigationActions";
 import { Dispatch, Middleware } from "@reduxjs/toolkit";
 import { RootState } from "store/storeTypes";
 import projectActions from "store/features/project/projectActions";
@@ -35,6 +36,26 @@ import { ConstantUseResult } from "components/editors/ConstantUses.worker";
 
 const electronMiddleware: Middleware<Dispatch, RootState> =
   (store) => (next) => async (action) => {
+    const syncProjectWindowMenu = (
+      state: RootState,
+      overrides?: Partial<{
+        settings: ReturnType<typeof getSettings>;
+        showNavigator: boolean;
+        navigationSection: RootState["navigation"]["section"];
+      }>,
+    ) => {
+      const projectSettings = overrides?.settings ?? getSettings(state);
+      API.project.updateProjectWindowMenu({
+        showCollisions: projectSettings.showCollisions,
+        showConnections: projectSettings.showConnections,
+        showNavigator:
+          overrides?.showNavigator ?? projectSettings.showNavigator,
+        showSceneScreenGrid: projectSettings.showSceneScreenGrid,
+        navigationSection:
+          overrides?.navigationSection ?? state.navigation.section,
+      });
+    };
+
     if (actions.openHelp.match(action)) {
       API.app.openHelp(action.payload);
     } else if (actions.openFolder.match(action)) {
@@ -77,13 +98,19 @@ const electronMiddleware: Middleware<Dispatch, RootState> =
         return;
       }
     } else if (projectActions.loadProject.fulfilled.match(action)) {
-      API.project.updateProjectWindowMenu(action.payload.resources.settings);
+      const state = store.getState();
+      syncProjectWindowMenu(state, {
+        settings: action.payload.resources.settings,
+      });
     } else if (settingsActions.setShowNavigator.match(action)) {
       const state = store.getState();
-      const projectSettings = getSettings(state);
-      API.project.updateProjectWindowMenu({
-        ...projectSettings,
+      syncProjectWindowMenu(state, {
         showNavigator: action.payload,
+      });
+    } else if (navigationActions.setSection.match(action)) {
+      const state = store.getState();
+      syncProjectWindowMenu(state, {
+        navigationSection: action.payload,
       });
     } else if (projectActions.loadProject.rejected.match(action)) {
       console.error(action);

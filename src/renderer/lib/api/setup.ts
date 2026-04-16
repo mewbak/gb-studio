@@ -4,6 +4,7 @@ import type {
   MusicDataPacket,
   MusicDataReceivePacket,
 } from "shared/lib/music/types";
+import type { MusicMidiState } from "shared/lib/music/midi";
 import {
   ensurePromisedNumber,
   ensurePromisedString,
@@ -73,6 +74,14 @@ export type RecentProjectData = {
   dir: string;
   path: string;
 };
+
+export interface ProjectWindowMenuState {
+  showCollisions: SettingsState["showCollisions"];
+  showConnections: SettingsState["showConnections"];
+  showNavigator: SettingsState["showNavigator"];
+  showSceneScreenGrid: SettingsState["showSceneScreenGrid"];
+  navigationSection: NavigationSection;
+}
 
 const createSubscribeAPI = <
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -231,8 +240,8 @@ const APISetup = {
       ipcRenderer.invoke("project:get-resource-checksums"),
     createProject: (input: CreateProjectInput) =>
       ipcRenderer.invoke("create-project", input),
-    updateProjectWindowMenu: (settings: SettingsState) =>
-      ipcRenderer.invoke("project:update-project-window-menu", settings),
+    updateProjectWindowMenu: (state: ProjectWindowMenuState) =>
+      ipcRenderer.invoke("project:update-project-window-menu", state),
     close: () => ipcRenderer.invoke("close-project"),
     build: (data: ProjectResources, options: BuildOptions) =>
       ipcRenderer.invoke("project:build", data, options),
@@ -329,6 +338,8 @@ const APISetup = {
       ipcRenderer.send("music:data-send", data),
     sendToProjectWindow: (data: MusicDataReceivePacket) =>
       ipcRenderer.send("music:data-receive", data),
+    updateMidiInputMenuState: (state: MusicMidiState) =>
+      ipcRenderer.send("music:midi-menu-state", state),
     playUGE: (filename: string): Promise<void> =>
       ipcRenderer.invoke("music:play-uge", filename),
     playMOD: (filename: string, speedConversion: boolean): Promise<void> =>
@@ -428,6 +439,12 @@ const APISetup = {
       pasteInPlace: createSubscribeAPI<(event: IpcRendererEvent) => void>(
         "menu:paste-in-place",
       ),
+      midiInputToggle: createSubscribeAPI<(event: IpcRendererEvent) => void>(
+        "menu:midi-input-toggle",
+      ),
+      midiInputSelect: createSubscribeAPI<
+        (event: IpcRendererEvent, inputId: string) => void
+      >("menu:midi-input-select"),
       setSection:
         createSubscribeAPI<
           (event: IpcRendererEvent, section: NavigationSection) => void

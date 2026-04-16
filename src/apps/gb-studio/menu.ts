@@ -17,6 +17,7 @@ import l10n from "shared/lib/lang/l10n";
 import { ThemeManager } from "lib/themes/themeManager";
 import { L10nManager } from "lib/lang/l10nManager";
 import { MenuListenerFn, MenuListenerKey } from "shared/lib/menu/types";
+import { defaultMusicMidiState, MusicMidiState } from "shared/lib/music/midi";
 
 declare const COMMITHASH: string;
 
@@ -55,6 +56,8 @@ const listeners: Record<MenuListenerKey, MenuListenerFn[]> = {
   globalPlugins: [],
   projectPlugins: [],
   openMusic: [],
+  toggleMidiInput: [],
+  selectMidiInput: [],
 };
 
 const notifyListeners = (event: MenuListenerKey, value?: unknown) => {
@@ -87,9 +90,58 @@ const openAbout = () => {
 interface BuildMenuProps {
   themeManager: ThemeManager;
   l10nManager: L10nManager;
+  midiInputState?: MusicMidiState;
+  midiInputAvailable?: boolean;
+  midiInputVisible?: boolean;
 }
 
-const buildMenu = async ({ themeManager, l10nManager }: BuildMenuProps) => {
+const buildMidiInputSubmenu = (
+  midiInputState: MusicMidiState,
+  midiInputAvailable: boolean,
+): MenuItemConstructorOptions[] => {
+  const enableMidiInputMenuItem: MenuItemConstructorOptions = {
+    label: l10n("FIELD_ENABLE_MIDI_INPUT"),
+    type: "checkbox",
+    checked: midiInputState.enabled,
+    enabled: midiInputAvailable,
+    click: () => {
+      notifyListeners("toggleMidiInput");
+    },
+  };
+
+  if (!midiInputState.enabled) {
+    return [enableMidiInputMenuItem];
+  }
+
+  const deviceItems =
+    midiInputState.inputs.length > 0
+      ? midiInputState.inputs.map(
+          (input): MenuItemConstructorOptions => ({
+            label: input.name,
+            type: "checkbox",
+            checked: midiInputState.selectedInputId === input.id,
+            click: () => {
+              notifyListeners("selectMidiInput", input.id);
+            },
+          }),
+        )
+      : [
+          {
+            label: l10n("FIELD_NO_DEVICES_FOUND"),
+            enabled: false,
+          } satisfies MenuItemConstructorOptions,
+        ];
+
+  return [enableMidiInputMenuItem, { type: "separator" }, ...deviceItems];
+};
+
+const buildMenu = async ({
+  themeManager,
+  l10nManager,
+  midiInputState = defaultMusicMidiState,
+  midiInputAvailable = false,
+  midiInputVisible = false,
+}: BuildMenuProps) => {
   const pluginThemes = themeManager.getPluginThemes();
   const pluginLangs = l10nManager.getPluginL10Ns();
   const systemLangs = l10nManager.getSystemL10Ns();
@@ -567,6 +619,14 @@ const buildMenu = async ({ themeManager, l10nManager }: BuildMenuProps) => {
         },
       ],
     },
+    ...(midiInputVisible
+      ? [
+          {
+            label: l10n("MENU_MIDI_INPUT"),
+            submenu: buildMidiInputSubmenu(midiInputState, midiInputAvailable),
+          } satisfies MenuItemConstructorOptions,
+        ]
+      : []),
     {
       role: "window",
       label: l10n("MENU_WINDOW"),
@@ -612,7 +672,10 @@ const buildMenu = async ({ themeManager, l10nManager }: BuildMenuProps) => {
   ];
 
   if (isDevMode) {
-    const submenu = template[template.length - 3].submenu || [];
+    const viewMenuItem = template.find(
+      (item) => item.label === l10n("MENU_VIEW"),
+    );
+    const submenu = viewMenuItem?.submenu || [];
     if ("push" in submenu) {
       submenu.push({ type: "separator" });
       submenu.push({

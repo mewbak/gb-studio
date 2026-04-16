@@ -73,6 +73,10 @@ import {
 import { FixedSpacer } from "ui/spacing/Spacing";
 import { wrapNote } from "shared/lib/uge/display";
 import { PianoRollPlaybackController } from "./PianoRollPlaybackController";
+import {
+  useMusicMidiNoteSubscription,
+  useMusicMidiState,
+} from "components/music/midi/useMusicMidi";
 
 const TAP_MAX_MOVEMENT = 20;
 const TWO_FINGER_TAP_MAX_DURATION = 300;
@@ -84,6 +88,7 @@ const EMPTY_SELECTED_ROWS_BY_CHANNEL = new Map<number, ReadonlySet<number>>();
 export const SongPianoRoll = () => {
   const dispatch = useAppDispatch();
   const playPreview = useMusicNotePreview();
+  const midiState = useMusicMidiState();
 
   // Component Interaction State
 
@@ -845,23 +850,8 @@ export const SongPianoRoll = () => {
 
   // #region Action Handlers
 
-  const onPianoNote = useCallback(
+  const updatePianoHover = useCallback(
     (noteIndex: number) => {
-      playPreview({
-        note: noteIndex,
-        instrumentId: selectedInstrumentId,
-      });
-      // If a single note is selected move it to played note
-      if (selectedPatternCellsRef.current.length === 1) {
-        dispatch(
-          trackerDocumentActions.editPatternCells({
-            patternCells: selectedPatternCellsRef.current,
-            changes: {
-              note: noteIndex,
-            },
-          }),
-        );
-      }
       dispatch(
         trackerActions.setHover({
           note: noteIndex,
@@ -870,8 +860,65 @@ export const SongPianoRoll = () => {
         }),
       );
     },
-    [dispatch, playPreview, selectedInstrumentId],
+    [dispatch],
   );
+
+  const transposeSelectedPianoNote = useCallback(
+    (noteIndex: number) => {
+      if (selectedPatternCellsRef.current.length !== 1) {
+        return;
+      }
+
+      dispatch(
+        trackerDocumentActions.editPatternCells({
+          patternCells: selectedPatternCellsRef.current,
+          changes: {
+            note: noteIndex,
+          },
+        }),
+      );
+    },
+    [dispatch],
+  );
+
+  const onPianoNote = useCallback(
+    (noteIndex: number) => {
+      playPreview({
+        note: noteIndex,
+        instrumentId: selectedInstrumentId,
+      });
+      transposeSelectedPianoNote(noteIndex);
+      updatePianoHover(noteIndex);
+    },
+    [
+      playPreview,
+      selectedInstrumentId,
+      transposeSelectedPianoNote,
+      updatePianoHover,
+    ],
+  );
+
+  const onMidiPianoNote = useCallback(
+    (noteIndex: number) => {
+      playPreview({
+        note: noteIndex,
+        instrumentId: selectedInstrumentId,
+      });
+      if (midiState.recordingEnabled) {
+        transposeSelectedPianoNote(noteIndex);
+      }
+      updatePianoHover(noteIndex);
+    },
+    [
+      midiState.recordingEnabled,
+      playPreview,
+      selectedInstrumentId,
+      transposeSelectedPianoNote,
+      updatePianoHover,
+    ],
+  );
+
+  useMusicMidiNoteSubscription(onMidiPianoNote);
 
   const cycleSelectedTool = useCallback(() => {
     let nextTool: PianoRollToolType = "pencil";

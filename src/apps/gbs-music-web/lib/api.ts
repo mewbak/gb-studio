@@ -3,6 +3,7 @@ import type {
   MusicDataPacket,
   MusicDataReceivePacket,
 } from "shared/lib/music/types";
+import type { MusicMidiState } from "shared/lib/music/midi";
 import type { Song } from "shared/lib/uge/types";
 import type { MusicAsset } from "shared/lib/resources/types";
 import { downloadBytes, pickUGIFile, pickUGWFile, webMusicEnvironment } from "./adapters";
@@ -349,6 +350,7 @@ export const installWebRendererApi = (store: MusicEditorStore) => {
           session.send(data);
         });
       },
+      updateMidiInputMenuState: (_state: MusicMidiState) => undefined,
       playUGE: async () => undefined,
       playMOD: async () => undefined,
     },
@@ -369,6 +371,12 @@ export const installWebRendererApi = (store: MusicEditorStore) => {
           },
         },
         pasteInPlace: {
+          subscribe: () => () => undefined,
+        },
+        midiInputToggle: {
+          subscribe: () => () => undefined,
+        },
+        midiInputSelect: {
           subscribe: () => () => undefined,
         },
       },
