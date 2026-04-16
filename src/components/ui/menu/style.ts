@@ -68,9 +68,11 @@ export const StyledMenu = styled.div`
   max-height: calc(100vh - 80px);
   overflow: auto;
 
-  @media (max-width: 840px) {
+  ${() =>
+    API.env === "web" &&
+    `@media (max-width: 840px) {
     min-width: 140px;
-  }
+  }`}
 `;
 
 // #endregion Menu
@@ -114,11 +116,13 @@ export const StyledMenuItem = styled.div<StyledMenuItemProps>`
         `
       : ""}
 
-  @media (max-width: 840px) {
+  ${() =>
+    API.env === "web" &&
+    `@media (max-width: 840px) {
     height: 38px;
     font-size: 14px;
     box-sizing: border-box;
-  }
+  }`}
 `;
 
 export const StyledMenuItemIcon = styled.div`

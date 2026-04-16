@@ -5,6 +5,7 @@ import React, { FC, JSX, ReactNode } from "react";
 import { setDefault } from "shared/lib/helpers/setDefault";
 import { SearchIcon } from "ui/icons/Icons";
 import L10NText from "./L10NText";
+import API from "renderer/lib/api";
 
 export interface Option {
   value: string;
@@ -60,7 +61,7 @@ export const Select: typeof WindowedSelect = styled(WindowedSelect).attrs(
     styles: {
       option: (base) => ({
         ...base,
-        height: window.innerWidth < 840 ? 38 : 26,
+        height: API.env === "web" && window.innerWidth < 840 ? 38 : 26,
       }),
     },
     inputId: props.name,
@@ -159,7 +160,9 @@ export const Select: typeof WindowedSelect = styled(WindowedSelect).attrs(
     box-shadow: none !important;
   }
 
-  @media (max-width: 840px) {
+  ${() =>
+    API.env === "web" &&
+    `@media (max-width: 840px) {
     .CustomSelect__control {
       height: 38px;
       font-size: 14px;
@@ -169,7 +172,7 @@ export const Select: typeof WindowedSelect = styled(WindowedSelect).attrs(
       padding: 10px;
       font-size: 14px;
     }
-  }
+  }`}
 `;
 
 const ValuePreview = styled.div`

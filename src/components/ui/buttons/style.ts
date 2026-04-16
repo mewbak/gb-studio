@@ -1,3 +1,4 @@
+import API from "renderer/lib/api";
 import styled, { css } from "styled-components";
 
 // #region Button
@@ -47,10 +48,13 @@ export const StyledButton = styled.button.attrs<StyledButtonProps>((props) => ({
     opacity: ${(props) => (props.disabled ? 0.3 : 1)};
   }
 
-  @media (max-width: 840px) {
+  ${() =>
+    API.env === "web" &&
+    `@media (max-width: 840px) {
     min-width: 32px;
     height: 38px;
   }
+  `}
 
   ${(props) => (props.$size === "small" ? smallStyles : "")}
   ${(props) => (props.$size === "large" ? largeStyles : "")}
@@ -98,9 +102,11 @@ const normalStyles = css<StyledButtonProps>`
     background: ${(props) => props.theme.colors.button.activeBackground};
   }
 
-  @media (max-width: 840px) {
+  ${() =>
+    API.env === "web" &&
+    `@media (max-width: 840px) {
     height: 38px;
-  }
+  }`}
 `;
 
 const primaryStyles = css<StyledButtonProps>`

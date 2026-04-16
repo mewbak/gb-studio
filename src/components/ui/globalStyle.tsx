@@ -2,6 +2,7 @@ import "focus-visible";
 import { createGlobalStyle } from "styled-components";
 import pixelFont from "assets/fonts/PublicPixel.woff2";
 import React from "react";
+import API from "renderer/lib/api";
 
 // Load font for use in Canvas elements
 new FontFace("Public Pixel", `url("${pixelFont}")`).load().then((font) => {
@@ -211,12 +212,14 @@ const GlobalStyle = createGlobalStyle`
     color: ${(props) => props.theme.colors.input.text};
   }
 
-  @media (max-width: 840px) {
-    body .CustomSelect__option {
-      padding: 10px;
-      font-size: 14px;
-    }
-  }
+  ${() =>
+    API.env === "web" &&
+    `@media (max-width: 840px) {
+      body .CustomSelect__option {
+        padding: 10px;
+        font-size: 14px;
+      }
+    }`}
 
   .label--red {
     background: #e20e2b;

@@ -1,3 +1,4 @@
+import API from "renderer/lib/api";
 import styled, { css } from "styled-components";
 import { StyledButton } from "ui/buttons/style";
 import { CheckboxContainer } from "ui/form/Checkbox";
@@ -244,10 +245,12 @@ export const StyledScriptEventHeader = styled.div<StyledScriptEventHeaderProps>`
       : ""}
 
 
-  @media (max-width: 840px) {
+  ${() =>
+    API.env === "web" &&
+    `@media (max-width: 840px) {
     height: 38px;
     font-size: 14px;
-  }
+  }`}
 `;
 
 interface StyledScriptEventHeaderCaretProps {

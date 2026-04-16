@@ -1,3 +1,4 @@
+import API from "renderer/lib/api";
 import styled, { css, keyframes } from "styled-components";
 import { StyledButton } from "ui/buttons/style";
 
@@ -35,9 +36,11 @@ export const StyledCredits = styled.div`
   background: red;
   z-index: 100000;
 
-  @media (max-width: 840px) {
+  ${() =>
+    API.env === "web" &&
+    `@media (max-width: 840px) {
     position: fixed;
-  }
+  }`}
 `;
 
 export const StyledCreditsTitle = styled.div`
@@ -48,9 +51,11 @@ export const StyledCreditsTitle = styled.div`
   text-decoration: none;
   margin-bottom: 80px;
 
-  @media (max-width: 840px) {
+  ${() =>
+    API.env === "web" &&
+    `@media (max-width: 840px) {
     font-size: 30px;
-  }
+  }`}
 `;
 
 export const StyledCreditsSubHeading = styled.div`
@@ -62,9 +67,11 @@ export const StyledCreditsSubHeading = styled.div`
   margin-top: 80px;
   margin-bottom: 60px;
 
-  @media (max-width: 840px) {
+  ${() =>
+    API.env === "web" &&
+    `@media (max-width: 840px) {
     font-size: 20px;
-  }
+  }`}
 `;
 
 interface StyledCreditsPersonProps {
@@ -115,9 +122,11 @@ export const StyledCreditsPerson = styled.a<StyledCreditsPersonProps>`
         `
       : ""}
 
-  @media (max-width: 840px) {
+  ${() =>
+    API.env === "web" &&
+    `@media (max-width: 840px) {
     align-self: center;
-  }
+  }`}
 `;
 
 interface StyledCreditsContentProps {
@@ -140,12 +149,13 @@ export const StyledCreditsContent = styled.div<StyledCreditsContentProps>`
     animation-play-state: paused;
   }
 
-  @media (max-width: 840px) {
+  ${(props) =>
+    API.env === "web" &&
+    `@media (max-width: 840px) {
     &:has(${StyledCreditsPerson} > span:hover) {
-      animation-play-state: ${(props) =>
-        props.$paused ? "paused" : "running"};
+      animation-play-state: ${props.$paused ? "paused" : "running"};
     }
-  }
+  }`}
 `;
 
 export const StyledCreditsCloseButton = styled.div`
@@ -178,9 +188,11 @@ export const StyledCreditsGrid = styled.div`
     width: 30%;
   }
 
-  @media (max-width: 840px) {
+  ${() =>
+    API.env === "web" &&
+    `@media (max-width: 840px) {
     & > * {
       width: 50%;
     }
-  }
+  }`}
 `;

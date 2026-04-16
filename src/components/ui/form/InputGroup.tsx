@@ -2,6 +2,7 @@ import styled from "styled-components";
 import { StyledInput } from "./style";
 import { ToggleButtonGroupWrapper } from "ui/form/ToggleButtonGroup";
 import { StyledButton } from "ui/buttons/style";
+import API from "renderer/lib/api";
 
 export const InputGroup = styled.div`
   display: flex;
@@ -71,18 +72,22 @@ export const InputGroupPrepend = styled.div`
     border-bottom-right-radius: 0;
     border-right: 0;
     height: 28px;
-    @media (max-width: 840px) {
+    ${() =>
+      API.env === "web" &&
+      `@media (max-width: 840px) {
       height: 38px;
-    }
+    }`}
   }
   ${InputGroupLabel} {
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
     border-right: 0;
     height: 28px;
-    @media (max-width: 840px) {
+    ${() =>
+      API.env === "web" &&
+      `@media (max-width: 840px) {
       height: 38px;
-    }
+    }`}
   }
 `;
 
@@ -92,17 +97,21 @@ export const InputGroupAppend = styled.div`
     border-bottom-left-radius: 0;
     border-left: 0;
     height: 28px;
-    @media (max-width: 840px) {
+    ${() =>
+      API.env === "web" &&
+      `@media (max-width: 840px) {
       height: 38px;
-    }
+    }`}
   }
   ${InputGroupLabel} {
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
     border-left: 0;
     height: 28px;
-    @media (max-width: 840px) {
+    ${() =>
+      API.env === "web" &&
+      `@media (max-width: 840px) {
       height: 38px;
-    }
+    }`}
   }
 `;

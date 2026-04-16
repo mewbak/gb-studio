@@ -1,3 +1,4 @@
+import API from "renderer/lib/api";
 import styled, { css } from "styled-components";
 
 // #region FormFieldInput
@@ -137,9 +138,11 @@ export const StyledFormHeader = styled.div<StyledFormHeaderProps>`
         `
       : ""}
 
-  @media (max-width: 840px) {
+  ${() =>
+    API.env === "web" &&
+    `@media (max-width: 840px) {
     height: 52px;
-  }
+  }`}
 `;
 
 // #endregion FormHeader
@@ -228,10 +231,12 @@ export const StyledFormSectionTitle = styled.div<StyledFormSectionTitleProps>`
       : ""}
       
 
-  @media (max-width: 840px) {
+  ${() =>
+    API.env === "web" &&
+    `@media (max-width: 840px) {
     font-size: 14px;
     height: 40px;
-  }
+  }`}
 `;
 
 // #endregion FormSectionTitle

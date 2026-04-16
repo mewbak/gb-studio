@@ -1,3 +1,4 @@
+import API from "renderer/lib/api";
 import styled, { css } from "styled-components";
 
 type TabBarVariant = "normal" | "secondary" | "eventSection" | "scriptEvent";
@@ -71,10 +72,12 @@ export const StyledTabBar = styled.div<StyledTabBarProps>`
       : ""}
 
 
-  @media (max-width: 840px) {
+  ${() =>
+    API.env === "web" &&
+    `@media (max-width: 840px) {
     height: 45px;
     font-size: 14px;
-  }
+  }`}
 `;
 
 export const StyledTabs = styled.div<StyledTabsProps>`
@@ -87,17 +90,21 @@ export const StyledTabs = styled.div<StyledTabsProps>`
   box-sizing: border-box;
   align-self: flex-start;
 
-  @media (max-width: 840px) {
+  ${() =>
+    API.env === "web" &&
+    `@media (max-width: 840px) {
     height: 45px;
-  }
+  }`}
   ${(props) =>
     props.$overflowActiveTab
       ? css`
           height: 37px;
 
-          @media (max-width: 840px) {
+          ${() =>
+            API.env === "web" &&
+            `@media (max-width: 840px) {
             height: 46px;
-          }
+          }`}
         `
       : ""}
 
@@ -220,9 +227,11 @@ ${(props) =>
     overflow: hidden;
   }
 
-  @media (max-width: 840px) {
+  ${() =>
+    API.env === "web" &&
+    `@media (max-width: 840px) {
     font-size: 14px;
-  }
+  }`}
 `;
 
 export const StyledStickyTabs = styled.div`

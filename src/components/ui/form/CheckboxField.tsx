@@ -2,6 +2,7 @@ import React, { FC } from "react";
 import styled from "styled-components";
 import { Checkbox } from "./Checkbox";
 import { Label } from "./Label";
+import API from "renderer/lib/api";
 
 interface CheckboxFieldProps {
   readonly name: string;
@@ -23,9 +24,11 @@ const Wrapper = styled.div`
     margin-top: -1px;
   }
 
-  @media (max-width: 840px) {
+  ${() =>
+    API.env === "web" &&
+    `@media (max-width: 840px) {
     height: 38px;
-  }
+  }`}
 `;
 
 export const CheckboxField: FC<CheckboxFieldProps> = ({
