@@ -1386,7 +1386,7 @@
   "FIELD_IMPORT_INSTRUMENT": "Import Instrument",
   "FIELD_EXPORT_WAVE": "Export Wave",
   "FIELD_IMPORT_WAVE": "Import Wave",
-  "FIELD_RECORD": "Record",
+  "FIELD_RECORD_MIDI": "Record MIDI",
   "FIELD_NO_DEVICES_FOUND": "No Devices Found",
   "FIELD_SELECTION": "Selection",
   "FIELD_CHIPTUNE_MUSIC_EDITOR": "Chiptune Music Editor",

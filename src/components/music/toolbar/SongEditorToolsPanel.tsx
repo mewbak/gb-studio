@@ -381,7 +381,7 @@ const SongEditorToolsPanel = ({ musicAsset }: SongEditorToolsPanelProps) => {
               onClick={() => {
                 musicMidiController.toggleRecordingEnabled();
               }}
-              title={l10n("FIELD_RECORD")}
+              title={l10n("FIELD_RECORD_MIDI")}
               aria-pressed={midiState.recordingEnabled}
             >
               <RecordIcon />
