@@ -67,6 +67,18 @@ export const Credits = ({ onClose, duration = 60, children }: CreditsProps) => {
     };
   }, [clearResumeTimeout]);
 
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.code === "Escape") {
+        onClose?.();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [onClose]);
+
   return (
     <StyledCredits onTouchStart={pauseTemporarily}>
       <CreditsBackground />
