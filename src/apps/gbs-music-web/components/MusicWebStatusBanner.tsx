@@ -28,11 +28,9 @@ export const MusicWebStatusBanner = ({
   onAction,
 }: MusicWebStatusBannerProps) => {
   return (
-    <StyledBanner>
+    <StyledBanner onClick={onAction}>
       <StyledBannerText>{title}</StyledBannerText>
-      <Button variant="primary" onClick={onAction}>
-        {actionLabel}
-      </Button>
+      <Button variant="primary">{actionLabel}</Button>
     </StyledBanner>
   );
 };
