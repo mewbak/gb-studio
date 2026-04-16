@@ -14,10 +14,7 @@ import { AppThunk } from "store/storeTypes";
 import API from "renderer/lib/api";
 import { parseClipboardToPattern } from "shared/lib/uge/clipboard";
 import { PatternCellAddress } from "shared/lib/uge/editor/types";
-import {
-  defaultMusicMidiState,
-  MusicMidiState,
-} from "shared/lib/music/midi";
+import { defaultMusicMidiState, MusicMidiState } from "shared/lib/music/midi";
 
 export type PianoRollToolType = "pencil" | "eraser" | "selection" | null;
 
@@ -178,6 +175,7 @@ const trackerSlice = createSlice({
     },
     setView: (state, action: PayloadAction<TrackerViewType>) => {
       state.view = action.payload;
+      state.tool = "pencil";
     },
     setHover: (
       state,
@@ -221,10 +219,7 @@ const trackerSlice = createSlice({
       state.playbackPosition = _action.payload;
       state.defaultStartPlaybackPosition = _action.payload;
     },
-    setPlaybackPosition: (
-      state,
-      action: PayloadAction<[number, number]>,
-    ) => {
+    setPlaybackPosition: (state, action: PayloadAction<[number, number]>) => {
       state.playbackPosition = action.payload;
     },
     resetPlaybackPosition: (state) => {
