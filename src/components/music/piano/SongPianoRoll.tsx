@@ -912,7 +912,7 @@ export const SongPianoRoll = () => {
           noteIndex,
         },
         {
-          preview: true,
+          preview: false,
           select: false,
         },
       );
