@@ -34,7 +34,7 @@ export const StyledSequenceItem = styled.div<StyledSequenceItemProps>`
   ${(props) =>
     props.$selected
       ? css`
-          box-shadow: 0 0 0px 4px ${(props) => props.theme.colors.highlight};
+          outline: 4px solid ${(props) => props.theme.colors.highlight};
         `
       : ""}
 `;

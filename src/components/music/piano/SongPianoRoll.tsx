@@ -177,8 +177,8 @@ export const SongPianoRoll = () => {
 
   const playing = useAppSelector((state) => state.tracker.playing);
 
-  const selectedSequenceId = useAppSelector(
-    (state) => state.tracker.selectedSequence,
+  const selectedSequenceId = useAppSelector((state) =>
+    !playing ? state.tracker.selectedSequence : -1,
   );
 
   // Stable refs to access latest data within callbacks
@@ -2483,6 +2483,7 @@ export const SongPianoRoll = () => {
   useEffect(() => {
     if (
       !playing &&
+      lastSelectedSequenceId.current !== -1 &&
       selectedSequenceId !== lastSelectedSequenceId.current &&
       scrollRef.current
     ) {
