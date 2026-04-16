@@ -4,7 +4,7 @@ type StepType = "single" | "frame" | "run";
 
 type Emu = number | undefined;
 
-type Emulator = {
+type EmulatorModule = {
   HEAP8: Uint8Array;
   _free: (value: number) => void;
   _malloc: (value: number) => number;
@@ -34,17 +34,23 @@ type AudioCaptureListener = (
   sampleRate: number,
 ) => void;
 
-let emu: Emu;
-let romPtr: number;
-let romSize = 0;
-let audioCtx: AudioContext;
-let audioTime: number;
-let audioCaptureListener: AudioCaptureListener | undefined;
+export type EmulatorController = {
+  init: (romData: Uint8Array) => void;
+  writeMem: (addr: number, data: number) => void;
+  readMem: (addr: number) => number;
+  step: (stepType: StepType) => boolean | undefined;
+  updateRom: (romData: Uint8Array) => boolean;
+  setChannel: (channel: number, muted: boolean) => boolean;
+  resetAudio: () => void;
+  setAudioCapture: (listener: AudioCaptureListener) => void;
+  removeAudioCapture: () => void;
+  isAvailable: () => boolean;
+};
 
 const audioBufferSize = 2048;
 
+let audioCtx: AudioContext;
 let masterGain: GainNode;
-const activeSources = new Set<AudioBufferSourceNode>();
 
 /* see: 
   https://gist.github.com/surma/b2705b6cca29357ebea1c9e6e15684cc
@@ -57,200 +63,198 @@ const locateFile = (module: unknown) => (path: string) => {
   return path;
 };
 
-let Module: Emulator;
+let Module: EmulatorModule;
 Binjgb({
   locateFile: locateFile(BinjgbModule),
-}).then((module: Emulator) => {
+}).then((module: EmulatorModule) => {
   Module = module;
 });
 
-const init = (romData: Uint8Array) => {
-  // console.log("INIT EMULATOR");
-  if (isAvailable()) destroy();
-
-  if (typeof audioCtx == "undefined") {
+const ensureAudioContext = () => {
+  if (typeof audioCtx === "undefined") {
     audioCtx = new AudioContext();
     masterGain = audioCtx.createGain();
     masterGain.connect(audioCtx.destination);
   }
-
-  let requiredSize = ((romData.length - 1) | 0x3fff) + 1;
-  if (requiredSize < 0x8000) requiredSize = 0x8000;
-  if (romSize < requiredSize) {
-    if (typeof romPtr != "undefined") Module._free(romPtr);
-    romPtr = Module._malloc(requiredSize);
-    romSize = requiredSize;
-  }
-  for (let n = 0; n < romSize; n++) Module.HEAP8[romPtr + n] = 0;
-  for (let n = 0; n < romData.length; n++)
-    Module.HEAP8[romPtr + n] = romData[n];
-
-  emu = Module._emulator_new_simple(
-    romPtr,
-    romSize,
-    audioCtx.sampleRate,
-    audioBufferSize,
-  );
-  audioCtx.resume();
-  audioTime = audioCtx.currentTime;
+  return audioCtx;
 };
 
-const updateRom = (romData: Uint8Array) => {
-  if (!isAvailable()) {
-    // console.log("UPDATE ROM: NOT AVAILABLE");
-    return false;
-  }
+export const createEmulator = (): EmulatorController => {
+  let emu: Emu;
+  let romPtr: number;
+  let romSize = 0;
+  let audioTime = 0;
+  let audioCaptureListener: AudioCaptureListener | undefined;
+  const activeSources = new Set<AudioBufferSourceNode>();
 
-  let requiredSize = ((romData.length - 1) | 0x3fff) + 1;
-  if (requiredSize < 0x8000) requiredSize = 0x8000;
-  if (romSize < requiredSize) return false;
-  for (let n = 0; n < romSize; n++) Module.HEAP8[romPtr + n] = 0;
-  for (let n = 0; n < romData.length; n++)
-    Module.HEAP8[romPtr + n] = romData[n];
-  return true;
-};
+  const isAvailable = () => typeof emu !== "undefined";
 
-const destroy = () => {
-  if (!isAvailable()) return;
-  Module._emulator_delete(emu);
-  emu = undefined;
-};
+  const playBuffer = (buffer: AudioBuffer, time: number) => {
+    const ctx = ensureAudioContext();
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.connect(masterGain);
+    source.start(time);
 
-const isAvailable = () => typeof emu != "undefined";
+    activeSources.add(source);
 
-const step = (stepType: StepType) => {
-  if (!isAvailable()) return;
-  let ticks = Module._emulator_get_ticks_f64(emu);
-  if (stepType === "single") ticks += 1;
-  else if (stepType === "frame") ticks += 70224;
-  while (true) {
-    const result = Module._emulator_run_until_f64(emu, ticks);
-    if (result & 2) processAudioBuffer();
-    if (result & 8)
-      // Breakpoint hit
-      return true;
-    if (result & 16)
-      // Illegal instruction
-      return true;
-    if (result !== 2 && stepType !== "run") return false;
-    if (stepType === "run") {
-      if (result & 4) {
-        // Sync to the audio buffer, make sure we have 100ms of audio data buffered.
-        if (audioTime < audioCtx.currentTime + 0.1) ticks += 70224;
-        else return false;
-      }
+    source.onended = () => {
+      activeSources.delete(source);
+      source.disconnect();
+    };
+  };
+
+  const stopAllAudio = () => {
+    const ctx = ensureAudioContext();
+    for (const source of activeSources) {
+      try {
+        source.stop(ctx.currentTime);
+      } catch {}
+      source.disconnect();
     }
-  }
-};
+    activeSources.clear();
+  };
 
-const readMem = (addr: number) => {
-  if (!isAvailable()) return 0xff;
-  return Module._emulator_read_mem(emu, addr);
-};
+  const resetAudio = () => {
+    const ctx = ensureAudioContext();
+    stopAllAudio();
+    masterGain.gain.cancelScheduledValues(ctx.currentTime);
+    audioTime = ctx.currentTime;
+  };
 
-const writeMem = (addr: number, data: number) => {
-  if (!isAvailable()) {
-    // console.log("WRITE MEM NOT AVAILABLE");
-    return;
-  }
-  // console.log("WRITE MEM", addr, data);
-  return Module._emulator_write_mem(emu, addr, data);
-};
+  const destroy = () => {
+    if (!isAvailable()) return;
+    Module._emulator_delete(emu);
+    emu = undefined;
+  };
 
-const setChannel = (channel: number, muted: boolean) => {
-  if (!isAvailable()) return muted;
-  return Module._set_audio_channel_mute(emu, channel, muted);
-};
+  const init = (romData: Uint8Array) => {
+    if (isAvailable()) destroy();
 
-function processAudioBuffer() {
-  if (audioTime < audioCtx.currentTime) {
-    audioTime = audioCtx.currentTime;
-  }
+    const ctx = ensureAudioContext();
 
-  const inputBuffer = new Uint8Array(
-    Module.HEAP8.buffer,
-    Module._get_audio_buffer_ptr(emu),
-    Module._get_audio_buffer_capacity(emu),
-  );
+    let requiredSize = ((romData.length - 1) | 0x3fff) + 1;
+    if (requiredSize < 0x8000) requiredSize = 0x8000;
+    if (romSize < requiredSize) {
+      if (typeof romPtr !== "undefined") Module._free(romPtr);
+      romPtr = Module._malloc(requiredSize);
+      romSize = requiredSize;
+    }
+    for (let n = 0; n < romSize; n++) Module.HEAP8[romPtr + n] = 0;
+    for (let n = 0; n < romData.length; n++) {
+      Module.HEAP8[romPtr + n] = romData[n];
+    }
 
-  const volume = 0.5;
-  const channel0 = new Float32Array(audioBufferSize);
-  const channel1 = new Float32Array(audioBufferSize);
-
-  for (let i = 0; i < audioBufferSize; i++) {
-    channel0[i] = (inputBuffer[2 * i] * volume) / 255;
-    channel1[i] = (inputBuffer[2 * i + 1] * volume) / 255;
-  }
-
-  if (audioCaptureListener) {
-    audioCaptureListener?.(channel0, channel1, audioCtx.sampleRate);
-  } else {
-    const buffer = audioCtx.createBuffer(
-      2,
+    emu = Module._emulator_new_simple(
+      romPtr,
+      romSize,
+      ctx.sampleRate,
       audioBufferSize,
-      audioCtx.sampleRate,
+    );
+    ctx.resume();
+    audioTime = ctx.currentTime;
+  };
+
+  const updateRom = (romData: Uint8Array) => {
+    if (!isAvailable()) {
+      return false;
+    }
+
+    let requiredSize = ((romData.length - 1) | 0x3fff) + 1;
+    if (requiredSize < 0x8000) requiredSize = 0x8000;
+    if (romSize < requiredSize) return false;
+    for (let n = 0; n < romSize; n++) Module.HEAP8[romPtr + n] = 0;
+    for (let n = 0; n < romData.length; n++) {
+      Module.HEAP8[romPtr + n] = romData[n];
+    }
+    return true;
+  };
+
+  const processAudioBuffer = () => {
+    const ctx = ensureAudioContext();
+    if (audioTime < ctx.currentTime) {
+      audioTime = ctx.currentTime;
+    }
+
+    const inputBuffer = new Uint8Array(
+      Module.HEAP8.buffer,
+      Module._get_audio_buffer_ptr(emu),
+      Module._get_audio_buffer_capacity(emu),
     );
 
-    buffer.getChannelData(0).set(channel0);
-    buffer.getChannelData(1).set(channel1);
+    const volume = 0.5;
+    const channel0 = new Float32Array(audioBufferSize);
+    const channel1 = new Float32Array(audioBufferSize);
 
-    playBuffer(buffer, audioTime);
-  }
+    for (let i = 0; i < audioBufferSize; i++) {
+      channel0[i] = (inputBuffer[2 * i] * volume) / 255;
+      channel1[i] = (inputBuffer[2 * i + 1] * volume) / 255;
+    }
 
-  const bufferSec = audioBufferSize / audioCtx.sampleRate;
-  audioTime += bufferSec;
-}
+    if (audioCaptureListener) {
+      audioCaptureListener(channel0, channel1, ctx.sampleRate);
+    } else {
+      const buffer = ctx.createBuffer(2, audioBufferSize, ctx.sampleRate);
+      buffer.getChannelData(0).set(channel0);
+      buffer.getChannelData(1).set(channel1);
+      playBuffer(buffer, audioTime);
+    }
 
-const playBuffer = (buffer: AudioBuffer, time: number) => {
-  const source = audioCtx.createBufferSource();
-  source.buffer = buffer;
+    const bufferSec = audioBufferSize / ctx.sampleRate;
+    audioTime += bufferSec;
+  };
 
-  source.connect(masterGain);
+  const step = (stepType: StepType) => {
+    if (!isAvailable()) return;
 
-  source.start(time);
+    const ctx = ensureAudioContext();
+    let ticks = Module._emulator_get_ticks_f64(emu);
+    if (stepType === "single") ticks += 1;
+    else if (stepType === "frame") ticks += 70224;
+    while (true) {
+      const result = Module._emulator_run_until_f64(emu, ticks);
+      if (result & 2) processAudioBuffer();
+      if (result & 8) return true;
+      if (result & 16) return true;
+      if (result !== 2 && stepType !== "run") return false;
+      if (stepType === "run") {
+        if (result & 4) {
+          if (audioTime < ctx.currentTime + 0.1) ticks += 70224;
+          else return false;
+        }
+      }
+    }
+  };
 
-  activeSources.add(source);
-
-  source.onended = () => {
-    activeSources.delete(source);
-    source.disconnect();
+  return {
+    init,
+    writeMem: (addr: number, data: number) => {
+      if (!isAvailable()) {
+        return;
+      }
+      Module._emulator_write_mem(emu, addr, data);
+    },
+    readMem: (addr: number) => {
+      if (!isAvailable()) return 0xff;
+      return Module._emulator_read_mem(emu, addr);
+    },
+    step,
+    updateRom,
+    setChannel: (channel: number, muted: boolean) => {
+      if (!isAvailable()) return muted;
+      return Module._set_audio_channel_mute(emu, channel, muted);
+    },
+    resetAudio,
+    setAudioCapture: (listener: AudioCaptureListener) => {
+      audioCaptureListener = listener;
+    },
+    removeAudioCapture: () => {
+      audioCaptureListener = undefined;
+    },
+    isAvailable,
   };
 };
 
-const stopAllAudio = () => {
-  for (const source of activeSources) {
-    try {
-      source.stop(audioCtx.currentTime);
-    } catch {}
-    source.disconnect();
-  }
-  activeSources.clear();
-};
-
-const resetAudio = () => {
-  stopAllAudio();
-  masterGain.gain.cancelScheduledValues(audioCtx.currentTime);
-  audioTime = audioCtx.currentTime;
-};
-
-const setAudioCapture = (listener: AudioCaptureListener) => {
-  audioCaptureListener = listener;
-};
-
-const removeAudioCapture = () => {
-  audioCaptureListener = undefined;
-};
-
-const emulator = {
-  init,
-  writeMem,
-  readMem,
-  step,
-  updateRom,
-  setChannel,
-  resetAudio,
-  setAudioCapture,
-  removeAudioCapture,
-};
+const emulator = createEmulator();
 
 export default emulator;

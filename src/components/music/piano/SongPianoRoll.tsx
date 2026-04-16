@@ -6,7 +6,7 @@ import React, {
   useState,
 } from "react";
 import { PatternCell } from "shared/lib/uge/types";
-import { useAppDispatch, useAppSelector } from "store/hooks";
+import { useAppDispatch, useAppSelector, useAppStore } from "store/hooks";
 import { PianoRollPatternBlock } from "./PianoRollPatternBlock";
 import {
   StyledPianoRollScrollBottomWrapper,
@@ -86,6 +86,7 @@ const DRAG_COMMIT_TAP_MAX_MOVEMENT = 5;
 const EMPTY_SELECTED_ROWS_BY_CHANNEL = new Map<number, ReadonlySet<number>>();
 
 export const SongPianoRoll = () => {
+  const store = useAppStore();
   const dispatch = useAppDispatch();
   const playPreview = useMusicNotePreview();
   const midiState = useMusicMidiState();
@@ -741,9 +742,20 @@ export const SongPianoRoll = () => {
   );
 
   const commitPlacedNote = useCallback(
-    (args: { cellAddress: PatternCellAddress; noteIndex: number }) => {
+    (
+      args: {
+        cellAddress: PatternCellAddress;
+        noteIndex: number;
+      },
+      options?: {
+        preview: boolean;
+        select: boolean;
+      },
+    ) => {
       const { cellAddress, noteIndex } = args;
       const { sequenceId, rowId, channelId } = cellAddress;
+      const shouldPreview = options?.preview ?? true;
+      const shouldSelect = options?.select ?? true;
 
       const patternId = songRef.current?.sequence[sequenceId];
 
@@ -765,14 +777,18 @@ export const SongPianoRoll = () => {
       const currentPattern = songRef.current?.patterns[patternId];
       const currentCell = currentPattern?.[rowId]?.[channelId];
 
-      playPreview({
-        note: noteIndex,
-        instrumentId: selectedInstrumentId,
-        effectCode: currentCell?.effectcode ?? 0,
-        effectParam: currentCell?.effectparam ?? 0,
-      });
+      if (shouldPreview) {
+        playPreview({
+          note: noteIndex,
+          instrumentId: selectedInstrumentId,
+          effectCode: currentCell?.effectcode ?? 0,
+          effectParam: currentCell?.effectparam ?? 0,
+        });
+      }
 
-      dispatch(trackerActions.setSelectedPatternCells([cellAddress]));
+      if (shouldSelect) {
+        dispatch(trackerActions.setSelectedPatternCells([cellAddress]));
+      }
     },
     [dispatch, playPreview, selectedInstrumentId],
   );
@@ -851,16 +867,59 @@ export const SongPianoRoll = () => {
   // #region Action Handlers
 
   const updatePianoHover = useCallback(
-    (noteIndex: number) => {
+    (
+      noteIndex: number,
+      location?: {
+        rowId: number | null;
+        sequenceId: number | null;
+      },
+    ) => {
       dispatch(
         trackerActions.setHover({
           note: noteIndex,
-          column: hoverColumnRef.current,
-          sequenceId: hoverSequenceIdRef.current,
+          column: location?.rowId ?? hoverColumnRef.current,
+          sequenceId: location?.sequenceId ?? hoverSequenceIdRef.current,
         }),
       );
     },
     [dispatch],
+  );
+
+  const recordMidiNoteAtPlayhead = useCallback(
+    (noteIndex: number) => {
+      const currentSong = songRef.current;
+      if (!currentSong) {
+        return false;
+      }
+
+      const state = store.getState();
+      const playbackPosition = state.tracker.playbackPosition;
+
+      const targetPosition = {
+        sequenceId: playbackPosition[0],
+        rowId: playbackPosition[1],
+      };
+
+      const cellAddress: PatternCellAddress = {
+        sequenceId: playbackPosition[0],
+        rowId: playbackPosition[1],
+        channelId: selectedChannel,
+      };
+
+      commitPlacedNote(
+        {
+          cellAddress,
+          noteIndex,
+        },
+        {
+          preview: true,
+          select: false,
+        },
+      );
+      updatePianoHover(noteIndex, targetPosition);
+      return true;
+    },
+    [commitPlacedNote, selectedChannel, store, updatePianoHover],
   );
 
   const transposeSelectedPianoNote = useCallback(
@@ -887,7 +946,9 @@ export const SongPianoRoll = () => {
         note: noteIndex,
         instrumentId: selectedInstrumentId,
       });
-      transposeSelectedPianoNote(noteIndex);
+      if (!playingRef.current) {
+        transposeSelectedPianoNote(noteIndex);
+      }
       updatePianoHover(noteIndex);
     },
     [
@@ -904,6 +965,14 @@ export const SongPianoRoll = () => {
         note: noteIndex,
         instrumentId: selectedInstrumentId,
       });
+
+      if (playingRef.current) {
+        if (midiState.recordingEnabled) {
+          recordMidiNoteAtPlayhead(noteIndex);
+        }
+        updatePianoHover(noteIndex);
+        return;
+      }
       if (midiState.recordingEnabled) {
         transposeSelectedPianoNote(noteIndex);
       }
@@ -912,6 +981,7 @@ export const SongPianoRoll = () => {
     [
       midiState.recordingEnabled,
       playPreview,
+      recordMidiNoteAtPlayhead,
       selectedInstrumentId,
       transposeSelectedPianoNote,
       updatePianoHover,

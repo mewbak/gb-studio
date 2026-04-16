@@ -102,9 +102,6 @@ const createMusicSession = (): MusicSession => {
         });
         break;
       case "preview": {
-        if (player.isPlayingSong()) {
-          return;
-        }
         if (!data.instrument) {
           break;
         }
@@ -137,7 +134,6 @@ const createMusicSession = (): MusicSession => {
           previewPattern[0][3].effectparam = data.effectParam;
           previewSong.noise_instruments = [data.instrument];
         }
-        player.reset();
         player.playPreview(previewSong, 500);
         break;
       }

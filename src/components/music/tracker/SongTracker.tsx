@@ -227,6 +227,7 @@ export const SongTracker = () => {
   const hasHadFocusRef = useRef(false);
   const lastSelectedSequenceId = useRef(sequenceId);
   const suppressActiveFieldScrollRef = useRef(false);
+  const playingRef = useRef(playing);
 
   // #endregion Stable Refs
 
@@ -242,6 +243,7 @@ export const SongTracker = () => {
     selectedInstrumentIdRef.current = selectedInstrumentId;
     selectedTrackerFieldsRef.current = selectedTrackerFields;
     selectedPatternCellsRef.current = selectedPatternCells;
+    playingRef.current = playing;
   }, [
     songSequence,
     pattern,
@@ -252,6 +254,7 @@ export const SongTracker = () => {
     selectedInstrumentId,
     selectedTrackerFields,
     selectedPatternCells,
+    playing,
   ]);
 
   // #endregion Ref Synchronization
@@ -1295,7 +1298,7 @@ export const SongTracker = () => {
 
   const handleMidiNotePressed = useCallback(
     (note: number) => {
-      if (!midiState.recordingEnabled) {
+      if (!midiState.recordingEnabled || playingRef.current) {
         playPreview({ note });
         return;
       }
@@ -1312,8 +1315,9 @@ export const SongTracker = () => {
       if (
         currentActiveField === undefined ||
         currentActiveField > currentMaxField ||
-        getFieldColumnFocus(getLocalFieldFromGlobalField(currentActiveField)) !==
-          "noteColumnFocus"
+        getFieldColumnFocus(
+          getLocalFieldFromGlobalField(currentActiveField),
+        ) !== "noteColumnFocus"
       ) {
         return;
       }
@@ -1446,7 +1450,10 @@ export const SongTracker = () => {
     }
 
     const scrollEl = scrollRef.current;
-    const maxScrollTop = Math.max(0, scrollEl.scrollHeight - scrollEl.clientHeight);
+    const maxScrollTop = Math.max(
+      0,
+      scrollEl.scrollHeight - scrollEl.clientHeight,
+    );
     const nextScrollTop = Math.max(
       0,
       Math.min(sequenceId * TRACKER_PATTERN_HEIGHT, maxScrollTop),

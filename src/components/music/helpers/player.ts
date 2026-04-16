@@ -1,7 +1,7 @@
 import type { MusicExportFormat } from "shared/lib/music/types";
 import compiler from "./compiler";
 import storage from "./storage";
-import emulator from "./emulator";
+import emulator, { createEmulator, type EmulatorController } from "./emulator";
 import { Song, SubPatternCell } from "shared/lib/uge/types";
 import { lo, hi } from "shared/lib/helpers/8bit";
 import {
@@ -20,10 +20,13 @@ let currentSequence = -1;
 let currentRow = -1;
 let isExporting = false;
 let isPlayingSong = false;
+let isPreviewPlaying = false;
 
 const channels = [false, false, false, false];
+const previewEmulator = createEmulator();
 
 let onIntervalCallback = (_updateData: PlaybackPosition) => {};
+let onPreviewPlaybackTimeout: ReturnType<typeof setTimeout> | undefined;
 
 const exportMaxRenderSeconds = 60 * 10;
 
@@ -54,35 +57,47 @@ const getMediabunny = async () => {
   return mediabunnyModulePromise;
 };
 
-const isPlayerPaused = () => {
+const isPlayerPaused = (targetEmulator: EmulatorController = emulator) => {
   const isPlayerPausedAddr = getRamAddress("is_player_paused");
-  return emulator.readMem(isPlayerPausedAddr) === 1;
+  return targetEmulator.readMem(isPlayerPausedAddr) === 1;
 };
 
-const doPause = () => {
-  const _if = emulator.readMem(0xff0f);
-  // console.log(_if);
-  emulator.writeMem(0xff0f, _if | 0b00001000);
-  // console.log(emulator.readMem(0xff0f));
+const doPause = (targetEmulator: EmulatorController = emulator) => {
+  const _if = targetEmulator.readMem(0xff0f);
+  targetEmulator.writeMem(0xff0f, _if | 0b00001000);
 
-  while (!isPlayerPaused()) {
-    // console.log("PAUSING...");
-    emulator.step("frame");
+  while (!isPlayerPaused(targetEmulator)) {
+    targetEmulator.step("frame");
   }
-
-  // console.log("PAUSED");
 };
 
-const doResume = () => {
+const doResume = (targetEmulator: EmulatorController = emulator) => {
   const doResumePlayerAddr = getRamAddress("do_resume_player");
-  emulator.writeMem(doResumePlayerAddr, 1);
+  targetEmulator.writeMem(doResumePlayerAddr, 1);
 
-  while (isPlayerPaused()) {
-    // console.log("RESUMING...");
-    emulator.step("frame");
+  while (isPlayerPaused(targetEmulator)) {
+    targetEmulator.step("frame");
+  }
+};
+
+const clearPreviewTimeout = () => {
+  if (onPreviewPlaybackTimeout) {
+    clearTimeout(onPreviewPlaybackTimeout);
+  }
+  onPreviewPlaybackTimeout = undefined;
+};
+
+const stopPreview = () => {
+  clearPreviewTimeout();
+  isPreviewPlaying = false;
+
+  if (previewEmulator.isAvailable() && !isPlayerPaused(previewEmulator)) {
+    doPause(previewEmulator);
   }
 
-  // console.log("RESUMED");
+  if (previewEmulator.isAvailable()) {
+    previewEmulator.resetAudio();
+  }
 };
 
 const initPlayer = (onInit: (file: Uint8Array) => void, sfx?: string) => {
@@ -116,6 +131,7 @@ const initPlayer = (onInit: (file: Uint8Array) => void, sfx?: string) => {
 
     romFile = file;
     emulator.init(romFile);
+    previewEmulator.init(romFile);
     if (onInit) {
       onInit(file);
     }
@@ -127,6 +143,9 @@ const initPlayer = (onInit: (file: Uint8Array) => void, sfx?: string) => {
         return;
       }
       emulator.step("run");
+      if (isPreviewPlaying) {
+        previewEmulator.step("run");
+      }
       // console.log(
       //   "RUN",
       //   `Is Player Paused: ${isPlayerPaused()}`,
@@ -175,6 +194,7 @@ const setSolo = (
 };
 
 const loadSong = (song: Song) => {
+  stopPreview();
   updateRom(song);
   emulator.step("frame");
   stop();
@@ -182,6 +202,7 @@ const loadSong = (song: Song) => {
 };
 
 const loadSound = (sfx?: string) => {
+  stopPreview();
   // Load an empty song
   let songFile = `include "include/hUGE.inc"
     
@@ -211,6 +232,7 @@ const loadSound = (sfx?: string) => {
     if (!file) return;
     romFile = file;
     emulator.init(romFile);
+    previewEmulator.init(romFile);
     playSound();
   };
 
@@ -218,7 +240,7 @@ const loadSound = (sfx?: string) => {
 };
 
 const play = (song: Song, position?: PlaybackPosition) => {
-  // console.log("PLAY");
+  stopPreview();
   updateRom(song);
   emulator.step("frame");
   stop();
@@ -251,42 +273,53 @@ const play = (song: Song, position?: PlaybackPosition) => {
     doResume();
 
     const updateUI = () => {
-      const oldRow = currentRow;
       currentSequence = emulator.readMem(currentOrderAddr) / 2;
       currentRow = emulator.readMem(rowAddr);
-      if (oldRow !== currentRow) {
-        onIntervalCallback([currentSequence, currentRow]);
-      }
+      onIntervalCallback([currentSequence, currentRow]);
     };
     onSongProgressIntervalId = setInterval(updateUI, 1000 / 64);
   }
 };
 
 const playPreview = (song: Song, length: number) => {
-  // console.log("PLAY PREVIEW");
-  updateRom(song);
-  emulator.step("frame");
-  stop();
+  if (!romFile) {
+    return;
+  }
 
-  setStartPosition([0, 0]);
+  stopPreview();
+
+  const previewRomFile = new Uint8Array(romFile);
+  const addr = getRomAddress("SONG_DESCRIPTOR");
+  patchRom(previewRomFile, song, addr);
+
+  previewEmulator.init(previewRomFile);
+  previewEmulator.step("frame");
+  previewEmulator.resetAudio();
+
+  const newOrderAddr = getRamAddress("new_order");
+  const newRowAddr = getRamAddress("new_row");
+  const tickAddr = getRamAddress("tick");
+  previewEmulator.writeMem(newOrderAddr, 0);
+  previewEmulator.writeMem(newRowAddr, 0);
+  previewEmulator.writeMem(tickAddr, 0);
 
   const ticksPerRowAddr = getRamAddress("ticks_per_row");
-  emulator.writeMem(ticksPerRowAddr, song.ticks_per_row);
+  previewEmulator.writeMem(ticksPerRowAddr, song.ticks_per_row);
 
-  if (isPlayerPaused()) {
-    emulator.setChannel(0, false);
-    emulator.setChannel(1, false);
-    emulator.setChannel(2, false);
-    emulator.setChannel(3, false);
+  if (isPlayerPaused(previewEmulator)) {
+    previewEmulator.setChannel(0, false);
+    previewEmulator.setChannel(1, false);
+    previewEmulator.setChannel(2, false);
+    previewEmulator.setChannel(3, false);
 
     const orderCntAddr = getRamAddress("order_cnt");
-    emulator.writeMem(orderCntAddr, song.sequence.length * 2);
+    previewEmulator.writeMem(orderCntAddr, song.sequence.length * 2);
 
-    doResume();
+    doResume(previewEmulator);
+    isPreviewPlaying = true;
 
-    onSongProgressIntervalId = setTimeout(() => {
-      doPause();
-      stop();
+    onPreviewPlaybackTimeout = setTimeout(() => {
+      stopPreview();
     }, length);
   }
 };
@@ -335,7 +368,6 @@ const playSound = () => {
 };
 
 const stop = (position?: PlaybackPosition) => {
-  // console.log("STOP!");
   isPlayingSong = false;
 
   if (!isPlayerPaused()) {
@@ -811,7 +843,14 @@ function patchRom(targetRomFile: Uint8Array, song: Song, startAddr: number) {
 
 const getCurrentSong = () => currentSong;
 
-const reset = () => emulator.init(romFile);
+const reset = () => {
+  if (!romFile) {
+    return;
+  }
+  emulator.init(romFile);
+  previewEmulator.init(romFile);
+  stopPreview();
+};
 
 const resetChannels = () => {
   for (let i = 0; i < 3; i++) {
