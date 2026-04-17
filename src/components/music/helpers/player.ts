@@ -57,7 +57,7 @@ const onPlaybackPositionUpdate = (
   }
   lastMetronomePositionKey = positionKey;
 
-  if (!metronomeEnabled || position[1] % 8 !== 0) {
+  if (!metronomeEnabled || position[1] % 4 !== 0) {
     return;
   }
 
@@ -310,10 +310,10 @@ const play = (song: Song, position?: PlaybackPosition) => {
     doResume();
 
     const updateUI = () => {
-      onPlaybackPositionUpdate([
-        emulator.readMem(currentOrderAddr) / 2,
-        emulator.readMem(rowAddr),
-      ], emulator.readMem(tickAddr));
+      onPlaybackPositionUpdate(
+        [emulator.readMem(currentOrderAddr) / 2, emulator.readMem(rowAddr)],
+        emulator.readMem(tickAddr),
+      );
     };
     updateUI();
     onSongProgressIntervalId = setInterval(updateUI, 1000 / 64);
