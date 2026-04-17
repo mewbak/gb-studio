@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { useAppSelector } from "store/hooks";
+import { useAppStore } from "store/hooks";
 import {
   playDutyNotePreview,
   playNoiseNotePreview,
@@ -100,16 +100,15 @@ const playMusicNotePreviewThrottled = throttle(
 );
 
 export const useMusicNotePreview = () => {
-  const song = useAppSelector((state) => state.trackerDocument.present.song);
-  const selectedChannel = useAppSelector(
-    (state) => state.tracker.selectedChannel,
-  );
-  const selectedInstrumentId = useAppSelector(
-    (state) => state.tracker.selectedInstrumentId,
-  );
+  const store = useAppStore();
 
   return useCallback(
     (args: PreviewArgs) => {
+      const state = store.getState();
+      const song = state.trackerDocument.present.song;
+      const selectedChannel = state.tracker.selectedChannel;
+      const selectedInstrumentId = state.tracker.selectedInstrumentId;
+
       playMusicNotePreviewThrottled({
         ...args,
         song,
@@ -117,6 +116,6 @@ export const useMusicNotePreview = () => {
         selectedInstrumentId,
       });
     },
-    [song, selectedChannel, selectedInstrumentId],
+    [store],
   );
 };

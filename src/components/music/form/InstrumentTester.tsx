@@ -7,7 +7,7 @@ import {
 import { testNotes } from "components/music/sidebar/helpers";
 import { NOTE_C5 } from "consts";
 import isEqual from "lodash/isEqual";
-import throttle from "lodash/throttle";
+import debounce from "lodash/debounce";
 import omit from "lodash/omit";
 import l10n from "shared/lib/lang/l10n";
 import {
@@ -117,12 +117,12 @@ export const InstrumentTester = ({
     }
   }, []);
 
-  const throttledTestInstrumentRef = useRef(
-    throttle(
+  const debouncedTestInstrumentRef = useRef(
+    debounce(
       () => {
         playPreview(NOTE_C5);
       },
-      400,
+      100,
       { leading: false, trailing: true },
     ),
   );
@@ -151,7 +151,7 @@ export const InstrumentTester = ({
         instrument: omit(currentInstrumentRef.current.instrument, ignoreFields),
       };
       if (!isEqual(before, after)) {
-        throttledTestInstrumentRef.current();
+        debouncedTestInstrumentRef.current();
       }
     }
 
@@ -166,9 +166,9 @@ export const InstrumentTester = ({
   ]);
 
   useEffect(() => {
-    const throttled = throttledTestInstrumentRef.current;
+    const debounced = debouncedTestInstrumentRef.current;
     return () => {
-      throttled.cancel();
+      debounced.cancel();
     };
   }, []);
 

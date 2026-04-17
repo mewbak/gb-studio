@@ -88,7 +88,9 @@ const SongEditorToolsPanel = ({ musicAsset }: SongEditorToolsPanelProps) => {
   );
 
   const modified = useAppSelector((state) => state.tracker.modified);
-  const song = useAppSelector((state) => state.trackerDocument.present.song);
+  const hasSong = useAppSelector(
+    (state) => !!state.trackerDocument.present.song,
+  );
   const midiState = useMusicMidiState();
 
   const view = useAppSelector((state) => state.tracker.view);
@@ -297,14 +299,14 @@ const SongEditorToolsPanel = ({ musicAsset }: SongEditorToolsPanelProps) => {
 
   const prevExporting = useRef(exporting);
   useEffect(() => {
-    if (!song || !playerReady) {
+    if (!hasSong || !playerReady) {
       setShowExportPanel(false);
     }
     if (!exporting && prevExporting.current) {
       setShowExportPanel(false);
     }
     prevExporting.current = exporting;
-  }, [song, playerReady, exporting]);
+  }, [hasSong, playerReady, exporting]);
 
   return (
     <SongToolsPanel>
@@ -402,7 +404,7 @@ const SongEditorToolsPanel = ({ musicAsset }: SongEditorToolsPanelProps) => {
         <ExportButtonWrapper>
           <Button
             variant="transparent"
-            disabled={!song || !playerReady || exporting}
+            disabled={!hasSong || !playerReady || exporting}
             title={l10n("TOOLBAR_EXPORT_AS")}
             onClick={onOpenExportPanel}
             active={showExportPanel}

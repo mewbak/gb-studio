@@ -56,8 +56,8 @@ export const MusicWebChannelsBar = ({
   const selectedChannel = useAppSelector(
     (state) => state.tracker.selectedChannel,
   );
-  const selectedPatternCells = useAppSelector(
-    (state) => state.tracker.selectedPatternCells,
+  const selectedPatternCellsLength = useAppSelector(
+    (state) => state.tracker.selectedPatternCells.length,
   );
 
   const channelStatus = useAppSelector((state) => state.tracker.channelStatus);
@@ -102,8 +102,8 @@ export const MusicWebChannelsBar = ({
       <StyledMobileToolbarDivider />
 
       <StyledMobileToolbarButton
-        $isAvailable={selectedPatternCells.length > 0}
-        onClick={selectedPatternCells.length > 0 ? onOpenFX : undefined}
+        $isAvailable={selectedPatternCellsLength > 0}
+        onClick={selectedPatternCellsLength > 0 ? onOpenFX : undefined}
       >
         <FXIcon />
       </StyledMobileToolbarButton>

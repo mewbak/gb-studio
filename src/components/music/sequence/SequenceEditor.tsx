@@ -30,8 +30,6 @@ interface SequenceOption {
   shortLabel: string;
 }
 interface SequenceEditorProps {
-  sequence: number[];
-  patterns: number;
   height?: number;
   direction: "vertical" | "horizontal";
 }
@@ -147,13 +145,18 @@ const SequenceItem = ({
   );
 };
 
-const SequenceEditorFwd = ({
-  sequence,
-  patterns,
-  height,
-  direction,
-}: SequenceEditorProps) => {
+const emptySequence: number[] = [];
+
+const SequenceEditorFwd = ({ height, direction }: SequenceEditorProps) => {
   const dispatch = useAppDispatch();
+
+  const sequence = useAppSelector(
+    (state) => state.trackerDocument.present.song?.sequence ?? emptySequence,
+  );
+
+  const patterns = useAppSelector(
+    (state) => state.trackerDocument.present.song?.patterns.length ?? 0,
+  );
 
   const [selectHasFocus, setSelectHasFocus] = useState(false);
   const sequenceId = useAppSelector((state) => state.tracker.selectedSequence);

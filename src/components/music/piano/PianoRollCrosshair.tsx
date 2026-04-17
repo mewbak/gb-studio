@@ -5,26 +5,26 @@ import {
   StyledPianoRollCrosshairVertical,
 } from "./style";
 import { PIANO_ROLL_CELL_SIZE, TOTAL_NOTES } from "consts";
+import { useAppSelector } from "store/hooks";
 
 interface PianoRollCrosshairProps {
-  hoverColumn: number | null;
-  hoverRow: number | null;
   isSequenceHovered: boolean;
 }
 
 export const PianoRollCrosshair = ({
-  hoverColumn,
-  hoverRow,
   isSequenceHovered,
 }: PianoRollCrosshairProps) => {
-  if (hoverColumn === null || hoverRow == null) {
+  const hoverNote = useAppSelector((state) => state.tracker.hoverNote);
+  const hoverColumn = useAppSelector((state) => state.tracker.hoverColumn);
+
+  if (hoverColumn === null || hoverNote == null) {
     return null;
   }
   return (
     <StyledPianoRollCrosshair>
       <StyledPianoRollCrosshairHorizontal
         style={{
-          top: (TOTAL_NOTES - hoverRow - 1) * PIANO_ROLL_CELL_SIZE,
+          top: (TOTAL_NOTES - hoverNote - 1) * PIANO_ROLL_CELL_SIZE,
         }}
       />
       {isSequenceHovered && (

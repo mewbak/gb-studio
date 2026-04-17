@@ -30,7 +30,21 @@ import { musicSelectors } from "store/features/entities/entitiesState";
 export const SongMetadataEditor = () => {
   const dispatch = useAppDispatch();
 
-  const song = useAppSelector((state) => state.trackerDocument.present.song);
+  const hasSong = useAppSelector(
+    (state) => !!state.trackerDocument.present.song,
+  );
+
+  const songName = useAppSelector(
+    (state) => state.trackerDocument.present.song?.name ?? "",
+  );
+
+  const songArtist = useAppSelector(
+    (state) => state.trackerDocument.present.song?.artist ?? "",
+  );
+
+  const ticksPerRow = useAppSelector(
+    (state) => state.trackerDocument.present.song?.ticks_per_row ?? 0,
+  );
 
   const selectedSongId = useAppSelector(
     (state) => state.tracker.selectedSongId,
@@ -109,7 +123,7 @@ export const SongMetadataEditor = () => {
     [],
   );
 
-  if (!song || !musicAsset) {
+  if (!hasSong || !musicAsset) {
     return null;
   }
 
@@ -140,7 +154,7 @@ export const SongMetadataEditor = () => {
                 id="name"
                 name="name"
                 placeholder={l10n("FIELD_SONG")}
-                value={song?.name}
+                value={songName}
                 onChange={onChangeName}
                 autoComplete="off"
               />
@@ -152,7 +166,7 @@ export const SongMetadataEditor = () => {
                 id="artist"
                 name="artist"
                 placeholder={l10n("FIELD_ARTIST")}
-                value={song?.artist}
+                value={songArtist}
                 onChange={onChangeArtist}
                 autoComplete="off"
               />
@@ -171,7 +185,7 @@ export const SongMetadataEditor = () => {
                 id="ticks_per_row"
                 name="ticks_per_row"
                 type="number"
-                value={song?.ticks_per_row}
+                value={ticksPerRow}
                 min={1}
                 max={20}
                 placeholder="1"
@@ -184,7 +198,7 @@ export const SongMetadataEditor = () => {
                   htmlFor="ticks_per_row"
                   style={{ minWidth: 70, justifyContent: "flex-end" }}
                 >
-                  ~{Math.round(getBPM(song.ticks_per_row))} BPM
+                  ~{Math.round(getBPM(ticksPerRow))} BPM
                 </InputGroupLabel>
               </InputGroupAppend>
             </InputGroup>

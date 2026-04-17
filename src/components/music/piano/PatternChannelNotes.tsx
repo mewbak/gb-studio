@@ -36,7 +36,8 @@ export const PatternChannelNotes = React.memo(
           const cell = row[channelId];
           if (!cell || cell.note === null) return null;
 
-          const isSelected = isActive && (selectedRowIds?.has(rowIndex) ?? false);
+          const isSelected =
+            isActive && (selectedRowIds?.has(rowIndex) ?? false);
 
           if (cell.instrument !== null) {
             instrument = cell.instrument;

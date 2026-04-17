@@ -1,9 +1,9 @@
 import React, { useCallback, useRef } from "react";
 import { StyledPianoKeyboard, StyledPianoKey } from "./style";
 import { MAX_OCTAVE, TOTAL_OCTAVES } from "consts";
+import { useAppSelector } from "store/hooks";
 
 interface PianoKeyboardProps {
-  hoverNote: number | null;
   onPlayNote: (noteIndex: number) => void;
 }
 
@@ -27,10 +27,9 @@ const notes = [
 const blackNotes = ["A#", "G#", "F#", "D#", "C#"];
 const tallNotes = ["A", "G", "D"];
 
-export const PianoKeyboard = ({
-  hoverNote,
-  onPlayNote,
-}: PianoKeyboardProps) => {
+export const PianoKeyboard = ({ onPlayNote }: PianoKeyboardProps) => {
+  const hoverNote = useAppSelector((state) => state.tracker.hoverNote);
+
   const keyboardRef = useRef<HTMLDivElement | null>(null);
   const activeTouchesRef = useRef(new Map<number, number | null>());
 

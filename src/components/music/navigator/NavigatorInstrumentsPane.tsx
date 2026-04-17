@@ -78,6 +78,16 @@ const emptyDutyInstruments: DutyInstrument[] = [];
 const emptyWaveInstruments: WaveInstrument[] = [];
 const emptyNoiseInstruments: NoiseInstrument[] = [];
 
+const isInstrumentListEqual = (
+  a: Array<{ name?: string }>,
+  b: Array<{ name?: string }>,
+): boolean => {
+  if (a.length !== b.length) {
+    return false;
+  }
+  return a.every((aItem, index) => aItem.name === b[index].name);
+};
+
 export const NavigatorInstrumentsPane = ({
   height,
   onToggle,
@@ -85,22 +95,25 @@ export const NavigatorInstrumentsPane = ({
   const dispatch = useAppDispatch();
   const playPreview = useMusicNotePreview();
 
-  const dutyInstruments = useAppSelector(
+  const dutyInstruments = useAppSelector<DutyInstrument[]>(
     (state) =>
       state.trackerDocument.present.song?.duty_instruments ??
       emptyDutyInstruments,
+    isInstrumentListEqual,
   );
 
-  const waveInstruments = useAppSelector(
+  const waveInstruments = useAppSelector<WaveInstrument[]>(
     (state) =>
       state.trackerDocument.present.song?.wave_instruments ??
       emptyWaveInstruments,
+    isInstrumentListEqual,
   );
 
-  const noiseInstruments = useAppSelector(
+  const noiseInstruments = useAppSelector<NoiseInstrument[]>(
     (state) =>
       state.trackerDocument.present.song?.noise_instruments ??
       emptyNoiseInstruments,
+    isInstrumentListEqual,
   );
 
   const selectedInstrument = useAppSelector(

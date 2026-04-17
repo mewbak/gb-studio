@@ -106,10 +106,6 @@ const StandaloneMusicPage = ({
     [allSongs],
   );
 
-  const songDocument = useAppSelector(
-    (state) => state.trackerDocument.present.song,
-  );
-
   const selectedSongId = useAppSelector(
     (state) => state.tracker.selectedSongId,
   );
@@ -391,12 +387,8 @@ const StandaloneMusicPage = ({
                 </SplitPaneHeader>
 
                 {patternsPanelOpen &&
-                  (status === "loaded" && songDocument ? (
-                    <SequenceEditor
-                      direction="horizontal"
-                      sequence={songDocument.sequence}
-                      patterns={songDocument.patterns.length}
-                    />
+                  (status === "loaded" ? (
+                    <SequenceEditor direction="horizontal" />
                   ) : (
                     <div
                       style={{
@@ -409,7 +401,7 @@ const StandaloneMusicPage = ({
             )}
           </div>
 
-          {isCompactLayout && (
+          {isCompactLayout && status === "loaded" && (
             <>
               <MobileOverlay
                 open={mobileOverlayView === "instrument"}
@@ -462,13 +454,7 @@ const StandaloneMusicPage = ({
                   setMobileOverlayView("none");
                 }}
               >
-                {songDocument && (
-                  <SequenceEditor
-                    direction="vertical"
-                    sequence={songDocument.sequence}
-                    patterns={songDocument.patterns.length}
-                  />
-                )}
+                <SequenceEditor direction="vertical" />
               </MobileOverlay>
 
               <MobileOverlay

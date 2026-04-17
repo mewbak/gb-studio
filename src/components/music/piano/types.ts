@@ -102,11 +102,3 @@ export type InteractionState =
       modifiers: PointerModifiers;
       box: SelectionBox;
     };
-
-export type DragPreviewState =
-  | { type: "idle" }
-  | {
-      type: "dragging";
-      clone: boolean;
-      delta: DragDelta;
-    };

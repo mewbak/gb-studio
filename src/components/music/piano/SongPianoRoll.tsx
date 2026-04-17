@@ -16,7 +16,6 @@ import {
   StyledPianoRollScrollHeaderFooterSpacer,
   StyledPianoRollScrollWrapper,
   StyledPianoRollPatternsWrapper,
-  StyledPianoRollNote,
   StyledPianoRollScrollLeftFXSpacer,
   StyledAddPatternButton,
   StyledAddPatternWrapper,
@@ -36,7 +35,6 @@ import clamp from "shared/lib/helpers/clamp";
 import trackerActions from "store/features/tracker/trackerActions";
 import API from "renderer/lib/api";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
-import { NO_CHANGE_ON_PASTE } from "shared/lib/uge/clipboard";
 import {
   calculateDocumentWidth,
   calculatePlaybackTrackerPosition,
@@ -64,26 +62,31 @@ import { PatternCellAddress } from "shared/lib/uge/editor/types";
 import { useMusicNotePreview } from "components/music/hooks/useMusicNotePreview";
 import {
   BlurableDOMElement,
-  DragPreviewState,
   InteractionState,
   PointerModifiers,
   SelectionRect,
   TwoFingerTapState,
 } from "components/music/piano/types";
 import { FixedSpacer } from "ui/spacing/Spacing";
-import { wrapNote } from "shared/lib/uge/display";
 import { PianoRollPlaybackController } from "./PianoRollPlaybackController";
 import {
   useMusicMidiNoteSubscription,
   useMusicMidiState,
 } from "components/music/midi/useMusicMidi";
+import {
+  createNoteDragPreviewStore,
+  DragPreviewNotes,
+  PastePreviewNotes,
+} from "components/music/piano/PianoRollNotePreviews";
 
 const TAP_MAX_MOVEMENT = 20;
 const TWO_FINGER_TAP_MAX_DURATION = 300;
 const NOTE_DRAG_MARGIN_PX = 20;
 const DRAG_COMMIT_TAP_MAX_MOVEMENT = 5;
 
-const EMPTY_SELECTED_ROWS_BY_CHANNEL = new Map<number, ReadonlySet<number>>();
+const emptySequence: number[] = [];
+
+const dragPreviewStore = createNoteDragPreviewStore();
 
 export const SongPianoRoll = () => {
   const store = useAppStore();
@@ -100,9 +103,8 @@ export const SongPianoRoll = () => {
 
   const twoFingerTapRef = useRef<TwoFingerTapState>({ type: "idle" });
 
-  const [dragPreviewState, setDragPreviewState] = useState<DragPreviewState>({
-    type: "idle",
-  });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragClone, setDragClone] = useState(false);
 
   const [selectionRect, setSelectionRect] = useState<
     SelectionRect | undefined
@@ -136,14 +138,8 @@ export const SongPianoRoll = () => {
 
   // Redux State
 
-  const song = useAppSelector((state) => state.trackerDocument.present.song);
-  const hoverNote = useAppSelector((state) => state.tracker.hoverNote);
-  const hoverColumn = useAppSelector((state) => state.tracker.hoverColumn);
-  const hoverSequenceId = useAppSelector(
-    (state) => state.tracker.hoverSequence,
-  );
-  const selectedPatternCells = useAppSelector(
-    (state) => state.tracker.selectedPatternCells,
+  const sequence = useAppSelector(
+    (state) => state.trackerDocument.present.song?.sequence ?? emptySequence,
   );
 
   const subpatternEditorFocus = useAppSelector(
@@ -170,10 +166,11 @@ export const SongPianoRoll = () => {
     (state) => state.tracker.selectedInstrumentId,
   );
 
-  const documentWidth = song?.sequence
-    ? calculateDocumentWidth(song.sequence.length) + 100
-    : 0;
-  const totalAbsRows = (song?.sequence.length ?? 0) * TRACKER_PATTERN_LENGTH;
+  const documentWidth = useMemo(
+    () => calculateDocumentWidth(sequence.length) + 100,
+    [sequence.length],
+  );
+  const totalAbsRows = (sequence.length ?? 0) * TRACKER_PATTERN_LENGTH;
 
   const playing = useAppSelector((state) => state.tracker.playing);
 
@@ -183,30 +180,14 @@ export const SongPianoRoll = () => {
 
   // Stable refs to access latest data within callbacks
   // without causing them to be regenerated on data changes
-  const songRef = useRef(song);
-  const hoverNoteRef = useRef(hoverNote);
-  const hoverColumnRef = useRef(hoverColumn);
-  const hoverSequenceIdRef = useRef(hoverSequenceId);
-  const selectedPatternCellsRef = useRef(selectedPatternCells);
+
   const lastSelectedSequenceId = useRef(selectedSequenceId);
   const playingRef = useRef(playing);
 
   // Sync refs to contain latest data on changes
   useEffect(() => {
-    songRef.current = song;
-    hoverNoteRef.current = hoverNote;
-    hoverColumnRef.current = hoverColumn;
-    hoverSequenceIdRef.current = hoverSequenceId;
-    selectedPatternCellsRef.current = selectedPatternCells;
     playingRef.current = playing;
-  }, [
-    song,
-    hoverNote,
-    hoverColumn,
-    hoverSequenceId,
-    selectedPatternCells,
-    playing,
-  ]);
+  }, [playing]);
 
   // Cached State
 
@@ -218,136 +199,6 @@ export const SongPianoRoll = () => {
       ].reverse(),
     [selectedChannel, visibleChannels],
   );
-
-  const pastePreviewNotes = useMemo(() => {
-    if (
-      !pastedPattern ||
-      hoverColumn === null ||
-      hoverNote === null ||
-      hoverSequenceId === null
-    ) {
-      return [];
-    }
-    const hoverAbsRow = hoverSequenceId * TRACKER_PATTERN_LENGTH + hoverColumn;
-    let noteOffset: number | undefined = undefined;
-    const notes: {
-      key: string;
-      left: number;
-      top: number;
-      instrument: number;
-    }[] = [];
-    for (let offset = 0; offset < pastedPattern.length; offset++) {
-      const cell = pastedPattern[offset][0];
-      if (cell.note === null || cell.note === NO_CHANGE_ON_PASTE) continue;
-      if (noteOffset === undefined) noteOffset = hoverNote - cell.note;
-      const targetAbsRow = hoverAbsRow + offset;
-      if (targetAbsRow < 0 || targetAbsRow >= totalAbsRows) continue;
-      const targetNote = wrapNote(cell.note + noteOffset);
-      const targetRow = noteToRow(targetNote);
-      notes.push({
-        key: `${offset}`,
-        left: targetAbsRow * PIANO_ROLL_CELL_SIZE,
-        top: targetRow * PIANO_ROLL_CELL_SIZE,
-        instrument: cell.instrument ?? 0,
-      });
-    }
-    return notes;
-  }, [pastedPattern, hoverColumn, hoverNote, hoverSequenceId, totalAbsRows]);
-
-  const previewNotes = useMemo(() => {
-    if (dragPreviewState.type !== "dragging") {
-      return [];
-    }
-
-    const song = songRef.current;
-    if (!song) {
-      return [];
-    }
-
-    return selectedPatternCells
-      .map((sourceCellAddress) => {
-        const sourcePatternId = song.sequence[sourceCellAddress.sequenceId];
-        if (sourcePatternId === undefined) {
-          return null;
-        }
-
-        const sourceCell =
-          song.patterns[sourcePatternId]?.[sourceCellAddress.rowId]?.[
-            sourceCellAddress.channelId
-          ];
-
-        if (!sourceCell || sourceCell.note === null) {
-          return null;
-        }
-
-        const sourceAbsRow = toAbsRow(
-          sourceCellAddress.sequenceId,
-          sourceCellAddress.rowId,
-        );
-        const targetAbsRow = sourceAbsRow + dragPreviewState.delta.rows;
-
-        if (targetAbsRow < 0 || targetAbsRow >= totalAbsRows) {
-          return null;
-        }
-
-        const targetNote = wrapNote(
-          sourceCell.note + dragPreviewState.delta.notes,
-        );
-        const targetRow = noteToRow(targetNote);
-
-        return {
-          key: `${sourceCellAddress.sequenceId}:${sourceCellAddress.rowId}:${sourceCellAddress.channelId}`,
-          left: targetAbsRow * PIANO_ROLL_CELL_SIZE,
-          top: targetRow * PIANO_ROLL_CELL_SIZE,
-          instrument: sourceCell.instrument ?? 0,
-        };
-      })
-      .filter(
-        (
-          note,
-        ): note is {
-          key: string;
-          left: number;
-          top: number;
-          instrument: number;
-        } => note !== null,
-      );
-  }, [selectedPatternCells, totalAbsRows, dragPreviewState]);
-
-  const selectedRowsBySequence = useMemo(() => {
-    const next = new Map<number, Map<number, Set<number>>>();
-
-    for (const cell of selectedPatternCells) {
-      let rowsByChannel = next.get(cell.sequenceId);
-      if (!rowsByChannel) {
-        rowsByChannel = new Map<number, Set<number>>();
-        next.set(cell.sequenceId, rowsByChannel);
-      }
-
-      let selectedRows = rowsByChannel.get(cell.channelId);
-      if (!selectedRows) {
-        selectedRows = new Set<number>();
-        rowsByChannel.set(cell.channelId, selectedRows);
-      }
-
-      selectedRows.add(cell.rowId);
-    }
-
-    return next;
-  }, [selectedPatternCells]);
-
-  // If selected pattern cells contains any cells outside of currently
-  // selected channel, filter the selection to only include channel cells
-  useEffect(() => {
-    const channelSelectedPatternCells = selectedPatternCells.filter(
-      (cell) => cell.channelId === selectedChannel,
-    );
-    if (channelSelectedPatternCells.length !== selectedPatternCells.length) {
-      dispatch(
-        trackerActions.setSelectedPatternCells(channelSelectedPatternCells),
-      );
-    }
-  }, [dispatch, selectedPatternCells, selectedChannel]);
 
   // #region Helpers
 
@@ -381,7 +232,8 @@ export const SongPianoRoll = () => {
       selectedPatternCells: PatternCellAddress[],
       nextSelectionRect: SelectionRect,
     ) => {
-      const song = songRef.current;
+      const state = store.getState();
+      const song = state.trackerDocument.present.song;
       if (!song) {
         return [];
       }
@@ -445,7 +297,7 @@ export const SongPianoRoll = () => {
             : a.channelId - b.channelId,
       );
     },
-    [selectedChannel],
+    [store, selectedChannel],
   );
 
   const findNearbySelectedCell = useCallback(
@@ -454,16 +306,18 @@ export const SongPianoRoll = () => {
         return undefined;
       }
 
+      const state = store.getState();
+
       const rect = documentRef.current.getBoundingClientRect();
       const localX = clientX - rect.left;
       const localY = clientY - rect.top;
 
-      const song = songRef.current;
+      const song = state.trackerDocument.present.song;
       if (!song) {
         return undefined;
       }
 
-      const selectedCells = selectedPatternCellsRef.current;
+      const selectedCells = state.tracker.selectedPatternCells;
 
       for (const selectedCell of selectedCells) {
         if (selectedCell.channelId !== selectedChannel) {
@@ -496,12 +350,13 @@ export const SongPianoRoll = () => {
 
       return undefined;
     },
-    [selectedChannel],
+    [store, selectedChannel],
   );
 
   const calculatePositionFromClientPoint = useCallback(
     (clientX: number, clientY: number) => {
-      const song = songRef.current;
+      const state = store.getState();
+      const song = state.trackerDocument.present.song;
 
       if (!documentRef.current || !song) {
         return {
@@ -536,18 +391,21 @@ export const SongPianoRoll = () => {
         sequenceId: resolved.sequenceId,
       };
     },
-    [totalAbsRows],
+    [store, totalAbsRows],
   );
 
   const resetPointerPreviewState = useCallback(() => {
     setSelectionRect(undefined);
-    setDragPreviewState({ type: "idle" });
+    setIsDragging(false);
+    setDragClone(false);
+    dragPreviewStore.reset();
     lastDragPreviewCellRef.current = null;
   }, []);
 
   const selectClickedCell = useCallback(
     (clickedCellAddress: PatternCellAddress, addToSelection: boolean) => {
-      const selectedPatternCells = selectedPatternCellsRef.current;
+      const state = store.getState();
+      const selectedPatternCells = state.tracker.selectedPatternCells;
 
       const isSelected = selectedPatternCells.some(
         (selectedCell) =>
@@ -583,7 +441,7 @@ export const SongPianoRoll = () => {
 
       dispatch(trackerActions.setSelectedPatternCells([clickedCellAddress]));
     },
-    [dispatch],
+    [store, dispatch],
   );
 
   const beginDragNoteInteraction = useCallback(
@@ -627,11 +485,13 @@ export const SongPianoRoll = () => {
       modifiers: PointerModifiers,
       selectedPatternCells: PatternCellAddress[],
     ) => {
+      const state = store.getState();
+
       if (!documentRef.current) {
         return;
       }
 
-      const song = songRef.current;
+      const song = state.trackerDocument.present.song;
       if (!song) {
         return;
       }
@@ -667,12 +527,14 @@ export const SongPianoRoll = () => {
       };
 
       setSelectionRect(newSelectionRect);
-      setDragPreviewState({ type: "idle" });
+      setIsDragging(false);
+      setDragClone(false);
+      dragPreviewStore.reset();
       lastDragPreviewCellRef.current = null;
 
       dispatch(trackerActions.setSelectedPatternCells(newSelectedPatterns));
     },
-    [dispatch, selectCellsInRange],
+    [store, dispatch, selectCellsInRange],
   );
 
   const tryBeginNearbySelectedDrag = useCallback(
@@ -683,13 +545,14 @@ export const SongPianoRoll = () => {
       clientX: number,
       clientY: number,
     ) => {
+      const state = store.getState();
       const nearbySelectedCell = findNearbySelectedCell(clientX, clientY);
 
       if (!nearbySelectedCell) {
         return false;
       }
 
-      const song = songRef.current;
+      const song = state.trackerDocument.present.song;
       if (!song) {
         return false;
       }
@@ -717,7 +580,7 @@ export const SongPianoRoll = () => {
 
       return true;
     },
-    [beginDragNoteInteraction, findNearbySelectedCell],
+    [store, beginDragNoteInteraction, findNearbySelectedCell],
   );
 
   const commitPastedPatternAt = useCallback(
@@ -752,12 +615,15 @@ export const SongPianoRoll = () => {
         select: boolean;
       },
     ) => {
+      const state = store.getState();
+
       const { cellAddress, noteIndex } = args;
       const { sequenceId, rowId, channelId } = cellAddress;
       const shouldPreview = options?.preview ?? true;
       const shouldSelect = options?.select ?? true;
 
-      const patternId = songRef.current?.sequence[sequenceId];
+      const patternId =
+        state.trackerDocument.present.song?.sequence[sequenceId];
 
       if (patternId === undefined) {
         return;
@@ -774,7 +640,8 @@ export const SongPianoRoll = () => {
         }),
       );
 
-      const currentPattern = songRef.current?.patterns[patternId];
+      const currentPattern =
+        state.trackerDocument.present.song?.patterns[patternId];
       const currentCell = currentPattern?.[rowId]?.[channelId];
 
       if (shouldPreview) {
@@ -790,7 +657,7 @@ export const SongPianoRoll = () => {
         dispatch(trackerActions.setSelectedPatternCells([cellAddress]));
       }
     },
-    [dispatch, playPreview, selectedInstrumentId],
+    [store, dispatch, playPreview, selectedInstrumentId],
   );
 
   const tryBeginExistingOrNearbyNoteDrag = useCallback(
@@ -874,25 +741,30 @@ export const SongPianoRoll = () => {
         sequenceId: number | null;
       },
     ) => {
+      const state = store.getState();
+      const hoverColumn = state.tracker.hoverColumn;
+      const hoverSequence = state.tracker.hoverSequence;
+
       dispatch(
         trackerActions.setHover({
           note: noteIndex,
-          column: location?.rowId ?? hoverColumnRef.current,
-          sequenceId: location?.sequenceId ?? hoverSequenceIdRef.current,
+          column: location?.rowId ?? hoverColumn,
+          sequenceId: location?.sequenceId ?? hoverSequence,
         }),
       );
     },
-    [dispatch],
+    [store, dispatch],
   );
 
   const recordMidiNoteAtPlayhead = useCallback(
     (noteIndex: number) => {
-      const currentSong = songRef.current;
+      const state = store.getState();
+      const currentSong = state.trackerDocument.present.song;
+
       if (!currentSong) {
         return false;
       }
 
-      const state = store.getState();
       const playbackPosition = state.tracker.playbackPosition;
 
       const targetPosition = {
@@ -924,20 +796,23 @@ export const SongPianoRoll = () => {
 
   const transposeSelectedPianoNote = useCallback(
     (noteIndex: number) => {
-      if (selectedPatternCellsRef.current.length !== 1) {
+      const state = store.getState();
+      const selectedPatternCells = state.tracker.selectedPatternCells;
+
+      if (selectedPatternCells.length !== 1) {
         return;
       }
 
       dispatch(
         trackerDocumentActions.editPatternCells({
-          patternCells: selectedPatternCellsRef.current,
+          patternCells: selectedPatternCells,
           changes: {
             note: noteIndex,
           },
         }),
       );
     },
-    [dispatch],
+    [store, dispatch],
   );
 
   const onPianoNote = useCallback(
@@ -1004,14 +879,16 @@ export const SongPianoRoll = () => {
     (e: React.MouseEvent<HTMLButtonElement>) => {
       e.preventDefault();
       e.stopPropagation();
+      const state = store.getState();
+      const song = state.trackerDocument.present.song;
       dispatch(
         trackerDocumentActions.insertSequence({
-          sequenceIndex: songRef.current?.sequence.length ?? 0,
+          sequenceIndex: song?.sequence.length ?? 0,
           position: "after",
         }),
       );
     },
-    [dispatch],
+    [store, dispatch],
   );
 
   const onJumpToSongStart = useCallback(() => {
@@ -1027,6 +904,8 @@ export const SongPianoRoll = () => {
   // #region SelectAll Event Handlers
 
   const onSelectAll = useCallback(() => {
+    const state = store.getState();
+
     window.getSelection()?.empty();
 
     if (lastSelectAllTimeRef.current + 100 > Date.now()) {
@@ -1034,13 +913,14 @@ export const SongPianoRoll = () => {
     }
     lastSelectAllTimeRef.current = Date.now();
 
-    const song = songRef.current;
+    const song = state.trackerDocument.present.song;
     if (!song) {
       return;
     }
 
     const sequenceId = lastSelectedSequenceId.current;
-    const selectedPatternCells = selectedPatternCellsRef.current;
+
+    const selectedPatternCells = state.tracker.selectedPatternCells;
 
     if (selectedPatternCells.length <= 1) {
       const selectSequenceId =
@@ -1085,7 +965,7 @@ export const SongPianoRoll = () => {
     if (el && el.blur) {
       el.blur();
     }
-  }, [dispatch, selectedChannel]);
+  }, [store, dispatch, selectedChannel]);
 
   // Attach selectAll listeners
   useEffect(() => {
@@ -1152,11 +1032,14 @@ export const SongPianoRoll = () => {
         return;
       }
 
+      const state = store.getState();
+      const selectedPatternCells = state.tracker.selectedPatternCells;
+
       if (e.ctrlKey && e.shiftKey) {
         if (e.code === "KeyQ") {
           dispatch(
             trackerDocumentActions.transposeAbsoluteCells({
-              patternCells: selectedPatternCellsRef.current,
+              patternCells: selectedPatternCells,
               direction: "up",
               size: "octave",
             }),
@@ -1167,7 +1050,7 @@ export const SongPianoRoll = () => {
         if (e.code === "KeyA") {
           dispatch(
             trackerDocumentActions.transposeAbsoluteCells({
-              patternCells: selectedPatternCellsRef.current,
+              patternCells: selectedPatternCells,
               direction: "down",
               size: "octave",
             }),
@@ -1178,7 +1061,7 @@ export const SongPianoRoll = () => {
         if (e.code === "KeyQ") {
           dispatch(
             trackerDocumentActions.transposeAbsoluteCells({
-              patternCells: selectedPatternCellsRef.current,
+              patternCells: selectedPatternCells,
               direction: "up",
               size: "note",
             }),
@@ -1189,7 +1072,7 @@ export const SongPianoRoll = () => {
         if (e.code === "KeyA") {
           dispatch(
             trackerDocumentActions.transposeAbsoluteCells({
-              patternCells: selectedPatternCellsRef.current,
+              patternCells: selectedPatternCells,
               direction: "down",
               size: "note",
             }),
@@ -1200,7 +1083,7 @@ export const SongPianoRoll = () => {
         if (e.code === "KeyI") {
           dispatch(
             trackerDocumentActions.changeInstrumentAbsoluteCells({
-              patternCells: selectedPatternCellsRef.current,
+              patternCells: selectedPatternCells,
               instrumentId: selectedInstrumentId,
             }),
           );
@@ -1210,7 +1093,7 @@ export const SongPianoRoll = () => {
         if (e.code === "KeyK") {
           dispatch(
             trackerDocumentActions.interpolateAbsoluteCells({
-              patternCells: selectedPatternCellsRef.current,
+              patternCells: selectedPatternCells,
             }),
           );
           return;
@@ -1224,7 +1107,7 @@ export const SongPianoRoll = () => {
       if (e.code === "Equal") {
         dispatch(
           trackerDocumentActions.transposeAbsoluteCells({
-            patternCells: selectedPatternCellsRef.current,
+            patternCells: selectedPatternCells,
             direction: "up",
             size: e.shiftKey ? "octave" : "note",
           }),
@@ -1235,7 +1118,7 @@ export const SongPianoRoll = () => {
       if (e.code === "Minus") {
         dispatch(
           trackerDocumentActions.transposeAbsoluteCells({
-            patternCells: selectedPatternCellsRef.current,
+            patternCells: selectedPatternCells,
             direction: "down",
             size: e.shiftKey ? "octave" : "note",
           }),
@@ -1244,13 +1127,13 @@ export const SongPianoRoll = () => {
       }
 
       if (e.key === "Backspace" || e.key === "Delete") {
-        if (selectedPatternCellsRef.current.length === 0) {
+        if (selectedPatternCells.length === 0) {
           return;
         }
 
         dispatch(
           trackerDocumentActions.clearAbsoluteCells({
-            patternCells: selectedPatternCellsRef.current,
+            patternCells: selectedPatternCells,
           }),
         );
         dispatch(trackerActions.setSelectedPatternCells([]));
@@ -1268,12 +1151,14 @@ export const SongPianoRoll = () => {
 
         lastDragPreviewCellRef.current = null;
         setSelectionRect(undefined);
-        setDragPreviewState({ type: "idle" });
+        setIsDragging(false);
+        setDragClone(false);
+        dragPreviewStore.reset();
         dispatch(trackerActions.setSelectedPatternCells([]));
         dispatch(trackerActions.clearPastedPattern());
       }
     },
-    [dispatch, selectedInstrumentId],
+    [store, dispatch, selectedInstrumentId],
   );
 
   const handleKeyUp = useCallback((e: KeyboardEvent) => {
@@ -1305,13 +1190,16 @@ export const SongPianoRoll = () => {
       if (!(e.target instanceof HTMLElement)) return;
       if (e.target.nodeName === "INPUT") return;
 
+      const state = store.getState();
+      const selectedPatternCells = state.tracker.selectedPatternCells;
+
       dispatch(
         trackerDocumentActions.copyAbsoluteCells({
-          patternCells: selectedPatternCellsRef.current,
+          patternCells: selectedPatternCells,
         }),
       );
     },
-    [dispatch],
+    [store, dispatch],
   );
 
   const onCut = useCallback(
@@ -1319,13 +1207,16 @@ export const SongPianoRoll = () => {
       if (!(e.target instanceof HTMLElement)) return;
       if (e.target.nodeName === "INPUT") return;
 
+      const state = store.getState();
+      const selectedPatternCells = state.tracker.selectedPatternCells;
+
       dispatch(
         trackerDocumentActions.cutAbsoluteCells({
-          patternCells: selectedPatternCellsRef.current,
+          patternCells: selectedPatternCells,
         }),
       );
     },
-    [dispatch],
+    [store, dispatch],
   );
 
   const onPaste = useCallback(() => {
@@ -1556,7 +1447,8 @@ export const SongPianoRoll = () => {
         ctx;
 
       const isTouch = e.pointerType === "touch";
-      const selectedPatternCells = selectedPatternCellsRef.current;
+      const state = store.getState();
+      const selectedPatternCells = state.tracker.selectedPatternCells;
       const absRow = toAbsRow(sequenceId, patternRow);
 
       const clickedCellAddress: PatternCellAddress = {
@@ -1628,10 +1520,13 @@ export const SongPianoRoll = () => {
         },
       };
 
-      setDragPreviewState({ type: "idle" });
+      setIsDragging(false);
+      setDragClone(false);
+      dragPreviewStore.reset();
       lastDragPreviewCellRef.current = `${absRow}:${noteIndex}`;
     },
     [
+      store,
       dispatch,
       selectedChannel,
       tryBeginExistingOrNearbyNoteDrag,
@@ -1693,7 +1588,9 @@ export const SongPianoRoll = () => {
         },
       };
 
-      setDragPreviewState({ type: "idle" });
+      setIsDragging(false);
+      setDragClone(false);
+      dragPreviewStore.reset();
       lastDragPreviewCellRef.current = null;
       stopTouch(e);
       return;
@@ -1713,7 +1610,9 @@ export const SongPianoRoll = () => {
       },
     ) => {
       const { cell, noteIndex, patternRow, sequenceId, modifiers } = ctx;
-      const selectedPatternCells = selectedPatternCellsRef.current;
+
+      const state = store.getState();
+      const selectedPatternCells = state.tracker.selectedPatternCells;
 
       const startedDrag = tryBeginExistingOrNearbyNoteDrag({
         cell,
@@ -1740,7 +1639,12 @@ export const SongPianoRoll = () => {
 
       stopTouch(e);
     },
-    [beginSelectionBoxInteraction, stopTouch, tryBeginExistingOrNearbyNoteDrag],
+    [
+      store,
+      beginSelectionBoxInteraction,
+      stopTouch,
+      tryBeginExistingOrNearbyNoteDrag,
+    ],
   );
 
   const handlePendingNoteMove = useCallback(
@@ -1776,14 +1680,18 @@ export const SongPianoRoll = () => {
         modifiers: PointerModifiers;
       },
     ) => {
-      if (selectedPatternCellsRef.current.length === 0) {
+      const state = store.getState();
+
+      const selectedPatternCells = state.tracker.selectedPatternCells;
+
+      if (selectedPatternCells.length === 0) {
         stopTouch(e);
         return;
       }
 
       const { noteIndex, sequenceId, patternRow, modifiers } = ctx;
 
-      const song = songRef.current;
+      const song = state.trackerDocument.present.song;
       if (!song) {
         return;
       }
@@ -1803,10 +1711,11 @@ export const SongPianoRoll = () => {
           delta: nextDragDelta,
         };
 
-        setDragPreviewState({
-          type: "dragging",
-          clone: modifiers.clone,
-          delta: nextDragDelta,
+        setIsDragging(true);
+        setDragClone(modifiers.clone);
+        dragPreviewStore.setSnapshot({
+          rowDelta: nextDragDelta.rows,
+          noteDelta: nextDragDelta.notes,
         });
 
         const previewCellId = `${absRow}:${noteIndex}`;
@@ -1843,7 +1752,7 @@ export const SongPianoRoll = () => {
 
       stopTouch(e);
     },
-    [dispatch, playPreview, selectedChannel, stopTouch],
+    [store, dispatch, playPreview, selectedChannel, stopTouch],
   );
 
   const handlePaintNoteMove = useCallback(
@@ -1856,9 +1765,11 @@ export const SongPianoRoll = () => {
         sequenceId: number;
       },
     ) => {
+      const state = store.getState();
+
       const { noteIndex, sequenceId, patternRow } = ctx;
 
-      const song = songRef.current;
+      const song = state.trackerDocument.present.song;
       if (!song) {
         return;
       }
@@ -1919,7 +1830,14 @@ export const SongPianoRoll = () => {
 
       stopTouch(e);
     },
-    [dispatch, playPreview, selectedChannel, selectedInstrumentId, stopTouch],
+    [
+      store,
+      dispatch,
+      playPreview,
+      selectedChannel,
+      selectedInstrumentId,
+      stopTouch,
+    ],
   );
 
   const handleEraserMove = useCallback(
@@ -1969,12 +1887,14 @@ export const SongPianoRoll = () => {
       e: PointerEvent,
       interaction: Extract<InteractionState, { type: "selectionBox" }>,
     ) => {
+      const state = store.getState();
+
       if (!documentRef.current) {
         stopTouch(e);
         return;
       }
 
-      const song = songRef.current;
+      const song = state.trackerDocument.present.song;
       if (!song) {
         return;
       }
@@ -2018,10 +1938,10 @@ export const SongPianoRoll = () => {
 
         setSelectionRect(nextSelectionRect);
 
+        const selectedPatternCells = state.tracker.selectedPatternCells;
+
         const selectedCells = selectCellsInRange(
-          interaction.modifiers.addToSelection
-            ? selectedPatternCellsRef.current
-            : [],
+          interaction.modifiers.addToSelection ? selectedPatternCells : [],
           nextSelectionRect,
         );
 
@@ -2030,7 +1950,7 @@ export const SongPianoRoll = () => {
 
       stopTouch(e);
     },
-    [dispatch, selectCellsInRange, stopTouch],
+    [store, dispatch, selectCellsInRange, stopTouch],
   );
 
   const handleDragNoteEnd = useCallback(
@@ -2038,7 +1958,8 @@ export const SongPianoRoll = () => {
       e: PointerEvent,
       interaction: Extract<InteractionState, { type: "dragNote" }>,
     ) => {
-      const selectedPatternCells = selectedPatternCellsRef.current;
+      const state = store.getState();
+      const selectedPatternCells = state.tracker.selectedPatternCells;
 
       const hasGridMoved =
         interaction.delta.rows !== 0 || interaction.delta.notes !== 0;
@@ -2073,7 +1994,7 @@ export const SongPianoRoll = () => {
         commitPlacedNote(interaction.clickPlacement);
       }
     },
-    [commitPlacedNote, dispatch],
+    [store, commitPlacedNote, dispatch],
   );
 
   const handlePendingNoteEnd = useCallback(
@@ -2102,6 +2023,8 @@ export const SongPianoRoll = () => {
 
   const onPointerDown = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
+      const state = store.getState();
+
       suppressNextContextMenuRef.current = false;
       updateActivePointer(e);
 
@@ -2134,7 +2057,7 @@ export const SongPianoRoll = () => {
         modifiers,
       };
 
-      const song = songRef.current;
+      const song = state.trackerDocument.present.song;
       if (!song) {
         stopTouch(e);
         return;
@@ -2205,6 +2128,7 @@ export const SongPianoRoll = () => {
       }
     },
     [
+      store,
       calculatePositionFromClientPoint,
       commitPastedPatternAt,
       dispatch,
@@ -2221,6 +2145,8 @@ export const SongPianoRoll = () => {
 
   const onPointerMove = useCallback(
     (e: PointerEvent) => {
+      const state = store.getState();
+
       if (playingRef.current) {
         return;
       }
@@ -2263,11 +2189,15 @@ export const SongPianoRoll = () => {
         return;
       }
 
+      const hoverColumn = state.tracker.hoverColumn;
+      const hoverNote = state.tracker.hoverNote;
+      const hoverSequence = state.tracker.hoverSequence;
+
       if (
         !isTouch &&
-        (noteIndex !== hoverNoteRef.current ||
-          patternRow !== hoverColumnRef.current ||
-          sequenceId !== hoverSequenceIdRef.current)
+        (noteIndex !== hoverNote ||
+          patternRow !== hoverColumn ||
+          sequenceId !== hoverSequence)
       ) {
         if (scrollRef.current) {
           const rect = scrollRef.current.getBoundingClientRect();
@@ -2293,7 +2223,7 @@ export const SongPianoRoll = () => {
         return;
       }
 
-      const song = songRef.current;
+      const song = state.trackerDocument.present.song;
       if (!song) {
         return;
       }
@@ -2322,6 +2252,7 @@ export const SongPianoRoll = () => {
       }
     },
     [
+      store,
       updateActivePointer,
       handleTwoFingerGestureMove,
       calculatePositionFromClientPoint,
@@ -2338,8 +2269,9 @@ export const SongPianoRoll = () => {
 
   const onPointerEnd = useCallback(
     (e: PointerEvent) => {
+      const state = store.getState();
       const interaction = interactionRef.current;
-      const song = songRef.current;
+      const song = state.trackerDocument.present.song;
 
       try {
         if (!song) {
@@ -2369,11 +2301,13 @@ export const SongPianoRoll = () => {
         };
 
         setSelectionRect(undefined);
-        setDragPreviewState({ type: "idle" });
+        setIsDragging(false);
+        setDragClone(false);
+        dragPreviewStore.reset();
         lastDragPreviewCellRef.current = null;
       }
     },
-    [handleDragNoteEnd],
+    [store, handleDragNoteEnd],
   );
 
   const onPointerUp = useCallback(
@@ -2440,24 +2374,26 @@ export const SongPianoRoll = () => {
 
   // #region Context Menu
 
-  const getSelectionContextMenu = useCallback(
-    () =>
-      renderPianoContextMenu({
-        dispatch,
-        selectedPatternCells,
-        channelId: selectedChannel,
-        selectedInstrumentId,
-      }),
-    [dispatch, selectedPatternCells, selectedChannel, selectedInstrumentId],
-  );
+  const getSelectionContextMenu = useCallback(() => {
+    const state = store.getState();
+    const selectedPatternCells = state.tracker.selectedPatternCells;
+    return renderPianoContextMenu({
+      dispatch,
+      selectedPatternCells,
+      channelId: selectedChannel,
+      selectedInstrumentId,
+    });
+  }, [store, dispatch, selectedChannel, selectedInstrumentId]);
+
+  const getSelectionContextMenuEnabled = useCallback(() => {
+    return !suppressNextContextMenuRef.current;
+  }, []);
 
   const {
     onContextMenu: onSelectionContextMenu,
     contextMenuElement: selectionContextMenuElement,
   } = useContextMenu({
-    getIsEnabled: () => {
-      return !suppressNextContextMenuRef.current;
-    },
+    getIsEnabled: getSelectionContextMenuEnabled,
     getMenu: getSelectionContextMenu,
   });
 
@@ -2523,14 +2459,14 @@ export const SongPianoRoll = () => {
             <PianoRollSequenceBar>
               <PianoRollPlaybackController
                 scrollElement={scrollElement}
-                sequenceLength={song?.sequence.length ?? 0}
+                sequenceLength={sequence.length ?? 0}
               />
             </PianoRollSequenceBar>
             <StyledPianoRollScrollLeftWrapper>
               <StyledPianoRollScrollLeftHeaderSpacer
                 onClick={onJumpToSongStart}
               />
-              <PianoKeyboard hoverNote={hoverNote} onPlayNote={onPianoNote} />
+              <PianoKeyboard onPlayNote={onPianoNote} />
               <StyledPianoRollScrollLeftFXSpacer>
                 <FXIcon />
                 <FixedSpacer width={5} />
@@ -2541,34 +2477,22 @@ export const SongPianoRoll = () => {
               ref={documentRef}
               style={{
                 width: documentWidth,
-                cursor:
-                  dragPreviewState.type === "dragging"
-                    ? dragPreviewState.clone
-                      ? "copy"
-                      : "move"
-                    : "auto",
+                cursor: isDragging ? (dragClone ? "copy" : "move") : "auto",
                 touchAction: tool === "selection" ? "none" : "auto",
               }}
               onContextMenu={onSelectionContextMenu}
               onPointerDown={!playing ? onPointerDown : undefined}
             >
               <StyledPianoRollPatternsWrapper>
-                {song?.sequence.map((p, i) => (
+                {sequence.map((p, i) => (
                   <PianoRollPatternBlock
                     key={`roll_pattern_${i}:${p}`}
-                    pattern={song.patterns[p] ?? []}
+                    patternId={p}
                     sequenceId={i}
                     displayChannels={displayChannels}
-                    isDragging={dragPreviewState.type === "dragging"}
+                    isDragging={isDragging}
                     playing={playing}
                     selectedChannel={selectedChannel}
-                    hoverColumn={hoverColumn}
-                    hoverNote={hoverNote}
-                    hoverSequence={hoverSequenceId}
-                    selectedRowsByChannel={
-                      selectedRowsBySequence.get(i) ??
-                      EMPTY_SELECTED_ROWS_BY_CHANNEL
-                    }
                   />
                 ))}
               </StyledPianoRollPatternsWrapper>
@@ -2588,32 +2512,10 @@ export const SongPianoRoll = () => {
                   <PlusIcon />
                 </StyledAddPatternButton>
               </StyledAddPatternWrapper>
-              {dragPreviewState.type === "dragging" &&
-                previewNotes.map((previewNote) => (
-                  <StyledPianoRollNote
-                    key={`preview_${previewNote.key}`}
-                    $isSelected
-                    $instrument={previewNote.instrument}
-                    style={{
-                      left: previewNote.left,
-                      top: previewNote.top,
-                      zIndex: 2,
-                    }}
-                  />
-                ))}
-              {pastedPattern &&
-                pastePreviewNotes.map((previewNote) => (
-                  <StyledPianoRollNote
-                    key={`paste_preview_${previewNote.key}`}
-                    $isSelected
-                    $instrument={previewNote.instrument}
-                    style={{
-                      left: previewNote.left,
-                      top: previewNote.top,
-                      zIndex: 2,
-                    }}
-                  />
-                ))}
+              {isDragging && (
+                <DragPreviewNotes dragPreviewStore={dragPreviewStore} />
+              )}
+              <PastePreviewNotes />
               {selectionRect && (
                 <Selection
                   style={{
@@ -2629,7 +2531,7 @@ export const SongPianoRoll = () => {
               style={{ minWidth: PIANO_ROLL_PIANO_WIDTH + documentWidth }}
             >
               <StyledPianoRollScrollHeaderFooterSpacer />
-              {song?.sequence.map((p, i) => (
+              {sequence.map((p, i) => (
                 <PianoRollEffectRow
                   key={`roll_pattern_effects_${i}:${p}`}
                   patternId={p}
