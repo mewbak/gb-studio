@@ -16,11 +16,12 @@ let currentSong: Song | null = null;
 let onSongProgressIntervalId: ReturnType<typeof setTimeout> | undefined;
 let romFile: Uint8Array;
 
-let currentSequence = -1;
-let currentRow = -1;
 let isExporting = false;
 let isPlayingSong = false;
 let isPreviewPlaying = false;
+let metronomeEnabled = false;
+let lastMetronomePositionKey: string | null = null;
+let metronomeAudioCtx: AudioContext | undefined;
 
 const channels = [false, false, false, false];
 const previewEmulator = createEmulator();
@@ -29,6 +30,57 @@ let onIntervalCallback = (_updateData: PlaybackPosition) => {};
 let onPreviewPlaybackTimeout: ReturnType<typeof setTimeout> | undefined;
 
 const exportMaxRenderSeconds = 60 * 10;
+
+const getMetronomeAudioContext = () => {
+  if (!metronomeAudioCtx) {
+    metronomeAudioCtx = new AudioContext();
+  }
+  void metronomeAudioCtx.resume();
+  return metronomeAudioCtx;
+};
+
+const playMetronomeTick = () => {
+  const audioCtx = getMetronomeAudioContext();
+  const now = audioCtx.currentTime;
+  const oscillator = audioCtx.createOscillator();
+  const gainNode = audioCtx.createGain();
+
+  oscillator.type = "square";
+  oscillator.frequency.setValueAtTime(1760, now);
+
+  gainNode.gain.setValueAtTime(0.0001, now);
+  gainNode.gain.exponentialRampToValueAtTime(0.12, now + 0.002);
+  gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.05);
+
+  oscillator.connect(gainNode);
+  gainNode.connect(audioCtx.destination);
+  oscillator.start(now);
+  oscillator.stop(now + 0.05);
+  oscillator.onended = () => {
+    oscillator.disconnect();
+    gainNode.disconnect();
+  };
+};
+
+const resetMetronome = () => {
+  lastMetronomePositionKey = null;
+};
+
+const onPlaybackPositionUpdate = (position: PlaybackPosition) => {
+  onIntervalCallback(position);
+
+  const positionKey = `${position[0]}:${position[1]}`;
+  if (positionKey === lastMetronomePositionKey) {
+    return;
+  }
+  lastMetronomePositionKey = positionKey;
+
+  if (!metronomeEnabled || position[1] % 8 !== 0) {
+    return;
+  }
+
+  playMetronomeTick();
+};
 
 type RenderedSongAudio = {
   leftChunks: Float32Array[];
@@ -198,6 +250,7 @@ const loadSong = (song: Song) => {
   updateRom(song);
   emulator.step("frame");
   stop();
+  resetMetronome();
   resetChannels();
 };
 
@@ -244,6 +297,7 @@ const play = (song: Song, position?: PlaybackPosition) => {
   updateRom(song);
   emulator.step("frame");
   stop();
+  resetMetronome();
 
   if (position) {
     // console.log("POS", position);
@@ -273,10 +327,12 @@ const play = (song: Song, position?: PlaybackPosition) => {
     doResume();
 
     const updateUI = () => {
-      currentSequence = emulator.readMem(currentOrderAddr) / 2;
-      currentRow = emulator.readMem(rowAddr);
-      onIntervalCallback([currentSequence, currentRow]);
+      onPlaybackPositionUpdate([
+        emulator.readMem(currentOrderAddr) / 2,
+        emulator.readMem(rowAddr),
+      ]);
     };
+    updateUI();
     onSongProgressIntervalId = setInterval(updateUI, 1000 / 64);
   }
 };
@@ -369,6 +425,7 @@ const playSound = () => {
 
 const stop = (position?: PlaybackPosition) => {
   isPlayingSong = false;
+  resetMetronome();
 
   if (!isPlayerPaused()) {
     doPause();
@@ -386,6 +443,7 @@ const stop = (position?: PlaybackPosition) => {
 
 const setStartPosition = (position: PlaybackPosition) => {
   let wasPlaying = false;
+  resetMetronome();
 
   if (!isPlayerPaused()) {
     wasPlaying = true;
@@ -850,6 +908,7 @@ const reset = () => {
   emulator.init(romFile);
   previewEmulator.init(romFile);
   stopPreview();
+  resetMetronome();
 };
 
 const resetChannels = () => {
@@ -870,6 +929,12 @@ const player = {
   setChannel,
   setSolo,
   setStartPosition,
+  setMetronomeEnabled: (enabled: boolean) => {
+    metronomeEnabled = enabled;
+    if (!enabled) {
+      resetMetronome();
+    }
+  },
   getCurrentSong,
   setOnIntervalCallback: (cb: (position: PlaybackPosition) => void) => {
     onIntervalCallback = cb;

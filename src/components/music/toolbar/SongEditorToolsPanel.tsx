@@ -8,6 +8,7 @@ import {
   SelectionIcon,
   VirtualKeyboardIcon,
   RecordIcon,
+  MetronomeIcon,
 } from "ui/icons/Icons";
 import { FloatingPanel, FloatingPanelDivider } from "ui/panels/FloatingPanel";
 import trackerActions from "store/features/tracker/trackerActions";
@@ -92,6 +93,9 @@ const SongEditorToolsPanel = ({ musicAsset }: SongEditorToolsPanelProps) => {
     (state) => !!state.trackerDocument.present.song,
   );
   const midiState = useMusicMidiState();
+  const metronomeEnabled = useAppSelector(
+    (state) => state.tracker.metronomeEnabled,
+  );
 
   const view = useAppSelector((state) => state.tracker.view);
 
@@ -287,6 +291,8 @@ const SongEditorToolsPanel = ({ musicAsset }: SongEditorToolsPanelProps) => {
 
   const showMidiRecordButton =
     midiState.enabled && midiState.selectedInputId !== null;
+  const showMetronomeButton =
+    showMidiRecordButton && midiState.recordingEnabled;
 
   useEffect(() => {
     window.addEventListener("keydown", onKeyDown);
@@ -386,6 +392,23 @@ const SongEditorToolsPanel = ({ musicAsset }: SongEditorToolsPanelProps) => {
             >
               <RecordIcon />
             </MidiRecordButton>
+            {showMetronomeButton && view === "roll" && (
+              <Button
+                variant="transparent"
+                active={metronomeEnabled}
+                onClick={() => {
+                  dispatch(
+                    trackerActions.setMetronomeEnabledAndSave(
+                      !metronomeEnabled,
+                    ),
+                  );
+                }}
+                title="Metronome"
+                aria-pressed={metronomeEnabled}
+              >
+                <MetronomeIcon />
+              </Button>
+            )}
           </>
         )}
       </FloatingPanelTools>

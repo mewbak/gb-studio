@@ -22,10 +22,15 @@ export type MusicDataPacket =
       action: "play";
       song: Song;
       position?: [number, number];
+      metronomeEnabled?: boolean;
     }
   | {
       action: "stop";
       position?: [number, number];
+    }
+  | {
+      action: "set-metronome-enabled";
+      enabled: boolean;
     }
   | {
       action: "position";

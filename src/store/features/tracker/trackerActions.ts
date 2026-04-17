@@ -24,6 +24,11 @@ export const initViewFromSaved = createAsyncThunk(
     ) {
       thunkApi.dispatch(actions.setSubpatternEditorMode(subpatternEditorMode));
     }
+
+    const metronomeEnabled = await API.settings.get("trackerMetronomeEnabled");
+    if (typeof metronomeEnabled === "boolean") {
+      thunkApi.dispatch(actions.setMetronomeEnabled(metronomeEnabled));
+    }
   },
 );
 
@@ -43,11 +48,20 @@ export const setSubpatternEditorModeAndSave = createAsyncThunk<
   await API.settings.set("subpatternEditorMode", payload);
 });
 
+export const setMetronomeEnabledAndSave = createAsyncThunk<void, boolean>(
+  "tracker/setMetronomeEnabledAndSave",
+  async (payload, thunkApi) => {
+    thunkApi.dispatch(actions.setMetronomeEnabled(payload));
+    await API.settings.set("trackerMetronomeEnabled", payload);
+  },
+);
+
 const actions = {
   ...reducerActions,
   initViewFromSaved,
   setViewAndSave,
   setSubpatternEditorModeAndSave,
+  setMetronomeEnabledAndSave,
 };
 
 export default actions;

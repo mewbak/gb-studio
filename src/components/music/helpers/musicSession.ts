@@ -61,11 +61,15 @@ const createMusicSession = (): MusicSession => {
           position = data.position;
         }
         player.reset();
+        player.setMetronomeEnabled(data.metronomeEnabled ?? false);
         player.play(data.song, position);
         emit({
           action: "log",
           message: "playing",
         });
+        break;
+      case "set-metronome-enabled":
+        player.setMetronomeEnabled(data.enabled);
         break;
       case "stop":
         if (data.position) {

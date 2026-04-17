@@ -100,6 +100,7 @@ export interface TrackerState {
   showVirtualKeyboard: boolean;
   mobileOverlayView: MobileOverlayView;
   midiInput: MusicMidiState;
+  metronomeEnabled: boolean;
 }
 
 export const initialState: TrackerState = {
@@ -145,6 +146,7 @@ export const initialState: TrackerState = {
   showVirtualKeyboard: false,
   mobileOverlayView: "none",
   midiInput: defaultMusicMidiState,
+  metronomeEnabled: false,
 };
 
 const trackerSlice = createSlice({
@@ -313,6 +315,9 @@ const trackerSlice = createSlice({
     setMidiState: (state, action: PayloadAction<MusicMidiState>) => {
       state.midiInput = action.payload;
     },
+    setMetronomeEnabled: (state, action: PayloadAction<boolean>) => {
+      state.metronomeEnabled = action.payload;
+    },
   },
   extraReducers: (builder) =>
     builder
@@ -331,6 +336,7 @@ const trackerSlice = createSlice({
           subpatternEditorMode: state.subpatternEditorMode,
           showVirtualKeyboard: state.showVirtualKeyboard,
           midiInput: state.midiInput,
+          metronomeEnabled: state.metronomeEnabled,
           status: "loaded",
           modified: false,
         };
