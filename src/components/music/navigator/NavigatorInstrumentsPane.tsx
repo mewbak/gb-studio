@@ -192,7 +192,7 @@ export const NavigatorInstrumentsPane = ({
     return items.concat(
       [
         {
-          name: "Duty",
+          name: l10n("FIELD_CHANNEL_DUTY"),
           id: "duty_group",
           instrumentId: "group",
           type: "duty",
@@ -202,13 +202,17 @@ export const NavigatorInstrumentsPane = ({
       isOpen("duty")
         ? (dutyInstruments || [])
             .map((duty, i) =>
-              instrumentToNavigatorItem("duty")(duty, i, "Duty"),
+              instrumentToNavigatorItem("duty")(
+                duty,
+                i,
+                l10n("FIELD_CHANNEL_DUTY"),
+              ),
             )
             .sort(sortByIndex)
         : [],
       [
         {
-          name: "Wave",
+          name: l10n("FIELD_CHANNEL_WAVE"),
           id: "wave_group",
           instrumentId: "group",
           type: "wave",
@@ -218,13 +222,17 @@ export const NavigatorInstrumentsPane = ({
       isOpen("wave")
         ? (waveInstruments || [])
             .map((wave, i) =>
-              instrumentToNavigatorItem("wave")(wave, i, "Wave"),
+              instrumentToNavigatorItem("wave")(
+                wave,
+                i,
+                l10n("FIELD_CHANNEL_WAVE"),
+              ),
             )
             .sort(sortByIndex)
         : [],
       [
         {
-          name: "Noise",
+          name: l10n("FIELD_CHANNEL_NOISE"),
           id: "noise_group",
           instrumentId: "group",
           type: "noise",
@@ -234,7 +242,11 @@ export const NavigatorInstrumentsPane = ({
       isOpen("noise")
         ? (noiseInstruments || [])
             .map((noise, i) =>
-              instrumentToNavigatorItem("noise")(noise, i, "Noise"),
+              instrumentToNavigatorItem("noise")(
+                noise,
+                i,
+                l10n("FIELD_CHANNEL_NOISE"),
+              ),
             )
             .sort(sortByIndex)
         : [],

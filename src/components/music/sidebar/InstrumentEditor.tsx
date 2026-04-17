@@ -71,10 +71,14 @@ const StyledStickyFooter = styled.div`
   padding-bottom: 5px;
 `;
 
-const instrumentTypeLabels: Record<InstrumentType, string> = {
-  duty: "Duty",
-  wave: "Wave",
-  noise: "Noise",
+const getInstrumentTypeLabel = (type: InstrumentType): string => {
+  if (type === "wave") {
+    return l10n("FIELD_CHANNEL_WAVE");
+  }
+  if (type === "noise") {
+    return l10n("FIELD_CHANNEL_NOISE");
+  }
+  return l10n("FIELD_CHANNEL_DUTY");
 };
 
 type SubpatternPreset = {
@@ -217,7 +221,7 @@ const getDefaultInstrumentName = (
   instrument: Instrument,
   type: InstrumentType,
 ) => {
-  return `${instrumentTypeLabels[type]} ${String(instrument.index + 1).padStart(2, "0")}`;
+  return `${getInstrumentTypeLabel(type)} ${String(instrument.index + 1).padStart(2, "0")}`;
 };
 
 const getInstrumentName = (instrument: Instrument, type: InstrumentType) => {
@@ -535,7 +539,7 @@ export const InstrumentEditor = ({
       <FormSection>
         <FormSectionTitle>
           {offsetHeader && <FixedSpacer width={35} />}
-          {instrumentTypeLabels[resolvedInstrument.instrumentType]}
+          {getInstrumentTypeLabel(resolvedInstrument.instrumentType)}
           {" / "}
           {l10n("SIDEBAR_INSTRUMENT")}{" "}
           {String(resolvedInstrument.instrument.index + 1).padStart(2, "0")}

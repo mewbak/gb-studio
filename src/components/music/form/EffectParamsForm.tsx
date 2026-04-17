@@ -298,7 +298,7 @@ export const EffectParamsForm: FC<EffectParamsFormProps> = ({
         bit: 0x1 | 0x2 | 0x4 | 0x8,
       ) => (
         <CheckboxField
-          label={l10n(label as L10NKey)}
+          label={label}
           name={name}
           checked={(effectParams[param] & bit) === bit}
           onChange={(e) => {
@@ -323,13 +323,13 @@ export const EffectParamsForm: FC<EffectParamsFormProps> = ({
           <FormRow>
             {renderPanningFieldCheckbox(
               "y",
-              "Duty 1",
+              l10n("FIELD_CHANNEL_DUTY_1"),
               "left_panning_duty_1",
               0x1,
             )}
             {renderPanningFieldCheckbox(
               "x",
-              "Duty 1",
+              l10n("FIELD_CHANNEL_DUTY_1"),
               "right_panning_duty_1",
               0x1,
             )}
@@ -337,31 +337,41 @@ export const EffectParamsForm: FC<EffectParamsFormProps> = ({
           <FormRow>
             {renderPanningFieldCheckbox(
               "y",
-              "Duty 2",
+              l10n("FIELD_CHANNEL_DUTY_2"),
               "left_panning_duty_2",
               0x2,
             )}
             {renderPanningFieldCheckbox(
               "x",
-              "Duty 2",
+              l10n("FIELD_CHANNEL_DUTY_2"),
               "right_panning_duty_2",
               0x2,
             )}
           </FormRow>
           <FormRow>
-            {renderPanningFieldCheckbox("y", "Wave", "left_panning_wave", 0x4)}
-            {renderPanningFieldCheckbox("x", "Wave", "right_panning_wave", 0x4)}
+            {renderPanningFieldCheckbox(
+              "y",
+              l10n("FIELD_CHANNEL_WAVE"),
+              "left_panning_wave",
+              0x4,
+            )}
+            {renderPanningFieldCheckbox(
+              "x",
+              l10n("FIELD_CHANNEL_WAVE"),
+              "right_panning_wave",
+              0x4,
+            )}
           </FormRow>
           <FormRow>
             {renderPanningFieldCheckbox(
               "y",
-              "Noise",
+              l10n("FIELD_CHANNEL_NOISE"),
               "left_panning_noise",
               0x8,
             )}
             {renderPanningFieldCheckbox(
               "x",
-              "Noise",
+              l10n("FIELD_CHANNEL_NOISE"),
               "right_panning_noise",
               0x8,
             )}

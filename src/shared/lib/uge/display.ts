@@ -25,13 +25,13 @@ export const noteName = [
  */
 export const getL10NChannelName = (channelId: 0 | 1 | 2 | 3): string => {
   if (channelId === 0) {
-    return l10n("FIELD_DUTY_1");
+    return l10n("FIELD_CHANNEL_DUTY_1");
   } else if (channelId === 1) {
-    return l10n("FIELD_DUTY_2");
+    return l10n("FIELD_CHANNEL_DUTY_2");
   } else if (channelId === 2) {
-    return l10n("FIELD_WAVE");
+    return l10n("FIELD_CHANNEL_WAVE");
   } else {
-    return l10n("FIELD_NOISE");
+    return l10n("FIELD_CHANNEL_NOISE");
   }
 };
 

@@ -13,6 +13,7 @@ import { DropdownButton } from "ui/buttons/DropdownButton";
 import { SongTrackerRow } from "./SongTrackerRow";
 import { TRACKER_ROW_SIZE } from "consts";
 import { useAppSelector } from "store/hooks";
+import l10n from "shared/lib/lang/l10n";
 
 interface SongTrackerPatternProps {
   sequencePatternId: number;
@@ -116,7 +117,7 @@ export const SongTrackerPattern = memo(
               muted={channelStatus[0] && soloChannel === -1}
               solo={soloChannel === 0}
             >
-              Duty 1
+              {l10n("FIELD_CHANNEL_DUTY_1")}
             </TrackerHeaderCell>
             <TrackerHeaderCell
               type="channel"
@@ -124,7 +125,7 @@ export const SongTrackerPattern = memo(
               muted={channelStatus[1] && soloChannel === -1}
               solo={soloChannel === 1}
             >
-              Duty 2
+              {l10n("FIELD_CHANNEL_DUTY_2")}
             </TrackerHeaderCell>
             <TrackerHeaderCell
               type="channel"
@@ -132,7 +133,7 @@ export const SongTrackerPattern = memo(
               muted={channelStatus[2] && soloChannel === -1}
               solo={soloChannel === 2}
             >
-              Wave
+              {l10n("FIELD_CHANNEL_WAVE")}
             </TrackerHeaderCell>
             <TrackerHeaderCell
               type="channel"
@@ -140,7 +141,7 @@ export const SongTrackerPattern = memo(
               muted={channelStatus[3] && soloChannel === -1}
               solo={soloChannel === 3}
             >
-              Noise
+              {l10n("FIELD_CHANNEL_NOISE")}
             </TrackerHeaderCell>
           </StyledTrackerTableHeaderRow>
         </StyledTrackerTableHeader>
