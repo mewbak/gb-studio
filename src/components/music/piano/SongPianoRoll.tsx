@@ -78,6 +78,7 @@ import {
   DragPreviewNotes,
   PastePreviewNotes,
 } from "components/music/piano/PianoRollNotePreviews";
+import { PATTERN_LENGTH } from "shared/lib/uge/mod2uge/constants";
 
 const TAP_MAX_MOVEMENT = 20;
 const TWO_FINGER_TAP_MAX_DURATION = 300;
@@ -767,14 +768,31 @@ export const SongPianoRoll = () => {
 
       const playbackPosition = state.tracker.playbackPosition;
 
+      const quantizeSnap = state.tracker.quantizeSnap;
+      let quantizedRow = playbackPosition[1];
+      let quantizedSequenceId = playbackPosition[0];
+      if (quantizeSnap === "beat") {
+        quantizedRow = 4 * Math.round(playbackPosition[1] / 4);
+      } else if (quantizeSnap === "halfbeat") {
+        quantizedRow = 2 * Math.round(playbackPosition[1] / 2);
+      }
+
+      if (quantizedRow >= PATTERN_LENGTH) {
+        quantizedSequenceId++;
+        quantizedRow = 0;
+        if (quantizedSequenceId >= currentSong.sequence.length) {
+          quantizedSequenceId = 0;
+        }
+      }
+
       const targetPosition = {
-        sequenceId: playbackPosition[0],
-        rowId: playbackPosition[1],
+        sequenceId: quantizedSequenceId,
+        rowId: quantizedRow,
       };
 
       const cellAddress: PatternCellAddress = {
-        sequenceId: playbackPosition[0],
-        rowId: playbackPosition[1],
+        sequenceId: quantizedSequenceId,
+        rowId: quantizedRow,
         channelId: selectedChannel,
       };
 

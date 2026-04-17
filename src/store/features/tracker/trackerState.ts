@@ -24,6 +24,8 @@ export type TrackerSidebarViewType = "instrument" | "cell";
 
 export type SubpatternEditorMode = "script" | "tracker";
 
+export type QuantizeSnapSetting = "none" | "beat" | "halfbeat";
+
 export type MobileOverlayView =
   | "none"
   | "notes"
@@ -101,6 +103,7 @@ export interface TrackerState {
   mobileOverlayView: MobileOverlayView;
   midiInput: MusicMidiState;
   metronomeEnabled: boolean;
+  quantizeSnap: QuantizeSnapSetting;
 }
 
 export const initialState: TrackerState = {
@@ -147,6 +150,7 @@ export const initialState: TrackerState = {
   mobileOverlayView: "none",
   midiInput: defaultMusicMidiState,
   metronomeEnabled: false,
+  quantizeSnap: "none",
 };
 
 const trackerSlice = createSlice({
@@ -324,6 +328,9 @@ const trackerSlice = createSlice({
     setMetronomeEnabled: (state, action: PayloadAction<boolean>) => {
       state.metronomeEnabled = action.payload;
     },
+    setQuantizeSnap: (state, action: PayloadAction<QuantizeSnapSetting>) => {
+      state.quantizeSnap = action.payload;
+    },
   },
   extraReducers: (builder) =>
     builder
@@ -343,6 +350,7 @@ const trackerSlice = createSlice({
           showVirtualKeyboard: state.showVirtualKeyboard,
           midiInput: state.midiInput,
           metronomeEnabled: state.metronomeEnabled,
+          quantizeSnap: state.quantizeSnap,
           status: "loaded",
           modified: false,
         };

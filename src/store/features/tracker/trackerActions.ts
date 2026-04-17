@@ -1,5 +1,6 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import {
+  QuantizeSnapSetting,
   actions as reducerActions,
   SubpatternEditorMode,
   TrackerViewType,
@@ -29,6 +30,15 @@ export const initViewFromSaved = createAsyncThunk(
     if (typeof metronomeEnabled === "boolean") {
       thunkApi.dispatch(actions.setMetronomeEnabled(metronomeEnabled));
     }
+
+    const quantizeSnap = await API.settings.get("trackerQuantizeSnap");
+    if (
+      quantizeSnap === "none" ||
+      quantizeSnap === "halfbeat" ||
+      quantizeSnap === "beat"
+    ) {
+      thunkApi.dispatch(actions.setQuantizeSnap(quantizeSnap));
+    }
   },
 );
 
@@ -56,12 +66,21 @@ export const setMetronomeEnabledAndSave = createAsyncThunk<void, boolean>(
   },
 );
 
+export const setQuantizeSnapAndSave = createAsyncThunk<
+  void,
+  QuantizeSnapSetting
+>("tracker/setQuantizeSnapAndSave", async (payload, thunkApi) => {
+  thunkApi.dispatch(actions.setQuantizeSnap(payload));
+  await API.settings.set("trackerQuantizeSnap", payload);
+});
+
 const actions = {
   ...reducerActions,
   initViewFromSaved,
   setViewAndSave,
   setSubpatternEditorModeAndSave,
   setMetronomeEnabledAndSave,
+  setQuantizeSnapAndSave,
 };
 
 export default actions;

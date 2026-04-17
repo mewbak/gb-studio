@@ -1402,6 +1402,9 @@
   "FIELD_CHANNEL_DUTY_2": "Duty 2",
   "FIELD_CHANNEL_WAVE": "Wave",
   "FIELD_CHANNEL_NOISE": "Noise",
+  "FIELD_QUANTIZE": "Quantize",
+  "FIELD_METRONOME": "Metronome",
+  "FIELD_BEAT": "Beat",
   "FIELD_PIANO_ROLL_DESCRIPTION": "Compose by drawing notes on a timeline.",
   "FIELD_TRACKER_DESCRIPTION": "Compose by typing notes and effects into a grid.",
 

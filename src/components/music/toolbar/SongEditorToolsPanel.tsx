@@ -8,15 +8,19 @@ import {
   SelectionIcon,
   VirtualKeyboardIcon,
   RecordIcon,
-  MetronomeIcon,
+  CheckIcon,
+  BlankIcon,
 } from "ui/icons/Icons";
 import { FloatingPanel, FloatingPanelDivider } from "ui/panels/FloatingPanel";
 import trackerActions from "store/features/tracker/trackerActions";
 import { Button } from "ui/buttons/Button";
-import { MenuOverlay } from "ui/menu/Menu";
+import { MenuItem, MenuOverlay } from "ui/menu/Menu";
 import { saveSongFile } from "store/features/trackerDocument/trackerDocumentState";
 import { RelativePortal } from "ui/layout/RelativePortal";
-import { PianoRollToolType } from "store/features/tracker/trackerState";
+import {
+  PianoRollToolType,
+  QuantizeSnapSetting,
+} from "store/features/tracker/trackerState";
 import API from "renderer/lib/api";
 import { useAppDispatch, useAppSelector } from "store/hooks";
 import { MusicAsset } from "shared/lib/resources/types";
@@ -29,6 +33,7 @@ import { OctaveOffsetSelectButton } from "components/music/form/OctaveOffsetSele
 import { TrackerStepSelectButton } from "components/music/form/TrackerStepSelectButton";
 import { musicMidiController } from "components/music/midi/musicMidiController";
 import { useMusicMidiState } from "components/music/midi/useMusicMidi";
+import { DropdownButton } from "ui/buttons/DropdownButton";
 
 interface SongEditorToolsPanelProps {
   musicAsset?: MusicAsset;
@@ -96,6 +101,7 @@ const SongEditorToolsPanel = ({ musicAsset }: SongEditorToolsPanelProps) => {
   const metronomeEnabled = useAppSelector(
     (state) => state.tracker.metronomeEnabled,
   );
+  const quantizeSnap = useAppSelector((state) => state.tracker.quantizeSnap);
 
   const view = useAppSelector((state) => state.tracker.view);
 
@@ -186,6 +192,13 @@ const SongEditorToolsPanel = ({ musicAsset }: SongEditorToolsPanelProps) => {
   const setEditStep = useCallback(
     (value: number) => {
       dispatch(trackerActions.setEditStep(value));
+    },
+    [dispatch],
+  );
+
+  const setQuantizeSnap = useCallback(
+    (value: QuantizeSnapSetting) => {
+      dispatch(trackerActions.setQuantizeSnapAndSave(value));
     },
     [dispatch],
   );
@@ -291,8 +304,8 @@ const SongEditorToolsPanel = ({ musicAsset }: SongEditorToolsPanelProps) => {
 
   const showMidiRecordButton =
     midiState.enabled && midiState.selectedInputId !== null;
-  const showMetronomeButton =
-    showMidiRecordButton && midiState.recordingEnabled;
+  const showMidiRecordOptions =
+    showMidiRecordButton && midiState.recordingEnabled && view === "roll";
 
   useEffect(() => {
     window.addEventListener("keydown", onKeyDown);
@@ -392,22 +405,63 @@ const SongEditorToolsPanel = ({ musicAsset }: SongEditorToolsPanelProps) => {
             >
               <RecordIcon />
             </MidiRecordButton>
-            {showMetronomeButton && view === "roll" && (
-              <Button
+            {showMidiRecordOptions && (
+              <DropdownButton
+                size="small"
                 variant="transparent"
-                active={metronomeEnabled}
-                onClick={() => {
-                  dispatch(
-                    trackerActions.setMetronomeEnabledAndSave(
-                      !metronomeEnabled,
-                    ),
-                  );
-                }}
-                title="Metronome"
-                aria-pressed={metronomeEnabled}
+                menuDirection="left"
               >
-                <MetronomeIcon />
-              </Button>
+                <MenuItem
+                  icon={metronomeEnabled ? <CheckIcon /> : <BlankIcon />}
+                  onClick={() => {
+                    dispatch(
+                      trackerActions.setMetronomeEnabledAndSave(
+                        !metronomeEnabled,
+                      ),
+                    );
+                  }}
+                >
+                  {l10n("FIELD_METRONOME")}
+                </MenuItem>
+                <MenuItem
+                  icon={quantizeSnap !== "none" ? <CheckIcon /> : <BlankIcon />}
+                  subMenu={[
+                    <MenuItem
+                      key="none"
+                      icon={
+                        quantizeSnap === "none" ? <CheckIcon /> : <BlankIcon />
+                      }
+                      onClick={() => setQuantizeSnap("none")}
+                    >
+                      {l10n("FIELD_NONE")}
+                    </MenuItem>,
+                    <MenuItem
+                      key="halfbeat"
+                      icon={
+                        quantizeSnap === "halfbeat" ? (
+                          <CheckIcon />
+                        ) : (
+                          <BlankIcon />
+                        )
+                      }
+                      onClick={() => setQuantizeSnap("halfbeat")}
+                    >
+                      ½ {l10n("FIELD_BEAT")}
+                    </MenuItem>,
+                    <MenuItem
+                      key="beat"
+                      icon={
+                        quantizeSnap === "beat" ? <CheckIcon /> : <BlankIcon />
+                      }
+                      onClick={() => setQuantizeSnap("beat")}
+                    >
+                      1 {l10n("FIELD_BEAT")}
+                    </MenuItem>,
+                  ]}
+                >
+                  {l10n("FIELD_QUANTIZE")}
+                </MenuItem>
+              </DropdownButton>
             )}
           </>
         )}
