@@ -153,7 +153,13 @@ const trackerSlice = createSlice({
   name: "tracker",
   initialState,
   reducers: {
-    reset: () => initialState,
+    reset: (state) => ({
+      ...initialState,
+      view: state.view,
+      subpatternEditorMode: state.subpatternEditorMode,
+      midiInput: state.midiInput,
+      metronomeEnabled: state.metronomeEnabled,
+    }),
     playTracker: (state, _action: PayloadAction<void>) => {
       state.playing = true;
     },
