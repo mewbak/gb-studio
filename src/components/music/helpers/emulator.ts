@@ -42,6 +42,17 @@ export type EmulatorController = {
   updateRom: (romData: Uint8Array) => boolean;
   setChannel: (channel: number, muted: boolean) => boolean;
   resetAudio: () => void;
+  getAudioClock: () => {
+    currentTime: number;
+    scheduledTime: number;
+    bufferDuration: number;
+  };
+  playTone: (
+    frequency: number,
+    duration: number,
+    startTime?: number,
+    volume?: number,
+  ) => void;
   setAudioCapture: (listener: AudioCaptureListener) => void;
   removeAudioCapture: () => void;
   isAvailable: () => boolean;
@@ -120,6 +131,34 @@ export const createEmulator = (): EmulatorController => {
     stopAllAudio();
     masterGain.gain.cancelScheduledValues(ctx.currentTime);
     audioTime = ctx.currentTime;
+  };
+
+  const playTone = (
+    frequency: number,
+    duration: number,
+    startTime?: number,
+    volume = 0.12,
+  ) => {
+    const ctx = ensureAudioContext();
+    const time = Math.max(startTime ?? ctx.currentTime, ctx.currentTime);
+    const oscillator = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+
+    oscillator.type = "square";
+    oscillator.frequency.setValueAtTime(frequency, time);
+
+    gainNode.gain.setValueAtTime(0.0001, time);
+    gainNode.gain.exponentialRampToValueAtTime(volume, time + 0.002);
+    gainNode.gain.exponentialRampToValueAtTime(0.0001, time + duration);
+
+    oscillator.connect(gainNode);
+    gainNode.connect(masterGain);
+    oscillator.start(time);
+    oscillator.stop(time + duration);
+    oscillator.onended = () => {
+      oscillator.disconnect();
+      gainNode.disconnect();
+    };
   };
 
   const destroy = () => {
@@ -245,6 +284,15 @@ export const createEmulator = (): EmulatorController => {
       return Module._set_audio_channel_mute(emu, channel, muted);
     },
     resetAudio,
+    getAudioClock: () => {
+      const ctx = ensureAudioContext();
+      return {
+        currentTime: ctx.currentTime,
+        scheduledTime: audioTime,
+        bufferDuration: audioBufferSize / ctx.sampleRate,
+      };
+    },
+    playTone,
     setAudioCapture: (listener: AudioCaptureListener) => {
       audioCaptureListener = listener;
     },

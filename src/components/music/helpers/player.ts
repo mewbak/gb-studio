@@ -21,7 +21,6 @@ let isPlayingSong = false;
 let isPreviewPlaying = false;
 let metronomeEnabled = false;
 let lastMetronomePositionKey: string | null = null;
-let metronomeAudioCtx: AudioContext | undefined;
 
 const channels = [false, false, false, false];
 const previewEmulator = createEmulator();
@@ -30,43 +29,26 @@ let onIntervalCallback = (_updateData: PlaybackPosition) => {};
 let onPreviewPlaybackTimeout: ReturnType<typeof setTimeout> | undefined;
 
 const exportMaxRenderSeconds = 60 * 10;
+const gameBoyFrameDuration = 70224 / 4194304;
 
-const getMetronomeAudioContext = () => {
-  if (!metronomeAudioCtx) {
-    metronomeAudioCtx = new AudioContext();
-  }
-  void metronomeAudioCtx.resume();
-  return metronomeAudioCtx;
-};
+const playMetronomeTick = (currentTick: number) => {
+  const { currentTime, scheduledTime } = emulator.getAudioClock();
+  const startTime = Math.max(
+    currentTime,
+    scheduledTime - currentTick * gameBoyFrameDuration,
+  );
 
-const playMetronomeTick = () => {
-  const audioCtx = getMetronomeAudioContext();
-  const now = audioCtx.currentTime;
-  const oscillator = audioCtx.createOscillator();
-  const gainNode = audioCtx.createGain();
-
-  oscillator.type = "square";
-  oscillator.frequency.setValueAtTime(1760, now);
-
-  gainNode.gain.setValueAtTime(0.0001, now);
-  gainNode.gain.exponentialRampToValueAtTime(0.12, now + 0.002);
-  gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.05);
-
-  oscillator.connect(gainNode);
-  gainNode.connect(audioCtx.destination);
-  oscillator.start(now);
-  oscillator.stop(now + 0.05);
-  oscillator.onended = () => {
-    oscillator.disconnect();
-    gainNode.disconnect();
-  };
+  emulator.playTone(1760, 0.05, startTime, 0.12);
 };
 
 const resetMetronome = () => {
   lastMetronomePositionKey = null;
 };
 
-const onPlaybackPositionUpdate = (position: PlaybackPosition) => {
+const onPlaybackPositionUpdate = (
+  position: PlaybackPosition,
+  currentTick: number,
+) => {
   onIntervalCallback(position);
 
   const positionKey = `${position[0]}:${position[1]}`;
@@ -79,7 +61,7 @@ const onPlaybackPositionUpdate = (position: PlaybackPosition) => {
     return;
   }
 
-  playMetronomeTick();
+  playMetronomeTick(currentTick);
 };
 
 type RenderedSongAudio = {
@@ -320,6 +302,7 @@ const play = (song: Song, position?: PlaybackPosition) => {
 
     const currentOrderAddr = getRamAddress("current_order");
     const rowAddr = getRamAddress("row");
+    const tickAddr = getRamAddress("tick");
 
     const orderCntAddr = getRamAddress("order_cnt");
     emulator.writeMem(orderCntAddr, song.sequence.length * 2);
@@ -330,7 +313,7 @@ const play = (song: Song, position?: PlaybackPosition) => {
       onPlaybackPositionUpdate([
         emulator.readMem(currentOrderAddr) / 2,
         emulator.readMem(rowAddr),
-      ]);
+      ], emulator.readMem(tickAddr));
     };
     updateUI();
     onSongProgressIntervalId = setInterval(updateUI, 1000 / 64);
