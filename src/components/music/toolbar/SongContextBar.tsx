@@ -184,16 +184,21 @@ export const SongContextBar = ({
   ]);
 
   const stopPlayback = useCallback(() => {
+    const state = store.getState();
+
     dispatch(trackerActions.stopTracker());
 
+    const wasPlaying = state.tracker.playing;
     const defaultOrderIndex = defaultStartPlaybackPosition[0];
     const defaultRowIndex = defaultStartPlaybackPosition[1];
-
-    const state = store.getState();
     const [orderIndex, rowIndex] = state.tracker.playbackPosition;
 
     // Already at default start - restart default to start of song
-    if (orderIndex === defaultOrderIndex && rowIndex === defaultRowIndex) {
+    if (
+      !wasPlaying &&
+      orderIndex === defaultOrderIndex &&
+      rowIndex === defaultRowIndex
+    ) {
       dispatch(trackerActions.setDefaultStartPlaybackPosition([0, 0]));
       API.music.sendToMusicWindow({
         action: "position",
