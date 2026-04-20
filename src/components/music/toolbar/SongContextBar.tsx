@@ -241,14 +241,23 @@ export const SongContextBar = ({
     }
   }, []);
 
+  const onWindowFocusChange = useCallback(() => {
+    setPlaybackFromStart(false);
+  }, []);
+
   useEffect(() => {
     window.addEventListener("keydown", onKeyDown);
     window.addEventListener("keyup", onKeyUp);
+    window.addEventListener("focus", onWindowFocusChange);
+    window.addEventListener("blur", onWindowFocusChange);
+
     return () => {
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("keyup", onKeyUp);
+      window.removeEventListener("focus", onWindowFocusChange);
+      window.removeEventListener("blur", onWindowFocusChange);
     };
-  });
+  }, [onKeyDown, onKeyUp, onWindowFocusChange]);
 
   const themePianoIcon =
     themeContext?.type === "light" ? <PianoIcon /> : <PianoInverseIcon />;
