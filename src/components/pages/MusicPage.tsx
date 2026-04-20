@@ -337,11 +337,7 @@ const MusicPage = () => {
 
                 {patternsPanelOpen &&
                   (status === "loaded" && songDocument ? (
-                    <SequenceEditor
-                      direction="horizontal"
-                      sequence={songDocument.sequence}
-                      patterns={songDocument.patterns.length}
-                    />
+                    <SequenceEditor direction="horizontal" />
                   ) : (
                     <div
                       style={{
