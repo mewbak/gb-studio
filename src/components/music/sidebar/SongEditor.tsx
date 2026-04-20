@@ -8,11 +8,11 @@ import { PatternCellSelectionEditor } from "./PatternCellSelectionEditor";
 import l10n from "shared/lib/lang/l10n";
 
 export const SongEditor = () => {
-  const selectedPatternCellsLength = useAppSelector(
-    (state) => state.tracker.selectedPatternCells.length,
-  );
   const isPatternSelection = useAppSelector(
-    (state) => state.tracker.sidebarView === "cell",
+    (state) =>
+      state.tracker.sidebarView === "cell" &&
+      state.tracker.selectedPatternCells.length > 0 &&
+      !state.tracker.playing,
   );
   const hasSong = useAppSelector(
     (state) => !!state.trackerDocument.present.song,
@@ -27,7 +27,7 @@ export const SongEditor = () => {
       <SongMetadataEditor />
       <FormContainer>
         <div style={{ marginTop: -1 }}>
-          {isPatternSelection && selectedPatternCellsLength > 0 ? (
+          {isPatternSelection ? (
             <>
               <FormSectionTitle>{l10n("FIELD_SELECTION")}</FormSectionTitle>
               <PatternCellSelectionEditor />

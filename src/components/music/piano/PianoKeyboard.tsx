@@ -1,10 +1,21 @@
-import React, { useCallback, useRef } from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 import { StyledPianoKeyboard, StyledPianoKey } from "./style";
 import { MAX_OCTAVE, TOTAL_OCTAVES } from "consts";
 import { useAppSelector } from "store/hooks";
 
 interface PianoKeyboardProps {
   onPlayNote: (noteIndex: number) => void;
+}
+
+interface PianoKeyProps {
+  noteNumber: number;
+  note: (typeof notes)[number];
+  octave: number;
+  isBlack: boolean;
+  isTall: boolean;
+  isC: boolean;
+  onMouseDownNote: (noteNumber: number) => void;
+  onMouseEnterNote: (noteNumber: number) => void;
 }
 
 const octaves = Array.from({ length: TOTAL_OCTAVES }, (_, i) => MAX_OCTAVE - i);
@@ -24,14 +35,61 @@ const notes = [
   "C",
 ] as const;
 
-const blackNotes = ["A#", "G#", "F#", "D#", "C#"];
-const tallNotes = ["A", "G", "D"];
+const blackNotes = new Set(["A#", "G#", "F#", "D#", "C#"]);
+const tallNotes = new Set(["A", "G", "D"]);
+
+const PianoKey = React.memo(
+  ({
+    noteNumber,
+    note,
+    octave,
+    isBlack,
+    isTall,
+    isC,
+    onMouseDownNote,
+    onMouseEnterNote,
+  }: PianoKeyProps) => {
+    const isHighlighted = useAppSelector(
+      (state) => state.tracker.hoverNote === noteNumber,
+    );
+
+    const handleMouseDown = useCallback(
+      (e: React.MouseEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.buttons & 1) {
+          onMouseDownNote(noteNumber);
+        }
+      },
+      [noteNumber, onMouseDownNote],
+    );
+
+    const handleMouseEnter = useCallback(() => {
+      onMouseEnterNote(noteNumber);
+    }, [noteNumber, onMouseEnterNote]);
+
+    return (
+      <StyledPianoKey
+        data-note-number={noteNumber}
+        $color={isBlack ? "black" : "white"}
+        $highlight={isHighlighted}
+        $tall={isTall || undefined}
+        title={`${note}${octave}`}
+        onMouseDown={handleMouseDown}
+        onMouseEnter={handleMouseEnter}
+      >
+        {isC ? `C${octave}` : undefined}
+      </StyledPianoKey>
+    );
+  },
+);
+
+PianoKey.displayName = "PianoKey";
 
 export const PianoKeyboard = ({ onPlayNote }: PianoKeyboardProps) => {
-  const hoverNote = useAppSelector((state) => state.tracker.hoverNote);
-
   const keyboardRef = useRef<HTMLDivElement | null>(null);
   const activeTouchesRef = useRef(new Map<number, number | null>());
+  const isDraggingRef = useRef(false);
 
   const getNoteFromTouch = useCallback((touch: React.Touch | Touch) => {
     const element = document.elementFromPoint(
@@ -106,8 +164,6 @@ export const PianoKeyboard = ({ onPlayNote }: PianoKeyboardProps) => {
     [],
   );
 
-  const isDraggingRef = useRef(false);
-
   const handleMouseDown = useCallback(
     (noteNumber: number) => {
       isDraggingRef.current = true;
@@ -125,7 +181,7 @@ export const PianoKeyboard = ({ onPlayNote }: PianoKeyboardProps) => {
     [onPlayNote],
   );
 
-  React.useEffect(() => {
+  useEffect(() => {
     const handleMouseUp = () => {
       isDraggingRef.current = false;
     };
@@ -145,41 +201,27 @@ export const PianoKeyboard = ({ onPlayNote }: PianoKeyboardProps) => {
     >
       {octaves.map((octave) => {
         const base = (octave - 3) * 12;
+        return notes.map((note, index) => {
+          const offset = notes.length - 1 - index;
+          const noteNumber = base + offset;
+          const isBlack = blackNotes.has(note);
+          const isTall = tallNotes.has(note);
+          const isC = note === "C";
 
-        return (
-          <React.Fragment key={`pianokey_${octave}`}>
-            {notes.map((note, index) => {
-              const offset = notes.length - 1 - index;
-              const noteNumber = base + offset;
-              const isBlack = blackNotes.includes(note);
-              const isTall = tallNotes.includes(note);
-              const isC = note === "C";
-
-              return (
-                <StyledPianoKey
-                  key={`${note}${octave}`}
-                  data-note-number={noteNumber}
-                  $color={isBlack ? "black" : "white"}
-                  $highlight={hoverNote === noteNumber}
-                  $tall={isTall || undefined}
-                  title={`${note}${octave}`}
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    if (e.buttons & 1) {
-                      handleMouseDown(noteNumber);
-                    }
-                  }}
-                  onMouseEnter={() => {
-                    handleMouseEnter(noteNumber);
-                  }}
-                >
-                  {isC ? `C${octave}` : undefined}
-                </StyledPianoKey>
-              );
-            })}
-          </React.Fragment>
-        );
+          return (
+            <PianoKey
+              key={`${note}${octave}`}
+              noteNumber={noteNumber}
+              note={note}
+              octave={octave}
+              isBlack={isBlack}
+              isTall={isTall}
+              isC={isC}
+              onMouseDownNote={handleMouseDown}
+              onMouseEnterNote={handleMouseEnter}
+            />
+          );
+        });
       })}
     </StyledPianoKeyboard>
   );

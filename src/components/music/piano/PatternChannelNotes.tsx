@@ -6,11 +6,12 @@ import {
   StyledPatternChannelNotes,
   StyledPianoRollNoteTouchBlocker,
 } from "./style";
+import { useAppSelector } from "store/hooks";
 
 interface PatternChannelNotesProps {
+  patternId: number;
   channelId: number;
   isActive: boolean;
-  pattern: PatternCell[][];
   selectedRowIds?: ReadonlySet<number>;
   isDragging: boolean;
 }
@@ -20,21 +21,56 @@ const ARPEGGIO_CODE = 0;
 const noteBottom = (note: number) =>
   (note % TOTAL_NOTES) * PIANO_ROLL_CELL_SIZE;
 
+const arePatternCellsEqual = (
+  a: PatternCell[] | undefined,
+  b: PatternCell[] | undefined,
+): boolean => {
+  if (a === b) {
+    return true;
+  }
+
+  if (!a || !b || a.length !== b.length) {
+    return false;
+  }
+
+  for (let i = 0; i < a.length; i += 1) {
+    if (a[i] !== b[i]) {
+      return false;
+    }
+  }
+
+  return true;
+};
+
 export const PatternChannelNotes = React.memo(
   ({
+    patternId,
     channelId,
     isActive,
-    pattern,
     selectedRowIds,
     isDragging,
   }: PatternChannelNotesProps) => {
+    const channelCells = useAppSelector<PatternCell[] | undefined>((state) => {
+      const pattern = state.trackerDocument.present.song?.patterns[patternId];
+      if (!pattern) {
+        return undefined;
+      }
+
+      return pattern.map((row) => row[channelId]);
+    }, arePatternCellsEqual);
+
+    if (!channelCells) {
+      return null;
+    }
+
     let instrument: number | null = null;
 
     return (
       <StyledPatternChannelNotes $active={isActive}>
-        {pattern?.map((row, rowIndex) => {
-          const cell = row[channelId];
-          if (!cell || cell.note === null) return null;
+        {channelCells.map((cell, rowIndex) => {
+          if (!cell || cell.note === null) {
+            return null;
+          }
 
           const isSelected =
             isActive && (selectedRowIds?.has(rowIndex) ?? false);
@@ -67,11 +103,12 @@ export const PatternChannelNotes = React.memo(
                   bottom: noteBottom(cell.note),
                 }}
               >
-                {isActive && (
+                {isActive ? (
                   <StyledPianoRollNoteTouchBlocker $isSelected={isSelected} />
-                )}
+                ) : null}
               </StyledPianoRollNote>
-              {cell.effectcode === ARPEGGIO_CODE && (
+
+              {cell.effectcode === ARPEGGIO_CODE ? (
                 <>
                   <StyledPianoRollNote
                     data-param={effect >> 4}
@@ -94,7 +131,7 @@ export const PatternChannelNotes = React.memo(
                     }}
                   />
                 </>
-              )}
+              ) : null}
             </React.Fragment>
           );
         })}

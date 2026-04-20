@@ -40,10 +40,6 @@ export const PianoRollPatternBlock = memo(
     playing,
     selectedChannel,
   }: PianoRollPatternBlockProps) => {
-    const pattern = useAppSelector(
-      (state) => state.trackerDocument.present.song?.patterns[patternId],
-    );
-
     const isSequenceHovered = useAppSelector(
       (state) =>
         state.tracker.hoverSequence === sequenceId ||
@@ -65,10 +61,6 @@ export const PianoRollPatternBlock = memo(
       return rows;
     }, areNumberSetsEqual);
 
-    if (!pattern) {
-      return null;
-    }
-
     return (
       <StyledPianoRollPatternBlock
         $hovered={isSequenceHovered}
@@ -83,10 +75,12 @@ export const PianoRollPatternBlock = memo(
         {displayChannels.map((channelId) => (
           <PatternChannelNotes
             key={channelId}
+            patternId={patternId}
             channelId={channelId}
             isActive={selectedChannel === channelId}
-            pattern={pattern}
-            selectedRowIds={selectedRows}
+            selectedRowIds={
+              selectedChannel === channelId ? selectedRows : undefined
+            }
             isDragging={isDragging}
           />
         ))}
