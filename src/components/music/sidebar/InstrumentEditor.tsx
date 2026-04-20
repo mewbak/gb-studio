@@ -238,7 +238,23 @@ export const InstrumentEditor = ({
   const selectedInstrument = useAppSelector(
     (state) => state.tracker.selectedInstrument,
   );
-  const song = useAppSelector((state) => state.trackerDocument.present.song);
+  const hasSong = useAppSelector(
+    (state) => !!state.trackerDocument.present.song,
+  );
+
+  const dutyInstruments = useAppSelector(
+    (state) => state.trackerDocument.present.song?.duty_instruments,
+  );
+  const waveInstruments = useAppSelector(
+    (state) => state.trackerDocument.present.song?.wave_instruments,
+  );
+  const noiseInstruments = useAppSelector(
+    (state) => state.trackerDocument.present.song?.noise_instruments,
+  );
+  const waves = useAppSelector(
+    (state) => state.trackerDocument.present.song?.waves,
+  );
+
   const subpatternEditorMode = useAppSelector(
     (state) => state.tracker.subpatternEditorMode,
   );
@@ -254,29 +270,36 @@ export const InstrumentEditor = ({
   }, []);
 
   const resolvedInstrument = useMemo(() => {
-    if (!song) {
+    if (!hasSong) {
       return null;
     }
 
     if (instrumentType === "duty") {
       return {
         instrumentType,
-        instrument: song.duty_instruments[selectedInstrumentId] ?? null,
+        instrument: dutyInstruments?.[selectedInstrumentId] ?? null,
       };
     }
 
     if (instrumentType === "noise") {
       return {
         instrumentType,
-        instrument: song.noise_instruments[selectedInstrumentId] ?? null,
+        instrument: noiseInstruments?.[selectedInstrumentId] ?? null,
       };
     }
 
     return {
       instrumentType,
-      instrument: song.wave_instruments[selectedInstrumentId] ?? null,
+      instrument: waveInstruments?.[selectedInstrumentId] ?? null,
     };
-  }, [song, instrumentType, selectedInstrumentId]);
+  }, [
+    dutyInstruments,
+    hasSong,
+    instrumentType,
+    noiseInstruments,
+    selectedInstrumentId,
+    waveInstruments,
+  ]);
 
   const instrumentEditorTabs = useMemo<InstrumentEditorTabs>(
     () => ({
@@ -302,10 +325,9 @@ export const InstrumentEditor = ({
 
   const onChangeInstrumentName = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      if (!resolvedInstrument) {
+      if (!resolvedInstrument || !resolvedInstrument.instrument) {
         return;
       }
-
       dispatch(
         editInstrument({
           instrumentId: resolvedInstrument.instrument.index,
@@ -320,7 +342,7 @@ export const InstrumentEditor = ({
 
   const onChangeInstrumentSubpatternEnabled = useCallback(
     (enabled: boolean) => {
-      if (!resolvedInstrument) {
+      if (!resolvedInstrument || !resolvedInstrument.instrument) {
         return;
       }
 
@@ -347,7 +369,7 @@ export const InstrumentEditor = ({
 
   const onSetPreset = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
-      if (!resolvedInstrument) {
+      if (!resolvedInstrument || !resolvedInstrument.instrument) {
         return;
       }
       console.log(e.currentTarget, e.currentTarget.dataset);
@@ -368,7 +390,11 @@ export const InstrumentEditor = ({
   );
 
   const onSpreadSubpattern = useCallback(() => {
-    if (!resolvedInstrument || !resolvedInstrument.instrument.subpattern) {
+    if (
+      !resolvedInstrument ||
+      !resolvedInstrument.instrument ||
+      !resolvedInstrument.instrument.subpattern
+    ) {
       return;
     }
     dispatch(
@@ -384,7 +410,11 @@ export const InstrumentEditor = ({
   }, [dispatch, editInstrument, resolvedInstrument]);
 
   const onCompactSubpattern = useCallback(() => {
-    if (!resolvedInstrument || !resolvedInstrument.instrument.subpattern) {
+    if (
+      !resolvedInstrument ||
+      !resolvedInstrument.instrument ||
+      !resolvedInstrument.instrument.subpattern
+    ) {
       return;
     }
     dispatch(
@@ -398,7 +428,11 @@ export const InstrumentEditor = ({
   }, [dispatch, editInstrument, resolvedInstrument]);
 
   const onResetSubpattern = useCallback(() => {
-    if (!resolvedInstrument || !resolvedInstrument.instrument.subpattern) {
+    if (
+      !resolvedInstrument ||
+      !resolvedInstrument.instrument ||
+      !resolvedInstrument.instrument.subpattern
+    ) {
       return;
     }
     dispatch(
@@ -412,7 +446,7 @@ export const InstrumentEditor = ({
   }, [dispatch, editInstrument, resolvedInstrument]);
 
   const onExportInstrument = useCallback(async () => {
-    if (!resolvedInstrument) {
+    if (!resolvedInstrument || !resolvedInstrument.instrument) {
       return;
     }
     await API.tracker.exportInstrument(resolvedInstrument.instrument);
@@ -420,24 +454,27 @@ export const InstrumentEditor = ({
 
   const onExportWave = useCallback(async () => {
     if (
-      !song ||
+      !hasSong ||
+      !waves ||
       !resolvedInstrument ||
+      !resolvedInstrument.instrument ||
       !isWaveInstrument(resolvedInstrument.instrument)
     ) {
       return;
     }
     const waveIndex = resolvedInstrument.instrument.wave_index;
-    const wave = song.waves[waveIndex];
+    const wave = waves[waveIndex];
     if (!wave) return;
     await API.tracker.exportWave(
       wave,
       resolvedInstrument.instrument.name || "wave",
     );
-  }, [song, resolvedInstrument]);
+  }, [hasSong, resolvedInstrument, waves]);
 
   const onImportWave = useCallback(async () => {
     if (
       !resolvedInstrument ||
+      !resolvedInstrument.instrument ||
       !isWaveInstrument(resolvedInstrument.instrument)
     ) {
       return;
@@ -453,7 +490,7 @@ export const InstrumentEditor = ({
   }, [dispatch, resolvedInstrument]);
 
   const onImportInstrument = useCallback(async () => {
-    if (!resolvedInstrument) {
+    if (!resolvedInstrument || !resolvedInstrument.instrument) {
       return;
     }
     const imported = await API.tracker.importInstrument();
@@ -530,7 +567,12 @@ export const InstrumentEditor = ({
     }
   }, [dispatch, editInstrument, resolvedInstrument]);
 
-  if (!song || !resolvedInstrument || !resolvedInstrument.instrument) {
+  if (
+    !hasSong ||
+    !resolvedInstrument ||
+    !resolvedInstrument.instrument ||
+    !waves
+  ) {
     return null;
   }
 
@@ -698,7 +740,7 @@ export const InstrumentEditor = ({
           <InstrumentWaveEditor
             id={`instrument_${resolvedInstrument.instrument.index}`}
             instrument={resolvedInstrument.instrument}
-            waveForms={song.waves}
+            waveForms={waves}
           />
         </InstrumentEditorWrapper>
       ) : null}

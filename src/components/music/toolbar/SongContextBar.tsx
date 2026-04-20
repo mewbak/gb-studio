@@ -8,7 +8,7 @@ import React, {
 import API from "renderer/lib/api";
 import l10n from "shared/lib/lang/l10n";
 import trackerActions from "store/features/tracker/trackerActions";
-import { useAppDispatch, useAppSelector } from "store/hooks";
+import { useAppDispatch, useAppSelector, useAppStore } from "store/hooks";
 import styled, { css, ThemeContext } from "styled-components";
 import { Button } from "ui/buttons/Button";
 import { ButtonGroup } from "ui/buttons/ButtonGroup";
@@ -102,11 +102,35 @@ const getPlayButtonLabel = (play: boolean, playbackFromStart: boolean) => {
   }
 };
 
+export const OrderPosition = () => {
+  const orderIndex = useAppSelector(
+    (state) => state.tracker.playbackPosition[0],
+  );
+  return String(orderIndex + 1).padStart(2, "0");
+};
+
+export const PatternPosition = () => {
+  const orderIndex = useAppSelector(
+    (state) => state.tracker.playbackPosition[0],
+  );
+  const sequence = useAppSelector(
+    (state) => state.trackerDocument.present.song?.sequence,
+  );
+  const patternIndex = sequence?.[orderIndex] ?? 0;
+  return String(patternIndex).padStart(2, "0");
+};
+
+export const RowPosition = () => {
+  const rowIndex = useAppSelector((state) => state.tracker.playbackPosition[1]);
+  return String(rowIndex).padStart(2, "0");
+};
+
 export const SongContextBar = ({
   isCompactLayout,
 }: {
   isCompactLayout?: boolean;
 }) => {
+  const store = useAppStore();
   const dispatch = useAppDispatch();
 
   const play = useAppSelector((state) => state.tracker.playing);
@@ -114,22 +138,12 @@ export const SongContextBar = ({
   const exporting = useAppSelector((state) => state.tracker.exporting);
   const playerReady = useAppSelector((state) => state.tracker.playerReady);
 
-  const sequence = useAppSelector(
-    (state) => state.trackerDocument.present.song?.sequence,
-  );
-
   const defaultStartPlaybackPosition = useAppSelector(
     (state) => state.tracker.defaultStartPlaybackPosition,
   );
 
   const [playbackFromStart, setPlaybackFromStart] = useState(false);
-  const playbackPosition = useAppSelector(
-    (state) => state.tracker.playbackPosition,
-  );
 
-  const orderIndex = playbackPosition[0];
-  const patternIndex = sequence?.[playbackPosition[0]] ?? 0;
-  const rowIndex = playbackPosition[1];
   const themeContext = useContext(ThemeContext);
 
   const setTrackerView = useCallback(() => {
@@ -175,6 +189,9 @@ export const SongContextBar = ({
     const defaultOrderIndex = defaultStartPlaybackPosition[0];
     const defaultRowIndex = defaultStartPlaybackPosition[1];
 
+    const state = store.getState();
+    const [orderIndex, rowIndex] = state.tracker.playbackPosition;
+
     // Already at default start - restart default to start of song
     if (orderIndex === defaultOrderIndex && rowIndex === defaultRowIndex) {
       dispatch(trackerActions.setDefaultStartPlaybackPosition([0, 0]));
@@ -189,7 +206,7 @@ export const SongContextBar = ({
         position: defaultStartPlaybackPosition,
       });
     }
-  }, [defaultStartPlaybackPosition, dispatch, orderIndex, rowIndex]);
+  }, [store, defaultStartPlaybackPosition, dispatch]);
 
   const onKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -274,19 +291,19 @@ export const SongContextBar = ({
           <StyledSongContextBarTimerPartLabel>
             ORD
           </StyledSongContextBarTimerPartLabel>
-          {String(orderIndex + 1).padStart(2, "0")}
+          <OrderPosition />
         </StyledSongContextBarTimerPart>
         <StyledSongContextBarTimerPart>
           <StyledSongContextBarTimerPartLabel>
             PAT
           </StyledSongContextBarTimerPartLabel>
-          {String(patternIndex).padStart(2, "0")}
+          <PatternPosition />
         </StyledSongContextBarTimerPart>
         <StyledSongContextBarTimerPart>
           <StyledSongContextBarTimerPartLabel>
             ROW
           </StyledSongContextBarTimerPartLabel>
-          {String(rowIndex).padStart(2, "0")}
+          <RowPosition />
         </StyledSongContextBarTimerPart>
       </StyledSongContextBarTimer>
 

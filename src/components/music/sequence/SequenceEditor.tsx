@@ -147,7 +147,7 @@ const SequenceItem = ({
 
 const emptySequence: number[] = [];
 
-const SequenceEditorFwd = ({ height, direction }: SequenceEditorProps) => {
+export const SequenceEditor = ({ height, direction }: SequenceEditorProps) => {
   const dispatch = useAppDispatch();
 
   const sequence = useAppSelector(
@@ -294,5 +294,3 @@ const SequenceEditorFwd = ({ height, direction }: SequenceEditorProps) => {
     </StyledSequenceEditorWrapper>
   );
 };
-
-export const SequenceEditor = React.memo(SequenceEditorFwd);

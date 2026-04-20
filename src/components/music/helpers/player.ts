@@ -20,7 +20,7 @@ let isExporting = false;
 let isPlayingSong = false;
 let isPreviewPlaying = false;
 let metronomeEnabled = false;
-let lastMetronomePositionKey: string | null = null;
+let lastPositionKey: string | null = null;
 
 const channels = [false, false, false, false];
 const previewEmulator = createEmulator();
@@ -41,21 +41,21 @@ const playMetronomeTick = (currentTick: number) => {
   emulator.playTone(1760, 0.05, startTime, 0.12);
 };
 
-const resetMetronome = () => {
-  lastMetronomePositionKey = null;
+const resetPositionCallback = () => {
+  lastPositionKey = null;
 };
 
 const onPlaybackPositionUpdate = (
   position: PlaybackPosition,
   currentTick: number,
 ) => {
-  onIntervalCallback(position);
-
   const positionKey = `${position[0]}:${position[1]}`;
-  if (positionKey === lastMetronomePositionKey) {
+  if (positionKey === lastPositionKey) {
     return;
   }
-  lastMetronomePositionKey = positionKey;
+  lastPositionKey = positionKey;
+
+  onIntervalCallback(position);
 
   if (!metronomeEnabled || position[1] % 4 !== 0) {
     return;
@@ -232,7 +232,7 @@ const loadSong = (song: Song) => {
   updateRom(song);
   emulator.step("frame");
   stop();
-  resetMetronome();
+  resetPositionCallback();
   resetChannels();
 };
 
@@ -279,7 +279,7 @@ const play = (song: Song, position?: PlaybackPosition) => {
   updateRom(song);
   emulator.step("frame");
   stop();
-  resetMetronome();
+  resetPositionCallback();
 
   if (position) {
     // console.log("POS", position);
@@ -408,7 +408,7 @@ const playSound = () => {
 
 const stop = (position?: PlaybackPosition) => {
   isPlayingSong = false;
-  resetMetronome();
+  resetPositionCallback();
 
   if (!isPlayerPaused()) {
     doPause();
@@ -426,7 +426,7 @@ const stop = (position?: PlaybackPosition) => {
 
 const setStartPosition = (position: PlaybackPosition) => {
   let wasPlaying = false;
-  resetMetronome();
+  resetPositionCallback();
 
   if (!isPlayerPaused()) {
     wasPlaying = true;
@@ -891,7 +891,7 @@ const reset = () => {
   emulator.init(romFile);
   previewEmulator.init(romFile);
   stopPreview();
-  resetMetronome();
+  resetPositionCallback();
 };
 
 const resetChannels = () => {
@@ -915,7 +915,7 @@ const player = {
   setMetronomeEnabled: (enabled: boolean) => {
     metronomeEnabled = enabled;
     if (!enabled) {
-      resetMetronome();
+      resetPositionCallback();
     }
   },
   getCurrentSong,
