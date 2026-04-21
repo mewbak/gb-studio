@@ -24,6 +24,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add ability to test multiple octaves for instruments in sidebar
 - Add step selection to tracker toolbar in Music Editor
 - Add ability to export songs from the Music Editor as MP3, FLAC, or WAV
+- Add ability to import/export instruments and waveforms in the Music Editor (compatible with hUGETracker .ugi/.ugw)
+- Add 'Script' editor view for editing instrument subpatterns in the Music Editor, similar to event scripts
+- Add optional onscreen keyboard for Tracker view in Music Editor
+- Add presets for instrument subpatterns in the Music Editor
+- Add ability use MIDI input in Music Editor. Record button will appear to set if MIDI input should edit song or just preview notes. Piano Roll view also allows recording during playback with optional metronome and quantizing options
 - Ukrainian localisation. [@AmakerGame](https://github.com/AmakerGame)
 
 ### Changed
@@ -37,10 +42,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Music Editor now centres the piano roll on C5 when opening a file
 - Updated Polish localisation. [@ReptiIe](https://github.com/ReptiIe)
 - Updated Japanese localisation. [@tomo666](https://github.com/tomo666)
-- Piano Roll view in the Music Editor now displays the full song at once
+- Music Editor now displays the full song at once
 - Patterns in the Music Editor are now color-coded to improve organisation
 - Notes in the Piano Roll without an instrument now use the previously set instrument color with a striped pattern
 - Editing or changing instruments in the Music Editor now plays a preview note
+- Music Editor now includes right click context menus allowing access to transpose, interpolate and copy/paste options
 
 ### Fixed
 
@@ -51,6 +57,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed issue where loading a new song retained the previous song's mute state
 - Fixed issue where the Music Editor would not automatically display the first song if it was a `.mod` file
 - Fix issue where "Test Instrument" in Music Editor would not work if instrument's channel was muted
+- Fix issue where renaming a scene could prevent selecting text in the name field
+- Fix issue in asset navigators where folders could incorrectly show files as being within folders if filename matched the folder name
+- Fix issue in song navigator where keyboard navigation could stop working
 
 ## [4.2.2] - 2026-02-24
 
