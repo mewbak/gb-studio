@@ -125,7 +125,7 @@ const StyledSplashPage = styled.div`
 
 const StyledSplashWindowChrome = styled.div`
   position: relative;
-  width: 700px;
+  width: 730px;
   height: 430px;
   min-height: 430px;
   border-radius: 10px;
