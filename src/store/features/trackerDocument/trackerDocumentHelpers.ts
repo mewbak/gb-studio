@@ -9,7 +9,7 @@ import { PatternCell } from "shared/lib/uge/types";
 import { toValidChannelId } from "shared/lib/uge/editor/helpers";
 import { transposeNoteValue } from "shared/lib/uge/display";
 
-export interface AbsRowPosition {
+interface AbsRowPosition {
   sequenceId: number;
   rowId: number;
 }
@@ -24,7 +24,7 @@ export const fromAbsRow = (absRow: number): AbsRowPosition => ({
   rowId: absRow % TRACKER_PATTERN_LENGTH,
 });
 
-export interface ResolvedAbsRow extends AbsRowPosition {
+interface ResolvedAbsRow extends AbsRowPosition {
   patternId: number;
 }
 

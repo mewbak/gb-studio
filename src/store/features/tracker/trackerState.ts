@@ -182,7 +182,6 @@ const trackerSlice = createSlice({
       }
     },
     playerReady: (state, action: PayloadAction<boolean>) => {
-      console.warn("SET PLAYER READY TO ", action.payload);
       state.playerReady = action.payload;
     },
     setView: (state, action: PayloadAction<TrackerViewType>) => {

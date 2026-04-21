@@ -102,14 +102,14 @@ const getPlayButtonLabel = (play: boolean, playbackFromStart: boolean) => {
   }
 };
 
-export const OrderPosition = () => {
+const OrderPosition = () => {
   const orderIndex = useAppSelector(
     (state) => state.tracker.playbackPosition[0],
   );
   return String(orderIndex + 1).padStart(2, "0");
 };
 
-export const PatternPosition = () => {
+const PatternPosition = () => {
   const orderIndex = useAppSelector(
     (state) => state.tracker.playbackPosition[0],
   );
@@ -120,7 +120,7 @@ export const PatternPosition = () => {
   return String(patternIndex).padStart(2, "0");
 };
 
-export const RowPosition = () => {
+const RowPosition = () => {
   const rowIndex = useAppSelector((state) => state.tracker.playbackPosition[1]);
   return String(rowIndex).padStart(2, "0");
 };

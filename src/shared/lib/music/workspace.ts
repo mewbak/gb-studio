@@ -1,17 +1,8 @@
-import type { MusicAsset } from "shared/lib/resources/types";
+type MusicWorkspaceSource = "filesystem" | "browser";
 
-export const musicWorkspaceSourceValues = ["filesystem", "browser"] as const;
+type MusicWorkspaceOpenMode = "file" | "directory";
 
-export type MusicWorkspaceSource = (typeof musicWorkspaceSourceValues)[number];
-
-export const musicWorkspaceOpenModeValues = ["file", "directory"] as const;
-
-export type MusicWorkspaceOpenMode =
-  (typeof musicWorkspaceOpenModeValues)[number];
-
-export const musicDocumentFormatValues = ["uge", "mod"] as const;
-
-export type MusicDocumentFormat = (typeof musicDocumentFormatValues)[number];
+type MusicDocumentFormat = "uge" | "mod";
 
 export interface MusicDocumentReference {
   id: string;
@@ -43,12 +34,3 @@ export const getActiveMusicDocument = (workspace: MusicWorkspace) =>
   workspace.documents.find(
     (document) => document.id === workspace.activeDocumentId,
   );
-
-export const musicAssetToDocumentReference = (
-  asset: Pick<MusicAsset, "id" | "name" | "filename" | "type">,
-): MusicDocumentReference => ({
-  id: asset.id,
-  name: asset.name,
-  filename: asset.filename,
-  format: asset.type === "mod" ? "mod" : "uge",
-});

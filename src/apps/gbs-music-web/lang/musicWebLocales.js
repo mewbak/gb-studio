@@ -151,14 +151,8 @@ const generateMusicWebLocales = ({
 module.exports = {
   auditMusicWebL10NManifest,
   defaultManifestPath,
-  defaultLocaleDir,
   defaultOutputDir,
-  defaultScanGlobs,
-  extractStaticMusicWebL10NKeys,
-  filterLocaleData,
   generateMusicWebLocales,
   listLocaleFiles,
-  readManifestKeys,
   removeGeneratedMusicWebLocales,
-  repoRoot,
 };

@@ -3,7 +3,7 @@ import { Select, SelectCommonProps } from "ui/form/Select";
 import { SingleValue } from "react-select";
 import l10n from "shared/lib/lang/l10n";
 
-export interface TrackerStepOption {
+interface TrackerStepOption {
   value: number;
   label: string;
 }

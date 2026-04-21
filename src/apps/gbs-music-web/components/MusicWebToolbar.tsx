@@ -72,7 +72,7 @@ interface MusicWebToolbarProps {
   onCloseWorkspace?: () => void;
 }
 
-export const MusicWebToolbar = ({
+const MusicWebToolbar = ({
   themeId,
   localeId,
   onThemeChange,
@@ -310,3 +310,5 @@ export const MusicWebToolbar = ({
     </>
   );
 };
+
+export default MusicWebToolbar;

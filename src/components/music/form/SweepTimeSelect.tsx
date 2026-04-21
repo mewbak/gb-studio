@@ -3,7 +3,7 @@ import { OptionLabelWithInfo, Select, SelectCommonProps } from "ui/form/Select";
 import { SingleValue } from "react-select";
 import l10n from "shared/lib/lang/l10n";
 
-export interface SweepTimeOption {
+interface SweepTimeOption {
   value: number;
   label: string;
 }

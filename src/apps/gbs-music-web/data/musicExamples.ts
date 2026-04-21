@@ -1,4 +1,4 @@
-export interface MusicExample {
+interface MusicExample {
   filename: string;
   displayName: string;
   artistName: string;

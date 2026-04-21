@@ -277,7 +277,7 @@ const StyledSplashSectionHeader = styled.div<{ $sticky?: boolean }>`
       : ""}
 `;
 
-interface SplashExampleMusicProps {
+interface SplashExampleMusicTrackProps {
   name: string;
   artist: string;
   onClick: () => void;
@@ -358,13 +358,6 @@ const StyledFileActions = styled.div`
   }
 `;
 
-export const StyledFileForm = styled.div`
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  height: 100%;
-`;
-
 const StyledSplashFooter = styled.div`
   text-align: center;
   color: #fff;
@@ -381,11 +374,11 @@ const StyledSplashFooter = styled.div`
   }
 `;
 
-export const SplashExampleMusic = ({
+const SplashExampleMusicTrack = ({
   name,
   artist,
   onClick,
-}: SplashExampleMusicProps) => (
+}: SplashExampleMusicTrackProps) => (
   <SplashProjectWrapper onClick={onClick}>
     <img src={ugeIcon} alt="" draggable={false} />
     <SplashProjectDetails>
@@ -669,7 +662,7 @@ export const MusicWebSplash = ({
           {(section === "examples" || isCompactLayout) && (
             <SplashScroll>
               {musicExamples.map((example) => (
-                <SplashExampleMusic
+                <SplashExampleMusicTrack
                   key={example.filename}
                   name={example.displayName}
                   artist={example.artistName}

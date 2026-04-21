@@ -16,7 +16,7 @@ const StyledBannerText = styled.div`
   flex-grow: 1;
 `;
 
-export interface MusicWebStatusBannerProps {
+interface MusicWebStatusBannerProps {
   title: string;
   actionLabel: string;
   onAction: () => void;

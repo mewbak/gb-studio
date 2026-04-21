@@ -7,7 +7,7 @@ import type { L10NLookup } from "shared/lib/lang/l10n";
 
 const settingsPrefix = "gbsMusicWeb:";
 
-export const webThemeOptions = [
+const webThemeOptions = [
   { id: "light", label: "Light", theme: lightTheme },
   { id: "dark", label: "Dark", theme: darkTheme },
 ] as const;

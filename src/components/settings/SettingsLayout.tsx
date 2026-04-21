@@ -33,7 +33,7 @@ export const SettingsSearchWrapper = styled.div`
   padding: 5px;
 `;
 
-export interface SettingsMenuItemProps {
+interface SettingsMenuItemProps {
   $indent?: number;
 }
 

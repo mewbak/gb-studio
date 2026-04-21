@@ -278,7 +278,7 @@ const StyledBackspaceIcon = styled.div`
   }
 `;
 
-export const StyledKeyboardToggleIcon = styled.div`
+const StyledKeyboardToggleIcon = styled.div`
   display: flex;
   svg {
     height: 10px;
@@ -288,7 +288,7 @@ export const StyledKeyboardToggleIcon = styled.div`
   }
 `;
 
-export const StyledArrowIcon = styled.div<{
+const StyledArrowIcon = styled.div<{
   $direction: "up" | "down" | "left" | "right";
 }>`
   display: flex;
@@ -318,7 +318,7 @@ export const StyledArrowIcon = styled.div<{
     `}
 `;
 
-export const StyledBreak = styled.br`
+const StyledBreak = styled.br`
   display: none;
   @media (max-width: 840px) {
     display: block;

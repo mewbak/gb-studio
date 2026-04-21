@@ -668,5 +668,3 @@ export const registerExampleData = (
 export const resetMusicWorkspaceAdapterState = () => {
   resetMusicWorkspaceStorage();
 };
-
-export type { MusicBinaryDocument };

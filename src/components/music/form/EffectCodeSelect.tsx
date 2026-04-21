@@ -9,7 +9,7 @@ import {
 import l10n from "shared/lib/lang/l10n";
 import styled from "styled-components";
 
-export interface EffectCodeOption {
+interface EffectCodeOption {
   value: number | "";
   label: string;
   info?: string;

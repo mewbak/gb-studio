@@ -4,7 +4,7 @@ import { SingleValue } from "react-select";
 import l10n from "shared/lib/lang/l10n";
 import { MIN_OCTAVE } from "consts";
 
-export interface OctaveOffsetOption {
+interface OctaveOffsetOption {
   value: number;
   label: string;
 }

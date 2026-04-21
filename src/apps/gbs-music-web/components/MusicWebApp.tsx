@@ -45,12 +45,9 @@ const StandaloneMusicPage = lazy(() =>
     recoverChunkLoad,
   ),
 );
-const MusicWebToolbar = lazy(async () => {
-  const module = await import("gbs-music-web/components/MusicWebToolbar").catch(
-    recoverChunkLoad,
-  );
-  return { default: module.MusicWebToolbar };
-});
+const MusicWebToolbar = lazy(async () =>
+  import("gbs-music-web/components/MusicWebToolbar").catch(recoverChunkLoad),
+);
 
 export const MusicWebApp = () => {
   const dispatch = useAppDispatch();

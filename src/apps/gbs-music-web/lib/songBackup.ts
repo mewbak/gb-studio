@@ -37,7 +37,7 @@ export const deserializeSong = (json: string): Song | null => {
   }
 };
 
-export interface BackupInfo {
+interface BackupInfo {
   name: string;
   filename: string;
   timestamp: number;

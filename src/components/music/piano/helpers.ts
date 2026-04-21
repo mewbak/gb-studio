@@ -23,7 +23,7 @@ export const noteToRow = (note: number) => TOTAL_NOTES - 1 - note;
 /** Converts a piano-roll row index back to a MIDI-style note number. */
 export const rowToNote = (row: number) => TOTAL_NOTES - 1 - row;
 
-export interface RollGridPoint {
+interface RollGridPoint {
   absRow: number;
   note: number;
 }
@@ -71,7 +71,7 @@ export const interpolateGridLine = (
 export const pixelToGridIndex = (pixel: number) =>
   Math.floor(pixel / PIANO_ROLL_CELL_SIZE);
 
-export const pixelToGridStart = (pixel: number) =>
+const pixelToGridStart = (pixel: number) =>
   pixelToGridIndex(pixel) * PIANO_ROLL_CELL_SIZE;
 
 /**

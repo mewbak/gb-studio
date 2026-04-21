@@ -1,11 +1,11 @@
 import { PatternCellAddress } from "shared/lib/uge/editor/types";
 
-export type Position = {
+type Position = {
   x: number;
   y: number;
 };
 
-export type DragDelta = {
+type DragDelta = {
   rows: number;
   notes: number;
 };
@@ -26,17 +26,17 @@ export type PointerModifiers = {
   clone: boolean;
 };
 
-export type GridPoint = {
+type GridPoint = {
   absRow: number;
   note: number;
 };
 
-export type SelectionBox = {
+type SelectionBox = {
   origin: Position;
   rect: SelectionRect;
 };
 
-export type PendingPencilNote = {
+type PendingPencilNote = {
   patternId: number;
   patternRow: number;
   sequenceId: number;

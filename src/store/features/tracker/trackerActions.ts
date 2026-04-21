@@ -7,7 +7,7 @@ import {
 } from "./trackerState";
 import API from "renderer/lib/api";
 
-export const initViewFromSaved = createAsyncThunk(
+const initViewFromSaved = createAsyncThunk(
   "tracker/initView",
   async (_, thunkApi) => {
     const view = await API.settings.getString("trackerView", "roll");
@@ -42,7 +42,7 @@ export const initViewFromSaved = createAsyncThunk(
   },
 );
 
-export const setViewAndSave = createAsyncThunk<void, TrackerViewType>(
+const setViewAndSave = createAsyncThunk<void, TrackerViewType>(
   "tracker/setViewAndSave",
   async (payload, thunkApi) => {
     thunkApi.dispatch(actions.setView(payload));
@@ -50,7 +50,7 @@ export const setViewAndSave = createAsyncThunk<void, TrackerViewType>(
   },
 );
 
-export const setSubpatternEditorModeAndSave = createAsyncThunk<
+const setSubpatternEditorModeAndSave = createAsyncThunk<
   void,
   SubpatternEditorMode
 >("tracker/setSubpatternEditorModeAndSave", async (payload, thunkApi) => {
@@ -58,7 +58,7 @@ export const setSubpatternEditorModeAndSave = createAsyncThunk<
   await API.settings.set("subpatternEditorMode", payload);
 });
 
-export const setMetronomeEnabledAndSave = createAsyncThunk<void, boolean>(
+const setMetronomeEnabledAndSave = createAsyncThunk<void, boolean>(
   "tracker/setMetronomeEnabledAndSave",
   async (payload, thunkApi) => {
     thunkApi.dispatch(actions.setMetronomeEnabled(payload));
@@ -66,13 +66,13 @@ export const setMetronomeEnabledAndSave = createAsyncThunk<void, boolean>(
   },
 );
 
-export const setQuantizeSnapAndSave = createAsyncThunk<
-  void,
-  QuantizeSnapSetting
->("tracker/setQuantizeSnapAndSave", async (payload, thunkApi) => {
-  thunkApi.dispatch(actions.setQuantizeSnap(payload));
-  await API.settings.set("trackerQuantizeSnap", payload);
-});
+const setQuantizeSnapAndSave = createAsyncThunk<void, QuantizeSnapSetting>(
+  "tracker/setQuantizeSnapAndSave",
+  async (payload, thunkApi) => {
+    thunkApi.dispatch(actions.setQuantizeSnap(payload));
+    await API.settings.set("trackerQuantizeSnap", payload);
+  },
+);
 
 const actions = {
   ...reducerActions,

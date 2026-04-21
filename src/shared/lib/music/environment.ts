@@ -1,8 +1,6 @@
 import type { MusicDocumentReference, MusicWorkspace } from "./workspace";
 
-export type { MusicDocumentReference, MusicWorkspace } from "./workspace";
-
-export type ConfirmDiscardChangesResult = "save" | "discard" | "cancel";
+type ConfirmDiscardChangesResult = "save" | "discard" | "cancel";
 
 export interface MusicWorkspaceDocument<TDocument> {
   meta: MusicDocumentReference;

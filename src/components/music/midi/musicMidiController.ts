@@ -210,7 +210,7 @@ export const getMidiNoteFromMessage = (
   return clampMidiNote(note - NOTE_OFFSET);
 };
 
-export class MusicMidiController {
+class MusicMidiController {
   private readonly env: MusicMidiControllerEnv;
 
   private state: MusicMidiState = {

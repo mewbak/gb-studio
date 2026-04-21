@@ -3,7 +3,7 @@ import { Select, SelectCommonProps } from "ui/form/Select";
 import { SingleValue } from "react-select";
 import styled from "styled-components";
 
-export interface DutyCycleOption {
+interface DutyCycleOption {
   value: number;
   label: string;
   width: number;
