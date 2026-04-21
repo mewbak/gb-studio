@@ -22,6 +22,10 @@ const literalL10NKeyPattern = /l10n\(\s*["']([A-Z0-9_-]+)["']/g;
 
 const readJson = (filename) => JSON.parse(fs.readFileSync(filename, "utf8"));
 
+const removeGeneratedMusicWebLocales = (outputDir = defaultOutputDir) => {
+  fs.rmSync(outputDir, { recursive: true, force: true });
+};
+
 const listLocaleFiles = (localeDir = defaultLocaleDir) =>
   glob
     .sync(path.join(localeDir, "*.json"))
@@ -108,7 +112,7 @@ const generateMusicWebLocales = ({
     );
   }
 
-  fs.rmSync(outputDir, { recursive: true, force: true });
+  removeGeneratedMusicWebLocales(outputDir);
   fs.mkdirSync(outputDir, { recursive: true });
 
   const missingByLocale = {};
@@ -155,5 +159,6 @@ module.exports = {
   generateMusicWebLocales,
   listLocaleFiles,
   readManifestKeys,
+  removeGeneratedMusicWebLocales,
   repoRoot,
 };

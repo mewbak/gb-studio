@@ -1,8 +1,10 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 const {
   defaultManifestPath,
+  defaultOutputDir,
   generateMusicWebLocales,
   listLocaleFiles,
+  removeGeneratedMusicWebLocales,
 } = require("./musicWebLocales");
 
 class MusicWebLocalesPlugin {
@@ -23,6 +25,14 @@ class MusicWebLocalesPlugin {
       for (const localeFile of listLocaleFiles()) {
         compilation.fileDependencies.add(localeFile);
       }
+    });
+
+    compiler.hooks.done.tap("MusicWebLocalesPlugin", (stats) => {
+      if (compiler.watchMode || stats.hasErrors()) {
+        return;
+      }
+
+      removeGeneratedMusicWebLocales(defaultOutputDir);
     });
   }
 }
