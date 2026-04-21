@@ -3,9 +3,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 const UPDATE_PENDING_STORAGE_KEY = "gbsMusicWeb:updatePending";
 
 const isLocalhost = () =>
-  location.hostname === "localhost" ||
-  location.hostname === "127.0.0.1" ||
-  location.hostname === "[::1]";
+  window &&
+  window.location &&
+  (window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1" ||
+    window.location.hostname === "[::1]");
 
 const supportsServiceWorker = () =>
   typeof window !== "undefined" &&

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 const { auditMusicWebL10NManifest } = require("./musicWebLocales");
 
 const { missingKeys, unusedKeys } = auditMusicWebL10NManifest();

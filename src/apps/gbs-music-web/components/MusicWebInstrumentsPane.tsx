@@ -4,7 +4,6 @@ import {
   StyledMobileListMenuCaret,
   StyledMobileListMenuHeader,
   StyledMobileListMenuItem,
-  StyledMobileOverlayClose,
 } from "gbs-music-web/components/ui/style";
 import React from "react";
 import l10n from "shared/lib/lang/l10n";

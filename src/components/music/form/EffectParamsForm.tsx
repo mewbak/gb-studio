@@ -2,7 +2,7 @@ import React, { FC, useMemo } from "react";
 import { SingleValue } from "react-select";
 import { FormField, FormRow } from "ui/form/layout/FormLayout";
 import { Select } from "ui/form/Select";
-import l10n, { L10NKey } from "shared/lib/lang/l10n";
+import l10n from "shared/lib/lang/l10n";
 import { SliderField } from "ui/form/SliderField";
 import { CheckboxField } from "ui/form/CheckboxField";
 import { Label } from "ui/form/Label";
