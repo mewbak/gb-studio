@@ -25,6 +25,7 @@ import { InputGroup, InputGroupAppend } from "ui/form/InputGroup";
 import { useMusicNotePreview } from "components/music/hooks/useMusicNotePreview";
 import { transposeNoteValue } from "shared/lib/uge/display";
 import { OCTAVE_SIZE } from "consts";
+import { useDebouncedValue } from "ui/hooks/use-debounced-value";
 
 const getSharedValue = <T extends keyof PatternCell>(
   song: Song | undefined,
@@ -47,8 +48,13 @@ export const PatternCellSelectionEditor = () => {
 
   const song = useAppSelector((state) => state.trackerDocument.present.song);
 
-  const selectedPatternCells = useAppSelector(
+  const currentSelectedPatternCells = useAppSelector(
     (state) => state.tracker.selectedPatternCells,
+  );
+
+  const selectedPatternCells = useDebouncedValue(
+    currentSelectedPatternCells,
+    50,
   );
 
   const firstChannelId = useMemo(
