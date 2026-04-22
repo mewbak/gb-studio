@@ -707,11 +707,6 @@ export const SongTracker = () => {
   }, [sequenceId, setActiveField]);
 
   const onSelectAll = useCallback(() => {
-    const selection = window.getSelection();
-    if (!selection || selection.focusNode) {
-      return;
-    }
-
     const noSelection =
       !selectionRectRef.current ||
       selectionRectRef.current.width === 0 ||

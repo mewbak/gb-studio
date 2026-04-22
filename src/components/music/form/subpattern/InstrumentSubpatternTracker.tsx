@@ -766,7 +766,6 @@ export const InstrumentSubpatternTracker = ({
       selectedTrackerFields.length,
       selectionOrigin,
       setSingleFieldSelection,
-      visibleRowCount,
     ],
   );
 
