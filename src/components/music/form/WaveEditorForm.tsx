@@ -25,8 +25,13 @@ export const WaveEditorForm = ({ waveId, onChange }: WaveEditorFormProps) => {
   const dispatch = useAppDispatch();
   const themeContext = useContext(ThemeContext);
 
-  const song = useAppSelector((state) => state.trackerDocument.present.song);
-  const wavesLength = song?.waves.length ?? 0;
+  const songWave = useAppSelector(
+    (state) => state.trackerDocument.present.song?.waves[waveId],
+  );
+
+  const wavesLength = useAppSelector(
+    (state) => state.trackerDocument.present.song?.waves.length ?? 0,
+  );
 
   const waveOptions = useMemo(
     () =>
@@ -57,7 +62,7 @@ export const WaveEditorForm = ({ waveId, onChange }: WaveEditorFormProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    if (!song) {
+    if (wavesLength === 0 || !songWave) {
       return;
     }
 
@@ -92,7 +97,7 @@ export const WaveEditorForm = ({ waveId, onChange }: WaveEditorFormProps) => {
 
       const drawWidth = width - PADDING * 2;
       const drawHeight = height - PADDING * 2;
-      const waveLength = song.waves[waveId].length;
+      const waveLength = songWave.length;
       const pointLength = drawWidth / (waveLength - 1);
       const pointHeight = drawHeight / 15;
 
@@ -154,10 +159,10 @@ export const WaveEditorForm = ({ waveId, onChange }: WaveEditorFormProps) => {
       drawWave(waves, color);
     };
 
-    redraw(song.waves[waveId]);
+    redraw(songWave);
 
     let mousedown = false;
-    let newWaves = new Uint8Array(song.waves[waveId]);
+    let newWaves = new Uint8Array(songWave);
 
     const updateWaveAtPosition = (clientX: number, clientY: number) => {
       const { rect, pointLength, pointHeight } = getLayout();
@@ -171,14 +176,14 @@ export const WaveEditorForm = ({ waveId, onChange }: WaveEditorFormProps) => {
         i: clamp(
           Math.round((pos.x - PADDING) / pointLength),
           0,
-          song.waves[waveId].length - 1,
+          songWave.length - 1,
         ),
         j: clamp(Math.round((pos.y - PADDING) / pointHeight), 0, 15),
       };
 
       if (gridP.j < 16) {
         if (!mousedown) {
-          newWaves = new Uint8Array(song.waves[waveId]);
+          newWaves = new Uint8Array(songWave);
         }
 
         newWaves[gridP.i] = clamp(15 - gridP.j, 0, 15);
@@ -188,7 +193,7 @@ export const WaveEditorForm = ({ waveId, onChange }: WaveEditorFormProps) => {
 
     const handleMouseOut = () => {
       if (!mousedown) {
-        redraw(song.waves[waveId]);
+        redraw(songWave);
       }
     };
 
@@ -251,7 +256,7 @@ export const WaveEditorForm = ({ waveId, onChange }: WaveEditorFormProps) => {
     };
 
     const handleResize = () => {
-      redraw(song.waves[waveId]);
+      redraw(songWave);
     };
 
     canvas.addEventListener("mouseout", handleMouseOut);
@@ -275,7 +280,7 @@ export const WaveEditorForm = ({ waveId, onChange }: WaveEditorFormProps) => {
       window.removeEventListener("touchcancel", handleTouchEnd);
       window.removeEventListener("resize", handleResize);
     };
-  }, [song, waveId, onEditWave, themeContext]);
+  }, [onEditWave, songWave, themeContext?.colors.highlight, wavesLength]);
 
   return (
     <>
