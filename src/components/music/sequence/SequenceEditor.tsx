@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { memo, useCallback, useEffect, useMemo, useRef } from "react";
 import { Select } from "ui/form/Select";
 import { PlusIcon } from "ui/icons/Icons";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
@@ -42,108 +36,145 @@ interface SequenceListItem {
 interface SequenceItemProps {
   item: SequenceListItem;
   isSelected: boolean;
-  playingSequence: number;
   sequenceOptions: SequenceOption[];
   sequenceLength: number;
   numPatterns: number;
-  setSelectHasFocus: (value: boolean) => void;
   direction: "vertical" | "horizontal";
 }
 
-const SequenceItem = ({
-  item,
-  isSelected,
-  playingSequence,
-  sequenceOptions,
-  sequenceLength,
-  numPatterns,
-  setSelectHasFocus,
-  direction,
-}: SequenceItemProps) => {
-  const dispatch = useAppDispatch();
+interface SequencePatternSelectProps {
+  patternId: number;
+  sequenceOptions: SequenceOption[];
+  onEditSequence: (newValue: SequenceOption) => void;
+}
 
-  const editSequence = useCallback(
-    (newValue: SequenceOption) => {
-      dispatch(
-        trackerDocumentActions.editSequence({
-          sequenceIndex: item.sequenceIndex,
-          sequenceId: newValue.value,
-        }),
-      );
-    },
-    [dispatch, item.sequenceIndex],
-  );
+export const SequencePatternSelect = memo(
+  ({
+    patternId,
+    sequenceOptions,
+    onEditSequence,
+  }: SequencePatternSelectProps) => {
+    const value = useMemo(
+      () => sequenceOptions.find((option) => option.value === patternId),
+      [sequenceOptions, patternId],
+    );
 
-  const getContextMenu = useCallback(
-    (onClose?: () => void) => {
-      return renderPatternContextMenu({
+    const formatOptionLabel = useCallback(
+      (option: SequenceOption, { context }: { context: "menu" | "value" }) =>
+        context === "value" ? option.shortLabel : option.label,
+      [],
+    );
+
+    const onChange = useCallback(
+      (newValue: SingleValue<SequenceOption>) => {
+        if (newValue) {
+          onEditSequence(newValue);
+        }
+      },
+      [onEditSequence],
+    );
+
+    return (
+      <Select
+        classNamePrefix="CustomSelect--Left CustomSelect--WidthAuto"
+        value={value}
+        formatOptionLabel={formatOptionLabel}
+        options={sequenceOptions}
+        onChange={onChange}
+      />
+    );
+  },
+);
+
+const SequenceItem = memo(
+  ({
+    item,
+    isSelected,
+    sequenceOptions,
+    sequenceLength,
+    numPatterns,
+    direction,
+  }: SequenceItemProps) => {
+    const dispatch = useAppDispatch();
+
+    const editSequence = useCallback(
+      (newValue: SequenceOption) => {
+        dispatch(
+          trackerDocumentActions.editSequence({
+            sequenceIndex: item.sequenceIndex,
+            sequenceId: newValue.value,
+          }),
+        );
+      },
+      [dispatch, item.sequenceIndex],
+    );
+
+    const getContextMenu = useCallback(
+      (onClose?: () => void) => {
+        return renderPatternContextMenu({
+          dispatch,
+          patternIndex: item.patternId,
+          orderIndex: item.sequenceIndex,
+          orderLength: sequenceLength,
+          numPatterns,
+          onClose,
+        });
+      },
+      [
         dispatch,
-        patternIndex: item.patternId,
-        orderIndex: item.sequenceIndex,
-        orderLength: sequenceLength,
+        item.patternId,
+        item.sequenceIndex,
         numPatterns,
-        onClose,
-      });
-    },
-    [dispatch, item.patternId, item.sequenceIndex, numPatterns, sequenceLength],
-  );
+        sequenceLength,
+      ],
+    );
 
-  const { onContextMenu, contextMenuElement } = useContextMenu({
-    getMenu: ({ closeMenu }) => getContextMenu(closeMenu),
-  });
+    const { onContextMenu, contextMenuElement } = useContextMenu({
+      getMenu: ({ closeMenu }) => getContextMenu(closeMenu),
+    });
 
-  const contextMenu = useMemo(() => getContextMenu(), [getContextMenu]);
+    const contextMenu = useMemo(() => getContextMenu(), [getContextMenu]);
 
-  return (
-    <StyledSequenceItem
-      $selected={isSelected}
-      $active={playingSequence === item.sequenceIndex}
-      style={{
-        background: `linear-gradient(0deg, hsl(${patternHue(item.patternId)}deg 100% 70%) 0%, hsl(${patternHue(item.patternId)}deg 100% 90%) 100%)`,
-      }}
-      onContextMenu={onContextMenu}
-    >
-      <StyledSequenceItemHeader $direction={direction}>
-        <span>
-          {item.sequenceIndex + 1}:
-          {direction === "vertical"
-            ? ` ${l10n("FIELD_PATTERN")} ${String(item.patternId).padStart(2, "0")}`
-            : ""}
-        </span>
-        {direction === "vertical" && (
-          <DropdownButton
-            variant="transparent"
-            onMouseDown={(e) => e.stopPropagation()}
-          >
-            {contextMenu}
-          </DropdownButton>
-        )}
-      </StyledSequenceItemHeader>
-      {direction === "horizontal" && (
-        <Select
-          classNamePrefix="CustomSelect--Left CustomSelect--WidthAuto"
-          value={sequenceOptions.find(
-            (option) => option.value === item.patternId,
+    const background = useMemo(
+      () =>
+        `linear-gradient(0deg, hsl(${patternHue(item.patternId)}deg 100% 70%) 0%, hsl(${patternHue(item.patternId)}deg 100% 90%) 100%)`,
+      [item.patternId],
+    );
+
+    return (
+      <StyledSequenceItem
+        $selected={isSelected}
+        style={{ background }}
+        onContextMenu={onContextMenu}
+      >
+        <StyledSequenceItemHeader $direction={direction}>
+          <span>
+            {item.sequenceIndex + 1}:
+            {direction === "vertical"
+              ? ` ${l10n("FIELD_PATTERN")} ${String(item.patternId).padStart(2, "0")}`
+              : ""}
+          </span>
+          {direction === "vertical" && (
+            <DropdownButton
+              variant="transparent"
+              onMouseDown={(e) => e.stopPropagation()}
+            >
+              {contextMenu}
+            </DropdownButton>
           )}
-          formatOptionLabel={(option, { context }) =>
-            context === "value" && direction === "horizontal"
-              ? option.shortLabel
-              : option.label
-          }
-          options={sequenceOptions}
-          onFocus={() => setSelectHasFocus(true)}
-          onBlur={() => setSelectHasFocus(false)}
-          onChange={(newValue: SingleValue<SequenceOption>) => {
-            if (newValue) {
-              editSequence(newValue);
-            }
-          }}
-        />
-      )}
-      {contextMenuElement}
-    </StyledSequenceItem>
-  );
-};
+        </StyledSequenceItemHeader>
+        {direction === "horizontal" && (
+          <SequencePatternSelect
+            patternId={item.patternId}
+            sequenceOptions={sequenceOptions}
+            onEditSequence={editSequence}
+          />
+        )}
+        {contextMenuElement}
+      </StyledSequenceItem>
+    );
+  },
+);
 
 const emptySequence: number[] = [];
 
@@ -158,7 +189,6 @@ export const SequenceEditor = ({ height, direction }: SequenceEditorProps) => {
     (state) => state.trackerDocument.present.song?.patterns.length ?? 0,
   );
 
-  const [selectHasFocus, setSelectHasFocus] = useState(false);
   const sequenceId = useAppSelector((state) => state.tracker.selectedSequence);
   const playingSequence = useAppSelector(
     (state) => state.tracker.playbackPosition[0],
@@ -196,21 +226,23 @@ export const SequenceEditor = ({ height, direction }: SequenceEditorProps) => {
     }
   }, [play, playingSequence, sequenceId, setSequenceId]);
 
-  const sequenceOptions: SequenceOption[] = Array.from(
-    Array(patterns || 0).keys(),
-  )
-    .map((i) => ({
-      value: i,
-      shortLabel: String(i).padStart(2, "0"),
-      label: `${l10n("FIELD_PATTERN")} ${String(i).padStart(2, "0")}`,
-    }))
-    .concat([
-      {
-        value: -1,
-        shortLabel: "",
-        label: `${l10n("FIELD_PATTERN")} ${(patterns || 1).toString().padStart(2, "0")} (${l10n("FIELD_NEW")})`,
-      },
-    ]);
+  const sequenceOptions: SequenceOption[] = useMemo(
+    () =>
+      Array.from(Array(patterns || 0).keys())
+        .map((i) => ({
+          value: i,
+          shortLabel: String(i).padStart(2, "0"),
+          label: `${l10n("FIELD_PATTERN")} ${String(i).padStart(2, "0")}`,
+        }))
+        .concat([
+          {
+            value: -1,
+            shortLabel: "",
+            label: `${l10n("FIELD_PATTERN")} ${(patterns || 1).toString().padStart(2, "0")} (${l10n("FIELD_NEW")})`,
+          },
+        ]),
+    [patterns],
+  );
 
   const onAddSequence = useCallback(() => {
     dispatch(
@@ -247,49 +279,76 @@ export const SequenceEditor = ({ height, direction }: SequenceEditorProps) => {
     [sequence],
   );
 
+  const renderSequenceItem = useCallback(
+    (item: SequenceListItem, { isSelected }: { isSelected: boolean }) => (
+      <SequenceItem
+        item={item}
+        isSelected={isSelected}
+        sequenceOptions={sequenceOptions}
+        sequenceLength={sequenceItems.length}
+        numPatterns={patterns}
+        direction={direction}
+      />
+    ),
+    [sequenceOptions, sequenceItems.length, patterns, direction],
+  );
+
+  const onSelect = useCallback(
+    (item: SequenceListItem) => {
+      setSequenceId(item.sequenceIndex);
+    },
+    [setSequenceId],
+  );
+
+  const extractKey = useCallback(
+    (item: SequenceListItem) => `${item.sequenceIndex}:${item.patternId}`,
+    [],
+  );
+
+  const onKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      const active = document.activeElement;
+      const isTypingIntoSelect =
+        active instanceof HTMLElement &&
+        !!active.closest(".CustomSelect__control");
+      if (isTypingIntoSelect) {
+        return true;
+      }
+      if (e.key === "Backspace" || e.key === "Delete") {
+        onRemoveSequence();
+        return true;
+      }
+    },
+    [onRemoveSequence],
+  );
+
+  const appendComponent = useMemo(
+    () => (
+      <StyledAddSequenceButton
+        onClick={onAddSequence}
+        title={l10n("FIELD_ADD_PATTERN")}
+      >
+        <PlusIcon />
+      </StyledAddSequenceButton>
+    ),
+    [onAddSequence],
+  );
+
   return (
     <StyledSequenceEditorWrapper style={{ height }}>
       <SortableList
         itemType={"sequence"}
         items={sequenceItems}
-        extractKey={(item) => `${item.sequenceIndex}:${item.patternId}`}
+        extractKey={extractKey}
         orientation={direction}
         gap={10}
         padding={10}
         selectedIndex={sequenceId}
-        onSelect={(item) => {
-          setSequenceId(item.sequenceIndex);
-        }}
-        renderItem={(item, { isSelected }) => (
-          <SequenceItem
-            item={item}
-            isSelected={isSelected}
-            playingSequence={playingSequence}
-            sequenceOptions={sequenceOptions}
-            setSelectHasFocus={setSelectHasFocus}
-            sequenceLength={sequenceItems.length}
-            numPatterns={patterns}
-            direction={direction}
-          />
-        )}
+        onSelect={onSelect}
+        renderItem={renderSequenceItem}
         moveItems={onMoveSequence}
-        onKeyDown={(e) => {
-          if (selectHasFocus) {
-            return true;
-          }
-          if (e.key === "Backspace" || e.key === "Delete") {
-            onRemoveSequence();
-            return true;
-          }
-        }}
-        appendComponent={
-          <StyledAddSequenceButton
-            onClick={onAddSequence}
-            title={l10n("FIELD_ADD_PATTERN")}
-          >
-            <PlusIcon />
-          </StyledAddSequenceButton>
-        }
+        onKeyDown={onKeyDown}
+        appendComponent={appendComponent}
       />
     </StyledSequenceEditorWrapper>
   );
