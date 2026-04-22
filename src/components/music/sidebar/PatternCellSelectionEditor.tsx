@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from "react";
 import { FormDivider, FormRow } from "ui/form/layout/FormLayout";
-import { useAppDispatch, useAppSelector } from "store/hooks";
+import { useAppDispatch, useAppSelector, useAppStore } from "store/hooks";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
 import { Button } from "ui/buttons/Button";
 import { ButtonGroup } from "ui/buttons/ButtonGroup";
@@ -11,7 +11,7 @@ import { InstrumentSelect } from "components/music/form/InstrumentSelect";
 import { PitchSelect } from "components/music/form/PitchSelect";
 import { EffectCodeSelect } from "components/music/form/EffectCodeSelect";
 import { PatternCellAddress } from "shared/lib/uge/editor/types";
-import { PatternCell, Song } from "shared/lib/uge/types";
+import { PatternCell } from "shared/lib/uge/types";
 import { EffectParamsForm } from "components/music/form/EffectParamsForm";
 import {
   InstrumentIcon,
@@ -28,25 +28,34 @@ import { OCTAVE_SIZE } from "consts";
 import { useDebouncedValue } from "ui/hooks/use-debounced-value";
 
 const getSharedValue = <T extends keyof PatternCell>(
-  song: Song | undefined,
+  sequence: number[] | undefined,
+  patterns: PatternCell[][][] | undefined,
   selectedPatternCells: PatternCellAddress[],
   field: T,
 ) => {
-  if (!song || selectedPatternCells.length === 0) {
+  if (!sequence || !patterns || selectedPatternCells.length === 0) {
     return { type: "none", value: null } as const;
   }
   return getPatternCellSelectionValue(
-    song,
+    sequence,
+    patterns,
     selectedPatternCells,
     (cell) => cell[field],
   );
 };
 
 export const PatternCellSelectionEditor = () => {
+  const store = useAppStore();
   const dispatch = useAppDispatch();
   const playPreview = useMusicNotePreview();
 
-  const song = useAppSelector((state) => state.trackerDocument.present.song);
+  const sequence = useAppSelector(
+    (state) => state.trackerDocument.present.song?.sequence,
+  );
+
+  const patterns = useAppSelector(
+    (state) => state.trackerDocument.present.song?.patterns,
+  );
 
   const currentSelectedPatternCells = useAppSelector(
     (state) => state.tracker.selectedPatternCells,
@@ -68,23 +77,26 @@ export const PatternCellSelectionEditor = () => {
   );
 
   const sharedNote = useMemo(
-    () => getSharedValue(song, selectedPatternCells, "note"),
-    [selectedPatternCells, song],
+    () => getSharedValue(sequence, patterns, selectedPatternCells, "note"),
+    [patterns, selectedPatternCells, sequence],
   );
 
   const sharedInstrumentId = useMemo(
-    () => getSharedValue(song, selectedPatternCells, "instrument"),
-    [selectedPatternCells, song],
+    () =>
+      getSharedValue(sequence, patterns, selectedPatternCells, "instrument"),
+    [patterns, selectedPatternCells, sequence],
   );
 
   const sharedEffectCode = useMemo(
-    () => getSharedValue(song, selectedPatternCells, "effectcode"),
-    [selectedPatternCells, song],
+    () =>
+      getSharedValue(sequence, patterns, selectedPatternCells, "effectcode"),
+    [patterns, selectedPatternCells, sequence],
   );
 
   const sharedEffectParam = useMemo(
-    () => getSharedValue(song, selectedPatternCells, "effectparam"),
-    [selectedPatternCells, song],
+    () =>
+      getSharedValue(sequence, patterns, selectedPatternCells, "effectparam"),
+    [patterns, selectedPatternCells, sequence],
   );
 
   const onViewInstrument = useCallback(() => {
@@ -107,6 +119,55 @@ export const PatternCellSelectionEditor = () => {
     sharedInstrumentId.type,
     sharedInstrumentId.value,
   ]);
+
+  const onChangeInstrument = useCallback(
+    (instrumentId: number) => {
+      const state = store.getState();
+      const song = state.trackerDocument.present.song;
+      if (!song) {
+        return;
+      }
+      const sequence = song.sequence;
+      const patterns = song.patterns;
+      const selectedPatternCells = state.tracker.selectedPatternCells;
+      const firstChannelId =
+        selectedPatternCells.length > 0 ? selectedPatternCells[0].channelId : 0;
+
+      const sharedNote = getSharedValue(
+        sequence,
+        patterns,
+        selectedPatternCells,
+        "note",
+      );
+      const sharedEffectCode = getSharedValue(
+        sequence,
+        patterns,
+        selectedPatternCells,
+        "effectcode",
+      );
+      const sharedEffectParam = getSharedValue(
+        sequence,
+        patterns,
+        selectedPatternCells,
+        "effectparam",
+      );
+
+      dispatch(
+        trackerDocumentActions.changeInstrumentAbsoluteCells({
+          patternCells: selectedPatternCells,
+          instrumentId,
+        }),
+      );
+      playPreview({
+        channelId: firstChannelId,
+        note: sharedNote.value ?? undefined,
+        instrumentId,
+        effectCode: sharedEffectCode.value ?? undefined,
+        effectParam: sharedEffectParam.value ?? undefined,
+      });
+    },
+    [dispatch, playPreview, store],
+  );
 
   return (
     <>
@@ -156,21 +217,7 @@ export const PatternCellSelectionEditor = () => {
           <InstrumentSelect
             name="instrument"
             value={sharedInstrumentId.value ?? undefined}
-            onChange={(instrumentId) => {
-              dispatch(
-                trackerDocumentActions.changeInstrumentAbsoluteCells({
-                  patternCells: selectedPatternCells,
-                  instrumentId,
-                }),
-              );
-              playPreview({
-                channelId: firstChannelId,
-                note: sharedNote.value ?? undefined,
-                instrumentId,
-                effectCode: sharedEffectCode.value ?? undefined,
-                effectParam: sharedEffectParam.value ?? undefined,
-              });
-            }}
+            onChange={onChangeInstrument}
             noneLabel={
               sharedInstrumentId.type === "multiple"
                 ? l10n("FIELD_MULTIPLE_VALUES")

@@ -13,7 +13,8 @@ type SharedSelectionValue<T> =
  * differ, or `{type:"none"}` if no cells have a value.
  */
 export const getPatternCellSelectionValue = <T>(
-  song: Song,
+  sequence: number[],
+  patterns: PatternCell[][][],
   patternCells: PatternCellAddress[],
   getValue: (cell: PatternCell) => T | null | undefined,
 ): SharedSelectionValue<T> => {
@@ -21,13 +22,13 @@ export const getPatternCellSelectionValue = <T>(
   let sharedValue: T | null | undefined = undefined;
 
   for (const { sequenceId, rowId, channelId } of patternCells) {
-    const patternId = song.sequence[sequenceId];
+    const patternId = sequence[sequenceId];
 
     if (patternId === undefined) {
       continue;
     }
 
-    const cell = song.patterns?.[patternId]?.[rowId]?.[channelId];
+    const cell = patterns?.[patternId]?.[rowId]?.[channelId];
     const value = cell ? getValue(cell) : null;
 
     if (!hasValue) {

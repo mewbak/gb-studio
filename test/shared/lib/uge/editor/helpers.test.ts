@@ -38,14 +38,24 @@ describe("toValidChannelId", () => {
 describe("getPatternCellSelectionValue", () => {
   it("returns type:'none' for an empty selection", () => {
     const song = makeSongWithNote(12);
-    const result = getPatternCellSelectionValue(song, [], (c) => c.note);
+    const result = getPatternCellSelectionValue(
+      song.sequence,
+      song.patterns,
+      [],
+      (c) => c.note,
+    );
     expect(result.type).toBe("none");
   });
 
   it("returns type:'shared' with the common value when all cells agree", () => {
     const song = makeSongWithNote(12);
     const address = { sequenceId: 0, rowId: 0, channelId: 0 as const };
-    const result = getPatternCellSelectionValue(song, [address], (c) => c.note);
+    const result = getPatternCellSelectionValue(
+      song.sequence,
+      song.patterns,
+      [address],
+      (c) => c.note,
+    );
     expect(result.type).toBe("shared");
     if (result.type === "shared") {
       expect(result.value).toBe(12);
@@ -55,7 +65,12 @@ describe("getPatternCellSelectionValue", () => {
   it("returns type:'none' when the cell value is null", () => {
     const song = makeSongWithNote(null);
     const address = { sequenceId: 0, rowId: 0, channelId: 0 as const };
-    const result = getPatternCellSelectionValue(song, [address], (c) => c.note);
+    const result = getPatternCellSelectionValue(
+      song.sequence,
+      song.patterns,
+      [address],
+      (c) => c.note,
+    );
     expect(result.type).toBe("none");
   });
 
@@ -71,7 +86,12 @@ describe("getPatternCellSelectionValue", () => {
       { sequenceId: 0, rowId: 0, channelId: 0 as const },
       { sequenceId: 0, rowId: 0, channelId: 1 as const },
     ];
-    const result = getPatternCellSelectionValue(song, addresses, (c) => c.note);
+    const result = getPatternCellSelectionValue(
+      song.sequence,
+      song.patterns,
+      addresses,
+      (c) => c.note,
+    );
     expect(result.type).toBe("multiple");
   });
 });

@@ -1,4 +1,4 @@
-import React, { FC, useCallback, useEffect, useState } from "react";
+import React, { memo, useCallback, useEffect, useState } from "react";
 import { useAppSelector } from "store/hooks";
 import styled from "styled-components";
 import {
@@ -69,139 +69,156 @@ interface InstrumentSelectProps extends SelectCommonProps {
   previewNoteOnChange?: boolean;
 }
 
-export const InstrumentSelect: FC<InstrumentSelectProps> = ({
-  value,
-  onChange,
-  noneLabel,
-  previewNoteOnChange,
-  ...selectProps
-}) => {
-  const playPreview = useMusicNotePreview();
+export const InstrumentSelect = memo(
+  ({
+    value,
+    onChange,
+    noneLabel,
+    previewNoteOnChange,
+    ...selectProps
+  }: InstrumentSelectProps) => {
+    const playPreview = useMusicNotePreview();
 
-  const [options, setOptions] = useState<InstrumentOption[]>([]);
-  const [currentInstrument, setCurrentInstrument] =
-    useState<InstrumentOption>();
-  const [currentValue, setCurrentValue] = useState<InstrumentOption>();
+    const [options, setOptions] = useState<InstrumentOption[]>([]);
+    const [currentInstrument, setCurrentInstrument] =
+      useState<InstrumentOption>();
+    const [currentValue, setCurrentValue] = useState<InstrumentOption>();
 
-  const song = useAppSelector((state) => state.trackerDocument.present.song);
-  const selectedChannel = useAppSelector(
-    (state) => state.tracker.selectedChannel,
-  );
-
-  useEffect(() => {
-    let instruments = defaultInstrumentOptions;
-    if (song) {
-      switch (selectedChannel) {
-        case 0:
-        case 1:
-          instruments = song?.duty_instruments.map((instrument) => ({
-            value: instrument.index,
-            label:
-              String(instrument.index + 1).padStart(2, "0") +
-              ": " +
-              (instrument.name || `Duty ${instrument.index + 1}`),
-          }));
-          break;
-        case 2:
-          instruments = song?.wave_instruments.map((instrument) => ({
-            value: instrument.index,
-            label:
-              String(instrument.index + 1).padStart(2, "0") +
-              ": " +
-              (instrument.name || `Wave ${instrument.index + 1}`),
-          }));
-          break;
-        case 3:
-          instruments = song?.noise_instruments.map((instrument) => ({
-            value: instrument.index,
-            label:
-              String(instrument.index + 1).padStart(2, "0") +
-              ": " +
-              (instrument.name || `Noise ${instrument.index + 1}`),
-          }));
-          break;
-      }
-    }
-    setOptions(
-      ([] as InstrumentOption[]).concat([] as InstrumentOption[], instruments),
+    const dutyInstruments = useAppSelector(
+      (state) => state.trackerDocument.present.song?.duty_instruments,
     );
-  }, [selectedChannel, song]);
+    const waveInstruments = useAppSelector(
+      (state) => state.trackerDocument.present.song?.wave_instruments,
+    );
+    const noiseInstruments = useAppSelector(
+      (state) => state.trackerDocument.present.song?.noise_instruments,
+    );
 
-  useEffect(() => {
-    setCurrentInstrument(options.find((v) => v.value === value));
-  }, [options, value]);
+    const selectedChannel = useAppSelector(
+      (state) => state.tracker.selectedChannel,
+    );
 
-  useEffect(() => {
-    if (currentInstrument) {
-      setCurrentValue(currentInstrument);
-    } else {
-      setCurrentValue({
-        value: -1,
-        label: noneLabel ?? l10n("FIELD_NONE"),
-      });
-    }
-  }, [currentInstrument, noneLabel, options]);
+    useEffect(() => {
+      let instruments = defaultInstrumentOptions;
+      if (dutyInstruments && waveInstruments && noiseInstruments) {
+        switch (selectedChannel) {
+          case 0:
+          case 1:
+            instruments = dutyInstruments.map((instrument) => ({
+              value: instrument.index,
+              label:
+                String(instrument.index + 1).padStart(2, "0") +
+                ": " +
+                (instrument.name || `Duty ${instrument.index + 1}`),
+            }));
+            break;
+          case 2:
+            instruments = waveInstruments.map((instrument) => ({
+              value: instrument.index,
+              label:
+                String(instrument.index + 1).padStart(2, "0") +
+                ": " +
+                (instrument.name || `Wave ${instrument.index + 1}`),
+            }));
+            break;
+          case 3:
+            instruments = noiseInstruments.map((instrument) => ({
+              value: instrument.index,
+              label:
+                String(instrument.index + 1).padStart(2, "0") +
+                ": " +
+                (instrument.name || `Noise ${instrument.index + 1}`),
+            }));
+            break;
+        }
+      }
+      setOptions(
+        ([] as InstrumentOption[]).concat(
+          [] as InstrumentOption[],
+          instruments,
+        ),
+      );
+    }, [dutyInstruments, noiseInstruments, selectedChannel, waveInstruments]);
 
-  const onSelectChange = (newValue: SingleValue<InstrumentOption>) => {
-    if (newValue) {
-      const value = newValue.value;
+    useEffect(() => {
+      setCurrentInstrument(options.find((v) => v.value === value));
+    }, [options, value]);
 
-      onChange?.(value);
-      if (previewNoteOnChange) {
-        playPreview({
-          instrumentId: value,
+    useEffect(() => {
+      if (currentInstrument) {
+        setCurrentValue(currentInstrument);
+      } else {
+        setCurrentValue({
+          value: -1,
+          label: noneLabel ?? l10n("FIELD_NONE"),
         });
       }
-    }
-  };
+    }, [currentInstrument, noneLabel, options]);
 
-  const filterOption = useCallback((item: Option, searchTerm: string) => {
-    const trimmedSearchTerm = searchTerm.toLocaleUpperCase().trim();
-    const isNumberSearch = !!trimmedSearchTerm.match(/^[0-9]+$/);
-    // Search for a number within instrument range
-    // only show instruments with matching ids
-    if (isNumberSearch && parseInt(trimmedSearchTerm, 10) <= 15) {
-      return String(item.value + 1)
-        .padStart(2, "0")
-        .includes(trimmedSearchTerm);
-    }
-    // Otherwise search text of labels
-    const searchParts = trimmedSearchTerm.split(" ");
-    const labelUppercase = item.label.toLocaleUpperCase();
-    return searchParts.every((part) => labelUppercase.includes(part));
-  }, []);
+    const onSelectChange = useCallback(
+      (newValue: SingleValue<InstrumentOption>) => {
+        if (newValue) {
+          const value = newValue.value;
 
-  return (
-    <Select
-      classNamePrefix="CustomSelect--Left CustomSelect--WidthAuto"
-      value={currentValue}
-      options={options}
-      onChange={onSelectChange}
-      formatOptionLabel={(option: InstrumentOption) => {
-        return (
-          <OptionLabelWithPreview
-            preview={<LabelColor $instrument={Number(option.value)} />}
-          >
-            {option.label}
-          </OptionLabelWithPreview>
-        );
-      }}
-      components={{
-        SingleValue: () =>
-          !currentValue || currentValue.value === -1 ? (
-            <SingleValueWithPreview>
-              {currentValue?.label}
-            </SingleValueWithPreview>
-          ) : (
-            <SingleValueWithPreview
-              preview={<LabelColor $instrument={Number(value ?? 1)} />}
+          onChange?.(value);
+          if (previewNoteOnChange) {
+            playPreview({
+              instrumentId: value,
+            });
+          }
+        }
+      },
+      [onChange, playPreview, previewNoteOnChange],
+    );
+
+    const filterOption = useCallback((item: Option, searchTerm: string) => {
+      const trimmedSearchTerm = searchTerm.toLocaleUpperCase().trim();
+      const isNumberSearch = !!trimmedSearchTerm.match(/^[0-9]+$/);
+      // Search for a number within instrument range
+      // only show instruments with matching ids
+      if (isNumberSearch && parseInt(trimmedSearchTerm, 10) <= 15) {
+        return String(item.value + 1)
+          .padStart(2, "0")
+          .includes(trimmedSearchTerm);
+      }
+      // Otherwise search text of labels
+      const searchParts = trimmedSearchTerm.split(" ");
+      const labelUppercase = item.label.toLocaleUpperCase();
+      return searchParts.every((part) => labelUppercase.includes(part));
+    }, []);
+
+    return (
+      <Select
+        classNamePrefix="CustomSelect--Left CustomSelect--WidthAuto"
+        value={currentValue}
+        options={options}
+        onChange={onSelectChange}
+        formatOptionLabel={(option: InstrumentOption) => {
+          return (
+            <OptionLabelWithPreview
+              preview={<LabelColor $instrument={Number(option.value)} />}
             >
-              {currentValue?.label}
-            </SingleValueWithPreview>
-          ),
-      }}
-      filterOption={filterOption}
-      {...selectProps}
-    />
-  );
-};
+              {option.label}
+            </OptionLabelWithPreview>
+          );
+        }}
+        components={{
+          SingleValue: () =>
+            !currentValue || currentValue.value === -1 ? (
+              <SingleValueWithPreview>
+                {currentValue?.label}
+              </SingleValueWithPreview>
+            ) : (
+              <SingleValueWithPreview
+                preview={<LabelColor $instrument={Number(value ?? 1)} />}
+              >
+                {currentValue?.label}
+              </SingleValueWithPreview>
+            ),
+        }}
+        filterOption={filterOption}
+        {...selectProps}
+      />
+    );
+  },
+);

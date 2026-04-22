@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import API from "renderer/lib/api";
 import clamp from "shared/lib/helpers/clamp";
 import { useAppSelector } from "store/hooks";
@@ -103,21 +109,21 @@ export const WaveEditorInput = ({
   waveId,
   onEditWave,
 }: WaveEditorInputProps) => {
-  const song = useAppSelector((state) => state.trackerDocument.present.song);
-
-  const wave = Array.from(song?.waves[waveId] ?? []);
+  const wave = useAppSelector(
+    (state) => state.trackerDocument.present.song?.waves[waveId],
+  );
+  const waveArray = useMemo(() => (wave ? Array.from(wave) : []), [wave]);
 
   const [editPosition, setEditPosition] = useState(0);
   const [hasFocus, setHasFocus] = useState(false);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      if (e.metaKey || e.ctrlKey || e.altKey) {
+      if (!wave || e.metaKey || e.ctrlKey || e.altKey) {
         return;
       }
 
       e.stopPropagation();
-      // e.preventDefault();
 
       let tmpEditPosition = editPosition;
       if (e.key === "ArrowLeft") {
@@ -168,24 +174,27 @@ export const WaveEditorInput = ({
 
   const onCopy = useCallback(
     (e?: ClipboardEvent) => {
-      const waveString = wave
+      const waveString = waveArray
         .map((value) => value.toString(16).toUpperCase())
         .join("");
       e?.preventDefault();
       e?.clipboardData?.setData("text/plain", waveString);
       void API.clipboard.writeText(waveString);
     },
-    [wave],
+    [waveArray],
   );
 
   const onCut = useCallback(
     (e?: ClipboardEvent) => {
-      const waveString = wave.toString();
+      const waveString = waveArray
+        .map((value) => value.toString(16).toUpperCase())
+        .join("");
       e?.preventDefault();
       e?.clipboardData?.setData("text/plain", waveString);
       void API.clipboard.writeText(waveString);
+      onEditWave(Uint8Array.from(waveArray.map(() => 0)));
     },
-    [wave],
+    [onEditWave, waveArray],
   );
 
   const onPaste = useCallback(async () => {
@@ -230,21 +239,20 @@ export const WaveEditorInput = ({
 
   return (
     <InputWrapper tabIndex={-1} $focus={hasFocus}>
-      {wave &&
-        wave.map((w, i) => {
-          return (
-            <InputCell
-              key={`${w}:${i}`}
-              $active={hasFocus && i === editPosition}
-              onClick={() => {
-                setEditPosition(i);
-                handleFocus();
-              }}
-            >
-              {w.toString(16).toUpperCase()}
-            </InputCell>
-          );
-        })}
+      {waveArray.map((w, i) => {
+        return (
+          <InputCell
+            key={`${w}:${i}`}
+            $active={hasFocus && i === editPosition}
+            onClick={() => {
+              setEditPosition(i);
+              handleFocus();
+            }}
+          >
+            {w.toString(16).toUpperCase()}
+          </InputCell>
+        );
+      })}
       <input
         tabIndex={0}
         ref={inputRef}

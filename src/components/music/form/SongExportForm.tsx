@@ -3,7 +3,7 @@ import trackerActions from "store/features/tracker/trackerActions";
 import { Button } from "ui/buttons/Button";
 import { ToggleButtonGroup } from "ui/form/ToggleButtonGroup";
 import { NumberField } from "ui/form/NumberField";
-import { useAppDispatch, useAppSelector } from "store/hooks";
+import { useAppDispatch, useAppSelector, useAppStore } from "store/hooks";
 import type { MusicExportFormat } from "shared/lib/music/types";
 import { downloadExportedSong } from "renderer/lib/music/exportSong";
 import { FormField, FormRow } from "ui/form/layout/FormLayout";
@@ -24,9 +24,9 @@ const exportFormatOptions = musicExportFormats.map((format) => ({
 const noop = () => {};
 
 const SongExportForm = ({ name }: SongExportFormProps) => {
+  const store = useAppStore();
   const dispatch = useAppDispatch();
 
-  const song = useAppSelector((state) => state.trackerDocument.present.song);
   const exporting = useAppSelector((state) => state.tracker.exporting);
   const exportFormat = useAppSelector((state) => state.tracker.exportFormat);
   const exportLoopCount = useAppSelector(
@@ -35,6 +35,9 @@ const SongExportForm = ({ name }: SongExportFormProps) => {
 
   const exportSong = useCallback(
     async (format: MusicExportFormat, loopCount: number) => {
+      const state = store.getState();
+      const song = state.trackerDocument.present.song;
+
       if (!song) {
         return;
       }
@@ -51,7 +54,7 @@ const SongExportForm = ({ name }: SongExportFormProps) => {
         dispatch(trackerActions.setExporting(false));
       }
     },
-    [dispatch, name, song],
+    [dispatch, name, store],
   );
 
   const setMusicExportSettings = useCallback(
