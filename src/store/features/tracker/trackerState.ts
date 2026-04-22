@@ -396,6 +396,10 @@ const trackerSlice = createSlice({
         const offset = action.payload.position === "after" ? 1 : 0;
         state.selectedSequence = action.payload.sequenceIndex + offset;
       })
+      .addCase(trackerDocumentActions.cloneSequencePattern, (state, action) => {
+        const offset = action.payload.position === "after" ? 1 : 0;
+        state.selectedSequence = action.payload.sequenceIndex + offset;
+      })
       .addCase(trackerDocumentActions.clearAbsoluteCells, (state) => {
         state.mobileOverlayView = "none";
       })

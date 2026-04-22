@@ -16,7 +16,11 @@ import {
 import { RootState } from "store/storeTypes";
 import API from "renderer/lib/api";
 import { MusicResourceAsset } from "shared/lib/resources/types";
-import { createPatternCell, createSong } from "shared/lib/uge/song";
+import {
+  createPattern,
+  createPatternCell,
+  createSong,
+} from "shared/lib/uge/song";
 import { InstrumentType } from "shared/lib/music/types";
 import {
   fromAbsRow,
@@ -27,6 +31,7 @@ import {
 } from "./trackerDocumentHelpers";
 import { TRACKER_PATTERN_LENGTH } from "consts";
 import { PatternCellAddress } from "shared/lib/uge/editor/types";
+import cloneDeep from "lodash/cloneDeep";
 
 interface TrackerDocumentState {
   // status: "loading" | "error" | "loaded" | "init";
@@ -964,16 +969,9 @@ const trackerSlice = createSlice({
       // Assign a new empty pattern
       if (_action.payload.sequenceId === -1) {
         const newPatterns = [...state.song.patterns];
-        const pattern = [];
-        for (let n = 0; n < 64; n++)
-          pattern.push([
-            createPatternCell(),
-            createPatternCell(),
-            createPatternCell(),
-            createPatternCell(),
-          ]);
-        newPatterns.push(pattern);
+        const pattern = createPattern();
 
+        newPatterns.push(pattern);
         newSequence[_action.payload.sequenceIndex] = newPatterns.length - 1;
 
         state.song = {
@@ -995,28 +993,29 @@ const trackerSlice = createSlice({
       action: PayloadAction<{
         sequenceIndex: number;
         position: "before" | "after";
+        patternId?: number;
       }>,
     ) => {
       if (!state.song) {
         return;
       }
 
-      const { sequenceIndex, position } = action.payload;
+      const { sequenceIndex, position, patternId } = action.payload;
 
-      const newPatterns = [...state.song.patterns];
-      const pattern = [];
+      let newPatternIndex = patternId;
 
-      for (let n = 0; n < 64; n++) {
-        pattern.push([
-          createPatternCell(),
-          createPatternCell(),
-          createPatternCell(),
-          createPatternCell(),
-        ]);
+      if (patternId === undefined) {
+        const newPatterns = [...state.song.patterns];
+        const pattern = createPattern();
+
+        newPatterns.push(pattern);
+        newPatternIndex = newPatterns.length - 1;
+        state.song.patterns = newPatterns;
       }
 
-      newPatterns.push(pattern);
-      const newPatternIndex = newPatterns.length - 1;
+      if (newPatternIndex === undefined) {
+        return;
+      }
 
       const newSequence = [...state.song.sequence];
 
@@ -1027,11 +1026,45 @@ const trackerSlice = createSlice({
 
       newSequence.splice(insertAt, 0, newPatternIndex);
 
-      state.song = {
-        ...state.song,
-        patterns: newPatterns,
-        sequence: newSequence,
-      };
+      state.song.sequence = newSequence;
+    },
+    cloneSequencePattern: (
+      state,
+      action: PayloadAction<{
+        sequenceIndex: number;
+        position: "before" | "after";
+      }>,
+    ) => {
+      if (!state.song) {
+        return;
+      }
+
+      const { sequenceIndex, position } = action.payload;
+
+      const existingPatternId = state.song.sequence[sequenceIndex];
+      const existingPattern = state.song.patterns[existingPatternId];
+
+      if (!existingPattern) {
+        return;
+      }
+
+      const newPatterns = [...state.song.patterns];
+      const pattern = cloneDeep(existingPattern);
+
+      newPatterns.push(pattern);
+      const newPatternIndex = newPatterns.length - 1;
+      state.song.patterns = newPatterns;
+
+      const newSequence = [...state.song.sequence];
+
+      const rawInsertAt =
+        position === "before" ? sequenceIndex : sequenceIndex + 1;
+
+      const insertAt = Math.max(0, Math.min(rawInsertAt, newSequence.length));
+
+      newSequence.splice(insertAt, 0, newPatternIndex);
+
+      state.song.sequence = newSequence;
     },
     removeSequence: (
       state,

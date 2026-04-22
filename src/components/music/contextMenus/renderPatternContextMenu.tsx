@@ -119,29 +119,60 @@ const renderPatternContextMenu = ({
 
     <MenuItem
       key="insertBefore"
-      onClick={() => {
-        dispatch(
-          trackerDocumentActions.insertSequence({
-            sequenceIndex: orderIndex,
-            position: "before",
-          }),
-        );
-      }}
+      subMenu={Array.from({ length: numPatterns + 1 }).map((_, n) => (
+        <MenuItem
+          key={n}
+          onClick={() => {
+            dispatch(
+              trackerDocumentActions.insertSequence({
+                sequenceIndex: orderIndex,
+                position: "before",
+                patternId: n < numPatterns ? n : undefined,
+              }),
+            );
+          }}
+        >
+          {l10n("FIELD_PATTERN")} {String(n).padStart(2, "0")}{" "}
+          {n === numPatterns ? `(${l10n("FIELD_NEW")})` : ""}
+        </MenuItem>
+      ))}
     >
       {l10n("FIELD_INSERT_PATTERN_BEFORE")}
     </MenuItem>,
     <MenuItem
       key="insertAfter"
+      subMenu={Array.from({ length: numPatterns + 1 }).map((_, n) => (
+        <MenuItem
+          key={n}
+          onClick={() => {
+            dispatch(
+              trackerDocumentActions.insertSequence({
+                sequenceIndex: orderIndex,
+                position: "after",
+                patternId: n < numPatterns ? n : undefined,
+              }),
+            );
+          }}
+        >
+          {l10n("FIELD_PATTERN")} {String(n).padStart(2, "0")}{" "}
+          {n === numPatterns ? `(${l10n("FIELD_NEW")})` : ""}
+        </MenuItem>
+      ))}
+    >
+      {l10n("FIELD_INSERT_PATTERN_AFTER")}
+    </MenuItem>,
+    <MenuItem
+      key="clone"
       onClick={() => {
         dispatch(
-          trackerDocumentActions.insertSequence({
+          trackerDocumentActions.cloneSequencePattern({
             sequenceIndex: orderIndex,
             position: "after",
           }),
         );
       }}
     >
-      {l10n("FIELD_INSERT_PATTERN_AFTER")}
+      {l10n("FIELD_CLONE_PATTERN")}
     </MenuItem>,
     ...(orderLength > 1
       ? [
