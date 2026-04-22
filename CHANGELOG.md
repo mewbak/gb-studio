@@ -60,6 +60,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix issue where renaming a scene could prevent selecting text in the name field
 - Fix issue in asset navigators where folders could incorrectly show files as being within folders if filename matched the folder name
 - Fix issue in song navigator where keyboard navigation could stop working
+- Fix BPM label calculation in Music Editor
 
 ## [4.2.2] - 2026-02-24
 
