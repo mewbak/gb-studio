@@ -37,10 +37,9 @@ export const getL10NChannelName = (channelId: 0 | 1 | 2 | 3): string => {
 
 /**
  * Calculates BPM from a ticks-per-row value.
- * Uses the hUGETracker timing constant (59.7275… ticks/sec at 60Hz).
  */
 export const getBPM = (ticksPerRow: number): number => {
-  const BPM_FACTOR = (59.727500569606 * 60) / 4;
+  const BPM_FACTOR = (64 * 60) / 4;
   return BPM_FACTOR / ticksPerRow;
 };
 
