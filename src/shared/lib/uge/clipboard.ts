@@ -224,8 +224,7 @@ export const parseSubPatternFieldsToClipboard = (
     "ModPlug Tracker  XM",
   ];
 
-  const w =
-    (selectedFields[selectedFields.length - 1] - selectedFields[0]) % 4;
+  const w = (selectedFields[selectedFields.length - 1] - selectedFields[0]) % 4;
   const h = Math.floor(
     (selectedFields[selectedFields.length - 1] - selectedFields[0]) / 4,
   );

@@ -367,11 +367,17 @@ const APISetup = {
     importInstrument: (): Promise<UGIInstrument | null> =>
       ipcRenderer.invoke("tracker:import-instrument"),
     exportWave: (wave: Uint8Array, suggestedName: string): Promise<void> =>
-      ipcRenderer.invoke("tracker:export-wave", Array.from(wave), suggestedName),
-    importWave: (): Promise<Uint8Array | null> =>
-      ipcRenderer.invoke("tracker:import-wave").then(
-        (result: number[] | null) => result ? new Uint8Array(result) : null,
+      ipcRenderer.invoke(
+        "tracker:export-wave",
+        Array.from(wave),
+        suggestedName,
       ),
+    importWave: (): Promise<Uint8Array | null> =>
+      ipcRenderer
+        .invoke("tracker:import-wave")
+        .then((result: number[] | null) =>
+          result ? new Uint8Array(result) : null,
+        ),
   },
   sprite: {
     compileSprite: (

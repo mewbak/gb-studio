@@ -77,12 +77,7 @@ const Row = ({
   };
 
   return (
-    <div
-      {...ariaAttributes}
-      style={style}
-      onClick={onClick}
-      data-id={item.id}
-    >
+    <div {...ariaAttributes} style={style} onClick={onClick} data-id={item.id}>
       <ListItem
         data-selected={selectedId === item.id}
         data-highlighted={highlightIds?.includes(item.id)}

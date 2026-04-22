@@ -14,7 +14,9 @@ import type {
   WaveInstrument,
 } from "shared/lib/uge/types";
 
-const makeDutyInstrument = (overrides?: Partial<DutyInstrument>): DutyInstrument => ({
+const makeDutyInstrument = (
+  overrides?: Partial<DutyInstrument>,
+): DutyInstrument => ({
   index: 0,
   name: "Test Duty",
   length: 16,
@@ -28,7 +30,9 @@ const makeDutyInstrument = (overrides?: Partial<DutyInstrument>): DutyInstrument
   ...overrides,
 });
 
-const makeWaveInstrument = (overrides?: Partial<WaveInstrument>): WaveInstrument => ({
+const makeWaveInstrument = (
+  overrides?: Partial<WaveInstrument>,
+): WaveInstrument => ({
   index: 0,
   name: "Test Wave",
   length: 32,
@@ -39,7 +43,9 @@ const makeWaveInstrument = (overrides?: Partial<WaveInstrument>): WaveInstrument
   ...overrides,
 });
 
-const makeNoiseInstrument = (overrides?: Partial<NoiseInstrument>): NoiseInstrument => ({
+const makeNoiseInstrument = (
+  overrides?: Partial<NoiseInstrument>,
+): NoiseInstrument => ({
   index: 0,
   name: "Test Noise",
   length: null,
@@ -82,7 +88,9 @@ describe("saveUGIInstrument / loadUGIInstrument", () => {
     });
 
     test("noise instrument round-trips as NoiseInstrument", () => {
-      const loaded = loadUGIInstrument(saveUGIInstrument(makeNoiseInstrument()));
+      const loaded = loadUGIInstrument(
+        saveUGIInstrument(makeNoiseInstrument()),
+      );
       expect(isNoiseInstrument(loaded)).toBe(true);
     });
   });
@@ -96,61 +104,81 @@ describe("saveUGIInstrument / loadUGIInstrument", () => {
 
     test("length is preserved", () => {
       const instr = makeDutyInstrument({ length: 20 });
-      const loaded = loadUGIInstrument(saveUGIInstrument(instr)) as DutyInstrument;
+      const loaded = loadUGIInstrument(
+        saveUGIInstrument(instr),
+      ) as DutyInstrument;
       expect(loaded.length).toBe(20);
     });
 
     test("null length is preserved", () => {
       const instr = makeDutyInstrument({ length: null });
-      const loaded = loadUGIInstrument(saveUGIInstrument(instr)) as DutyInstrument;
+      const loaded = loadUGIInstrument(
+        saveUGIInstrument(instr),
+      ) as DutyInstrument;
       expect(loaded.length).toBeNull();
     });
 
     test("duty_cycle is preserved", () => {
       const instr = makeDutyInstrument({ duty_cycle: 3 });
-      const loaded = loadUGIInstrument(saveUGIInstrument(instr)) as DutyInstrument;
+      const loaded = loadUGIInstrument(
+        saveUGIInstrument(instr),
+      ) as DutyInstrument;
       expect(loaded.duty_cycle).toBe(3);
     });
 
     test("initial_volume is preserved", () => {
       const instr = makeDutyInstrument({ initial_volume: 10 });
-      const loaded = loadUGIInstrument(saveUGIInstrument(instr)) as DutyInstrument;
+      const loaded = loadUGIInstrument(
+        saveUGIInstrument(instr),
+      ) as DutyInstrument;
       expect(loaded.initial_volume).toBe(10);
     });
 
     test("negative volume_sweep_change (decreasing envelope) is preserved", () => {
       const instr = makeDutyInstrument({ volume_sweep_change: -3 });
-      const loaded = loadUGIInstrument(saveUGIInstrument(instr)) as DutyInstrument;
+      const loaded = loadUGIInstrument(
+        saveUGIInstrument(instr),
+      ) as DutyInstrument;
       expect(loaded.volume_sweep_change).toBe(-3);
     });
 
     test("positive volume_sweep_change (increasing envelope) is preserved", () => {
       const instr = makeDutyInstrument({ volume_sweep_change: 4 });
-      const loaded = loadUGIInstrument(saveUGIInstrument(instr)) as DutyInstrument;
+      const loaded = loadUGIInstrument(
+        saveUGIInstrument(instr),
+      ) as DutyInstrument;
       expect(loaded.volume_sweep_change).toBe(4);
     });
 
     test("zero volume_sweep_change is preserved", () => {
       const instr = makeDutyInstrument({ volume_sweep_change: 0 });
-      const loaded = loadUGIInstrument(saveUGIInstrument(instr)) as DutyInstrument;
+      const loaded = loadUGIInstrument(
+        saveUGIInstrument(instr),
+      ) as DutyInstrument;
       expect(loaded.volume_sweep_change).toBe(0);
     });
 
     test("positive frequency_sweep_shift is preserved", () => {
       const instr = makeDutyInstrument({ frequency_sweep_shift: 3 });
-      const loaded = loadUGIInstrument(saveUGIInstrument(instr)) as DutyInstrument;
+      const loaded = loadUGIInstrument(
+        saveUGIInstrument(instr),
+      ) as DutyInstrument;
       expect(loaded.frequency_sweep_shift).toBe(3);
     });
 
     test("negative frequency_sweep_shift is preserved", () => {
       const instr = makeDutyInstrument({ frequency_sweep_shift: -2 });
-      const loaded = loadUGIInstrument(saveUGIInstrument(instr)) as DutyInstrument;
+      const loaded = loadUGIInstrument(
+        saveUGIInstrument(instr),
+      ) as DutyInstrument;
       expect(loaded.frequency_sweep_shift).toBe(-2);
     });
 
     test("frequency_sweep_time is preserved", () => {
       const instr = makeDutyInstrument({ frequency_sweep_time: 5 });
-      const loaded = loadUGIInstrument(saveUGIInstrument(instr)) as DutyInstrument;
+      const loaded = loadUGIInstrument(
+        saveUGIInstrument(instr),
+      ) as DutyInstrument;
       expect(loaded.frequency_sweep_time).toBe(5);
     });
   });
@@ -164,25 +192,33 @@ describe("saveUGIInstrument / loadUGIInstrument", () => {
 
     test("null length is preserved", () => {
       const instr = makeWaveInstrument({ length: null });
-      const loaded = loadUGIInstrument(saveUGIInstrument(instr)) as WaveInstrument;
+      const loaded = loadUGIInstrument(
+        saveUGIInstrument(instr),
+      ) as WaveInstrument;
       expect(loaded.length).toBeNull();
     });
 
     test("length is preserved", () => {
       const instr = makeWaveInstrument({ length: 100 });
-      const loaded = loadUGIInstrument(saveUGIInstrument(instr)) as WaveInstrument;
+      const loaded = loadUGIInstrument(
+        saveUGIInstrument(instr),
+      ) as WaveInstrument;
       expect(loaded.length).toBe(100);
     });
 
     test("volume is preserved", () => {
       const instr = makeWaveInstrument({ volume: 3 });
-      const loaded = loadUGIInstrument(saveUGIInstrument(instr)) as WaveInstrument;
+      const loaded = loadUGIInstrument(
+        saveUGIInstrument(instr),
+      ) as WaveInstrument;
       expect(loaded.volume).toBe(3);
     });
 
     test("wave_index is preserved", () => {
       const instr = makeWaveInstrument({ wave_index: 11 });
-      const loaded = loadUGIInstrument(saveUGIInstrument(instr)) as WaveInstrument;
+      const loaded = loadUGIInstrument(
+        saveUGIInstrument(instr),
+      ) as WaveInstrument;
       expect(loaded.wave_index).toBe(11);
     });
   });
@@ -196,31 +232,41 @@ describe("saveUGIInstrument / loadUGIInstrument", () => {
 
     test("bit_count 7 (7-step) is preserved", () => {
       const instr = makeNoiseInstrument({ bit_count: 7 });
-      const loaded = loadUGIInstrument(saveUGIInstrument(instr)) as NoiseInstrument;
+      const loaded = loadUGIInstrument(
+        saveUGIInstrument(instr),
+      ) as NoiseInstrument;
       expect(loaded.bit_count).toBe(7);
     });
 
     test("bit_count 15 (15-step) is preserved", () => {
       const instr = makeNoiseInstrument({ bit_count: 15 });
-      const loaded = loadUGIInstrument(saveUGIInstrument(instr)) as NoiseInstrument;
+      const loaded = loadUGIInstrument(
+        saveUGIInstrument(instr),
+      ) as NoiseInstrument;
       expect(loaded.bit_count).toBe(15);
     });
 
     test("initial_volume is preserved", () => {
       const instr = makeNoiseInstrument({ initial_volume: 6 });
-      const loaded = loadUGIInstrument(saveUGIInstrument(instr)) as NoiseInstrument;
+      const loaded = loadUGIInstrument(
+        saveUGIInstrument(instr),
+      ) as NoiseInstrument;
       expect(loaded.initial_volume).toBe(6);
     });
 
     test("volume_sweep_change is preserved", () => {
       const instr = makeNoiseInstrument({ volume_sweep_change: -5 });
-      const loaded = loadUGIInstrument(saveUGIInstrument(instr)) as NoiseInstrument;
+      const loaded = loadUGIInstrument(
+        saveUGIInstrument(instr),
+      ) as NoiseInstrument;
       expect(loaded.volume_sweep_change).toBe(-5);
     });
 
     test("null length is preserved", () => {
       const instr = makeNoiseInstrument({ length: null });
-      const loaded = loadUGIInstrument(saveUGIInstrument(instr)) as NoiseInstrument;
+      const loaded = loadUGIInstrument(
+        saveUGIInstrument(instr),
+      ) as NoiseInstrument;
       expect(loaded.length).toBeNull();
     });
   });
@@ -241,10 +287,23 @@ describe("saveUGIInstrument / loadUGIInstrument", () => {
     test("non-trivial subpattern cells survive round-trip", () => {
       const subpattern = createSubPattern();
       subpattern[0] = { note: 36, jump: 3, effectcode: 5, effectparam: 10 };
-      subpattern[1] = { note: 48, jump: null, effectcode: null, effectparam: null };
-      subpattern[63] = { note: null, jump: 1, effectcode: 0x0A, effectparam: 0xFF };
+      subpattern[1] = {
+        note: 48,
+        jump: null,
+        effectcode: null,
+        effectparam: null,
+      };
+      subpattern[63] = {
+        note: null,
+        jump: 1,
+        effectcode: 0x0a,
+        effectparam: 0xff,
+      };
 
-      const instr = makeDutyInstrument({ subpattern_enabled: true, subpattern });
+      const instr = makeDutyInstrument({
+        subpattern_enabled: true,
+        subpattern,
+      });
       const loaded = loadUGIInstrument(saveUGIInstrument(instr));
 
       expect(loaded.subpattern[0].note).toBe(36);
@@ -259,8 +318,8 @@ describe("saveUGIInstrument / loadUGIInstrument", () => {
 
       expect(loaded.subpattern[63].note).toBeNull();
       expect(loaded.subpattern[63].jump).toBe(1);
-      expect(loaded.subpattern[63].effectcode).toBe(0x0A);
-      expect(loaded.subpattern[63].effectparam).toBe(0xFF);
+      expect(loaded.subpattern[63].effectcode).toBe(0x0a);
+      expect(loaded.subpattern[63].effectparam).toBe(0xff);
     });
 
     test("subpattern has exactly 64 cells after round-trip", () => {

@@ -34,8 +34,16 @@ describe("createTemplateMusicDocument", () => {
 
   test("should restart fallback filenames after resetting the workspace session", async () => {
     await createTemplateMusicDocument(new Uint8Array([1]), undefined, "xyz");
-    await createTemplateMusicDocument(new Uint8Array([2]), undefined, "New Song");
-    await createTemplateMusicDocument(new Uint8Array([3]), undefined, "New Song");
+    await createTemplateMusicDocument(
+      new Uint8Array([2]),
+      undefined,
+      "New Song",
+    );
+    await createTemplateMusicDocument(
+      new Uint8Array([3]),
+      undefined,
+      "New Song",
+    );
 
     resetMusicWorkspaceAdapterState();
 

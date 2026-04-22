@@ -14,7 +14,8 @@ const projectMiddleware: Middleware<Dispatch, MusicEditorRootState> =
     }
 
     const state = store.getState();
-    const asset = state.project.present.entities.music.entities[action.payload.musicId];
+    const asset =
+      state.project.present.entities.music.entities[action.payload.musicId];
     if (!asset) {
       return result;
     }
@@ -29,7 +30,11 @@ const projectMiddleware: Middleware<Dispatch, MusicEditorRootState> =
       return result;
     }
 
-    await renameWebDocument(action.payload.musicId, asset.filename, newFilename);
+    await renameWebDocument(
+      action.payload.musicId,
+      asset.filename,
+      newFilename,
+    );
 
     store.dispatch(
       musicAssetActions.renameMusicAsset({

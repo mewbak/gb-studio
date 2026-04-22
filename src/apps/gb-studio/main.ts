@@ -64,10 +64,7 @@ import { writeFileWithBackupAsync } from "lib/helpers/fs/writeFileWithBackup";
 import { guardAssetWithinProject } from "lib/helpers/assets";
 import type { Song } from "shared/lib/uge/types";
 import { loadUGESong, saveUGESong } from "shared/lib/uge/ugeHelper";
-import {
-  loadUGIInstrument,
-  saveUGIInstrument,
-} from "shared/lib/uge/ugiHelper";
+import { loadUGIInstrument, saveUGIInstrument } from "shared/lib/uge/ugiHelper";
 import type { UGIInstrument } from "shared/lib/uge/ugiHelper";
 import { loadUGWave, saveUGWave } from "shared/lib/uge/ugwHelper";
 import confirmUnsavedChangesTrackerDialog from "lib/electron/dialog/confirmUnsavedChangesTrackerDialog";
@@ -1940,18 +1937,15 @@ ipcMain.handle(
   },
 );
 
-ipcMain.handle(
-  "tracker:import-wave",
-  async (): Promise<number[] | null> => {
-    const files = dialog.showOpenDialogSync({
-      properties: ["openFile"],
-      filters: [{ name: "hUGETracker Waves", extensions: ["ugw"] }],
-    });
-    if (!files || !files[0]) return null;
-    const data = await readFile(files[0]);
-    return Array.from(loadUGWave(data));
-  },
-);
+ipcMain.handle("tracker:import-wave", async (): Promise<number[] | null> => {
+  const files = dialog.showOpenDialogSync({
+    properties: ["openFile"],
+    filters: [{ name: "hUGETracker Waves", extensions: ["ugw"] }],
+  });
+  if (!files || !files[0]) return null;
+  const data = await readFile(files[0]);
+  return Array.from(loadUGWave(data));
+});
 
 ipcMain.handle("sfx:play-wav", async (_event, assetPath: string) => {
   const projectRoot = Path.dirname(projectPath);

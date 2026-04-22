@@ -59,11 +59,11 @@ export const PianoRollEffectRow = React.memo(
     const selectedRowIds = useMemo(() => {
       return new Set(
         selectedPatternCells
-        .filter(
-          (cell) =>
-            cell.sequenceId === sequenceId && cell.channelId === channelId,
-        )
-        .map((cell) => cell.rowId),
+          .filter(
+            (cell) =>
+              cell.sequenceId === sequenceId && cell.channelId === channelId,
+          )
+          .map((cell) => cell.rowId),
       );
     }, [channelId, selectedPatternCells, sequenceId]);
 

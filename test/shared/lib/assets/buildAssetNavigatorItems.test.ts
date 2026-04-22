@@ -73,10 +73,7 @@ describe("buildAssetNavigatorItems", () => {
 
   it("keeps nested folder children grouped before sibling files that share the same prefix", () => {
     const items = buildAssetNavigatorItems(
-      [
-        asset("song-1", "abc/def/def_1.uge"),
-        asset("song-2", "abc/def_2.uge"),
-      ],
+      [asset("song-1", "abc/def/def_1.uge"), asset("song-2", "abc/def_2.uge")],
       ["abc", "abc/def"],
       "",
     );

@@ -4,10 +4,7 @@ import {
   getMidiNoteFromMessage,
 } from "components/music/midi/musicMidiController";
 import trackerActions from "store/features/tracker/trackerActions";
-import {
-  defaultMusicMidiState,
-  MusicMidiState,
-} from "shared/lib/music/midi";
+import { defaultMusicMidiState, MusicMidiState } from "shared/lib/music/midi";
 
 type FakeMidiInput = {
   id: string;

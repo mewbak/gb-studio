@@ -52,11 +52,15 @@ describe("music web locale tooling", () => {
       logger: { warn: jest.fn() },
     });
 
-    expect(JSON.parse(fs.readFileSync(path.join(outputDir, "en.json"), "utf8"))).toEqual({
+    expect(
+      JSON.parse(fs.readFileSync(path.join(outputDir, "en.json"), "utf8")),
+    ).toEqual({
       FIELD_ONE: "One",
       FIELD_TWO: "Two",
     });
-    expect(JSON.parse(fs.readFileSync(path.join(outputDir, "de.json"), "utf8"))).toEqual({
+    expect(
+      JSON.parse(fs.readFileSync(path.join(outputDir, "de.json"), "utf8")),
+    ).toEqual({
       FIELD_ONE: "Eins",
     });
     expect(result.missingByLocale).toEqual({

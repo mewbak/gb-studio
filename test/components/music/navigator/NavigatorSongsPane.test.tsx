@@ -57,17 +57,19 @@ jest.mock("../../../../src/components/ui/lists/FlatList", () => ({
   }: {
     selectedId: string;
     items: Array<{ id: string; filename: string; type: string }>;
-    setSelectedId: (id: string, item: { id: string; filename: string; type: string }) => void;
+    setSelectedId: (
+      id: string,
+      item: { id: string; filename: string; type: string },
+    ) => void;
   }) => {
     mockSetSelectedId.mockImplementation(setSelectedId);
     return (
       <div>
         <div data-testid="selected-id">{selectedId}</div>
         {items.map((item) => (
-          <button
-            key={item.id}
-            onClick={() => setSelectedId(item.id, item)}
-          >{item.filename}</button>
+          <button key={item.id} onClick={() => setSelectedId(item.id, item)}>
+            {item.filename}
+          </button>
         ))}
       </div>
     );
@@ -75,30 +77,42 @@ jest.mock("../../../../src/components/ui/lists/FlatList", () => ({
 }));
 
 jest.mock("../../../../src/components/ui/lists/EntityListItem", () => ({
-  EntityListItem: ({ item }: { item: { filename?: string; name?: string } }) => (
-    <div>{item.filename || item.name}</div>
-  ),
+  EntityListItem: ({
+    item,
+  }: {
+    item: { filename?: string; name?: string };
+  }) => <div>{item.filename || item.name}</div>,
   EntityListSearch: () => null,
 }));
 
 jest.mock("../../../../src/components/ui/buttons/Button", () => ({
-  Button: ({ children }: { children: React.ReactNode }) => <button>{children}</button>,
+  Button: ({ children }: { children: React.ReactNode }) => (
+    <button>{children}</button>
+  ),
 }));
 
 jest.mock("../../../../src/components/ui/buttons/DropdownButton", () => ({
-  DropdownButton: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  DropdownButton: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
 }));
 
 jest.mock("../../../../src/components/ui/splitpane/SplitPaneHeader", () => ({
-  SplitPaneHeader: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  SplitPaneHeader: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
 }));
 
 jest.mock("../../../../src/components/ui/splitpane/SplitPane", () => ({
-  SplitPane: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  SplitPane: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
 }));
 
 jest.mock("../../../../src/components/ui/lists/ListItem", () => ({
-  ListItem: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  ListItem: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
 }));
 
 jest.mock("../../../../src/components/ui/spacing/Spacing", () => ({
@@ -107,7 +121,9 @@ jest.mock("../../../../src/components/ui/spacing/Spacing", () => ({
 
 jest.mock("../../../../src/components/ui/menu/Menu", () => ({
   MenuDivider: () => null,
-  MenuItem: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  MenuItem: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
 }));
 
 jest.mock("../../../../src/components/ui/icons/Icons", () => ({
@@ -115,13 +131,16 @@ jest.mock("../../../../src/components/ui/icons/Icons", () => ({
   SearchIcon: () => <span>s</span>,
 }));
 
-jest.mock("../../../../src/components/ui/hooks/use-toggleable-list", () => () => ({
-  values: [],
-  isSet: () => false,
-  toggle: jest.fn(),
-  set: jest.fn(),
-  unset: jest.fn(),
-}));
+jest.mock(
+  "../../../../src/components/ui/hooks/use-toggleable-list",
+  () => () => ({
+    values: [],
+    isSet: () => false,
+    toggle: jest.fn(),
+    set: jest.fn(),
+    unset: jest.fn(),
+  }),
+);
 
 jest.mock("../../../../src/shared/lib/lang/l10n", () => (key: string) => key);
 

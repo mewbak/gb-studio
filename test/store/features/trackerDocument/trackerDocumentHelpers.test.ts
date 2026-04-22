@@ -95,7 +95,11 @@ describe("resolveUniqueTrackerCells", () => {
     // Fields 0,1,2,3 all belong to row 0, channel 0
     const cells = resolveUniqueTrackerCells(0, [0, 1, 2, 3]);
     expect(cells).toHaveLength(1);
-    expect(cells[0]).toMatchObject({ patternId: 0, rowIndex: 0, channelIndex: 0 });
+    expect(cells[0]).toMatchObject({
+      patternId: 0,
+      rowIndex: 0,
+      channelIndex: 0,
+    });
   });
 
   it("returns separate entries for different rows", () => {

@@ -6,7 +6,12 @@ import type {
 import type { MusicMidiState } from "shared/lib/music/midi";
 import type { Song } from "shared/lib/uge/types";
 import type { MusicAsset } from "shared/lib/resources/types";
-import { downloadBytes, pickUGIFile, pickUGWFile, webMusicEnvironment } from "./adapters";
+import {
+  downloadBytes,
+  pickUGIFile,
+  pickUGWFile,
+  webMusicEnvironment,
+} from "./adapters";
 import {
   deleteStoredSetting,
   defaultLocaleData,
@@ -310,13 +315,18 @@ export const installWebRendererApi = (store: MusicEditorStore) => {
           "MOD conversion is not yet available in the web editor",
         );
       },
-      exportInstrument: async (instrument: import("shared/lib/uge/ugiHelper").UGIInstrument) => {
+      exportInstrument: async (
+        instrument: import("shared/lib/uge/ugiHelper").UGIInstrument,
+      ) => {
         const { saveUGIInstrument } = await import("shared/lib/uge/ugiHelper");
         const data = saveUGIInstrument(instrument);
-        const safeName = instrument.name.replace(/[^a-zA-Z0-9_-]/g, "_") || "instrument";
+        const safeName =
+          instrument.name.replace(/[^a-zA-Z0-9_-]/g, "_") || "instrument";
         downloadBytes(`${safeName}.ugi`, new Uint8Array(data));
       },
-      importInstrument: async (): Promise<import("shared/lib/uge/ugiHelper").UGIInstrument | null> => {
+      importInstrument: async (): Promise<
+        import("shared/lib/uge/ugiHelper").UGIInstrument | null
+      > => {
         const { loadUGIInstrument } = await import("shared/lib/uge/ugiHelper");
         const bytes = await pickUGIFile();
         if (!bytes) return null;

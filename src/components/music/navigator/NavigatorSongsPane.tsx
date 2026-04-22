@@ -66,7 +66,8 @@ export const NavigatorSongsPane = ({
   const [songsSearchTerm, setSongsSearchTerm] = useState("");
   const [songsSearchEnabled, setSongsSearchEnabled] = useState(false);
   const [renameId, setRenameId] = useState("");
-  const [selectedNavigatorId, setSelectedNavigatorId] = useState(selectedSongId);
+  const [selectedNavigatorId, setSelectedNavigatorId] =
+    useState(selectedSongId);
 
   const nestedSongItems = useMemo(
     () => buildAssetNavigatorItems(allSongs, openFolders, songsSearchTerm),

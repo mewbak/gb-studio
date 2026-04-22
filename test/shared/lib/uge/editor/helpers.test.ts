@@ -2,7 +2,10 @@ import {
   getPatternCellSelectionValue,
   toValidChannelId,
 } from "../../../../../src/shared/lib/uge/editor/helpers";
-import { createSong, createPattern } from "../../../../../src/shared/lib/uge/song";
+import {
+  createSong,
+  createPattern,
+} from "../../../../../src/shared/lib/uge/song";
 import type { Song } from "../../../../../src/shared/lib/uge/types";
 
 const makeSongWithNote = (note: number | null): Song => {

@@ -4,7 +4,10 @@ import {
   parsePatternToClipboard,
   parseClipboardToPattern,
 } from "../../../../src/shared/lib/uge/clipboard";
-import { createPattern, createPatternCell } from "../../../../src/shared/lib/uge/song";
+import {
+  createPattern,
+  createPatternCell,
+} from "../../../../src/shared/lib/uge/song";
 
 describe("NO_CHANGE_ON_PASTE", () => {
   it("is a fixed sentinel value (-9)", () => {
@@ -14,11 +17,14 @@ describe("NO_CHANGE_ON_PASTE", () => {
 
 describe("parseClipboardOrigin", () => {
   it("returns null when no origin header is present", () => {
-    expect(parseClipboardOrigin("GBStudio hUGETracker Piano format\nline2")).toBeNull();
+    expect(
+      parseClipboardOrigin("GBStudio hUGETracker Piano format\nline2"),
+    ).toBeNull();
   });
 
   it("parses the origin row number from a header", () => {
-    const clipboard = "GBStudio hUGETracker Piano format\nGBStudio origin: 42\nline3";
+    const clipboard =
+      "GBStudio hUGETracker Piano format\nGBStudio origin: 42\nline3";
     expect(parseClipboardOrigin(clipboard)).toBe(42);
   });
 
