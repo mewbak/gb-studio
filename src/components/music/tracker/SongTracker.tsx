@@ -1541,23 +1541,28 @@ export const SongTracker = () => {
       }
     };
 
-    let lastSelectionChange = 0;
+    let isClearingSelection = false;
 
     const onSelectionChange = (e: Event) => {
-      if (Date.now() < lastSelectionChange + 100) {
+      if (isClearingSelection) {
         return;
       }
-
-      lastSelectionChange = Date.now();
 
       const selection = window.getSelection();
       if (!selection || selection.focusNode) {
         return;
       }
 
-      window.getSelection()?.empty();
+      isClearingSelection = true;
+
+      selection.removeAllRanges();
       e.preventDefault();
+
       onSelectAll();
+
+      setTimeout(() => {
+        isClearingSelection = false;
+      }, 0);
     };
 
     if (API.env === "web") {
