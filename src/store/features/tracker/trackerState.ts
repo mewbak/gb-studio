@@ -253,8 +253,16 @@ const trackerSlice = createSlice({
       state,
       action: PayloadAction<PatternCellAddress[]>,
     ) => {
-      state.selectedPatternCells = action.payload;
-      if (action.payload.length > 0) {
+      const next = action.payload;
+      const prev = state.selectedPatternCells;
+
+      if (prev.length === 0 && next.length === 0) {
+        return;
+      }
+
+      state.selectedPatternCells = next;
+
+      if (next.length > 0) {
         state.sidebarView = "cell";
       }
     },

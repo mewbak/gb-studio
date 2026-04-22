@@ -2,7 +2,7 @@ import React, { useCallback, useMemo } from "react";
 import { PatternCell } from "shared/lib/uge/types";
 import trackerActions from "store/features/tracker/trackerActions";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
-import { useAppDispatch, useAppSelector } from "store/hooks";
+import { useAppDispatch, useAppSelector, useAppStore } from "store/hooks";
 import { StyledPianoRollEffectCell, StyledPianoRollEffectRow } from "./style";
 import { PIANO_ROLL_CELL_SIZE } from "consts";
 
@@ -45,6 +45,7 @@ const hasEffect = (cell?: PatternCell) =>
 
 export const PianoRollEffectRow = React.memo(
   ({ sequenceId, patternId, channelId }: PianoRollEffectRowProps) => {
+    const store = useAppStore();
     const dispatch = useAppDispatch();
 
     const tool = useAppSelector((state) => state.tracker.tool);
@@ -67,15 +68,16 @@ export const PianoRollEffectRow = React.memo(
       );
     }, [channelId, selectedPatternCells, sequenceId]);
 
-    const songDocument = useAppSelector(
-      (state) => state.trackerDocument.present.song,
+    const renderPattern = useAppSelector(
+      (state) => state.trackerDocument.present.song?.patterns[patternId],
     );
-
-    const renderPattern = songDocument?.patterns[patternId];
 
     const handleMouseDown = useCallback(
       (e: React.MouseEvent<HTMLDivElement>) => {
         if (!renderPattern) return;
+
+        const state = store.getState();
+        const songDocument = state.trackerDocument.present.song;
 
         const col = Math.floor(e.nativeEvent.offsetX / PIANO_ROLL_CELL_SIZE);
         const cell = renderPattern[col]?.[channelId] as PatternCell | undefined;
@@ -132,13 +134,13 @@ export const PianoRollEffectRow = React.memo(
       },
       [
         renderPattern,
+        store,
         channelId,
         selectedEffectCell,
-        songDocument?.patterns,
         tool,
         dispatch,
-        patternId,
         sequenceId,
+        patternId,
       ],
     );
 
