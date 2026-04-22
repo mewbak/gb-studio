@@ -112,7 +112,11 @@ export const SongTrackerPattern = memo(
           }}
         >
           <StyledTrackerTableHeaderRow>
-            <TrackerHeaderCell type="patternIndex">
+            <TrackerHeaderCell
+              type="patternIndex"
+              patternId={sequencePatternId}
+              isFiltered={isFiltered}
+            >
               <DropdownButton
                 variant="transparent"
                 label={String(sequencePatternId).padStart(2, "0")}
