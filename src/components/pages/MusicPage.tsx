@@ -65,10 +65,9 @@ const MusicPage = () => {
   const minCenterPaneWidth = 0;
 
   const allSongs = useAppSelector(musicSelectors.selectAll);
-  const allUgeSongs = useMemo(() => allSongs.sort(sortByFilename), [allSongs]);
-
-  const songDocument = useAppSelector(
-    (state) => state.trackerDocument.present.song,
+  const allUgeSongs = useMemo(
+    () => [...allSongs].sort(sortByFilename),
+    [allSongs],
   );
 
   const selectedSongId = useAppSelector(
@@ -336,7 +335,7 @@ const MusicPage = () => {
                 </SplitPaneHeader>
 
                 {patternsPanelOpen &&
-                  (status === "loaded" && songDocument ? (
+                  (status === "loaded" ? (
                     <SequenceEditor direction="horizontal" />
                   ) : (
                     <div
