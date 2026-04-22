@@ -23,6 +23,7 @@ export type MusicDataPacket =
       song: Song;
       position?: [number, number];
       metronomeEnabled?: boolean;
+      loopSequenceId?: number;
     }
   | {
       action: "stop";

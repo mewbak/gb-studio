@@ -10,7 +10,6 @@ import trackerActions from "store/features/tracker/trackerActions";
 import { useAppDispatch } from "store/hooks";
 import l10n from "shared/lib/lang/l10n";
 import { ChannelMuteIcon, ChannelSoloIcon } from "ui/icons/Icons";
-import { patternHue } from "shared/lib/uge/display";
 
 interface TrackerHeaderCellProps {
   channel?: 0 | 1 | 2 | 3;
@@ -18,7 +17,6 @@ interface TrackerHeaderCellProps {
   children?: React.ReactNode;
   muted?: boolean;
   solo?: boolean;
-  sequencePatternId?: number;
 }
 
 export const TrackerHeaderCell = ({
@@ -27,7 +25,6 @@ export const TrackerHeaderCell = ({
   muted,
   solo,
   channel,
-  sequencePatternId,
 }: TrackerHeaderCellProps) => {
   const dispatch = useAppDispatch();
 
@@ -92,14 +89,6 @@ export const TrackerHeaderCell = ({
       $muted={muted}
       $solo={solo}
       onMouseDown={onToggleMuteSolo}
-      style={
-        sequencePatternId !== undefined
-          ? {
-              background: `linear-gradient(0deg, hsl(${patternHue(sequencePatternId)}deg 100% 70%) 0%, hsl(${patternHue(sequencePatternId)}deg 100% 80%) 100%)`,
-              borderColor: `hsl(${patternHue(sequencePatternId)}deg 80% 50% / 30%)`,
-            }
-          : undefined
-      }
     >
       <StyledTrackerHeaderCellContents>
         <span>{children}</span>

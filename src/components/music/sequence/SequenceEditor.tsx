@@ -6,7 +6,7 @@ import trackerActions from "store/features/tracker/trackerActions";
 import { useAppDispatch, useAppSelector } from "store/hooks";
 import { SingleValue } from "react-select";
 import { SortableList } from "ui/lists/SortableList";
-import { patternHue } from "shared/lib/uge/display";
+import { patternGradient } from "shared/lib/uge/display";
 import l10n from "shared/lib/lang/l10n";
 import renderPatternContextMenu from "components/music/contextMenus/renderPatternContextMenu";
 import { useContextMenu } from "ui/hooks/use-context-menu";
@@ -39,6 +39,7 @@ interface SequenceItemProps {
   sequenceOptions: SequenceOption[];
   sequenceLength: number;
   numPatterns: number;
+  loopSequenceId: number | undefined;
   direction: "vertical" | "horizontal";
 }
 
@@ -93,6 +94,7 @@ const SequenceItem = memo(
     sequenceOptions,
     sequenceLength,
     numPatterns,
+    loopSequenceId,
     direction,
   }: SequenceItemProps) => {
     const dispatch = useAppDispatch();
@@ -117,6 +119,7 @@ const SequenceItem = memo(
           orderIndex: item.sequenceIndex,
           orderLength: sequenceLength,
           numPatterns,
+          loopSequenceId,
           onClose,
         });
       },
@@ -125,6 +128,7 @@ const SequenceItem = memo(
         item.patternId,
         item.sequenceIndex,
         numPatterns,
+        loopSequenceId,
         sequenceLength,
       ],
     );
@@ -135,15 +139,18 @@ const SequenceItem = memo(
 
     const contextMenu = useMemo(() => getContextMenu(), [getContextMenu]);
 
+    const isFiltered =
+      loopSequenceId !== undefined && loopSequenceId !== item.sequenceIndex;
+
     const background = useMemo(
-      () =>
-        `linear-gradient(0deg, hsl(${patternHue(item.patternId)}deg 100% 70%) 0%, hsl(${patternHue(item.patternId)}deg 100% 90%) 100%)`,
-      [item.patternId],
+      () => patternGradient(item.patternId, isFiltered),
+      [isFiltered, item.patternId],
     );
 
     return (
       <StyledSequenceItem
         $selected={isSelected}
+        $filtered={isFiltered}
         style={{ background }}
         onContextMenu={onContextMenu}
       >
@@ -193,14 +200,22 @@ export const SequenceEditor = ({ height, direction }: SequenceEditorProps) => {
   const playingSequence = useAppSelector(
     (state) => state.tracker.playbackPosition[0],
   );
+
+  const loopSequenceId = useAppSelector(
+    (state) => state.tracker.loopSequenceId,
+  );
+
   const sequenceLengthRef = useRef(sequence?.length ?? 0);
 
   const setSequenceId = useCallback(
     (sequenceId: number) => {
       dispatch(trackerActions.setSelectedPatternCells([]));
       dispatch(trackerActions.setSelectedSequence(sequenceId));
+      if (loopSequenceId !== sequenceId) {
+        dispatch(trackerActions.setLoopSequenceId(undefined));
+      }
     },
-    [dispatch],
+    [dispatch, loopSequenceId],
   );
 
   useEffect(() => {
@@ -222,9 +237,13 @@ export const SequenceEditor = ({ height, direction }: SequenceEditorProps) => {
 
   useEffect(() => {
     if (play && playingSequence !== -1 && playingSequence !== sequenceId) {
-      setSequenceId(playingSequence);
+      if (loopSequenceId !== undefined) {
+        setSequenceId(loopSequenceId);
+      } else {
+        setSequenceId(playingSequence);
+      }
     }
-  }, [play, playingSequence, sequenceId, setSequenceId]);
+  }, [play, playingSequence, loopSequenceId, sequenceId, setSequenceId]);
 
   const sequenceOptions: SequenceOption[] = useMemo(
     () =>
@@ -287,10 +306,17 @@ export const SequenceEditor = ({ height, direction }: SequenceEditorProps) => {
         sequenceOptions={sequenceOptions}
         sequenceLength={sequenceItems.length}
         numPatterns={patterns}
+        loopSequenceId={loopSequenceId}
         direction={direction}
       />
     ),
-    [sequenceOptions, sequenceItems.length, patterns, direction],
+    [
+      sequenceOptions,
+      sequenceItems.length,
+      patterns,
+      loopSequenceId,
+      direction,
+    ],
   );
 
   const onSelect = useCallback(

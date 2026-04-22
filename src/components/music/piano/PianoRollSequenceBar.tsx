@@ -27,6 +27,7 @@ import { useContextMenu } from "ui/hooks/use-context-menu";
 import renderPatternContextMenu from "components/music/contextMenus/renderPatternContextMenu";
 import { DropdownButton } from "ui/buttons/DropdownButton";
 import { fromAbsRow } from "store/features/trackerDocument/trackerDocumentHelpers";
+import { patternGradient } from "shared/lib/uge/display";
 
 interface PianoRollSequenceBarProps {
   children?: React.ReactNode;
@@ -37,6 +38,7 @@ interface PianoRollSequenceBarPatternProps {
   orderIndex: number;
   orderLength: number;
   numPatterns: number;
+  loopSequenceId: number | undefined;
 }
 
 const tickMarkers = [8, 16, 24, 32, 40, 48, 56] as const;
@@ -47,6 +49,7 @@ const PianoRollSequenceBarPattern = memo(
     orderIndex,
     orderLength,
     numPatterns,
+    loopSequenceId,
   }: PianoRollSequenceBarPatternProps) => {
     const dispatch = useAppDispatch();
 
@@ -58,10 +61,18 @@ const PianoRollSequenceBarPattern = memo(
           orderIndex,
           orderLength,
           numPatterns,
+          loopSequenceId,
           onClose,
         });
       },
-      [dispatch, patternIndex, orderIndex, orderLength, numPatterns],
+      [
+        dispatch,
+        patternIndex,
+        orderIndex,
+        orderLength,
+        numPatterns,
+        loopSequenceId,
+      ],
     );
 
     const { onContextMenu, contextMenuElement } = useContextMenu({
@@ -70,16 +81,19 @@ const PianoRollSequenceBarPattern = memo(
 
     const contextMenu = useMemo(() => getContextMenu(), [getContextMenu]);
 
+    const isFiltered =
+      loopSequenceId !== undefined && loopSequenceId !== orderIndex;
+
     return (
       <StyledPianoRollSequenceHeaderPattern
-        $patternIndex={patternIndex}
         onContextMenu={onContextMenu}
+        onMouseDown={(e) => e.stopPropagation()}
+        style={{ background: patternGradient(patternIndex, isFiltered) }}
       >
         <StyledPianoRollSequenceHeaderText>
           <DropdownButton
             variant="transparent"
             label={`${orderIndex + 1}: ${l10n("FIELD_PATTERN")} ${String(patternIndex).padStart(2, "0")}`}
-            onMouseDown={(e) => e.stopPropagation()}
           >
             {contextMenu}
           </DropdownButton>
@@ -102,6 +116,9 @@ export const PianoRollSequenceBar = memo(
     );
     const numPatterns = useAppSelector(
       (state) => state.trackerDocument.present.song?.patterns.length ?? 0,
+    );
+    const loopSequenceId = useAppSelector(
+      (state) => state.tracker.loopSequenceId,
     );
 
     const documentWidth = calculateDocumentWidth(sequenceLength);
@@ -204,6 +221,7 @@ export const PianoRollSequenceBar = memo(
               patternIndex={pattern}
               orderLength={sequenceLength}
               numPatterns={numPatterns}
+              loopSequenceId={loopSequenceId}
             />
           </StyledPianoRollSequenceHeader>
         ))}

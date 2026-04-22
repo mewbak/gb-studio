@@ -104,6 +104,7 @@ export interface TrackerState {
   midiInput: MusicMidiState;
   metronomeEnabled: boolean;
   quantizeSnap: QuantizeSnapSetting;
+  loopSequenceId?: number;
 }
 
 export const initialState: TrackerState = {
@@ -151,6 +152,7 @@ export const initialState: TrackerState = {
   midiInput: defaultMusicMidiState,
   metronomeEnabled: false,
   quantizeSnap: "none",
+  loopSequenceId: undefined,
 };
 
 const trackerSlice = createSlice({
@@ -225,11 +227,14 @@ const trackerSlice = createSlice({
     },
     setDefaultStartPlaybackPosition: (
       state,
-      _action: PayloadAction<[number, number]>,
+      action: PayloadAction<[number, number]>,
     ) => {
-      state.startPlaybackPosition = _action.payload;
-      state.playbackPosition = _action.payload;
-      state.defaultStartPlaybackPosition = _action.payload;
+      state.startPlaybackPosition = action.payload;
+      state.playbackPosition = action.payload;
+      state.defaultStartPlaybackPosition = action.payload;
+      if (state.loopSequenceId !== action.payload[0]) {
+        state.loopSequenceId = undefined;
+      }
     },
     setPlaybackPosition: (state, action: PayloadAction<[number, number]>) => {
       state.playbackPosition = action.payload;
@@ -338,6 +343,12 @@ const trackerSlice = createSlice({
     setQuantizeSnap: (state, action: PayloadAction<QuantizeSnapSetting>) => {
       state.quantizeSnap = action.payload;
     },
+    setLoopSequenceId: (state, action: PayloadAction<number | undefined>) => {
+      state.loopSequenceId = action.payload;
+      if (action.payload !== undefined) {
+        state.defaultStartPlaybackPosition = [action.payload, 0];
+      }
+    },
   },
   extraReducers: (builder) =>
     builder
@@ -373,6 +384,7 @@ const trackerSlice = createSlice({
       })
       .addCase(trackerDocumentActions.moveSequence, (state, action) => {
         state.selectedSequence = action.payload.toIndex;
+        state.loopSequenceId = undefined;
       })
       // When adding a new song file jump to it in navigator
       .addCase(addNewSongFile.fulfilled, (state, action) => {
@@ -395,10 +407,15 @@ const trackerSlice = createSlice({
       .addCase(trackerDocumentActions.insertSequence, (state, action) => {
         const offset = action.payload.position === "after" ? 1 : 0;
         state.selectedSequence = action.payload.sequenceIndex + offset;
+        state.loopSequenceId = undefined;
       })
       .addCase(trackerDocumentActions.cloneSequencePattern, (state, action) => {
         const offset = action.payload.position === "after" ? 1 : 0;
         state.selectedSequence = action.payload.sequenceIndex + offset;
+        state.loopSequenceId = undefined;
+      })
+      .addCase(trackerDocumentActions.removeSequence, (state) => {
+        state.loopSequenceId = undefined;
       })
       .addCase(trackerDocumentActions.clearAbsoluteCells, (state) => {
         state.mobileOverlayView = "none";

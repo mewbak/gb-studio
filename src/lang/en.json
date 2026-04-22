@@ -1408,6 +1408,7 @@
   "FIELD_PIANO_ROLL_DESCRIPTION": "Compose by drawing notes on a timeline.",
   "FIELD_TRACKER_DESCRIPTION": "Compose by typing notes and effects into a grid.",
   "FIELD_CLONE_PATTERN": "Clone Pattern",
+  "FIELD_LOOP_PATTERN": "Loop Pattern",
 
   "// 7": "Asset Viewer ---------------------------------------------",
   "ASSET_SEARCH": "Search...",

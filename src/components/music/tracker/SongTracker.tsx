@@ -11,7 +11,7 @@ import trackerDocumentActions from "store/features/trackerDocument/trackerDocume
 import { getKeys } from "renderer/lib/keybindings/keyBindings";
 import trackerActions from "store/features/tracker/trackerActions";
 import API from "renderer/lib/api";
-import { useAppDispatch, useAppSelector } from "store/hooks";
+import { useAppDispatch, useAppSelector, useAppStore } from "store/hooks";
 import {
   StyledTrackerWrapper,
   StyledTrackerScrollWrapper,
@@ -84,6 +84,7 @@ const getPatternIdAtSequence = (
 ) => sequence?.[sequenceId] ?? 0;
 
 export const SongTracker = () => {
+  const store = useAppStore();
   const dispatch = useAppDispatch();
   const playPreview = useMusicNotePreview();
   const midiState = useMusicMidiState();
@@ -275,10 +276,26 @@ export const SongTracker = () => {
     setSelectionRectState(value);
   }, []);
 
-  const setActiveField = useCallback((value: number | undefined) => {
-    activeFieldRefValue.current = value;
-    setActiveFieldState(value);
-  }, []);
+  const setActiveField = useCallback(
+    (value: number | undefined) => {
+      const state = store.getState();
+      if (state.tracker.playing) {
+        return;
+      }
+      activeFieldRefValue.current = value;
+      setActiveFieldState(value);
+      const currentSequenceId = value
+        ? getSequenceIdFromGlobalField(value)
+        : state.tracker.selectedSequence;
+      const loopSequenceId = state.tracker.loopSequenceId;
+      const isFiltered =
+        loopSequenceId !== undefined && loopSequenceId !== currentSequenceId;
+      if (isFiltered) {
+        dispatch(trackerActions.setLoopSequenceId(undefined));
+      }
+    },
+    [dispatch, store],
+  );
 
   const getMaxField = useCallback(() => {
     const currentSequenceLength = songSequenceRef.current?.length ?? 0;

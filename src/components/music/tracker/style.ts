@@ -24,6 +24,7 @@ export const StyledTrackerScrollCanvas = styled.div`
 
 interface StyledTrackerContentTableProps {
   $type: "pattern" | "subpattern";
+  $isFiltered?: boolean;
 }
 
 export const StyledTrackerContentTable = styled.table<StyledTrackerContentTableProps>`
@@ -60,6 +61,12 @@ export const StyledTrackerContentTable = styled.table<StyledTrackerContentTableP
         scroll-margin-top: 110px;
         scroll-margin-bottom: 320px;
       }
+    `}
+
+  ${(props) =>
+    props.$isFiltered &&
+    css`
+      filter: grayscale(1);
     `}
 `;
 

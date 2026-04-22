@@ -1,6 +1,8 @@
 import React, { Dispatch } from "react";
 import { UnknownAction } from "redux";
+import API from "renderer/lib/api";
 import l10n from "shared/lib/lang/l10n";
+import trackerActions from "store/features/tracker/trackerActions";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
 import { BlankIcon, CheckIcon } from "ui/icons/Icons";
 import { MenuDivider, MenuItem } from "ui/menu/Menu";
@@ -11,6 +13,7 @@ interface PatternContextMenuProps {
   orderIndex: number;
   orderLength: number;
   numPatterns: number;
+  loopSequenceId: number | undefined;
   onClose?: () => void;
 }
 
@@ -19,13 +22,35 @@ const renderPatternContextMenu = ({
   patternIndex,
   orderIndex,
   orderLength,
+  loopSequenceId,
   numPatterns,
 }: PatternContextMenuProps) => {
   return [
+    <MenuItem
+      key="loop"
+      icon={loopSequenceId === orderIndex ? <CheckIcon /> : <BlankIcon />}
+      onClick={() => {
+        const isLooped = loopSequenceId === orderIndex;
+        dispatch(
+          trackerActions.setLoopSequenceId(isLooped ? undefined : orderIndex),
+        );
+        if (!isLooped) {
+          API.music.sendToMusicWindow({
+            action: "position",
+            position: [orderIndex, 0],
+          });
+        }
+      }}
+    >
+      {l10n("FIELD_LOOP_PATTERN")}
+    </MenuItem>,
+    <MenuDivider key="div-loop" />,
+
     ...(orderIndex > 0
       ? [
           <MenuItem
             key="move-start"
+            icon={<BlankIcon />}
             onClick={() => {
               dispatch(
                 trackerDocumentActions.moveSequence({
@@ -44,6 +69,7 @@ const renderPatternContextMenu = ({
       ? [
           <MenuItem
             key="move-back"
+            icon={<BlankIcon />}
             onClick={() => {
               dispatch(
                 trackerDocumentActions.moveSequence({
@@ -62,6 +88,7 @@ const renderPatternContextMenu = ({
       ? [
           <MenuItem
             key="move-forward"
+            icon={<BlankIcon />}
             onClick={() => {
               dispatch(
                 trackerDocumentActions.moveSequence({
@@ -80,6 +107,7 @@ const renderPatternContextMenu = ({
       ? [
           <MenuItem
             key="move-end"
+            icon={<BlankIcon />}
             onClick={() => {
               dispatch(
                 trackerDocumentActions.moveSequence({
@@ -96,6 +124,7 @@ const renderPatternContextMenu = ({
       : []),
     <MenuItem
       key="replaceWith"
+      icon={<BlankIcon />}
       subMenu={Array.from({ length: numPatterns + 1 }).map((_, n) => (
         <MenuItem
           key={n}
@@ -119,6 +148,7 @@ const renderPatternContextMenu = ({
 
     <MenuItem
       key="insertBefore"
+      icon={<BlankIcon />}
       subMenu={Array.from({ length: numPatterns + 1 }).map((_, n) => (
         <MenuItem
           key={n}
@@ -141,6 +171,7 @@ const renderPatternContextMenu = ({
     </MenuItem>,
     <MenuItem
       key="insertAfter"
+      icon={<BlankIcon />}
       subMenu={Array.from({ length: numPatterns + 1 }).map((_, n) => (
         <MenuItem
           key={n}
@@ -163,6 +194,7 @@ const renderPatternContextMenu = ({
     </MenuItem>,
     <MenuItem
       key="clone"
+      icon={<BlankIcon />}
       onClick={() => {
         dispatch(
           trackerDocumentActions.cloneSequencePattern({
@@ -179,6 +211,7 @@ const renderPatternContextMenu = ({
           <MenuDivider key="div-delete" />,
           <MenuItem
             key="delete"
+            icon={<BlankIcon />}
             onClick={() => {
               dispatch(
                 trackerDocumentActions.removeSequence({

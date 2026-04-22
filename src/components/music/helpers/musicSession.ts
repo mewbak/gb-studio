@@ -20,6 +20,7 @@ const createMusicSession = (): MusicSession => {
   let isOpening = false;
   let openedSfx: string | undefined;
   let position: PlaybackPosition = [0, 0];
+  let loopSequenceId: number | undefined;
   let queuedActions: MusicDataPacket[] = [];
 
   const listeners = new Set<MusicSessionListener>();
@@ -45,6 +46,7 @@ const createMusicSession = (): MusicSession => {
         player.reset();
         player.loadSong(data.song);
         position = [0, 0];
+        loopSequenceId = undefined;
         emit({
           action: "log",
           message: "load song",
@@ -60,6 +62,7 @@ const createMusicSession = (): MusicSession => {
         if (data.position) {
           position = data.position;
         }
+        loopSequenceId = data.loopSequenceId;
         player.reset();
         player.setMetronomeEnabled(data.metronomeEnabled ?? false);
         player.play(data.song, position);
@@ -171,10 +174,19 @@ const createMusicSession = (): MusicSession => {
   };
 
   player.setOnIntervalCallback((playbackUpdate) => {
-    position = playbackUpdate;
+    const shouldLoop =
+      loopSequenceId !== undefined && playbackUpdate[0] !== loopSequenceId;
+
+    if (shouldLoop && loopSequenceId !== undefined) {
+      position = [loopSequenceId, 0];
+      player.setStartPosition(position);
+    } else {
+      position = playbackUpdate;
+    }
+
     emit({
       action: "update",
-      update: playbackUpdate,
+      update: position,
     });
   });
 

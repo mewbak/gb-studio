@@ -8,7 +8,6 @@ import {
   TOTAL_NOTES,
   TRACKER_PATTERN_LENGTH,
 } from "consts";
-import { patternHue } from "shared/lib/uge/display";
 import { StyledButton } from "ui/buttons/style";
 
 export const StyledPianoRollWrapper = styled.div`
@@ -263,17 +262,8 @@ export const StyledPianoRollSequenceHeaderText = styled.div`
   }
 `;
 
-export const StyledPianoRollSequenceHeaderPattern = styled.div<{
-  $patternIndex: number;
-}>`
+export const StyledPianoRollSequenceHeaderPattern = styled.div`
   flex-grow: 1;
-
-  background: ${({ $patternIndex }) =>
-    `linear-gradient(
-      0deg,
-      hsl(${patternHue($patternIndex)}deg 100% 70%) 0%,
-      hsl(${patternHue($patternIndex)}deg 100% 80%) 100%
-    )`};
 
   color: #000;
 
@@ -544,6 +534,7 @@ export const StyledPianoRollPatternsWrapper = styled.div`
 interface StyledPianoRollPatternBlockProps {
   $hovered: boolean;
   $isPlaying: boolean;
+  $isFiltered: boolean;
 }
 
 export const StyledPianoRollPatternBlock = styled.div<StyledPianoRollPatternBlockProps>`
@@ -558,6 +549,12 @@ export const StyledPianoRollPatternBlock = styled.div<StyledPianoRollPatternBloc
     border-right: 1px solid ${(props) => props.theme.colors.sidebar.border};
     box-sizing: border-box;
   }
+
+  ${(props) =>
+    props.$isFiltered &&
+    css`
+      filter: grayscale(1);
+    `}
 
   ${StyledPianoRollScrollCanvas}:hover & {
     opacity: 0.5;

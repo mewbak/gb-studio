@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add presets for instrument subpatterns in the Music Editor
 - Add ability use MIDI input in Music Editor. Record button will appear to set if MIDI input should edit song or just preview notes. Piano Roll view also allows recording during playback with optional metronome and quantizing options
 - Add ability to clone current pattern and to insert any pattern before/after in Music Editor from Order bar context menu
+- Add ability to loop playback of a single pattern in the Music Editor
 - Ukrainian localisation. [@AmakerGame](https://github.com/AmakerGame)
 
 ### Changed

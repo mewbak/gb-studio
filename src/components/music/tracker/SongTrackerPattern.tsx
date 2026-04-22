@@ -1,4 +1,4 @@
-import React, { memo, useMemo } from "react";
+import React, { memo, useCallback, useMemo } from "react";
 import { PatternCell } from "shared/lib/uge/types";
 import { TrackerHeaderCell } from "./TrackerHeaderCell";
 import {
@@ -7,13 +7,14 @@ import {
   StyledTrackerTableHeaderRow,
   StyledTrackerTableBody,
 } from "./style";
-import { patternHue } from "shared/lib/uge/display";
+import { patternBorder, patternGradient } from "shared/lib/uge/display";
 import renderPatternContextMenu from "components/music/contextMenus/renderPatternContextMenu";
 import { DropdownButton } from "ui/buttons/DropdownButton";
 import { SongTrackerRow } from "./SongTrackerRow";
 import { TRACKER_ROW_SIZE } from "consts";
 import { useAppSelector } from "store/hooks";
 import l10n from "shared/lib/lang/l10n";
+import trackerActions from "store/features/tracker/trackerActions";
 
 interface SongTrackerPatternProps {
   sequencePatternId: number;
@@ -56,6 +57,10 @@ export const SongTrackerPattern = memo(
         state.trackerDocument.present.song?.patterns[sequencePatternId],
     );
 
+    const loopSequenceId = useAppSelector(
+      (state) => state.tracker.loopSequenceId,
+    );
+
     const isActivePattern = renderSequenceId === activeSequenceId;
     const activeRowIndex =
       activeLocalField !== undefined
@@ -85,19 +90,29 @@ export const SongTrackerPattern = memo(
       return next;
     }, [selectedTrackerFieldSet]);
 
+    const isFiltered =
+      loopSequenceId !== undefined && loopSequenceId !== renderSequenceId;
+
+    const onPointerDown = useCallback(() => {
+      if (isFiltered) {
+        dispatch(trackerActions.setLoopSequenceId(undefined));
+      }
+    }, [dispatch, isFiltered]);
+
     return (
-      <StyledTrackerContentTable $type="pattern">
+      <StyledTrackerContentTable
+        $type="pattern"
+        onPointerDown={onPointerDown}
+        $isFiltered={isFiltered}
+      >
         <StyledTrackerTableHeader
           style={{
-            background: `linear-gradient(0deg, hsl(${patternHue(sequencePatternId)}deg 100% 70%) 0%, hsl(${patternHue(sequencePatternId)}deg 100% 80%) 100%)`,
-            borderColor: `hsl(${patternHue(sequencePatternId)}deg 80% 50% / 30%)`,
+            background: patternGradient(sequencePatternId, isFiltered, true),
+            borderColor: patternBorder(sequencePatternId, isFiltered),
           }}
         >
           <StyledTrackerTableHeaderRow>
-            <TrackerHeaderCell
-              type="patternIndex"
-              sequencePatternId={sequencePatternId}
-            >
+            <TrackerHeaderCell type="patternIndex">
               <DropdownButton
                 variant="transparent"
                 label={String(sequencePatternId).padStart(2, "0")}
@@ -108,6 +123,7 @@ export const SongTrackerPattern = memo(
                   orderIndex: renderSequenceId,
                   orderLength,
                   numPatterns,
+                  loopSequenceId,
                 })}
               </DropdownButton>
             </TrackerHeaderCell>

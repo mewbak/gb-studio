@@ -1,11 +1,12 @@
-import React, { memo } from "react";
+import React, { memo, useCallback } from "react";
 import { PatternChannelNotes } from "./PatternChannelNotes";
 import { PianoRollCrosshair } from "./PianoRollCrosshair";
 import {
   StyledPianoRollPatternBlockGrid,
   StyledPianoRollPatternBlock,
 } from "./style";
-import { useAppSelector } from "store/hooks";
+import { useAppDispatch, useAppSelector } from "store/hooks";
+import trackerActions from "store/features/tracker/trackerActions";
 
 interface PianoRollPatternBlockProps {
   patternId: number;
@@ -40,11 +41,18 @@ export const PianoRollPatternBlock = memo(
     playing,
     selectedChannel,
   }: PianoRollPatternBlockProps) => {
+    const dispatch = useAppDispatch();
+
     const isSequenceHovered = useAppSelector(
       (state) =>
         state.tracker.hoverSequence === sequenceId ||
         (state.tracker.hoverSequence === null && sequenceId === 0),
     );
+
+    const isFiltered = useAppSelector((state) => {
+      const loopSequenceId = state.tracker.loopSequenceId;
+      return loopSequenceId !== undefined && loopSequenceId !== sequenceId;
+    });
 
     const selectedRows = useAppSelector<Set<number>>((state) => {
       const rows = new Set<number>();
@@ -61,10 +69,18 @@ export const PianoRollPatternBlock = memo(
       return rows;
     }, areNumberSetsEqual);
 
+    const onPointerDown = useCallback(() => {
+      if (isFiltered) {
+        dispatch(trackerActions.setLoopSequenceId(undefined));
+      }
+    }, [dispatch, isFiltered]);
+
     return (
       <StyledPianoRollPatternBlock
         $hovered={isSequenceHovered}
         $isPlaying={playing}
+        $isFiltered={isFiltered}
+        onPointerDown={onPointerDown}
       >
         <StyledPianoRollPatternBlockGrid $size="small" />
         <StyledPianoRollPatternBlockGrid $size="medium" />

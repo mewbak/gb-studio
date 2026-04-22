@@ -31,6 +31,9 @@ export const UgePlayer = () => {
 
   const play = useAppSelector((state) => state.tracker.playing);
   const exporting = useAppSelector((state) => state.tracker.exporting);
+  const loopSequenceId = useAppSelector(
+    (state) => state.tracker.loopSequenceId,
+  );
 
   const playbackMetronomeEnabled = useAppSelector(
     selectIsPlaybackMetronomeEnabled,
@@ -78,13 +81,14 @@ export const UgePlayer = () => {
         action: "play",
         song: song,
         metronomeEnabled: playbackMetronomeEnabled,
+        loopSequenceId,
       });
     } else {
       API.music.sendToMusicWindow({
         action: "stop",
       });
     }
-  }, [store, play, exporting]);
+  }, [store, play, exporting, loopSequenceId]);
 
   useEffect(() => {
     API.music.sendToMusicWindow({
