@@ -38,6 +38,7 @@ import {
 } from "components/music/tracker/TrackerKeyboard";
 import { Portal } from "ui/layout/Portal";
 import { TRACKER_REDO, TRACKER_UNDO } from "consts";
+import { useSelectAllShortcut } from "ui/hooks/use-select-all";
 
 const CHANNEL_FIELDS = 4;
 const ROW_SIZE = CHANNEL_FIELDS;
@@ -638,24 +639,28 @@ export const InstrumentSubpatternTracker = ({
     [dispatch, instrumentId, instrumentType],
   );
 
+  const onSelectAll = useCallback(() => {
+    if (numFields <= 0) {
+      return;
+    }
+
+    setActiveField(0);
+    setSelectionOrigin({ x: 0, y: 0 });
+    setSelectionRect({
+      x: 0,
+      y: 0,
+      width: ROW_SIZE - 1,
+      height: Math.max(visibleRowCount - 1, 0),
+    });
+  }, [numFields, visibleRowCount]);
+
+  useSelectAllShortcut({
+    enabled: subpatternEditorFocus,
+    onSelectAll,
+  });
+
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTableElement>) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "a") {
-        if (activeField === undefined) {
-          return;
-        }
-
-        e.preventDefault();
-        setSelectionOrigin({ x: 0, y: 0 });
-        setSelectionRect({
-          x: 0,
-          y: 0,
-          width: ROW_SIZE - 1,
-          height: Math.max(visibleRowCount - 1, 0),
-        });
-        return;
-      }
-
       if (e.key === "Escape") {
         e.preventDefault();
         clearSelection();

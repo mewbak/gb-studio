@@ -57,6 +57,7 @@ import {
   useMusicMidiState,
 } from "components/music/midi/useMusicMidi";
 import { PlusIcon } from "ui/icons/Icons";
+import { useSelectAllShortcut } from "ui/hooks/use-select-all";
 
 type TrackerInput =
   | { type: "keyboard"; code: string }
@@ -1519,63 +1520,10 @@ export const SongTracker = () => {
 
   // #region Select All Effects
 
-  useEffect(() => {
-    if (subpatternEditorFocus) {
-      return;
-    }
-
-    const onKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && !e.shiftKey && e.code === "KeyA") {
-        const target = e.target as HTMLElement | null;
-        const isEditable =
-          target instanceof HTMLInputElement ||
-          target instanceof HTMLTextAreaElement ||
-          target?.isContentEditable === true;
-
-        if (isEditable) {
-          return;
-        }
-
-        e.preventDefault();
-        onSelectAll();
-      }
-    };
-
-    let isClearingSelection = false;
-
-    const onSelectionChange = (e: Event) => {
-      if (isClearingSelection) {
-        return;
-      }
-
-      const selection = window.getSelection();
-      if (!selection || selection.focusNode) {
-        return;
-      }
-
-      isClearingSelection = true;
-
-      selection.removeAllRanges();
-      e.preventDefault();
-
-      onSelectAll();
-
-      setTimeout(() => {
-        isClearingSelection = false;
-      }, 0);
-    };
-
-    if (API.env === "web") {
-      document.addEventListener("keydown", onKeyDown);
-    } else {
-      document.addEventListener("selectionchange", onSelectionChange);
-    }
-
-    return () => {
-      document.removeEventListener("keydown", onKeyDown);
-      document.removeEventListener("selectionchange", onSelectionChange);
-    };
-  }, [onSelectAll, subpatternEditorFocus]);
+  useSelectAllShortcut({
+    enabled: !subpatternEditorFocus,
+    onSelectAll,
+  });
 
   // #endregion Select All Effects
 

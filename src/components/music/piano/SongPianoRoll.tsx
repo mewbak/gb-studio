@@ -79,6 +79,7 @@ import {
   PastePreviewNotes,
 } from "components/music/piano/PianoRollNotePreviews";
 import { PATTERN_LENGTH } from "shared/lib/uge/mod2uge/constants";
+import { useSelectAllShortcut } from "ui/hooks/use-select-all";
 
 const TAP_MAX_MOVEMENT = 20;
 const TWO_FINGER_TAP_MAX_DURATION = 300;
@@ -113,7 +114,6 @@ export const SongPianoRoll = () => {
 
   const suppressNextContextMenuRef = useRef(false);
   const lastDragPreviewCellRef = useRef<string | null>(null);
-  const lastSelectAllTimeRef = useRef(0);
 
   const activePointersRef = useRef<
     Map<
@@ -924,13 +924,6 @@ export const SongPianoRoll = () => {
   const onSelectAll = useCallback(() => {
     const state = store.getState();
 
-    window.getSelection()?.empty();
-
-    if (lastSelectAllTimeRef.current + 100 > Date.now()) {
-      return;
-    }
-    lastSelectAllTimeRef.current = Date.now();
-
     const song = state.trackerDocument.present.song;
     if (!song) {
       return;
@@ -986,46 +979,10 @@ export const SongPianoRoll = () => {
   }, [store, dispatch, selectedChannel]);
 
   // Attach selectAll listeners
-  useEffect(() => {
-    if (subpatternEditorFocus) {
-      return;
-    }
-    const onKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && !e.shiftKey && e.code === "KeyA") {
-        const target = e.target as HTMLElement | null;
-        const isEditable =
-          target instanceof HTMLInputElement ||
-          target instanceof HTMLTextAreaElement ||
-          target?.isContentEditable === true;
-
-        if (isEditable) {
-          return;
-        }
-
-        e.preventDefault();
-        onSelectAll();
-      }
-    };
-
-    const onSelectionChange = () => {
-      const selection = window.getSelection();
-      if (!selection || selection.focusNode || selection.anchorOffset !== 0) {
-        return;
-      }
-      onSelectAll();
-    };
-
-    if (API.env === "web") {
-      document.addEventListener("keydown", onKeyDown);
-    } else {
-      document.addEventListener("selectionchange", onSelectionChange);
-    }
-
-    return () => {
-      document.removeEventListener("keydown", onKeyDown);
-      document.removeEventListener("selectionchange", onSelectionChange);
-    };
-  }, [onSelectAll, subpatternEditorFocus]);
+  useSelectAllShortcut({
+    enabled: !subpatternEditorFocus,
+    onSelectAll,
+  });
 
   // #endregion SelectAll Event Handlers
 
