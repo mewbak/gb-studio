@@ -1,4 +1,3 @@
-/* eslint-disable camelcase */
 import { createSlice, PayloadAction, UnknownAction } from "@reduxjs/toolkit";
 import type { InstrumentType, MusicExportFormat } from "shared/lib/music/types";
 import clamp from "shared/lib/helpers/clamp";

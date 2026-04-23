@@ -1,4 +1,3 @@
-/* eslint-disable camelcase */
 import type { MODFile, MODCell, EffectCode } from "./types";
 import { parseMod } from "./parseMod";
 import {

@@ -1,4 +1,3 @@
-/* eslint-disable camelcase */
 import { createSubPattern } from "shared/lib/uge/song";
 import {
   UGI_INSTRUMENT_SIZE,

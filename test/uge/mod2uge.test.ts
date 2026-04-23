@@ -1,4 +1,3 @@
-/* eslint-disable camelcase */
 import { readFileSync } from "fs";
 import { join } from "path";
 import { parseMod } from "shared/lib/uge/mod2uge/parseMod";

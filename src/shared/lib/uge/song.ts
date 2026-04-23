@@ -1,4 +1,3 @@
-/* eslint-disable camelcase */
 import { TRACKER_PATTERN_LENGTH, TRACKER_SUBPATTERN_LENGTH } from "consts";
 import {
   Song,
