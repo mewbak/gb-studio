@@ -49,6 +49,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Notes in the Piano Roll without an instrument now use the previously set instrument color with a striped pattern
 - Editing or changing instruments in the Music Editor now plays a preview note
 - Music Editor now includes right click context menus allowing access to transpose, interpolate and copy/paste options
+- Piano roll view now highlights rows with sharp notes
 
 ### Fixed
 

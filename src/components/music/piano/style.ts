@@ -152,7 +152,7 @@ const highlightStyle = css`
     left: 0px;
     bottom: 0px;
     right: 0px;
-    background: linear-gradient(90deg, #607d8b 0%, #b0bec5);
+    background: linear-gradient(90deg, #3aa1d5 0%, #93d6f7);
     opacity: 0.5;
   }
 `;
@@ -607,7 +607,7 @@ export const StyledPatternChannelNotes = styled.div<StyledPatternChannelNotesPro
 `;
 
 export const StyledPianoRollPatternBlockGrid = styled.div<{
-  $size: "large" | "medium" | "small";
+  $size: "large" | "medium" | "small" | "sharp";
 }>`
   position: absolute;
   top: 0;
@@ -676,6 +676,48 @@ export const StyledPianoRollPatternBlockGrid = styled.div<{
         );
       background-size: ${PIANO_ROLL_CELL_SIZE}px ${PIANO_ROLL_CELL_SIZE}px;
       opacity: 0.3;
+    `}    
+
+
+  ${(props) =>
+    props.$size === "sharp" &&
+    css`
+      background-image: linear-gradient(
+        0deg,
+        transparent 0px,
+        transparent ${PIANO_ROLL_CELL_SIZE}px,
+        ${(props) => props.theme.colors.tracker.sharpBackground}
+          ${PIANO_ROLL_CELL_SIZE}px,
+        ${(props) => props.theme.colors.tracker.sharpBackground}
+          ${PIANO_ROLL_CELL_SIZE * 2}px,
+        transparent ${PIANO_ROLL_CELL_SIZE * 2}px,
+        transparent ${PIANO_ROLL_CELL_SIZE * 3}px,
+        ${(props) => props.theme.colors.tracker.sharpBackground}
+          ${PIANO_ROLL_CELL_SIZE * 3}px,
+        ${(props) => props.theme.colors.tracker.sharpBackground}
+          ${PIANO_ROLL_CELL_SIZE * 4}px,
+        transparent ${PIANO_ROLL_CELL_SIZE * 4}px,
+        transparent ${PIANO_ROLL_CELL_SIZE * 6}px,
+        ${(props) => props.theme.colors.tracker.sharpBackground}
+          ${PIANO_ROLL_CELL_SIZE * 6}px,
+        ${(props) => props.theme.colors.tracker.sharpBackground}
+          ${PIANO_ROLL_CELL_SIZE * 7}px,
+        transparent ${PIANO_ROLL_CELL_SIZE * 7}px,
+        transparent ${PIANO_ROLL_CELL_SIZE * 8}px,
+        ${(props) => props.theme.colors.tracker.sharpBackground}
+          ${PIANO_ROLL_CELL_SIZE * 8}px,
+        ${(props) => props.theme.colors.tracker.sharpBackground}
+          ${PIANO_ROLL_CELL_SIZE * 9}px,
+        transparent ${PIANO_ROLL_CELL_SIZE * 9}px,
+        transparent ${PIANO_ROLL_CELL_SIZE * 10}px,
+        ${(props) => props.theme.colors.tracker.sharpBackground}
+          ${PIANO_ROLL_CELL_SIZE * 10}px,
+        ${(props) => props.theme.colors.tracker.sharpBackground}
+          ${PIANO_ROLL_CELL_SIZE * 11}px,
+        transparent ${PIANO_ROLL_CELL_SIZE * 11}px
+      );
+      background-size: ${PIANO_ROLL_CELL_SIZE}px
+        ${PIANO_ROLL_CELL_SIZE * OCTAVE_SIZE}px;
     `}    
 
   border-bottom: 1px solid

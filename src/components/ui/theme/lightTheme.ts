@@ -157,6 +157,7 @@ const lightTheme: ThemeInterface = {
       rollCell: {
         border: "#3b3a3b66",
       },
+      sharpBackground: "#3aa1d511",
     },
     prefab: {
       background: "#03a9f4",

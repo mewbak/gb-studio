@@ -82,6 +82,7 @@ export const PianoRollPatternBlock = memo(
         $isFiltered={isFiltered}
         onPointerDown={onPointerDown}
       >
+        <StyledPianoRollPatternBlockGrid $size="sharp" />
         <StyledPianoRollPatternBlockGrid $size="small" />
         <StyledPianoRollPatternBlockGrid $size="medium" />
         <StyledPianoRollPatternBlockGrid $size="large" />

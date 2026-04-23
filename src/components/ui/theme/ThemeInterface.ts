@@ -153,6 +153,7 @@ export interface ThemeInterface {
       rollCell: {
         border: string;
       };
+      sharpBackground: string;
     };
     prefab: {
       background: string;

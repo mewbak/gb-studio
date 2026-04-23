@@ -158,6 +158,7 @@ const darkTheme: ThemeInterface = {
       rollCell: {
         border: "#b7babb44",
       },
+      sharpBackground: "#00000011",
     },
     prefab: {
       background: "#01579b",
