@@ -1,4 +1,4 @@
-import { Song, PatternCell } from "shared/lib/uge/types";
+import { PatternCell } from "shared/lib/uge/types";
 import { PatternCellAddress } from "./types";
 import clamp from "shared/lib/helpers/clamp";
 
