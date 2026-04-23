@@ -1,4 +1,4 @@
-import type { Song } from "shared/lib/uge/types";
+import { isSong, type Song } from "shared/lib/uge/types";
 
 export const BACKUP_SONG_KEY = "gbsMusicWeb:song.bck";
 export const BACKUP_TIMESTAMP_KEY = "gbsMusicWeb:song.bck.timestamp";
@@ -31,7 +31,8 @@ export const serializeSong = (song: Song): string =>
 
 export const deserializeSong = (json: string): Song | null => {
   try {
-    return JSON.parse(json, songReviver) as Song;
+    const data: unknown = JSON.parse(json, songReviver);
+    return isSong(data) ? data : null;
   } catch {
     return null;
   }
@@ -48,9 +49,10 @@ export const getBackupInfo = (): BackupInfo | null => {
   try {
     const json = localStorage.getItem(BACKUP_SONG_KEY);
     if (!json) return null;
-
-    // Parse only the top-level object to extract name/filename cheaply.
-    const parsed = JSON.parse(json) as Partial<Song>;
+    const parsed = deserializeSong(json);
+    if (!parsed) {
+      return null;
+    }
     const name = parsed.name ?? "Backup";
     const filename = parsed.filename ?? "backup.uge";
     const rawTimestamp = localStorage.getItem(BACKUP_TIMESTAMP_KEY);

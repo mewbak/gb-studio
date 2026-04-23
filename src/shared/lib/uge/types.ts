@@ -1,4 +1,5 @@
 import { Type, Static } from "@sinclair/typebox";
+import { Value } from "@sinclair/typebox/value";
 
 export const PatternCell = Type.Object({
   note: Type.Union([Type.Number(), Type.Null()]),
@@ -76,3 +77,7 @@ export const Song = Type.Object({
 });
 
 export type Song = Static<typeof Song>;
+
+export const isSong = (value: unknown): value is Song => {
+  return Value.Check(Song, value);
+};
