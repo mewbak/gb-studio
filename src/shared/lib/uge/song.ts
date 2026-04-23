@@ -57,9 +57,9 @@ export const createSong = (): Song => {
     comment: "",
     filename: "song",
 
-    duty_instruments: [],
-    wave_instruments: [],
-    noise_instruments: [],
+    dutyInstruments: [],
+    waveInstruments: [],
+    noiseInstruments: [],
     waves: [],
     ticks_per_row: 6,
 
@@ -73,21 +73,21 @@ export const createSong = (): Song => {
 
 /** Appends a DutyInstrument to the song, setting its index to the current list length. */
 export const addDutyInstrument = (song: Song, instrument: DutyInstrument) => {
-  const list = song.duty_instruments;
+  const list = song.dutyInstruments;
   instrument.index = list.length;
   list.push(instrument);
 };
 
 /** Appends a WaveInstrument to the song, setting its index to the current list length. */
 export const addWaveInstrument = (song: Song, instrument: WaveInstrument) => {
-  const list = song.wave_instruments;
+  const list = song.waveInstruments;
   instrument.index = list.length;
   list.push(instrument);
 };
 
 /** Appends a NoiseInstrument to the song, setting its index to the current list length. */
 export const addNoiseInstrument = (song: Song, instrument: NoiseInstrument) => {
-  const list = song.noise_instruments;
+  const list = song.noiseInstruments;
   instrument.index = list.length;
   list.push(instrument);
 };

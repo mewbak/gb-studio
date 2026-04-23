@@ -45,7 +45,7 @@ const playMusicNotePreviewThrottled = throttle(
     const previewEffectParams = effectParam ?? 0;
 
     if (previewChannel === 0 || previewChannel === 1) {
-      const instrument = song.duty_instruments[previewInstrumentId];
+      const instrument = song.dutyInstruments[previewInstrumentId];
       if (!instrument) {
         return;
       }
@@ -61,7 +61,7 @@ const playMusicNotePreviewThrottled = throttle(
     }
 
     if (previewChannel === 2) {
-      const instrument = song.wave_instruments[previewInstrumentId];
+      const instrument = song.waveInstruments[previewInstrumentId];
       if (!instrument) {
         return;
       }
@@ -82,7 +82,7 @@ const playMusicNotePreviewThrottled = throttle(
     }
 
     if (previewChannel === 3) {
-      const instrument = song.noise_instruments[previewInstrumentId];
+      const instrument = song.noiseInstruments[previewInstrumentId];
       if (!instrument) {
         return;
       }

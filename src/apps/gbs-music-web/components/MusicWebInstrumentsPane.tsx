@@ -248,19 +248,19 @@ export const MusicWebInstrumentsPane = () => {
 
   const dutyInstruments = useAppSelector(
     (state) =>
-      state.trackerDocument.present.song?.duty_instruments ??
+      state.trackerDocument.present.song?.dutyInstruments ??
       emptyDutyInstruments,
   );
 
   const waveInstruments = useAppSelector(
     (state) =>
-      state.trackerDocument.present.song?.wave_instruments ??
+      state.trackerDocument.present.song?.waveInstruments ??
       emptyWaveInstruments,
   );
 
   const noiseInstruments = useAppSelector(
     (state) =>
-      state.trackerDocument.present.song?.noise_instruments ??
+      state.trackerDocument.present.song?.noiseInstruments ??
       emptyNoiseInstruments,
   );
 

@@ -97,21 +97,21 @@ export const NavigatorInstrumentsPane = ({
 
   const dutyInstruments = useAppSelector<DutyInstrument[]>(
     (state) =>
-      state.trackerDocument.present.song?.duty_instruments ??
+      state.trackerDocument.present.song?.dutyInstruments ??
       emptyDutyInstruments,
     isInstrumentListEqual,
   );
 
   const waveInstruments = useAppSelector<WaveInstrument[]>(
     (state) =>
-      state.trackerDocument.present.song?.wave_instruments ??
+      state.trackerDocument.present.song?.waveInstruments ??
       emptyWaveInstruments,
     isInstrumentListEqual,
   );
 
   const noiseInstruments = useAppSelector<NoiseInstrument[]>(
     (state) =>
-      state.trackerDocument.present.song?.noise_instruments ??
+      state.trackerDocument.present.song?.noiseInstruments ??
       emptyNoiseInstruments,
     isInstrumentListEqual,
   );

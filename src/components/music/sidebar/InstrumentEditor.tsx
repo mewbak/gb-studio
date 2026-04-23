@@ -243,13 +243,13 @@ export const InstrumentEditor = ({
   );
 
   const dutyInstruments = useAppSelector(
-    (state) => state.trackerDocument.present.song?.duty_instruments,
+    (state) => state.trackerDocument.present.song?.dutyInstruments,
   );
   const waveInstruments = useAppSelector(
-    (state) => state.trackerDocument.present.song?.wave_instruments,
+    (state) => state.trackerDocument.present.song?.waveInstruments,
   );
   const noiseInstruments = useAppSelector(
-    (state) => state.trackerDocument.present.song?.noise_instruments,
+    (state) => state.trackerDocument.present.song?.noiseInstruments,
   );
   const waves = useAppSelector(
     (state) => state.trackerDocument.present.song?.waves,

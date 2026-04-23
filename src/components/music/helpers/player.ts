@@ -733,34 +733,34 @@ function patchRom(targetRomFile: Uint8Array, song: Song, startAddr: number) {
 
   const subpatternAddr: { [idx: string]: number } = {};
 
-  for (let n = 0; n < song.duty_instruments.length; n++) {
-    const instr = song.duty_instruments[n];
+  for (let n = 0; n < song.dutyInstruments.length; n++) {
+    const instr = song.dutyInstruments[n];
     subpatternAddr[`DutySP${instr.index}`] = instr.subpattern_enabled
       ? addr
       : 0;
-    const pattern = song.duty_instruments[n].subpattern;
+    const pattern = song.dutyInstruments[n].subpattern;
     for (let idx = 0; idx < 32; idx++) {
       writeSubPatternCell(pattern[idx], idx === 32 - 1);
     }
   }
 
-  for (let n = 0; n < song.wave_instruments.length; n++) {
-    const instr = song.wave_instruments[n];
+  for (let n = 0; n < song.waveInstruments.length; n++) {
+    const instr = song.waveInstruments[n];
     subpatternAddr[`WaveSP${instr.index}`] = instr.subpattern_enabled
       ? addr
       : 0;
-    const pattern = song.wave_instruments[n].subpattern;
+    const pattern = song.waveInstruments[n].subpattern;
     for (let idx = 0; idx < 32; idx++) {
       writeSubPatternCell(pattern[idx], idx === 32 - 1);
     }
   }
 
-  for (let n = 0; n < song.noise_instruments.length; n++) {
-    const instr = song.noise_instruments[n];
+  for (let n = 0; n < song.noiseInstruments.length; n++) {
+    const instr = song.noiseInstruments[n];
     subpatternAddr[`NoiseSP${instr.index}`] = instr.subpattern_enabled
       ? addr
       : 0;
-    const pattern = song.noise_instruments[n].subpattern;
+    const pattern = song.noiseInstruments[n].subpattern;
     for (let idx = 0; idx < 32; idx++) {
       writeSubPatternCell(pattern[idx], idx === 32 - 1);
     }
@@ -768,8 +768,8 @@ function patchRom(targetRomFile: Uint8Array, song: Song, startAddr: number) {
 
   // console.log(subpatternAddr);
 
-  for (let n = 0; n < song.duty_instruments.length; n++) {
-    const instr = song.duty_instruments[n];
+  for (let n = 0; n < song.dutyInstruments.length; n++) {
+    const instr = song.dutyInstruments[n];
 
     const sweep =
       (instr.frequency_sweep_time << 4) |
@@ -798,8 +798,8 @@ function patchRom(targetRomFile: Uint8Array, song: Song, startAddr: number) {
   // skip the duty instruments definition (16 * (3 bytes + 1 word + 1 byte) per instrument)
   addr += 16 * (4 + 2);
 
-  for (let n = 0; n < song.wave_instruments.length; n++) {
-    const instr = song.wave_instruments[n];
+  for (let n = 0; n < song.waveInstruments.length; n++) {
+    const instr = song.waveInstruments[n];
 
     const length = (instr.length !== null ? 256 - instr.length : 0) & 0xff;
     const volume = instr.volume << 5;
@@ -819,8 +819,8 @@ function patchRom(targetRomFile: Uint8Array, song: Song, startAddr: number) {
   // skip the wave instruments definition (16 * (3 bytes + 1 word + 1 byte) per instrument)
   addr += 16 * (4 + 2);
 
-  for (let n = 0; n < song.noise_instruments.length; n++) {
-    const instr = song.noise_instruments[n];
+  for (let n = 0; n < song.noiseInstruments.length; n++) {
+    const instr = song.noiseInstruments[n];
 
     let envelope =
       (instr.initial_volume << 4) |

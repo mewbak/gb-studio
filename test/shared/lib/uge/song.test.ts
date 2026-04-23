@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 import {
   createPattern,
   createPatternCell,
@@ -109,9 +110,9 @@ describe("createSubPattern", () => {
 describe("createSong", () => {
   it("creates a song with empty instrument lists", () => {
     const song = createSong();
-    expect(song.duty_instruments).toHaveLength(0);
-    expect(song.wave_instruments).toHaveLength(0);
-    expect(song.noise_instruments).toHaveLength(0);
+    expect(song.dutyInstruments).toHaveLength(0);
+    expect(song.waveInstruments).toHaveLength(0);
+    expect(song.noiseInstruments).toHaveLength(0);
   });
 
   it("creates a song with an empty sequence", () => {
@@ -130,15 +131,15 @@ describe("addDutyInstrument", () => {
     const song = createSong();
     const inst = makeDutyInstrument();
     addDutyInstrument(song, inst);
-    expect(song.duty_instruments).toHaveLength(1);
-    expect(song.duty_instruments[0].index).toBe(0);
+    expect(song.dutyInstruments).toHaveLength(1);
+    expect(song.dutyInstruments[0].index).toBe(0);
   });
 
   it("sets incrementing indices for multiple instruments", () => {
     const song = createSong();
     addDutyInstrument(song, makeDutyInstrument());
     addDutyInstrument(song, makeDutyInstrument());
-    expect(song.duty_instruments[1].index).toBe(1);
+    expect(song.dutyInstruments[1].index).toBe(1);
   });
 });
 
@@ -147,8 +148,8 @@ describe("addWaveInstrument", () => {
     const song = createSong();
     const inst = makeWaveInstrument();
     addWaveInstrument(song, inst);
-    expect(song.wave_instruments).toHaveLength(1);
-    expect(song.wave_instruments[0].index).toBe(0);
+    expect(song.waveInstruments).toHaveLength(1);
+    expect(song.waveInstruments[0].index).toBe(0);
   });
 });
 
@@ -157,7 +158,7 @@ describe("addNoiseInstrument", () => {
     const song = createSong();
     const inst = makeNoiseInstrument();
     addNoiseInstrument(song, inst);
-    expect(song.noise_instruments).toHaveLength(1);
-    expect(song.noise_instruments[0].index).toBe(0);
+    expect(song.noiseInstruments).toHaveLength(1);
+    expect(song.noiseInstruments[0].index).toBe(0);
   });
 });

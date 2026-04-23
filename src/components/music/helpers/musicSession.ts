@@ -121,13 +121,13 @@ const createMusicSession = (): MusicSession => {
           previewPattern[0][data.channel].instrument = 0;
           previewPattern[0][data.channel].effectcode = data.effectCode;
           previewPattern[0][data.channel].effectparam = data.effectParam;
-          previewSong.duty_instruments = [data.instrument];
+          previewSong.dutyInstruments = [data.instrument];
         } else if (data.type === "wave") {
           previewPattern[0][2].note = data.note;
           previewPattern[0][2].instrument = 0;
           previewPattern[0][2].effectcode = data.effectCode;
           previewPattern[0][2].effectparam = data.effectParam;
-          previewSong.wave_instruments = [
+          previewSong.waveInstruments = [
             {
               ...data.instrument,
               wave_index: 0,
@@ -139,7 +139,7 @@ const createMusicSession = (): MusicSession => {
           previewPattern[0][3].instrument = 0;
           previewPattern[0][3].effectcode = data.effectCode;
           previewPattern[0][3].effectparam = data.effectParam;
-          previewSong.noise_instruments = [data.instrument];
+          previewSong.noiseInstruments = [data.instrument];
         }
         player.playPreview(previewSong, 500);
         break;

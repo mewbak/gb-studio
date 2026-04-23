@@ -299,7 +299,7 @@ export const loadUGESong = (buffer: Buffer): Song => {
         instr.subpattern = [...Array(64)].map(() => createSubPatternCell());
       }
 
-      duty_instrument_mapping[(idx % 15) + 1] = song.duty_instruments.length;
+      duty_instrument_mapping[(idx % 15) + 1] = song.dutyInstruments.length;
       addDutyInstrument(song, instr);
     } else if (type === 1) {
       const instr = {} as WaveInstrument;
@@ -322,7 +322,7 @@ export const loadUGESong = (buffer: Buffer): Song => {
         instr.subpattern = [...Array(64)].map(() => createSubPatternCell());
       }
 
-      wave_instrument_mapping[(idx % 15) + 1] = song.wave_instruments.length;
+      wave_instrument_mapping[(idx % 15) + 1] = song.waveInstruments.length;
       addWaveInstrument(song, instr);
     } else if (type === 2) {
       const instr = {} as NoiseInstrument;
@@ -368,7 +368,7 @@ export const loadUGESong = (buffer: Buffer): Song => {
         }
       }
 
-      noise_instrument_mapping[(idx % 15) + 1] = song.noise_instruments.length;
+      noise_instrument_mapping[(idx % 15) + 1] = song.noiseInstruments.length;
       addNoiseInstrument(song, instr);
     } else {
       throw Error(`Invalid instrument type ${type} [${idx}, "${name}"]`);
@@ -418,19 +418,19 @@ export const loadUGESong = (buffer: Buffer): Song => {
   }
 
   // TODO: Remove unused instruments, unused waves, and deduplicate patterns.
-  // for (let idx = 0; idx < song.duty_instruments.length;) {
+  // for (let idx = 0; idx < song.dutyInstruments.length;) {
   //   if (!song.usesInstrument("duty", idx))
   //     song.removeInstrument("duty", idx);
   //   else
   //     idx += 1;
   // }
-  // for (let idx = 0; idx < song.wave_instruments.length;) {
+  // for (let idx = 0; idx < song.waveInstruments.length;) {
   //   if (!song.usesInstrument("wave", idx))
   //     song.removeInstrument("wave", idx);
   //   else
   //     idx += 1;
   // }
-  // for (let idx = 0; idx < song.noise_instruments.length;) {
+  // for (let idx = 0; idx < song.noiseInstruments.length;) {
   //   if (!song.usesInstrument("noise", idx))
   //     song.removeInstrument("noise", idx);
   //   else
@@ -562,13 +562,13 @@ export const saveUGESong = (song: Song): Buffer => {
   addShortString(song.comment);
 
   for (let n = 0; n < 15; n++) {
-    addDutyInstrument(0, song.duty_instruments[n] || {});
+    addDutyInstrument(0, song.dutyInstruments[n] || {});
   }
   for (let n = 0; n < 15; n++) {
-    addWaveInstrument(1, song.wave_instruments[n] || {});
+    addWaveInstrument(1, song.waveInstruments[n] || {});
   }
   for (let n = 0; n < 15; n++) {
-    addNoiseInstrument(2, song.noise_instruments[n] || {});
+    addNoiseInstrument(2, song.noiseInstruments[n] || {});
   }
   for (let n = 0; n < 16; n++) {
     for (let m = 0; m < 32; m++) {
@@ -805,13 +805,13 @@ static const unsigned char order_cnt = ${song.sequence.length * 2};
     }
     data += "};\n";
   }
-  for (const instr of song.duty_instruments) {
+  for (const instr of song.dutyInstruments) {
     formatSubpattern(instr, "duty");
   }
-  for (const instr of song.wave_instruments) {
+  for (const instr of song.waveInstruments) {
     formatSubpattern(instr, "wave");
   }
-  for (const instr of song.noise_instruments) {
+  for (const instr of song.noiseInstruments) {
     formatSubpattern(instr, "noise");
   }
   for (let track = 0; track < 4; track++)
@@ -819,17 +819,17 @@ static const unsigned char order_cnt = ${song.sequence.length * 2};
       track + 1
     }[] = {${getSequenceMappingFor(track)}};\n`;
   data += "static const hUGEDutyInstr_t duty_instruments[] = {\n";
-  for (const instr of song.duty_instruments) {
+  for (const instr of song.dutyInstruments) {
     data += `    ${formatDutyInstrument(instr)},\n`;
   }
   data += "};\n";
   data += "static const hUGEWaveInstr_t wave_instruments[] = {\n";
-  for (const instr of song.wave_instruments) {
+  for (const instr of song.waveInstruments) {
     data += `    ${formatWaveInstrument(instr)},\n`;
   }
   data += "};\n";
   data += "static const hUGENoiseInstr_t noise_instruments[] = {\n";
-  for (const instr of song.noise_instruments) {
+  for (const instr of song.noiseInstruments) {
     data += `    ${formatNoiseInstrument(instr)},\n`;
   }
   data += "};\n";

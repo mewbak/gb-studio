@@ -11,8 +11,8 @@ test("should convert noise macro from uge 5 files into uge 6 subpattern", async 
   const song = loadUGESong(data);
 
   expect(song.version).toBe(6);
-  expect(song.noise_instruments[11].subpattern_enabled).toBe(true);
-  expect(song.noise_instruments[11].subpattern).toEqual(
+  expect(song.noiseInstruments[11].subpattern_enabled).toBe(true);
+  expect(song.noiseInstruments[11].subpattern).toEqual(
     SUBPATTERN_FROM_NOISE_MACRO_EXAMPLE,
   );
 });
@@ -22,7 +22,7 @@ test("should load uge 6 files and return a Song object", async () => {
   const song = loadUGESong(data);
 
   expect(song.version).toBe(6);
-  expect(song.duty_instruments[0].name).toBe("Fade Out 25% Pulse");
+  expect(song.dutyInstruments[0].name).toBe("Fade Out 25% Pulse");
 });
 
 test("should save a file correctly", async () => {

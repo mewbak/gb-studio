@@ -57,9 +57,9 @@ export type Song = {
   artist: string;
   comment: string;
   filename: string;
-  duty_instruments: DutyInstrument[];
-  wave_instruments: WaveInstrument[];
-  noise_instruments: NoiseInstrument[];
+  dutyInstruments: DutyInstrument[];
+  waveInstruments: WaveInstrument[];
+  noiseInstruments: NoiseInstrument[];
   waves: Uint8Array[];
   ticks_per_row: number;
   timer_enabled: boolean;

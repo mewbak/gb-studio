@@ -132,14 +132,14 @@ const trackerSlice = createSlice({
         return;
       }
       const instrument =
-        state.song.duty_instruments[_action.payload.instrumentId];
+        state.song.dutyInstruments[_action.payload.instrumentId];
       const patch = { ..._action.payload.changes };
 
       if (!instrument) {
         return;
       }
 
-      const instruments = [...state.song.duty_instruments];
+      const instruments = [...state.song.dutyInstruments];
       instruments[_action.payload.instrumentId] = {
         ...instrument,
         ...patch,
@@ -147,7 +147,7 @@ const trackerSlice = createSlice({
 
       state.song = {
         ...state.song,
-        duty_instruments: instruments,
+        dutyInstruments: instruments,
       };
     },
     editWaveInstrument: (
@@ -162,14 +162,14 @@ const trackerSlice = createSlice({
       }
 
       const instrument =
-        state.song.wave_instruments[_action.payload.instrumentId];
+        state.song.waveInstruments[_action.payload.instrumentId];
       const patch = { ..._action.payload.changes };
 
       if (!instrument) {
         return;
       }
 
-      const instruments = [...state.song.wave_instruments];
+      const instruments = [...state.song.waveInstruments];
       instruments[_action.payload.instrumentId] = {
         ...instrument,
         ...patch,
@@ -177,7 +177,7 @@ const trackerSlice = createSlice({
 
       state.song = {
         ...state.song,
-        wave_instruments: instruments,
+        waveInstruments: instruments,
       };
     },
     editNoiseInstrument: (
@@ -192,14 +192,14 @@ const trackerSlice = createSlice({
       }
 
       const instrument =
-        state.song.noise_instruments[_action.payload.instrumentId];
+        state.song.noiseInstruments[_action.payload.instrumentId];
       const patch = { ..._action.payload.changes };
 
       if (!instrument) {
         return;
       }
 
-      const instruments = [...state.song.noise_instruments];
+      const instruments = [...state.song.noiseInstruments];
       instruments[_action.payload.instrumentId] = {
         ...instrument,
         ...patch,
@@ -207,7 +207,7 @@ const trackerSlice = createSlice({
 
       state.song = {
         ...state.song,
-        noise_instruments: instruments,
+        noiseInstruments: instruments,
       };
     },
     editPatternCell: (
@@ -839,13 +839,13 @@ const trackerSlice = createSlice({
       let instruments: DutyInstrument[] | WaveInstrument[] | NoiseInstrument[];
       switch (_action.payload.instrumentType) {
         case "duty":
-          instruments = [...state.song.duty_instruments];
+          instruments = [...state.song.dutyInstruments];
           break;
         case "wave":
-          instruments = [...state.song.wave_instruments];
+          instruments = [...state.song.waveInstruments];
           break;
         case "noise":
-          instruments = [...state.song.noise_instruments];
+          instruments = [...state.song.noiseInstruments];
           break;
       }
       const instrumentId = _action.payload.instrumentId;
@@ -875,19 +875,19 @@ const trackerSlice = createSlice({
         case "duty":
           state.song = {
             ...state.song,
-            duty_instruments: instruments as DutyInstrument[],
+            dutyInstruments: instruments as DutyInstrument[],
           };
           break;
         case "wave":
           state.song = {
             ...state.song,
-            wave_instruments: instruments as WaveInstrument[],
+            waveInstruments: instruments as WaveInstrument[],
           };
           break;
         case "noise":
           state.song = {
             ...state.song,
-            noise_instruments: instruments as NoiseInstrument[],
+            noiseInstruments: instruments as NoiseInstrument[],
           };
           break;
       }
@@ -906,13 +906,13 @@ const trackerSlice = createSlice({
       let instruments: DutyInstrument[] | WaveInstrument[] | NoiseInstrument[];
       switch (_action.payload.instrumentType) {
         case "duty":
-          instruments = [...state.song.duty_instruments];
+          instruments = [...state.song.dutyInstruments];
           break;
         case "wave":
-          instruments = [...state.song.wave_instruments];
+          instruments = [...state.song.waveInstruments];
           break;
         case "noise":
-          instruments = [...state.song.noise_instruments];
+          instruments = [...state.song.noiseInstruments];
           break;
       }
 
@@ -923,19 +923,19 @@ const trackerSlice = createSlice({
         case "duty":
           state.song = {
             ...state.song,
-            duty_instruments: instruments as DutyInstrument[],
+            dutyInstruments: instruments as DutyInstrument[],
           };
           break;
         case "wave":
           state.song = {
             ...state.song,
-            wave_instruments: instruments as WaveInstrument[],
+            waveInstruments: instruments as WaveInstrument[],
           };
           break;
         case "noise":
           state.song = {
             ...state.song,
-            noise_instruments: instruments as NoiseInstrument[],
+            noiseInstruments: instruments as NoiseInstrument[],
           };
           break;
       }
