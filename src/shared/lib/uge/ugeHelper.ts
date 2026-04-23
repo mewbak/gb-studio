@@ -335,15 +335,7 @@ export const loadUGESong = (buffer: Buffer): Song => {
       instr.name = name;
       instr.initialVolume = initialVolume;
       instr.volumeSweepChange = volumeSweepAmount;
-
       instr.bitCount = noiseCounterStep ? 7 : 15;
-      if (version < 6) {
-        if (version >= 4) {
-          instr.noiseMacro = noiseMacro;
-        } else {
-          instr.noiseMacro = [0, 0, 0, 0, 0, 0];
-        }
-      }
 
       if (version >= 6) {
         instr.subpatternEnabled = subpatternEnabled !== 0;
@@ -361,7 +353,7 @@ export const loadUGESong = (buffer: Buffer): Song => {
           // if noise macro is not empty migrate to the subpattern
           instr.subpatternEnabled = true;
           instr.subpattern = subpatternFromNoiseMacro(
-            instr.noiseMacro ?? [],
+            noiseMacro ?? [],
             song.ticksPerRow,
           );
         }
