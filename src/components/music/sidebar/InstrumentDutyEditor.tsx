@@ -27,13 +27,13 @@ export const InstrumentDutyEditor = ({
 
   const instrumentId = instrument?.index;
 
-  const lastSweepTimeRef = useRef(instrument?.frequency_sweep_time || 4);
+  const lastSweepTimeRef = useRef(instrument?.frequencySweepTime || 4);
   useEffect(() => {
-    const newSweepTime = instrument?.frequency_sweep_time;
+    const newSweepTime = instrument?.frequencySweepTime;
     if (typeof newSweepTime === "number" && newSweepTime !== 0) {
       lastSweepTimeRef.current = newSweepTime;
     }
-  }, [instrument?.frequency_sweep_time]);
+  }, [instrument?.frequencySweepTime]);
 
   const onChangeField = useCallback(
     <T extends keyof DutyInstrument>(key: T) =>
@@ -59,42 +59,42 @@ export const InstrumentDutyEditor = ({
   );
 
   const onChangeEnvelopeVolume = useMemo(
-    () => onChangeField("initial_volume"),
+    () => onChangeField("initialVolume"),
     [onChangeField],
   );
 
   const onChangeEnvelopeSweep = useMemo(
-    () => onChangeField("volume_sweep_change"),
+    () => onChangeField("volumeSweepChange"),
     [onChangeField],
   );
 
   const onChangeDutyCycle = useMemo(
-    () => onChangeField("duty_cycle"),
+    () => onChangeField("dutyCycle"),
     [onChangeField],
   );
 
   const onChangeSweepShift = useCallback(
     (value: number) => {
       if (value === 0) {
-        onChangeField("frequency_sweep_time")(0);
-      } else if (Number(instrument?.frequency_sweep_time) === 0) {
-        onChangeField("frequency_sweep_time")(lastSweepTimeRef.current);
+        onChangeField("frequencySweepTime")(0);
+      } else if (Number(instrument?.frequencySweepTime) === 0) {
+        onChangeField("frequencySweepTime")(lastSweepTimeRef.current);
       }
-      onChangeField("frequency_sweep_shift")(value);
+      onChangeField("frequencySweepShift")(value);
     },
-    [instrument?.frequency_sweep_time, onChangeField],
+    [instrument?.frequencySweepTime, onChangeField],
   );
 
   const onChangeSweepTime = useCallback(
     (value: number) => {
-      if (value !== 0 && Number(instrument?.frequency_sweep_shift) === 0) {
-        onChangeField("frequency_sweep_shift")(7);
+      if (value !== 0 && Number(instrument?.frequencySweepShift) === 0) {
+        onChangeField("frequencySweepShift")(7);
       } else if (value === 0) {
-        onChangeField("frequency_sweep_shift")(0);
+        onChangeField("frequencySweepShift")(0);
       }
-      onChangeField("frequency_sweep_time")(value);
+      onChangeField("frequencySweepTime")(value);
     },
-    [instrument?.frequency_sweep_shift, onChangeField],
+    [instrument?.frequencySweepShift, onChangeField],
   );
 
   if (!instrument) {
@@ -104,8 +104,8 @@ export const InstrumentDutyEditor = ({
   return (
     <>
       <InstrumentEnvelopeEditor
-        volume={instrument.initial_volume}
-        sweep={instrument.volume_sweep_change}
+        volume={instrument.initialVolume}
+        sweep={instrument.volumeSweepChange}
         length={instrument.length}
         onChangeVolume={onChangeEnvelopeVolume}
         onChangeSweep={onChangeEnvelopeSweep}
@@ -113,8 +113,8 @@ export const InstrumentDutyEditor = ({
       />
       <FormRow>
         <InstrumentEnvelopePreview
-          volume={instrument.initial_volume}
-          sweep={instrument.volume_sweep_change}
+          volume={instrument.initialVolume}
+          sweep={instrument.volumeSweepChange}
           length={instrument.length}
         />
       </FormRow>
@@ -123,7 +123,7 @@ export const InstrumentDutyEditor = ({
         <FormField name="dutyCycle" label={l10n("FIELD_DUTY_CYCLE")}>
           <DutyCycleSelect
             name="dutyCycle"
-            value={instrument.duty_cycle}
+            value={instrument.dutyCycle}
             onChange={onChangeDutyCycle}
             menuPlacement="top"
           />
@@ -132,12 +132,9 @@ export const InstrumentDutyEditor = ({
 
       <FormDivider />
       <FormRow>
-        <FormField
-          name="frequency_sweep_time"
-          label={l10n("FIELD_SWEEP_SHIFT")}
-        >
+        <FormField name="frequencySweepTime" label={l10n("FIELD_SWEEP_SHIFT")}>
           <Slider
-            value={instrument.frequency_sweep_shift || 0}
+            value={instrument.frequencySweepShift || 0}
             min={-7}
             max={7}
             onChange={onChangeSweepShift}
@@ -146,20 +143,19 @@ export const InstrumentDutyEditor = ({
         <FormField name="frequencySweepTime" label={l10n("FIELD_SWEEP_TIME")}>
           <SweepTimeSelect
             name={"frequencySweepTime"}
-            value={instrument.frequency_sweep_time}
+            value={instrument.frequencySweepTime}
             onChange={onChangeSweepTime}
             menuPlacement="top"
           />
         </FormField>
       </FormRow>
-      {Number(instrument.frequency_sweep_time) !== 0 &&
-        selectedChannel === 1 && (
-          <FormRow>
-            <Alert variant="info">
-              <AlertItem>{l10n("MESSAGE_SWEEP_ONLY_DUTY1")}</AlertItem>
-            </Alert>
-          </FormRow>
-        )}
+      {Number(instrument.frequencySweepTime) !== 0 && selectedChannel === 1 && (
+        <FormRow>
+          <Alert variant="info">
+            <AlertItem>{l10n("MESSAGE_SWEEP_ONLY_DUTY1")}</AlertItem>
+          </Alert>
+        </FormRow>
+      )}
       <FlexGrow />
     </>
   );

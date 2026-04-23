@@ -39,7 +39,7 @@ export const saveUGIInstrument = (instrument: UGIInstrument): Buffer => {
   };
 
   const addSubpattern = (i: UGIInstrument) => {
-    addUint8(i.subpattern_enabled ? 1 : 0);
+    addUint8(i.subpatternEnabled ? 1 : 0);
     for (let n = 0; n < 64; n++) {
       const cell = i.subpattern[n];
       addUint32(cell?.note ?? 90);
@@ -55,17 +55,17 @@ export const saveUGIInstrument = (instrument: UGIInstrument): Buffer => {
     addShortString(instrument.name || "");
     addUint32(instrument.length !== null ? 64 - instrument.length : 0);
     addUint8(instrument.length === null ? 0 : 1);
-    addUint8(instrument.initial_volume);
-    addUint32(instrument.volume_sweep_change < 0 ? 1 : 0);
+    addUint8(instrument.initialVolume);
+    addUint32(instrument.volumeSweepChange < 0 ? 1 : 0);
     addUint8(
-      instrument.volume_sweep_change !== 0
-        ? 8 - Math.abs(instrument.volume_sweep_change)
+      instrument.volumeSweepChange !== 0
+        ? 8 - Math.abs(instrument.volumeSweepChange)
         : 0,
     );
-    addUint32(instrument.frequency_sweep_time);
-    addUint32(instrument.frequency_sweep_shift < 0 ? 1 : 0);
-    addUint32(Math.abs(instrument.frequency_sweep_shift));
-    addUint8(instrument.duty_cycle);
+    addUint32(instrument.frequencySweepTime);
+    addUint32(instrument.frequencySweepShift < 0 ? 1 : 0);
+    addUint32(Math.abs(instrument.frequencySweepShift));
+    addUint8(instrument.dutyCycle);
     addUint32(0); // wave_output_level (unused for duty)
     addUint32(0); // wave_waveform_index (unused for duty)
     addUint32(0); // counter_step (unused for duty)
@@ -75,7 +75,7 @@ export const saveUGIInstrument = (instrument: UGIInstrument): Buffer => {
     addShortString(instrument.name || "");
     addUint32(instrument.length !== null ? 256 - instrument.length : 0);
     addUint8(instrument.length === null ? 0 : 1);
-    addUint8(0); // initial_volume (unused for wave)
+    addUint8(0); // initialVolume (unused for wave)
     addUint32(0); // volume_direction (unused for wave)
     addUint8(0); // volume_sweep_amount (unused for wave)
     addUint32(0); // freq_sweep_time (unused for wave)
@@ -83,7 +83,7 @@ export const saveUGIInstrument = (instrument: UGIInstrument): Buffer => {
     addUint32(0); // freq_sweep_shift (unused for wave)
     addUint8(0); // duty (unused for wave)
     addUint32(instrument.volume);
-    addUint32(instrument.wave_index);
+    addUint32(instrument.waveIndex);
     addUint32(0); // counter_step (unused for wave)
     addSubpattern(instrument);
   } else {
@@ -91,11 +91,11 @@ export const saveUGIInstrument = (instrument: UGIInstrument): Buffer => {
     addShortString(instrument.name || "");
     addUint32(instrument.length !== null ? 64 - instrument.length : 0);
     addUint8(instrument.length === null ? 0 : 1);
-    addUint8(instrument.initial_volume);
-    addUint32(instrument.volume_sweep_change < 0 ? 1 : 0);
+    addUint8(instrument.initialVolume);
+    addUint32(instrument.volumeSweepChange < 0 ? 1 : 0);
     addUint8(
-      instrument.volume_sweep_change !== 0
-        ? 8 - Math.abs(instrument.volume_sweep_change)
+      instrument.volumeSweepChange !== 0
+        ? 8 - Math.abs(instrument.volumeSweepChange)
         : 0,
     );
     addUint32(0); // freq_sweep_time (unused for noise)
@@ -104,7 +104,7 @@ export const saveUGIInstrument = (instrument: UGIInstrument): Buffer => {
     addUint8(0); // duty (unused for noise)
     addUint32(0); // wave_output_level (unused for noise)
     addUint32(0); // wave_waveform_index (unused for noise)
-    addUint32(instrument.bit_count === 7 ? 1 : 0);
+    addUint32(instrument.bitCount === 7 ? 1 : 0);
     addSubpattern(instrument);
   }
 
@@ -153,8 +153,8 @@ export const loadUGIInstrument = (buffer: Buffer): UGIInstrument => {
   const name = readText();
   const length = readUint32();
   const length_enabled = readUint8();
-  let initial_volume = readUint8();
-  if (initial_volume > 15) initial_volume = 15;
+  let initialVolume = readUint8();
+  if (initialVolume > 15) initialVolume = 15;
   const volume_direction = readUint32();
   let volume_sweep_amount = readUint8();
   if (volume_sweep_amount !== 0) volume_sweep_amount = 8 - volume_sweep_amount;
@@ -188,7 +188,7 @@ export const loadUGIInstrument = (buffer: Buffer): UGIInstrument => {
   }
 
   const subpatternData = {
-    subpattern_enabled: subpattern_enabled !== 0,
+    subpatternEnabled: subpattern_enabled !== 0,
     subpattern,
   };
 
@@ -197,11 +197,11 @@ export const loadUGIInstrument = (buffer: Buffer): UGIInstrument => {
       index: 0,
       name,
       length: length_enabled ? 64 - length : null,
-      duty_cycle: duty,
-      initial_volume,
-      volume_sweep_change: volume_sweep_amount,
-      frequency_sweep_time: freq_sweep_time,
-      frequency_sweep_shift: freq_sweep_shift,
+      dutyCycle: duty,
+      initialVolume,
+      volumeSweepChange: volume_sweep_amount,
+      frequencySweepTime: freq_sweep_time,
+      frequencySweepShift: freq_sweep_shift,
       ...subpatternData,
     };
     return instr;
@@ -211,7 +211,7 @@ export const loadUGIInstrument = (buffer: Buffer): UGIInstrument => {
       name,
       length: length_enabled ? 256 - length : null,
       volume: wave_output_level,
-      wave_index: wave_waveform_index,
+      waveIndex: wave_waveform_index,
       ...subpatternData,
     };
     return instr;
@@ -220,10 +220,10 @@ export const loadUGIInstrument = (buffer: Buffer): UGIInstrument => {
       index: 0,
       name,
       length: length_enabled ? 64 - length : null,
-      initial_volume,
-      volume_sweep_change: volume_sweep_amount,
-      dividing_ratio: 0,
-      bit_count: noise_counter_step ? 7 : 15,
+      initialVolume,
+      volumeSweepChange: volume_sweep_amount,
+      dividingRatio: 0,
+      bitCount: noise_counter_step ? 7 : 15,
       ...subpatternData,
     };
     return instr;
@@ -235,13 +235,13 @@ export const loadUGIInstrument = (buffer: Buffer): UGIInstrument => {
 // Type guards
 
 export const isDutyInstrument = (i: UGIInstrument): i is DutyInstrument =>
-  "duty_cycle" in i;
+  "dutyCycle" in i;
 
 export const isWaveInstrument = (i: UGIInstrument): i is WaveInstrument =>
-  "wave_index" in i;
+  "waveIndex" in i;
 
 export const isNoiseInstrument = (i: UGIInstrument): i is NoiseInstrument =>
-  "bit_count" in i;
+  "bitCount" in i;
 
 /**
  * Returns the instrument type string for a given UGIInstrument.

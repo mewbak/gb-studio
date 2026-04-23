@@ -130,7 +130,7 @@ const createMusicSession = (): MusicSession => {
           previewSong.waveInstruments = [
             {
               ...data.instrument,
-              wave_index: 0,
+              waveIndex: 0,
             },
           ];
           previewSong.waves = [data.waveForm];

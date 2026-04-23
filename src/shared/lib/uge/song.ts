@@ -61,10 +61,10 @@ export const createSong = (): Song => {
     waveInstruments: [],
     noiseInstruments: [],
     waves: [],
-    ticks_per_row: 6,
+    ticksPerRow: 6,
 
-    timer_enabled: false,
-    timer_divider: 0,
+    timerEnabled: false,
+    timerDivider: 0,
 
     patterns: [],
     sequence: [],

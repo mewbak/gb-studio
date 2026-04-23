@@ -43,7 +43,7 @@ export const SongMetadataEditor = () => {
   );
 
   const ticksPerRow = useAppSelector(
-    (state) => state.trackerDocument.present.song?.ticks_per_row ?? 0,
+    (state) => state.trackerDocument.present.song?.ticksPerRow ?? 0,
   );
 
   const selectedSongId = useAppSelector(
@@ -81,7 +81,7 @@ export const SongMetadataEditor = () => {
 
   const onChangeTicksPerRow = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) =>
-      onChangeSongProp("ticks_per_row", castEventToInt(e, 0)),
+      onChangeSongProp("ticksPerRow", castEventToInt(e, 0)),
     [onChangeSongProp],
   );
 
@@ -175,15 +175,15 @@ export const SongMetadataEditor = () => {
         </SidebarColumn>
         <SidebarColumn>
           <FormRow>
-            <Label htmlFor="ticks_per_row">
+            <Label htmlFor="ticksPerRow">
               {l10n("FIELD_TEMPO")} ({l10n("FIELD_TICKS_PER_ROW")})
             </Label>
           </FormRow>
           <FormRow>
             <InputGroup>
               <NumberInput
-                id="ticks_per_row"
-                name="ticks_per_row"
+                id="ticksPerRow"
+                name="ticksPerRow"
                 type="number"
                 value={ticksPerRow}
                 min={1}
@@ -195,7 +195,7 @@ export const SongMetadataEditor = () => {
               />
               <InputGroupAppend>
                 <InputGroupLabel
-                  htmlFor="ticks_per_row"
+                  htmlFor="ticksPerRow"
                   style={{ minWidth: 70, justifyContent: "flex-end" }}
                 >
                   ~{Math.round(getBPM(ticksPerRow))} BPM

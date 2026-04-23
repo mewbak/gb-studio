@@ -45,7 +45,7 @@ export const InstrumentWaveEditor = ({
   );
 
   const onChangeWaveIndex = useMemo(
-    () => onChangeField("wave_index"),
+    () => onChangeField("waveIndex"),
     [onChangeField],
   );
 
@@ -65,7 +65,7 @@ export const InstrumentWaveEditor = ({
       <FormDivider />
 
       <WaveEditorForm
-        waveId={instrument.wave_index}
+        waveId={instrument.waveIndex}
         onChange={onChangeWaveIndex}
       />
     </>

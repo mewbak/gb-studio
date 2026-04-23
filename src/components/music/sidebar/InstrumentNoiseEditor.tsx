@@ -45,12 +45,12 @@ export const InstrumentNoiseEditor = ({
   );
 
   const onChangeEnvelopeVolume = useMemo(
-    () => onChangeField("initial_volume"),
+    () => onChangeField("initialVolume"),
     [onChangeField],
   );
 
   const onChangeEnvelopeSweep = useMemo(
-    () => onChangeField("volume_sweep_change"),
+    () => onChangeField("volumeSweepChange"),
     [onChangeField],
   );
 
@@ -61,8 +61,8 @@ export const InstrumentNoiseEditor = ({
   return (
     <>
       <InstrumentEnvelopeEditor
-        volume={instrument.initial_volume}
-        sweep={instrument.volume_sweep_change}
+        volume={instrument.initialVolume}
+        sweep={instrument.volumeSweepChange}
         length={instrument.length}
         onChangeVolume={onChangeEnvelopeVolume}
         onChangeSweep={onChangeEnvelopeSweep}
@@ -70,8 +70,8 @@ export const InstrumentNoiseEditor = ({
       />
       <FormRow>
         <InstrumentEnvelopePreview
-          volume={instrument.initial_volume}
-          sweep={instrument.volume_sweep_change}
+          volume={instrument.initialVolume}
+          sweep={instrument.volumeSweepChange}
           length={instrument.length}
         />
       </FormRow>
@@ -80,13 +80,13 @@ export const InstrumentNoiseEditor = ({
 
       <FormRow>
         <CheckboxField
-          name="bit_count"
+          name="bitCount"
           label={l10n("FIELD_BIT_COUNT")}
-          checked={instrument.bit_count === 7}
+          checked={instrument.bitCount === 7}
           onChange={(e) => {
             const v = castEventToBool(e);
             const value = v ? 7 : 15;
-            onChangeField("bit_count")(value);
+            onChangeField("bitCount")(value);
           }}
         />
       </FormRow>

@@ -66,7 +66,7 @@ const playMusicNotePreviewThrottled = throttle(
         return;
       }
 
-      const wave = song.waves[instrument.wave_index];
+      const wave = song.waves[instrument.waveIndex];
       if (!wave) {
         return;
       }

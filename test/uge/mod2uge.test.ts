@@ -293,7 +293,7 @@ describe("portamento overflow protection", () => {
   test("porta down clamps when underflow would occur", () => {
     const song = createSong();
 
-    song.ticks_per_row = 7;
+    song.ticksPerRow = 7;
 
     const pattern = makePattern();
 
@@ -335,7 +335,7 @@ describe("portamento overflow protection", () => {
   test("porta up clamps when overflow would occur", () => {
     const song = createSong();
 
-    song.ticks_per_row = 7;
+    song.ticksPerRow = 7;
 
     const pattern = makePattern();
 

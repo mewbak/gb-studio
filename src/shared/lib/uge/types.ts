@@ -2,12 +2,12 @@ export type DutyInstrument = {
   index: number;
   name: string;
   length: number | null;
-  duty_cycle: number;
-  initial_volume: number;
-  volume_sweep_change: number;
-  frequency_sweep_time: number;
-  frequency_sweep_shift: number;
-  subpattern_enabled: boolean;
+  dutyCycle: number;
+  initialVolume: number;
+  volumeSweepChange: number;
+  frequencySweepTime: number;
+  frequencySweepShift: number;
+  subpatternEnabled: boolean;
   subpattern: SubPatternCell[];
 };
 
@@ -16,8 +16,8 @@ export type WaveInstrument = {
   name: string;
   length: number | null;
   volume: number;
-  wave_index: number;
-  subpattern_enabled: boolean;
+  waveIndex: number;
+  subpatternEnabled: boolean;
   subpattern: SubPatternCell[];
 };
 
@@ -25,15 +25,15 @@ export type NoiseInstrument = {
   index: number;
   name: string;
   length: number | null;
-  initial_volume: number;
-  volume_sweep_change: number;
-  dividing_ratio: number;
-  bit_count: 7 | 15;
+  initialVolume: number;
+  volumeSweepChange: number;
+  dividingRatio: number;
+  bitCount: 7 | 15;
   /**
    * @deprecated noise macros aren't used starting uge v6
    */
-  noise_macro?: number[];
-  subpattern_enabled: boolean;
+  noiseMacro?: number[];
+  subpatternEnabled: boolean;
   subpattern: SubPatternCell[];
 };
 
@@ -61,9 +61,9 @@ export type Song = {
   waveInstruments: WaveInstrument[];
   noiseInstruments: NoiseInstrument[];
   waves: Uint8Array[];
-  ticks_per_row: number;
-  timer_enabled: boolean;
-  timer_divider: number;
+  ticksPerRow: number;
+  timerEnabled: boolean;
+  timerDivider: number;
   patterns: PatternCell[][][];
   sequence: number[];
 };

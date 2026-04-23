@@ -124,16 +124,16 @@ const StyledLabelColor = styled.div<{ $instrument?: number }>`
 
 const getDutyInfo = (instrument: DutyInstrument): string => {
   const infoParts: string[] = [];
-  if (instrument.duty_cycle === 0) {
+  if (instrument.dutyCycle === 0) {
     infoParts.push(`${l10n("FIELD_DUTY_CYCLE")} 12.5%`);
-  } else if (instrument.duty_cycle === 1) {
+  } else if (instrument.dutyCycle === 1) {
     infoParts.push(`${l10n("FIELD_DUTY_CYCLE")} 25%`);
-  } else if (instrument.duty_cycle === 2) {
+  } else if (instrument.dutyCycle === 2) {
     infoParts.push(`${l10n("FIELD_DUTY_CYCLE")} 50%`);
-  } else if (instrument.duty_cycle === 3) {
+  } else if (instrument.dutyCycle === 3) {
     infoParts.push(`${l10n("FIELD_DUTY_CYCLE")} 75%`);
   }
-  if (instrument.subpattern_enabled) {
+  if (instrument.subpatternEnabled) {
     infoParts.push(l10n("FIELD_SUBPATTERN_ENABLED"));
   }
   return infoParts.join(", ");
@@ -141,8 +141,8 @@ const getDutyInfo = (instrument: DutyInstrument): string => {
 
 const getWaveInfo = (instrument: WaveInstrument): string => {
   const infoParts: string[] = [];
-  infoParts.push(`${l10n("FIELD_WAVEFORM")} ${instrument.wave_index}`);
-  if (instrument.subpattern_enabled) {
+  infoParts.push(`${l10n("FIELD_WAVEFORM")} ${instrument.waveIndex}`);
+  if (instrument.subpatternEnabled) {
     infoParts.push(l10n("FIELD_SUBPATTERN_ENABLED"));
   }
   return infoParts.join(", ");
@@ -150,10 +150,10 @@ const getWaveInfo = (instrument: WaveInstrument): string => {
 
 const getNoiseInfo = (instrument: NoiseInstrument): string => {
   const infoParts: string[] = [];
-  if (instrument.bit_count === 7) {
+  if (instrument.bitCount === 7) {
     infoParts.push(l10n("FIELD_BIT_COUNT"));
   }
-  if (instrument.subpattern_enabled) {
+  if (instrument.subpatternEnabled) {
     infoParts.push(l10n("FIELD_SUBPATTERN_ENABLED"));
   }
   return infoParts.join(", ");

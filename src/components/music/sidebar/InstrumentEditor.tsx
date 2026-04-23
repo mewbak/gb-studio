@@ -304,11 +304,11 @@ export const InstrumentEditor = ({
   const instrumentEditorTabs = useMemo<InstrumentEditorTabs>(
     () => ({
       main: l10n("MENU_SETTINGS"),
-      subpattern: resolvedInstrument?.instrument?.subpattern_enabled
+      subpattern: resolvedInstrument?.instrument?.subpatternEnabled
         ? `${l10n("SIDEBAR_SUBPATTERN")}*`
         : l10n("SIDEBAR_SUBPATTERN"),
     }),
-    [resolvedInstrument?.instrument?.subpattern_enabled],
+    [resolvedInstrument?.instrument?.subpatternEnabled],
   );
 
   const editInstrument = useMemo(() => {
@@ -351,7 +351,7 @@ export const InstrumentEditor = ({
           instrumentId: resolvedInstrument.instrument.index,
           changes: {
             // eslint-disable-next-line camelcase
-            subpattern_enabled: enabled,
+            subpatternEnabled: enabled,
           },
         }),
       );
@@ -462,7 +462,7 @@ export const InstrumentEditor = ({
     ) {
       return;
     }
-    const waveIndex = resolvedInstrument.instrument.wave_index;
+    const waveIndex = resolvedInstrument.instrument.waveIndex;
     const wave = waves[waveIndex];
     if (!wave) return;
     await API.tracker.exportWave(
@@ -483,7 +483,7 @@ export const InstrumentEditor = ({
     if (!waveData) return;
     dispatch(
       trackerDocumentActions.editWaveform({
-        index: resolvedInstrument.instrument.wave_index,
+        index: resolvedInstrument.instrument.waveIndex,
         waveForm: waveData,
       }),
     );
@@ -519,12 +519,12 @@ export const InstrumentEditor = ({
           changes: {
             name: imported.name,
             length: imported.length,
-            duty_cycle: imported.duty_cycle,
-            initial_volume: imported.initial_volume,
-            volume_sweep_change: imported.volume_sweep_change,
-            frequency_sweep_time: imported.frequency_sweep_time,
-            frequency_sweep_shift: imported.frequency_sweep_shift,
-            subpattern_enabled: imported.subpattern_enabled,
+            dutyCycle: imported.dutyCycle,
+            initialVolume: imported.initialVolume,
+            volumeSweepChange: imported.volumeSweepChange,
+            frequencySweepTime: imported.frequencySweepTime,
+            frequencySweepShift: imported.frequencySweepShift,
+            subpatternEnabled: imported.subpatternEnabled,
             subpattern: imported.subpattern,
           },
         }),
@@ -540,8 +540,8 @@ export const InstrumentEditor = ({
             name: imported.name,
             length: imported.length,
             volume: imported.volume,
-            wave_index: imported.wave_index,
-            subpattern_enabled: imported.subpattern_enabled,
+            waveIndex: imported.waveIndex,
+            subpatternEnabled: imported.subpatternEnabled,
             subpattern: imported.subpattern,
           },
         }),
@@ -556,10 +556,10 @@ export const InstrumentEditor = ({
           changes: {
             name: imported.name,
             length: imported.length,
-            initial_volume: imported.initial_volume,
-            volume_sweep_change: imported.volume_sweep_change,
-            bit_count: imported.bit_count,
-            subpattern_enabled: imported.subpattern_enabled,
+            initialVolume: imported.initialVolume,
+            volumeSweepChange: imported.volumeSweepChange,
+            bitCount: imported.bitCount,
+            subpatternEnabled: imported.subpatternEnabled,
             subpattern: imported.subpattern,
           },
         }),
@@ -639,12 +639,12 @@ export const InstrumentEditor = ({
               <CheckboxField
                 name="subpatternEnabled"
                 label={l10n("FIELD_SUBPATTERN_ENABLED")}
-                checked={resolvedInstrument.instrument.subpattern_enabled}
+                checked={resolvedInstrument.instrument.subpatternEnabled}
                 onChange={(e) =>
                   onChangeInstrumentSubpatternEnabled(e.target.checked)
                 }
               />
-              {resolvedInstrument.instrument.subpattern_enabled && (
+              {resolvedInstrument.instrument.subpatternEnabled && (
                 <DropdownButton variant="transparent">
                   <MenuItem
                     subMenu={[
@@ -746,7 +746,7 @@ export const InstrumentEditor = ({
       ) : null}
 
       {instrumentEditorTab === "subpattern" &&
-      resolvedInstrument.instrument.subpattern_enabled ? (
+      resolvedInstrument.instrument.subpatternEnabled ? (
         subpatternEditorMode === "tracker" ? (
           <InstrumentSubpatternTracker
             subpattern={resolvedInstrument.instrument.subpattern}

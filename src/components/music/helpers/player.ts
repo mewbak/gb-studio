@@ -287,7 +287,7 @@ const play = (song: Song, position?: PlaybackPosition) => {
   }
 
   const ticksPerRowAddr = getRamAddress("ticks_per_row");
-  emulator.writeMem(ticksPerRowAddr, song.ticks_per_row);
+  emulator.writeMem(ticksPerRowAddr, song.ticksPerRow);
 
   // console.log("PLAY SONG HERE?", isPlayerPaused());
 
@@ -343,7 +343,7 @@ const playPreview = (song: Song, length: number) => {
   previewEmulator.writeMem(tickAddr, 0);
 
   const ticksPerRowAddr = getRamAddress("ticks_per_row");
-  previewEmulator.writeMem(ticksPerRowAddr, song.ticks_per_row);
+  previewEmulator.writeMem(ticksPerRowAddr, song.ticksPerRow);
 
   if (isPlayerPaused(previewEmulator)) {
     previewEmulator.setChannel(0, false);
@@ -488,7 +488,7 @@ const renderSongAudio = async (
     stop([0, 0]);
     setStartPosition([0, 0]);
 
-    emulator.writeMem(ticksPerRowAddr, song.ticks_per_row);
+    emulator.writeMem(ticksPerRowAddr, song.ticksPerRow);
     emulator.writeMem(orderCntAddr, song.sequence.length * 2);
     emulator.setChannel(0, false);
     emulator.setChannel(1, false);
@@ -694,7 +694,7 @@ function patchRom(targetRomFile: Uint8Array, song: Song, startAddr: number) {
   }
 
   // write ticks_per_row (1 byte)
-  buf[addr] = song.ticks_per_row;
+  buf[addr] = song.ticksPerRow;
   headerIndex += 1; // move header index to the order_cnt pointer position
   addr += 1;
 
@@ -735,9 +735,7 @@ function patchRom(targetRomFile: Uint8Array, song: Song, startAddr: number) {
 
   for (let n = 0; n < song.dutyInstruments.length; n++) {
     const instr = song.dutyInstruments[n];
-    subpatternAddr[`DutySP${instr.index}`] = instr.subpattern_enabled
-      ? addr
-      : 0;
+    subpatternAddr[`DutySP${instr.index}`] = instr.subpatternEnabled ? addr : 0;
     const pattern = song.dutyInstruments[n].subpattern;
     for (let idx = 0; idx < 32; idx++) {
       writeSubPatternCell(pattern[idx], idx === 32 - 1);
@@ -746,9 +744,7 @@ function patchRom(targetRomFile: Uint8Array, song: Song, startAddr: number) {
 
   for (let n = 0; n < song.waveInstruments.length; n++) {
     const instr = song.waveInstruments[n];
-    subpatternAddr[`WaveSP${instr.index}`] = instr.subpattern_enabled
-      ? addr
-      : 0;
+    subpatternAddr[`WaveSP${instr.index}`] = instr.subpatternEnabled ? addr : 0;
     const pattern = song.waveInstruments[n].subpattern;
     for (let idx = 0; idx < 32; idx++) {
       writeSubPatternCell(pattern[idx], idx === 32 - 1);
@@ -757,7 +753,7 @@ function patchRom(targetRomFile: Uint8Array, song: Song, startAddr: number) {
 
   for (let n = 0; n < song.noiseInstruments.length; n++) {
     const instr = song.noiseInstruments[n];
-    subpatternAddr[`NoiseSP${instr.index}`] = instr.subpattern_enabled
+    subpatternAddr[`NoiseSP${instr.index}`] = instr.subpatternEnabled
       ? addr
       : 0;
     const pattern = song.noiseInstruments[n].subpattern;
@@ -772,17 +768,16 @@ function patchRom(targetRomFile: Uint8Array, song: Song, startAddr: number) {
     const instr = song.dutyInstruments[n];
 
     const sweep =
-      (instr.frequency_sweep_time << 4) |
-      (instr.frequency_sweep_shift < 0 ? 0x08 : 0x00) |
-      Math.abs(instr.frequency_sweep_shift);
+      (instr.frequencySweepTime << 4) |
+      (instr.frequencySweepShift < 0 ? 0x08 : 0x00) |
+      Math.abs(instr.frequencySweepShift);
     const lenDuty =
-      (instr.duty_cycle << 6) |
+      (instr.dutyCycle << 6) |
       ((instr.length !== null ? 64 - instr.length : 0) & 0x3f);
     let envelope =
-      (instr.initial_volume << 4) |
-      (instr.volume_sweep_change > 0 ? 0x08 : 0x00);
-    if (instr.volume_sweep_change !== 0)
-      envelope |= 8 - Math.abs(instr.volume_sweep_change);
+      (instr.initialVolume << 4) | (instr.volumeSweepChange > 0 ? 0x08 : 0x00);
+    if (instr.volumeSweepChange !== 0)
+      envelope |= 8 - Math.abs(instr.volumeSweepChange);
     const subpattern = subpatternAddr[`DutySP${instr.index}`] ?? 0;
     const highmask = 0x80 | (instr.length !== null ? 0x40 : 0);
 
@@ -803,7 +798,7 @@ function patchRom(targetRomFile: Uint8Array, song: Song, startAddr: number) {
 
     const length = (instr.length !== null ? 256 - instr.length : 0) & 0xff;
     const volume = instr.volume << 5;
-    const waveForm = instr.wave_index;
+    const waveForm = instr.waveIndex;
     const subpattern = subpatternAddr[`WaveSP${instr.index}`] ?? 0;
     const highmask = 0x80 | (instr.length !== null ? 0x40 : 0);
 
@@ -823,14 +818,13 @@ function patchRom(targetRomFile: Uint8Array, song: Song, startAddr: number) {
     const instr = song.noiseInstruments[n];
 
     let envelope =
-      (instr.initial_volume << 4) |
-      (instr.volume_sweep_change > 0 ? 0x08 : 0x00);
-    if (instr.volume_sweep_change !== 0)
-      envelope |= 8 - Math.abs(instr.volume_sweep_change);
+      (instr.initialVolume << 4) | (instr.volumeSweepChange > 0 ? 0x08 : 0x00);
+    if (instr.volumeSweepChange !== 0)
+      envelope |= 8 - Math.abs(instr.volumeSweepChange);
     const subpattern = subpatternAddr[`NoiseSP${instr.index}`] ?? 0;
     let highmask = (instr.length !== null ? 64 - instr.length : 0) & 0x3f;
     if (instr.length !== null) highmask |= 0x40;
-    if (instr.bit_count === 7) highmask |= 0x80;
+    if (instr.bitCount === 7) highmask |= 0x80;
 
     buf[addr + n * (4 + 2) + 0] = envelope;
     buf[addr + n * (4 + 2) + 1] = subpattern & 0xff;

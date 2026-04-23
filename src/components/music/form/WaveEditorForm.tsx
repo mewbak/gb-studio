@@ -285,9 +285,9 @@ export const WaveEditorForm = ({ waveId, onChange }: WaveEditorFormProps) => {
   return (
     <>
       <FormRow>
-        <FormField name="wave_index" label={l10n("FIELD_WAVEFORM")}>
+        <FormField name="waveIndex" label={l10n("FIELD_WAVEFORM")}>
           <Select
-            name="wave_index"
+            name="waveIndex"
             value={selectedWave}
             options={waveOptions}
             onChange={(e) => e && onChange(e.value)}

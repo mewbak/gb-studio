@@ -72,9 +72,7 @@ export const InstrumentTester = ({
   );
   const waveForm = useAppSelector(
     (state) =>
-      state.trackerDocument.present.song?.waves[
-        waveInstrument?.wave_index ?? 0
-      ],
+      state.trackerDocument.present.song?.waves[waveInstrument?.waveIndex ?? 0],
   );
 
   const selectedChannelIdRef = useRef(selectedChannelId);

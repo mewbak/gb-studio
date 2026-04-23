@@ -281,15 +281,15 @@ export const applyPlaybackCorrections = (
   song: Song,
   speedConversion: boolean,
 ): void => {
-  let baseSpeed = song.ticks_per_row;
-  let speed = scaleSpeed(song.ticks_per_row, speedConversion);
+  let baseSpeed = song.ticksPerRow;
+  let speed = scaleSpeed(song.ticksPerRow, speedConversion);
   let bpm = MOD_INITIAL_BPM;
 
   const freq = [0, 0, 0, 0];
   const lastPlayedNote = [C_5, C_5, C_5, C_5];
   const lastPlayedInstrument = [0, 0, 0, 0];
 
-  song.ticks_per_row = speed;
+  song.ticksPerRow = speed;
 
   traverseSong(song, (row, firstVisit) => {
     // Apply speed + bpm scaling and fill in missing note/instruments for volume slides
@@ -493,21 +493,21 @@ const createBlankSubpattern = (): SubPatternCell[] => {
 
 const initializeInstruments = (song: Song): void => {
   const duty: DutyInstrument[] = Array.from({ length: 15 }, (_, index) => {
-    let duty_cycle = 2;
-    if (index === 0) duty_cycle = 1;
-    if (index === 1) duty_cycle = 2;
-    if (index === 2) duty_cycle = 3;
-    if (index === 3) duty_cycle = 0;
+    let dutyCycle = 2;
+    if (index === 0) dutyCycle = 1;
+    if (index === 1) dutyCycle = 2;
+    if (index === 2) dutyCycle = 3;
+    if (index === 3) dutyCycle = 0;
     const instr: DutyInstrument = {
       index,
       length: null,
       name: "",
-      duty_cycle,
-      initial_volume: 15,
-      volume_sweep_change: 0,
-      frequency_sweep_time: 0,
-      frequency_sweep_shift: 0,
-      subpattern_enabled: false,
+      dutyCycle,
+      initialVolume: 15,
+      volumeSweepChange: 0,
+      frequencySweepTime: 0,
+      frequencySweepShift: 0,
+      subpatternEnabled: false,
       subpattern: createBlankSubpattern(),
     };
     return instr;
@@ -520,8 +520,8 @@ const initializeInstruments = (song: Song): void => {
       name: "",
       length: null,
       volume: 1,
-      wave_index: idx >= 7 ? idx - 7 : idx,
-      subpattern_enabled: false,
+      waveIndex: idx >= 7 ? idx - 7 : idx,
+      subpatternEnabled: false,
       subpattern: createBlankSubpattern(),
     };
     return instr;
@@ -534,11 +534,11 @@ const initializeInstruments = (song: Song): void => {
       index: idx,
       name: "",
       length: null,
-      initial_volume: 15,
-      volume_sweep_change: 0,
-      bit_count: 15,
-      dividing_ratio: 0,
-      subpattern_enabled: false,
+      initialVolume: 15,
+      volumeSweepChange: 0,
+      bitCount: 15,
+      dividingRatio: 0,
+      subpatternEnabled: false,
       subpattern: createBlankSubpattern(),
     };
     return instr;
