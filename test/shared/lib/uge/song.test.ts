@@ -45,7 +45,6 @@ const makeNoiseInstrument = (overrides = {}): NoiseInstrument => ({
   length: null,
   initialVolume: 15,
   volumeSweepChange: 0,
-  dividingRatio: 0,
   bitCount: 15,
   subpatternEnabled: false,
   subpattern: createSubPattern(),

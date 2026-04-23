@@ -51,7 +51,6 @@ export const NoiseInstrument = Type.Object({
   length: Type.Union([Type.Number(), Type.Null()]),
   initialVolume: Type.Number(),
   volumeSweepChange: Type.Number(),
-  dividingRatio: Type.Number(),
   bitCount: Type.Union([Type.Literal(7), Type.Literal(15)]),
   subpatternEnabled: Type.Boolean(),
   subpattern: Type.Array(SubPatternCell),

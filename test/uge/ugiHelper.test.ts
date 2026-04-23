@@ -50,7 +50,6 @@ const makeNoiseInstrument = (
   length: null,
   initialVolume: 8,
   volumeSweepChange: 2,
-  dividingRatio: 0,
   bitCount: 7,
   subpatternEnabled: false,
   subpattern: createSubPattern(),

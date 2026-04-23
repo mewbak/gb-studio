@@ -221,7 +221,6 @@ export const loadUGIInstrument = (buffer: Buffer): UGIInstrument => {
       length: lengthEnabled ? 64 - length : null,
       initialVolume,
       volumeSweepChange: volumeSweepAmount,
-      dividingRatio: 0,
       bitCount: noiseCounterStep ? 7 : 15,
       ...subpatternData,
     };

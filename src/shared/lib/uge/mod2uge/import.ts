@@ -536,7 +536,6 @@ const initializeInstruments = (song: Song): void => {
       initialVolume: 15,
       volumeSweepChange: 0,
       bitCount: 15,
-      dividingRatio: 0,
       subpatternEnabled: false,
       subpattern: createBlankSubpattern(),
     };
