@@ -138,8 +138,8 @@ const createSubpatternPreset = (
     cells[index] = {
       note: offset !== undefined ? offsetToStoredPitch(offset) : null,
       jump: jumpTo !== undefined ? jumpTo + 1 : null,
-      effectcode: effect?.[0] ?? null,
-      effectparam: effect?.[1] ?? null,
+      effectCode: effect?.[0] ?? null,
+      effectParam: effect?.[1] ?? null,
     };
   }
 

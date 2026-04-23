@@ -232,15 +232,15 @@ const trackerSlice = createSlice({
 
       let patch = { ..._action.payload.changes };
       if (
-        patch.effectcode &&
-        patch.effectcode !== null &&
-        (patch.effectparam === null || patch.effectparam === undefined) &&
-        patternCell.effectparam === null
+        patch.effectCode &&
+        patch.effectCode !== null &&
+        (patch.effectParam === null || patch.effectParam === undefined) &&
+        patternCell.effectParam === null
       ) {
         // If there's an effect code but no effect param, default to 0
         patch = {
           ...patch,
-          effectparam: 0,
+          effectParam: 0,
         };
       }
 
@@ -337,14 +337,14 @@ const trackerSlice = createSlice({
         let patch = { ...change.changes };
 
         if (
-          patch.effectcode &&
-          patch.effectcode !== null &&
-          (patch.effectparam === null || patch.effectparam === undefined) &&
-          cell.effectparam === null
+          patch.effectCode &&
+          patch.effectCode !== null &&
+          (patch.effectParam === null || patch.effectParam === undefined) &&
+          cell.effectParam === null
         ) {
           patch = {
             ...patch,
-            effectparam: 0,
+            effectParam: 0,
           };
         }
 
@@ -404,17 +404,17 @@ const trackerSlice = createSlice({
             );
           }
         } else if (fieldIndex === 2) {
-          if (cell.effectcode !== null) {
-            cell.effectcode = Math.max(
+          if (cell.effectCode !== null) {
+            cell.effectCode = Math.max(
               0,
-              Math.min(15, cell.effectcode + delta),
+              Math.min(15, cell.effectCode + delta),
             );
           }
         } else if (fieldIndex === 3) {
-          if (cell.effectparam !== null) {
-            cell.effectparam = Math.max(
+          if (cell.effectParam !== null) {
+            cell.effectParam = Math.max(
               0,
-              Math.min(255, cell.effectparam + delta),
+              Math.min(255, cell.effectParam + delta),
             );
           }
         }
@@ -780,9 +780,9 @@ const trackerSlice = createSlice({
           } else if (fieldIndex === 1) {
             cell.instrument = null;
           } else if (fieldIndex === 2) {
-            cell.effectcode = null;
+            cell.effectCode = null;
           } else if (fieldIndex === 3) {
-            cell.effectparam = null;
+            cell.effectParam = null;
           }
         }
       }
@@ -854,13 +854,13 @@ const trackerSlice = createSlice({
       const newSubPatternCell = { ...newSubPattern[row] };
       let patch = { ..._action.payload.changes };
       if (
-        patch.effectcode !== undefined &&
-        patch.effectcode !== null &&
-        newSubPatternCell.effectparam === null
+        patch.effectCode !== undefined &&
+        patch.effectCode !== null &&
+        newSubPatternCell.effectParam === null
       ) {
         patch = {
           ...patch,
-          effectparam: 0,
+          effectParam: 0,
         };
       }
 

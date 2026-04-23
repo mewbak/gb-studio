@@ -399,8 +399,8 @@ export const SongTracker = () => {
       playPreview({
         note: newCell.note,
         instrumentId: newCell.instrument ?? 0,
-        effectCode: newCell.effectcode ?? 0,
-        effectParam: newCell.effectparam ?? 0,
+        effectCode: newCell.effectCode ?? 0,
+        effectParam: newCell.effectParam ?? 0,
       });
     },
     [dispatch, getCurrentPatternCellLocation, getMaxField, playPreview],
@@ -474,7 +474,7 @@ export const SongTracker = () => {
 
   const editEffectCodeField = useCallback(
     (value: number | null) => {
-      editPatternCell({ effectcode: value });
+      editPatternCell({ effectCode: value });
     },
     [editPatternCell],
   );
@@ -492,7 +492,7 @@ export const SongTracker = () => {
         newValue = 16 * parseInt(el.innerText[1], 16) + value;
       }
 
-      editPatternCell({ effectparam: newValue });
+      editPatternCell({ effectParam: newValue });
     },
     [editPatternCell],
   );

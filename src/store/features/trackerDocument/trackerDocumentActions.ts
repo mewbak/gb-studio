@@ -204,14 +204,14 @@ const pasteInPlace =
             cell.instrument !== NO_CHANGE_ON_PASTE
               ? cell.instrument
               : existing.instrument,
-          effectcode:
-            cell.effectcode !== NO_CHANGE_ON_PASTE
-              ? cell.effectcode
-              : existing.effectcode,
-          effectparam:
-            cell.effectparam !== NO_CHANGE_ON_PASTE
-              ? cell.effectparam
-              : existing.effectparam,
+          effectCode:
+            cell.effectCode !== NO_CHANGE_ON_PASTE
+              ? cell.effectCode
+              : existing.effectCode,
+          effectParam:
+            cell.effectParam !== NO_CHANGE_ON_PASTE
+              ? cell.effectParam
+              : existing.effectParam,
         },
       });
     }
@@ -348,12 +348,12 @@ const pasteTrackerFields =
           cellChanges.instrument = pastedCell.instrument;
         }
 
-        if (pastedCell.effectcode !== NO_CHANGE_ON_PASTE) {
-          cellChanges.effectcode = pastedCell.effectcode;
+        if (pastedCell.effectCode !== NO_CHANGE_ON_PASTE) {
+          cellChanges.effectCode = pastedCell.effectCode;
         }
 
-        if (pastedCell.effectparam !== NO_CHANGE_ON_PASTE) {
-          cellChanges.effectparam = pastedCell.effectparam;
+        if (pastedCell.effectParam !== NO_CHANGE_ON_PASTE) {
+          cellChanges.effectParam = pastedCell.effectParam;
         }
 
         if (Object.keys(cellChanges).length === 0) {
@@ -478,8 +478,8 @@ const moveAbsoluteCells =
           changes: {
             instrument: null,
             note: null,
-            effectcode: null,
-            effectparam: null,
+            effectCode: null,
+            effectParam: null,
           },
         });
       }

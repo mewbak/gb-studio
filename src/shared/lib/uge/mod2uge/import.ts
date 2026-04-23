@@ -124,8 +124,8 @@ const convertCell = (modRow: MODCell): PatternCell => {
   return {
     note,
     instrument,
-    effectcode: isEmptyEffect ? null : code,
-    effectparam: isEmptyEffect ? null : params,
+    effectCode: isEmptyEffect ? null : code,
+    effectParam: isEmptyEffect ? null : params,
   };
 };
 
@@ -175,8 +175,8 @@ export const convertNoiseCell = (modRow: MODCell): PatternCell => {
   return {
     note,
     instrument: modRow.instrument ? 1 : null,
-    effectcode: isEmptyEffect ? null : code,
-    effectparam: isEmptyEffect ? null : params,
+    effectCode: isEmptyEffect ? null : code,
+    effectParam: isEmptyEffect ? null : params,
   };
 };
 
@@ -296,24 +296,24 @@ export const applyPlaybackCorrections = (
       const cell = row[ch];
 
       // SET SPEED / TEMPO
-      if (cell.effectcode === UGE_EFFECTS.SET_SPEED) {
+      if (cell.effectCode === UGE_EFFECTS.SET_SPEED) {
         if (firstVisit) {
-          const param = cell.effectparam ?? 0;
+          const param = cell.effectParam ?? 0;
           if (param >= 0x20) {
             bpm = param;
           } else {
             baseSpeed = param;
           }
           speed = scaleSpeed(baseSpeed, speedConversion, bpm);
-          cell.effectparam = speed;
+          cell.effectParam = speed;
         } else {
           // Already applied speed conversion, use value as is
-          speed = cell.effectparam ?? 0;
+          speed = cell.effectParam ?? 0;
         }
       }
 
       // SET VOLUME
-      if (cell.effectcode === UGE_EFFECTS.SET_VOLUME) {
+      if (cell.effectCode === UGE_EFFECTS.SET_VOLUME) {
         if (cell.instrument === null) {
           cell.instrument = lastPlayedInstrument[ch];
         }
@@ -345,10 +345,10 @@ export const applyPlaybackCorrections = (
         endFreq = startFreq;
       }
 
-      const val = cell.effectparam ?? 0;
+      const val = cell.effectParam ?? 0;
 
       // PORTAMENTO DOWN
-      if (cell.effectcode === UGE_EFFECTS.PORTA_DOWN) {
+      if (cell.effectCode === UGE_EFFECTS.PORTA_DOWN) {
         if (firstVisit) {
           const scaledVal = scaleSpeed(val, speedConversion);
           endFreq = startFreq - scaledVal * activeTicks;
@@ -357,16 +357,16 @@ export const applyPlaybackCorrections = (
             const newVal = Math.floor(startFreq / activeTicks);
             if (newVal > 0) {
               // Reduce effect to prevent overflow
-              cell.effectparam = newVal;
+              cell.effectParam = newVal;
               endFreq = startFreq - newVal * activeTicks;
             } else {
               // Remove if even a single tick would cause overflow
-              cell.effectcode = UGE_EFFECTS.EMPTY;
-              cell.effectparam = 0;
+              cell.effectCode = UGE_EFFECTS.EMPTY;
+              cell.effectParam = 0;
               endFreq = startFreq;
             }
           } else {
-            cell.effectparam = scaledVal;
+            cell.effectParam = scaledVal;
           }
         } else {
           endFreq = startFreq - val * activeTicks;
@@ -374,7 +374,7 @@ export const applyPlaybackCorrections = (
       }
 
       // PORTAMENTO UP
-      if (cell.effectcode === UGE_EFFECTS.PORTA_UP) {
+      if (cell.effectCode === UGE_EFFECTS.PORTA_UP) {
         if (firstVisit) {
           const scaledVal = scaleSpeed(val, speedConversion);
           endFreq = startFreq + scaledVal * activeTicks;
@@ -385,16 +385,16 @@ export const applyPlaybackCorrections = (
 
             if (newVal > 0) {
               // Reduce effect to prevent overflow
-              cell.effectparam = newVal;
+              cell.effectParam = newVal;
               endFreq = startFreq + newVal * activeTicks;
             } else {
               // Remove if even a single tick would cause overflow
-              cell.effectcode = UGE_EFFECTS.EMPTY;
-              cell.effectparam = 0;
+              cell.effectCode = UGE_EFFECTS.EMPTY;
+              cell.effectParam = 0;
               endFreq = startFreq;
             }
           } else {
-            cell.effectparam = scaledVal;
+            cell.effectParam = scaledVal;
           }
         } else {
           endFreq = startFreq + val * activeTicks;
@@ -441,8 +441,8 @@ export const traverseSong = (
 
     // Scan row for flow control effects
     for (const cell of row) {
-      const eff = cell.effectcode;
-      const val = cell.effectparam ?? 0;
+      const eff = cell.effectCode;
+      const val = cell.effectParam ?? 0;
 
       // Bxx – position jump
       if (eff === UGE_EFFECTS.JUMP_TO_ORDER) {
@@ -484,8 +484,8 @@ const createBlankSubpattern = (): SubPatternCell[] => {
     return {
       note: null,
       jump: 0,
-      effectcode: null,
-      effectparam: null,
+      effectCode: null,
+      effectParam: null,
     };
   });
 };

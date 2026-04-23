@@ -18,16 +18,16 @@ type PatternCellKey = keyof PatternCell;
 const patternCellFields: PatternCellKey[] = [
   "note",
   "instrument",
-  "effectcode",
-  "effectparam",
+  "effectCode",
+  "effectParam",
 ];
 
 type SubPatternCellKey = keyof SubPatternCell;
 const subPatternCellFields: SubPatternCellKey[] = [
   "note",
   "jump",
-  "effectcode",
-  "effectparam",
+  "effectCode",
+  "effectParam",
 ];
 
 // ── Pattern cell string formatting ──────────────────────────────────────────
@@ -39,8 +39,8 @@ const patternCellToString = (
 ): string => {
   return `|${fields.includes("note") ? renderNote(p.note) : "   "}${
     fields.includes("instrument") ? renderInstrument(p.instrument) : "  "
-  }...${fields.includes("effectcode") ? renderEffect(p.effectcode) : " "}${
-    fields.includes("effectparam") ? renderEffectParam(p.effectparam) : "  "
+  }...${fields.includes("effectCode") ? renderEffect(p.effectCode) : " "}${
+    fields.includes("effectParam") ? renderEffectParam(p.effectParam) : "  "
   }`;
 };
 
@@ -51,8 +51,8 @@ const subPatternCellToString = (
 ): string => {
   return `|${fields.includes("note") ? renderNote(p.note) : "   "}${
     fields.includes("jump") ? renderInstrument(p.jump) : "  "
-  }...${fields.includes("effectcode") ? renderEffect(p.effectcode) : " "}${
-    fields.includes("effectparam") ? renderEffectParam(p.effectparam) : "  "
+  }...${fields.includes("effectCode") ? renderEffect(p.effectCode) : " "}${
+    fields.includes("effectParam") ? renderEffectParam(p.effectParam) : "  "
   }`;
 };
 
@@ -192,11 +192,11 @@ export const parseClipboardToPattern = (clipboard: string): PatternCell[][] => {
             cellString[1] !== "  "
               ? strToInt(cellString[1], 10, -1)
               : NO_CHANGE_ON_PASTE;
-          patternCell.effectcode =
+          patternCell.effectCode =
             cellString[2] !== " "
               ? strToInt(cellString[2], 16)
               : NO_CHANGE_ON_PASTE;
-          patternCell.effectparam =
+          patternCell.effectParam =
             cellString[3] !== "  "
               ? strToInt(cellString[3], 16)
               : NO_CHANGE_ON_PASTE;
@@ -285,11 +285,11 @@ export const parseClipboardToSubPattern = (
             cellString[1] !== "  "
               ? strToInt(cellString[1], 10, -1)
               : NO_CHANGE_ON_PASTE;
-          patternCell.effectcode =
+          patternCell.effectCode =
             cellString[2] !== " "
               ? strToInt(cellString[2], 16)
               : NO_CHANGE_ON_PASTE;
-          patternCell.effectparam =
+          patternCell.effectParam =
             cellString[3] !== "  "
               ? strToInt(cellString[3], 16)
               : NO_CHANGE_ON_PASTE;

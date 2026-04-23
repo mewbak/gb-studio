@@ -40,15 +40,15 @@ export type NoiseInstrument = {
 export type PatternCell = {
   note: number | null;
   instrument: number | null;
-  effectcode: number | null;
-  effectparam: number | null;
+  effectCode: number | null;
+  effectParam: number | null;
 };
 
 export type SubPatternCell = {
   note: number | null;
   jump: number | null;
-  effectcode: number | null;
-  effectparam: number | null;
+  effectCode: number | null;
+  effectParam: number | null;
 };
 
 export type Song = {

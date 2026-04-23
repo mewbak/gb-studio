@@ -649,8 +649,8 @@ export const SongPianoRoll = () => {
         playPreview({
           note: noteIndex,
           instrumentId: selectedInstrumentId,
-          effectCode: currentCell?.effectcode ?? 0,
-          effectParam: currentCell?.effectparam ?? 0,
+          effectCode: currentCell?.effectCode ?? 0,
+          effectParam: currentCell?.effectParam ?? 0,
         });
       }
 
@@ -1711,8 +1711,8 @@ export const SongPianoRoll = () => {
         const originPattern = song.patterns[originPatternIndex];
         const selectedCell = originPattern?.[originRowId]?.[selectedChannel];
         const instrumentId = selectedCell?.instrument ?? 0;
-        const effectCode = selectedCell?.effectcode ?? 0;
-        const effectParam = selectedCell?.effectparam ?? 0;
+        const effectCode = selectedCell?.effectCode ?? 0;
+        const effectParam = selectedCell?.effectParam ?? 0;
 
         if (lastDragPreviewCellRef.current !== previewCellId) {
           playPreview({
@@ -1796,8 +1796,8 @@ export const SongPianoRoll = () => {
             playPreview({
               note: lastPainted.note,
               instrumentId: selectedInstrumentId,
-              effectCode: cell?.effectcode ?? 0,
-              effectParam: cell?.effectparam ?? 0,
+              effectCode: cell?.effectCode ?? 0,
+              effectParam: cell?.effectParam ?? 0,
             });
           }
         }

@@ -91,18 +91,18 @@ export const renderInstrument = (instrument: number | null): string => {
 
 /**
  * Renders an effect code as an uppercase hex character (e.g. `"A"`, `"F"`).
- * Returns `"."` when effectcode is null.
+ * Returns `"."` when effectCode is null.
  */
-export const renderEffect = (effectcode: number | null): string => {
-  return effectcode?.toString(16).toUpperCase() || ".";
+export const renderEffect = (effectCode: number | null): string => {
+  return effectCode?.toString(16).toUpperCase() || ".";
 };
 
 /**
  * Renders an effect parameter as a zero-padded 2-digit uppercase hex string (e.g. `"0F"`, `"FF"`).
- * Returns `".."` when effectparam is null.
+ * Returns `".."` when effectParam is null.
  */
-export const renderEffectParam = (effectparam: number | null): string => {
-  return effectparam?.toString(16).toUpperCase().padStart(2, "0") || "..";
+export const renderEffectParam = (effectParam: number | null): string => {
+  return effectParam?.toString(16).toUpperCase().padStart(2, "0") || "..";
 };
 
 /**
@@ -164,6 +164,6 @@ export const renderPatternCell = (
 ): { note: string; instrument: string; effect: string; param: string } => ({
   note: renderNote(cell.note),
   instrument: renderInstrument(cell.instrument),
-  effect: renderEffect(cell.effectcode),
-  param: renderEffectParam(cell.effectparam),
+  effect: renderEffect(cell.effectCode),
+  param: renderEffectParam(cell.effectParam),
 });

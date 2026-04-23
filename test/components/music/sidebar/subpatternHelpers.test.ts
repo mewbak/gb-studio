@@ -35,11 +35,11 @@ test("Should map stored jump values to continue and jump states", () => {
 test("Should initialize effect param when setting effect code zero", () => {
   const subpattern = [createSubPatternCell()];
   const nextSubpattern = applySubpatternCellChanges(subpattern, 0, {
-    effectcode: 0,
+    effectCode: 0,
   });
 
-  expect(nextSubpattern[0].effectcode).toBe(0);
-  expect(nextSubpattern[0].effectparam).toBe(0);
+  expect(nextSubpattern[0].effectCode).toBe(0);
+  expect(nextSubpattern[0].effectParam).toBe(0);
 });
 
 test("Should move a visible subpattern row without dropping data", () => {
@@ -122,11 +122,11 @@ test("offsetToStoredPitch adds the base note (36) to the offset", () => {
   expect(offsetToStoredPitch(-5)).toBe(31);
 });
 
-test("applySubpatternCellChanges does not set effectparam when it already has a value", () => {
+test("applySubpatternCellChanges does not set effectParam when it already has a value", () => {
   const subpattern = [createSubPatternCell()];
-  subpattern[0].effectparam = 10;
-  const next = applySubpatternCellChanges(subpattern, 0, { effectcode: 5 });
-  expect(next[0].effectparam).toBe(10);
+  subpattern[0].effectParam = 10;
+  const next = applySubpatternCellChanges(subpattern, 0, { effectCode: 5 });
+  expect(next[0].effectParam).toBe(10);
 });
 
 test("doubleSubpattern doubles the spacing between rows", () => {

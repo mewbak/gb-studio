@@ -330,10 +330,10 @@ export const InstrumentSubpatternTracker = ({
           nextRow.jump = null;
           break;
         case 2:
-          nextRow.effectcode = null;
+          nextRow.effectCode = null;
           break;
         case 3:
-          nextRow.effectparam = null;
+          nextRow.effectParam = null;
           break;
       }
 
@@ -469,7 +469,7 @@ export const InstrumentSubpatternTracker = ({
 
   const editEffectCodeField = useCallback(
     (value: number | null) => {
-      editSubPatternCell("effectcode", value);
+      editSubPatternCell("effectCode", value);
     },
     [editSubPatternCell],
   );
@@ -477,19 +477,19 @@ export const InstrumentSubpatternTracker = ({
   const editEffectParamField = useCallback(
     (value: number | null) => {
       if (value === null) {
-        editSubPatternCell("effectparam", null);
+        editSubPatternCell("effectParam", null);
         return;
       }
 
-      const currentParam = activeCell?.effectparam;
+      const currentParam = activeCell?.effectParam;
       const nextValue =
         currentParam !== null && currentParam !== undefined
           ? Math.min(((currentParam & 0x0f) << 4) + value, 0xff)
           : value;
 
-      editSubPatternCell("effectparam", nextValue);
+      editSubPatternCell("effectParam", nextValue);
     },
-    [activeCell?.effectparam, editSubPatternCell],
+    [activeCell?.effectParam, editSubPatternCell],
   );
 
   const moveActiveField = useCallback(
@@ -1150,7 +1150,7 @@ export const InstrumentSubpatternTracker = ({
                     data-subpattern_fieldid={fieldCount + 2}
                     $selected={selectedTrackerFieldSet.has(fieldCount + 2)}
                   >
-                    {renderEffect(row.effectcode)}
+                    {renderEffect(row.effectCode)}
                   </StyledTrackerEffectCodeField>
 
                   <StyledTrackerEffectParamField
@@ -1159,7 +1159,7 @@ export const InstrumentSubpatternTracker = ({
                     data-subpattern_fieldid={fieldCount + 3}
                     $selected={selectedTrackerFieldSet.has(fieldCount + 3)}
                   >
-                    {renderEffectParam(row.effectparam)}
+                    {renderEffectParam(row.effectParam)}
                   </StyledTrackerEffectParamField>
                 </StyledTrackerCell>
               </StyledTrackerRow>

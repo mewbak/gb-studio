@@ -19,8 +19,8 @@ export const isSubpatternRowEmpty = (cell: SubPatternCell) => {
   return (
     (cell.note === null || cell.note === 36) &&
     (cell.jump === null || cell.jump === 0) &&
-    (cell.effectcode === null || cell.effectcode === 0) &&
-    (cell.effectparam === null || cell.effectparam === 0)
+    (cell.effectCode === null || cell.effectCode === 0) &&
+    (cell.effectParam === null || cell.effectParam === 0)
   );
 };
 
@@ -97,8 +97,8 @@ export const getVisibleSubpatternRows = (subpattern: SubPatternCell[]) =>
 
 /**
  * Applies partial changes to a single subpattern row, returning an updated
- * copy of the full subpattern array. Automatically sets effectparam to 0 when
- * an effectcode is set and effectparam was previously null.
+ * copy of the full subpattern array. Automatically sets effectParam to 0 when
+ * an effectCode is set and effectParam was previously null.
  */
 export const applySubpatternCellChanges = (
   subpattern: SubPatternCell[],
@@ -110,11 +110,11 @@ export const applySubpatternCellChanges = (
   const nextCell = { ...currentCell, ...changes };
 
   if (
-    changes.effectcode !== undefined &&
-    changes.effectcode !== null &&
-    nextCell.effectparam === null
+    changes.effectCode !== undefined &&
+    changes.effectCode !== null &&
+    nextCell.effectParam === null
   ) {
-    nextCell.effectparam = 0;
+    nextCell.effectParam = 0;
   }
 
   nextSubpattern[rowIndex] = nextCell;
@@ -167,11 +167,11 @@ export const subPatternRowLabel = (
     }
   }
   if (
-    cell.effectcode !== null &&
-    isValidSubpatternEffectCode(cell.effectcode)
+    cell.effectCode !== null &&
+    isValidSubpatternEffectCode(cell.effectCode)
   ) {
     labelParts.push(
-      `${l10n("FIELD_EFFECT")}: ${(cell.effectcode ?? 0).toString(16).toUpperCase()}${(cell.effectparam ?? 0).toString(16).padStart(2, "0").toUpperCase()}`,
+      `${l10n("FIELD_EFFECT")}: ${(cell.effectCode ?? 0).toString(16).toUpperCase()}${(cell.effectParam ?? 0).toString(16).padStart(2, "0").toUpperCase()}`,
     );
   }
   return `${l10n("FIELD_TICK")} ${String(tick).padStart(2, "0")}${labelParts.length > 0 ? ":" : ""} ${labelParts.join(", ")}`;
@@ -194,8 +194,8 @@ export const offsetToStoredPitch = (offset: number): number => {
 const cloneSubPatternCell = (cell: SubPatternCell): SubPatternCell => ({
   note: cell.note,
   jump: cell.jump,
-  effectcode: cell.effectcode,
-  effectparam: cell.effectparam,
+  effectCode: cell.effectCode,
+  effectParam: cell.effectParam,
 });
 
 /**

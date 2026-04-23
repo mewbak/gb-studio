@@ -134,15 +134,15 @@ export const loadUGESong = (buffer: Buffer): Song => {
         const note = readUint32();
         offset += 4; // unused uint32 field. increase offset by 4.
         const jump = readUint32();
-        const effectcode = readUint32();
-        const effectparam = readUint8();
+        const effectCode = readUint32();
+        const effectParam = readUint8();
 
         subpattern.push({
           note: note === 90 ? null : note,
           jump,
-          effectcode: effectcode === 0 && effectparam === 0 ? null : effectcode,
-          effectparam:
-            effectcode === 0 && effectparam === 0 ? null : effectparam,
+          effectCode: effectCode === 0 && effectParam === 0 ? null : effectCode,
+          effectParam:
+            effectCode === 0 && effectParam === 0 ? null : effectParam,
         });
       }
     }
@@ -210,21 +210,21 @@ export const loadUGESong = (buffer: Buffer): Song => {
     }
     for (let m = 0; m < 64; m++) {
       if (version < 6) {
-        const [note, instrument, effectcode] = new Int32Array(
+        const [note, instrument, effectCode] = new Int32Array(
           data.slice(offset, offset + 3 * 4),
         );
         offset += 3 * 4;
-        const effectparam = readUint8();
+        const effectParam = readUint8();
 
-        pattern.push([note, instrument, effectcode, effectparam]);
+        pattern.push([note, instrument, effectCode, effectParam]);
       } else if (version >= 6) {
-        const [note, instrument, _unused, effectcode] = new Int32Array(
+        const [note, instrument, _unused, effectCode] = new Int32Array(
           data.slice(offset, offset + 4 * 4),
         );
         offset += 4 * 4;
-        const effectparam = readUint8();
+        const effectParam = readUint8();
 
-        pattern.push([note, instrument, effectcode, effectparam]);
+        pattern.push([note, instrument, effectCode, effectParam]);
       }
     }
     /*
@@ -381,7 +381,7 @@ export const loadUGESong = (buffer: Buffer): Song => {
       const row: PatternCell[] = [];
       for (let track = 0; track < 4; track++) {
         const cellData: number[] = patterns[orders[track][n]][m];
-        const [note, instrument, effectcode, effectparam] = cellData;
+        const [note, instrument, effectCode, effectParam] = cellData;
         const cell = createPatternCell();
         if (note !== 90) cell.note = note;
         if (instrument !== 0) {
@@ -391,9 +391,9 @@ export const loadUGESong = (buffer: Buffer): Song => {
           if (track === 3) mapping = noiseInstrumentMapping;
           if (instrument in mapping) cell.instrument = mapping[instrument];
         }
-        if (effectcode !== 0 || effectparam !== 0) {
-          cell.effectcode = effectcode;
-          cell.effectparam = effectparam;
+        if (effectCode !== 0 || effectParam !== 0) {
+          cell.effectCode = effectCode;
+          cell.effectParam = effectParam;
         }
         row.push(cell);
       }
@@ -475,8 +475,8 @@ export const saveUGESong = (song: Song): Buffer => {
       addUint32(subpattern?.note ?? 90);
       addUint32(0);
       addUint32(subpattern?.jump ?? 0);
-      addUint32(subpattern?.effectcode ?? 0);
-      addUint8(subpattern?.effectparam ?? 0);
+      addUint32(subpattern?.effectCode ?? 0);
+      addUint8(subpattern?.effectParam ?? 0);
     }
   }
   function addDutyInstrument(type: number, i: DutyInstrument) {
@@ -586,8 +586,8 @@ export const saveUGESong = (song: Song): Buffer => {
         addUint32(t.note === null ? 90 : t.note);
         addUint32(t.instrument === null ? 0 : t.instrument + 1);
         addUint32(0);
-        addUint32(t.effectcode === null ? 0 : t.effectcode);
-        addUint8(t.effectparam === null ? 0 : t.effectparam);
+        addUint32(t.effectCode === null ? 0 : t.effectCode);
+        addUint8(t.effectParam === null ? 0 : t.effectParam);
       }
     }
   }
@@ -618,8 +618,8 @@ const patternEqual = function (a: PatternCell[], b: PatternCell[]) {
   for (let idx = 0; idx < a.length; idx++) {
     if (a[idx].note !== b[idx].note) return false;
     if (a[idx].instrument !== b[idx].instrument) return false;
-    if (a[idx].effectcode !== b[idx].effectcode) return false;
-    if (a[idx].effectparam !== b[idx].effectparam) return false;
+    if (a[idx].effectCode !== b[idx].effectCode) return false;
+    if (a[idx].effectParam !== b[idx].effectParam) return false;
   }
   return true;
 };
@@ -656,9 +656,9 @@ export const exportToC = (song: Song, trackName: string): string => {
     let effectCode = 0;
     let effectParam = 0;
     if (cell.instrument !== null) instrument = cell.instrument + 1;
-    if (cell.effectcode !== null) {
-      effectCode = cell.effectcode;
-      effectParam = cell.effectparam || 0;
+    if (cell.effectCode !== null) {
+      effectCode = cell.effectCode;
+      effectParam = cell.effectParam || 0;
     }
     return `DN(${note}, ${instrument}, ${decHex(
       (effectCode << 8) | effectParam,
@@ -687,9 +687,9 @@ export const exportToC = (song: Song, trackName: string): string => {
     const jump = cell.jump !== null && isLast ? 1 : (cell.jump ?? 0);
     let effectCode = 0;
     let effectParam = 0;
-    if (cell.effectcode !== null) {
-      effectCode = cell.effectcode;
-      effectParam = cell.effectparam || 0;
+    if (cell.effectCode !== null) {
+      effectCode = cell.effectCode;
+      effectParam = cell.effectParam || 0;
     }
     return `DN(${note}, ${jump}, ${decHex(
       (effectCode << 8) | effectParam,

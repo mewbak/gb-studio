@@ -727,8 +727,8 @@ function patchRom(targetRomFile: Uint8Array, song: Song, startAddr: number) {
     const jump = cell.jump !== null && isLast ? 1 : (cell.jump ?? 0);
 
     buf[addr++] = cell.note ?? 90;
-    buf[addr++] = (jump << 4) | (cell.effectcode ?? 0);
-    buf[addr++] = cell.effectparam ?? 0;
+    buf[addr++] = (jump << 4) | (cell.effectCode ?? 0);
+    buf[addr++] = cell.effectParam ?? 0;
   };
 
   const subpatternAddr: { [idx: string]: number } = {};
@@ -863,8 +863,8 @@ function patchRom(targetRomFile: Uint8Array, song: Song, startAddr: number) {
         buf[addr++] = cell.note !== null ? cell.note : 90;
         buf[addr++] =
           ((cell.instrument !== null ? cell.instrument + 1 : 0) << 4) |
-          (cell.effectcode !== null ? cell.effectcode : 0);
-        buf[addr++] = cell.effectparam !== null ? cell.effectparam : 0;
+          (cell.effectCode !== null ? cell.effectCode : 0);
+        buf[addr++] = cell.effectParam !== null ? cell.effectParam : 0;
       }
     }
 

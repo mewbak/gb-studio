@@ -57,8 +57,8 @@ describe("createPatternCell", () => {
     const cell = createPatternCell();
     expect(cell.note).toBeNull();
     expect(cell.instrument).toBeNull();
-    expect(cell.effectcode).toBeNull();
-    expect(cell.effectparam).toBeNull();
+    expect(cell.effectCode).toBeNull();
+    expect(cell.effectParam).toBeNull();
   });
 });
 
@@ -67,8 +67,8 @@ describe("createSubPatternCell", () => {
     const cell = createSubPatternCell();
     expect(cell.note).toBeNull();
     expect(cell.jump).toBeNull();
-    expect(cell.effectcode).toBeNull();
-    expect(cell.effectparam).toBeNull();
+    expect(cell.effectCode).toBeNull();
+    expect(cell.effectParam).toBeNull();
   });
 });
 

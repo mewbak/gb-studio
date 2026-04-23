@@ -109,7 +109,7 @@ export const SongTrackerRow = memo(
               </StyledTrackerInstrumentField>
 
               <StyledTrackerEffectCodeField
-                id={`cell_${renderSequenceId}_${rowIndex}_${rowChannelId}_effectcode`}
+                id={`cell_${renderSequenceId}_${rowIndex}_${rowChannelId}_effectCode`}
                 $active={isEffectCodeActive}
                 ref={isEffectCodeActive ? activeFieldRef : null}
                 data-sequenceid={renderSequenceId}
@@ -119,11 +119,11 @@ export const SongTrackerRow = memo(
                   false
                 }
               >
-                {renderEffect(cell.effectcode)}
+                {renderEffect(cell.effectCode)}
               </StyledTrackerEffectCodeField>
 
               <StyledTrackerEffectParamField
-                id={`cell_${renderSequenceId}_${rowIndex}_${rowChannelId}_effectparam`}
+                id={`cell_${renderSequenceId}_${rowIndex}_${rowChannelId}_effectParam`}
                 $active={isEffectParamActive}
                 ref={isEffectParamActive ? activeFieldRef : null}
                 data-sequenceid={renderSequenceId}
@@ -133,7 +133,7 @@ export const SongTrackerRow = memo(
                   false
                 }
               >
-                {renderEffectParam(cell.effectparam)}
+                {renderEffectParam(cell.effectParam)}
               </StyledTrackerEffectParamField>
             </StyledTrackerCell>
           );

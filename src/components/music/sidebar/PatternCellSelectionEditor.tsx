@@ -89,13 +89,13 @@ export const PatternCellSelectionEditor = () => {
 
   const sharedEffectCode = useMemo(
     () =>
-      getSharedValue(sequence, patterns, selectedPatternCells, "effectcode"),
+      getSharedValue(sequence, patterns, selectedPatternCells, "effectCode"),
     [patterns, selectedPatternCells, sequence],
   );
 
   const sharedEffectParam = useMemo(
     () =>
-      getSharedValue(sequence, patterns, selectedPatternCells, "effectparam"),
+      getSharedValue(sequence, patterns, selectedPatternCells, "effectParam"),
     [patterns, selectedPatternCells, sequence],
   );
 
@@ -143,13 +143,13 @@ export const PatternCellSelectionEditor = () => {
         sequence,
         patterns,
         selectedPatternCells,
-        "effectcode",
+        "effectCode",
       );
       const sharedEffectParam = getSharedValue(
         sequence,
         patterns,
         selectedPatternCells,
-        "effectparam",
+        "effectParam",
       );
 
       dispatch(
@@ -247,8 +247,8 @@ export const PatternCellSelectionEditor = () => {
               trackerDocumentActions.editPatternCells({
                 patternCells: selectedPatternCells,
                 changes: {
-                  effectcode: effectCode,
-                  effectparam: effectCode === null ? null : effectParam,
+                  effectCode: effectCode,
+                  effectParam: effectCode === null ? null : effectParam,
                 },
               }),
             );
@@ -278,7 +278,7 @@ export const PatternCellSelectionEditor = () => {
               trackerDocumentActions.editPatternCells({
                 patternCells: selectedPatternCells,
                 changes: {
-                  effectparam: newEffectParam,
+                  effectParam: newEffectParam,
                 },
               }),
             );

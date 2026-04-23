@@ -198,8 +198,8 @@ describe("convertNoiseCell", () => {
       effect: { code: 0x1, params: 0x23 },
     });
 
-    expect(cell.effectcode).toBe(0x1);
-    expect(cell.effectparam).toBe(0x23);
+    expect(cell.effectCode).toBe(0x1);
+    expect(cell.effectParam).toBe(0x23);
   });
 });
 
@@ -207,8 +207,8 @@ describe("traverseSong flow control", () => {
   const makeCell = (): PatternCell => ({
     note: null,
     instrument: null,
-    effectcode: null,
-    effectparam: null,
+    effectCode: null,
+    effectParam: null,
   });
 
   const makePattern = (): PatternCell[][] =>
@@ -220,8 +220,8 @@ describe("traverseSong flow control", () => {
     const song = createSong();
 
     const pattern = makePattern();
-    pattern[0][0].effectcode = UGE_EFFECTS.PATTERN_BREAK;
-    pattern[0][0].effectparam = 0x11;
+    pattern[0][0].effectCode = UGE_EFFECTS.PATTERN_BREAK;
+    pattern[0][0].effectParam = 0x11;
 
     song.patterns = [pattern, makePattern()];
     song.sequence = [0, 1];
@@ -239,8 +239,8 @@ describe("traverseSong flow control", () => {
     const song = createSong();
 
     const p0 = makePattern();
-    p0[0][0].effectcode = UGE_EFFECTS.JUMP_TO_ORDER;
-    p0[0][0].effectparam = 1;
+    p0[0][0].effectCode = UGE_EFFECTS.JUMP_TO_ORDER;
+    p0[0][0].effectParam = 1;
 
     const p1 = makePattern();
 
@@ -260,8 +260,8 @@ describe("traverseSong flow control", () => {
     const song = createSong();
 
     const p0 = makePattern();
-    p0[0][0].effectcode = UGE_EFFECTS.JUMP_TO_ORDER;
-    p0[0][0].effectparam = 0;
+    p0[0][0].effectCode = UGE_EFFECTS.JUMP_TO_ORDER;
+    p0[0][0].effectParam = 0;
 
     song.patterns = [p0];
     song.sequence = [0];
@@ -280,8 +280,8 @@ describe("portamento overflow protection", () => {
   const makeCell = (): PatternCell => ({
     note: 24,
     instrument: 0,
-    effectcode: null,
-    effectparam: null,
+    effectCode: null,
+    effectParam: null,
   });
 
   const makePattern = (): PatternCell[][] =>
@@ -297,30 +297,30 @@ describe("portamento overflow protection", () => {
     const pattern = makePattern();
 
     pattern[0][0].note = 37; // G#6
-    pattern[0][0].effectcode = UGE_EFFECTS.PORTA_DOWN;
-    pattern[0][0].effectparam = 0xbd;
+    pattern[0][0].effectCode = UGE_EFFECTS.PORTA_DOWN;
+    pattern[0][0].effectParam = 0xbd;
     pattern[1][0].note = null;
-    pattern[1][0].effectcode = UGE_EFFECTS.PORTA_DOWN;
-    pattern[1][0].effectparam = 0xbd;
+    pattern[1][0].effectCode = UGE_EFFECTS.PORTA_DOWN;
+    pattern[1][0].effectParam = 0xbd;
     pattern[2][0].note = null;
-    pattern[2][0].effectcode = UGE_EFFECTS.PORTA_DOWN;
-    pattern[2][0].effectparam = 0xbd;
+    pattern[2][0].effectCode = UGE_EFFECTS.PORTA_DOWN;
+    pattern[2][0].effectParam = 0xbd;
     pattern[3][0].note = null;
-    pattern[3][0].effectcode = UGE_EFFECTS.PORTA_DOWN;
-    pattern[3][0].effectparam = 0xbd;
+    pattern[3][0].effectCode = UGE_EFFECTS.PORTA_DOWN;
+    pattern[3][0].effectParam = 0xbd;
 
     song.patterns = [pattern];
     song.sequence = [0];
 
     applyPlaybackCorrections(song, true);
 
-    const effect0 = song.patterns[0][0][0].effectcode;
-    const effect1 = song.patterns[0][1][0].effectcode;
-    const effect2 = song.patterns[0][2][0].effectcode;
+    const effect0 = song.patterns[0][0][0].effectCode;
+    const effect1 = song.patterns[0][1][0].effectCode;
+    const effect2 = song.patterns[0][2][0].effectCode;
 
-    const param0 = song.patterns[0][0][0].effectparam;
-    const param1 = song.patterns[0][1][0].effectparam;
-    const param2 = song.patterns[0][2][0].effectparam;
+    const param0 = song.patterns[0][0][0].effectParam;
+    const param1 = song.patterns[0][1][0].effectParam;
+    const param2 = song.patterns[0][2][0].effectParam;
 
     expect(effect0).toEqual(UGE_EFFECTS.PORTA_DOWN);
     expect(effect1).toEqual(UGE_EFFECTS.PORTA_DOWN);
@@ -339,29 +339,29 @@ describe("portamento overflow protection", () => {
     const pattern = makePattern();
 
     pattern[0][0].note = 37; // G#6
-    pattern[0][0].effectcode = UGE_EFFECTS.PORTA_UP;
-    pattern[0][0].effectparam = 0x0f;
+    pattern[0][0].effectCode = UGE_EFFECTS.PORTA_UP;
+    pattern[0][0].effectParam = 0x0f;
 
     pattern[1][0].note = null;
-    pattern[1][0].effectcode = UGE_EFFECTS.PORTA_UP;
-    pattern[1][0].effectparam = 0x0f;
+    pattern[1][0].effectCode = UGE_EFFECTS.PORTA_UP;
+    pattern[1][0].effectParam = 0x0f;
 
     pattern[2][0].note = null;
-    pattern[2][0].effectcode = UGE_EFFECTS.PORTA_UP;
-    pattern[2][0].effectparam = 0x0f;
+    pattern[2][0].effectCode = UGE_EFFECTS.PORTA_UP;
+    pattern[2][0].effectParam = 0x0f;
 
     song.patterns = [pattern];
     song.sequence = [0];
 
     applyPlaybackCorrections(song, true);
 
-    const effect0 = song.patterns[0][0][0].effectcode;
-    const effect1 = song.patterns[0][1][0].effectcode;
-    const effect2 = song.patterns[0][2][0].effectcode;
+    const effect0 = song.patterns[0][0][0].effectCode;
+    const effect1 = song.patterns[0][1][0].effectCode;
+    const effect2 = song.patterns[0][2][0].effectCode;
 
-    const param0 = song.patterns[0][0][0].effectparam;
-    const param1 = song.patterns[0][1][0].effectparam;
-    const param2 = song.patterns[0][2][0].effectparam;
+    const param0 = song.patterns[0][0][0].effectParam;
+    const param1 = song.patterns[0][1][0].effectParam;
+    const param2 = song.patterns[0][2][0].effectParam;
 
     expect(effect0).toEqual(UGE_EFFECTS.PORTA_UP);
     expect(effect1).toEqual(UGE_EFFECTS.PORTA_UP);
@@ -404,26 +404,26 @@ describe("mod2uge integration", () => {
     expect(out.patterns[3][0][0]).toEqual({
       note: 41,
       instrument: 0,
-      effectcode: 0x2,
-      effectparam: 0x7,
+      effectCode: 0x2,
+      effectParam: 0x7,
     });
     expect(out.patterns[3][1][0]).toEqual({
       note: null,
       instrument: null,
-      effectcode: 0x2,
-      effectparam: 0x7,
+      effectCode: 0x2,
+      effectParam: 0x7,
     });
     expect(out.patterns[3][2][0]).toEqual({
       note: null,
       instrument: null,
-      effectcode: 0x2,
-      effectparam: 0x7,
+      effectCode: 0x2,
+      effectParam: 0x7,
     });
     expect(out.patterns[3][3][0]).toEqual({
       note: null,
       instrument: null,
-      effectcode: 0x2,
-      effectparam: 0x7,
+      effectCode: 0x2,
+      effectParam: 0x7,
     });
   });
 });

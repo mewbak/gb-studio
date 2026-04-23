@@ -62,15 +62,15 @@ describe("renderEffect", () => {
     expect(renderEffect(null)).toBe(".");
   });
 
-  it("renders effectcode 0 as '0' (zero is not null)", () => {
+  it("renders effectCode 0 as '0' (zero is not null)", () => {
     expect(renderEffect(0)).toBe("0");
   });
 
-  it("renders effectcode 10 as 'A'", () => {
+  it("renders effectCode 10 as 'A'", () => {
     expect(renderEffect(10)).toBe("A");
   });
 
-  it("renders effectcode 15 as 'F'", () => {
+  it("renders effectCode 15 as 'F'", () => {
     expect(renderEffect(15)).toBe("F");
   });
 });
@@ -190,7 +190,7 @@ describe("renderPatternCell", () => {
   });
 
   it("renders a cell with all fields set", () => {
-    const cell = { note: 0, instrument: 0, effectcode: 10, effectparam: 255 };
+    const cell = { note: 0, instrument: 0, effectCode: 10, effectParam: 255 };
     const result = renderPatternCell(cell);
     expect(result.note).toBe("C-3");
     expect(result.instrument).toBe("01");

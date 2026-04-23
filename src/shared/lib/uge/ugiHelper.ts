@@ -44,8 +44,8 @@ export const saveUGIInstrument = (instrument: UGIInstrument): Buffer => {
       addUint32(cell?.note ?? 90);
       addUint32(0); // unused field (Instrument in TCellV2)
       addUint32(cell?.jump ?? 0);
-      addUint32(cell?.effectcode ?? 0);
-      addUint8(cell?.effectparam ?? 0);
+      addUint32(cell?.effectCode ?? 0);
+      addUint8(cell?.effectParam ?? 0);
     }
   };
 
@@ -175,14 +175,14 @@ export const loadUGIInstrument = (buffer: Buffer): UGIInstrument => {
     const note = readUint32();
     offset += 4; // skip unused Instrument field (TCellV2)
     const jump = readUint32();
-    const effectcode = readUint32();
-    const effectparam = readUint8();
+    const effectCode = readUint32();
+    const effectParam = readUint8();
 
     subpattern.push({
       note: note === 90 ? null : note,
       jump,
-      effectcode: effectcode === 0 && effectparam === 0 ? null : effectcode,
-      effectparam: effectcode === 0 && effectparam === 0 ? null : effectparam,
+      effectCode: effectCode === 0 && effectParam === 0 ? null : effectCode,
+      effectParam: effectCode === 0 && effectParam === 0 ? null : effectParam,
     });
   }
 

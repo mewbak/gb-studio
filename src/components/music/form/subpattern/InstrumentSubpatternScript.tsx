@@ -81,8 +81,8 @@ export const InstrumentSubpatternScript = ({
     selectedCell.note === null ? 0 : selectedCell.note - 36;
   const selectedFlowType = getSubpatternFlowType(selectedCell.jump, activeRow);
   const selectedEffectIsAdvancedOnly =
-    selectedCell.effectcode !== null &&
-    !isValidSubpatternEffectCode(selectedCell.effectcode);
+    selectedCell.effectCode !== null &&
+    !isValidSubpatternEffectCode(selectedCell.effectCode);
 
   const updateRow = useCallback(
     (rowIndex: number, changes: Partial<SubPatternCell>) => {
@@ -198,19 +198,19 @@ export const InstrumentSubpatternScript = ({
         return;
       }
       updateRow(selectedRow, {
-        effectcode: effectCode,
-        effectparam: effectCode === null ? null : effectParam,
+        effectCode: effectCode,
+        effectParam: effectCode === null ? null : effectParam,
       });
     },
     [selectedRow, updateRow],
   );
 
   const onChangeEffectParam = useCallback(
-    (effectparam: number | null) => {
+    (effectParam: number | null) => {
       if (selectedRow === null) {
         return;
       }
-      updateRow(selectedRow, { effectparam });
+      updateRow(selectedRow, { effectParam });
     },
     [selectedRow, updateRow],
   );
@@ -468,14 +468,14 @@ export const InstrumentSubpatternScript = ({
                           name="subpattern_effect"
                           disabledLabel={l10n("FIELD_ADD_EFFECT_OVERRIDE")}
                           label={l10n("FIELD_EFFECT_OVERRIDE")}
-                          enabled={selectedCell.effectparam !== null}
+                          enabled={selectedCell.effectParam !== null}
                         >
                           <EffectCodeSelect
                             name="subpattern_effect"
                             value={
                               selectedEffectIsAdvancedOnly
                                 ? undefined
-                                : selectedCell.effectcode
+                                : selectedCell.effectCode
                             }
                             allowedEffectCodes={[...validSubpatternEffectCodes]}
                             onChange={onChangeEffectCode}
@@ -486,10 +486,10 @@ export const InstrumentSubpatternScript = ({
                     </ScriptEventFields>
 
                     {!selectedEffectIsAdvancedOnly &&
-                      selectedCell.effectcode !== null && (
+                      selectedCell.effectCode !== null && (
                         <EffectParamsForm
-                          effectCode={selectedCell.effectcode}
-                          value={selectedCell.effectparam}
+                          effectCode={selectedCell.effectCode}
+                          value={selectedCell.effectParam}
                           note={selectedCell.note ?? undefined}
                           onChange={onChangeEffectParam}
                         />

@@ -86,7 +86,7 @@ export const PatternChannelNotes = React.memo(
             cell.instrument === null && instrument !== null;
 
           const left = rowIndex * PIANO_ROLL_CELL_SIZE;
-          const effect = cell.effectparam ?? 0;
+          const effect = cell.effectParam ?? 0;
 
           return (
             <React.Fragment key={`note_${rowIndex}_${channelId}`}>
@@ -108,7 +108,7 @@ export const PatternChannelNotes = React.memo(
                 ) : null}
               </StyledPianoRollNote>
 
-              {cell.effectcode === ARPEGGIO_CODE ? (
+              {cell.effectCode === ARPEGGIO_CODE ? (
                 <>
                   <StyledPianoRollNote
                     data-param={effect >> 4}

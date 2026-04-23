@@ -103,7 +103,7 @@ export const EffectParamsForm: FC<EffectParamsFormProps> = ({
           <FormRow>
             <SliderField
               label={l10n("FIELD_FIRST_NOTE_PLUS_SEMITONE")}
-              name="effectparamsX"
+              name="effectParamsX"
               value={effectParams.x}
               min={0}
               max={15}
@@ -115,7 +115,7 @@ export const EffectParamsForm: FC<EffectParamsFormProps> = ({
           <FormRow>
             <SliderField
               label={l10n("FIELD_SECOND_NOTE_PLUS_SEMITONE")}
-              name="effectparamsY"
+              name="effectParamsY"
               value={effectParams.y}
               min={0}
               max={15}
@@ -133,7 +133,7 @@ export const EffectParamsForm: FC<EffectParamsFormProps> = ({
         <FormRow>
           <SliderField
             label={l10n("FIELD_UNITS_PER_TICK")}
-            name="effectparam"
+            name="effectParam"
             value={effectParam}
             min={0}
             max={255}
@@ -162,7 +162,7 @@ export const EffectParamsForm: FC<EffectParamsFormProps> = ({
           <FormRow>
             <SliderField
               label={l10n("FIELD_UNITS_PER_TICK")}
-              name="effectparam"
+              name="effectParam"
               value={effectParam}
               min={0}
               max={255}
@@ -185,7 +185,7 @@ export const EffectParamsForm: FC<EffectParamsFormProps> = ({
         <>
           <FormRow>
             <SliderField
-              name="effectparamsY"
+              name="effectParamsY"
               value={effectParams.y}
               label={l10n("FIELD_DEPTH")}
               min={0}
@@ -196,9 +196,9 @@ export const EffectParamsForm: FC<EffectParamsFormProps> = ({
             />
           </FormRow>
           <FormRow>
-            <FormField name="effectparam" label={l10n("FIELD_WAVEFORM")}>
+            <FormField name="effectParam" label={l10n("FIELD_WAVEFORM")}>
               <Select
-                name="effectparam"
+                name="effectParam"
                 value={selectedWaveform}
                 options={waveformOptions}
                 onChange={(selected: SingleValue<SelectOption>) => {
@@ -224,7 +224,7 @@ export const EffectParamsForm: FC<EffectParamsFormProps> = ({
         <>
           <FormRow>
             <SliderField
-              name="effectparamsX"
+              name="effectParamsX"
               value={effectParams.x}
               label={l10n("FIELD_LEFT_SPEAKER")}
               min={0}
@@ -236,7 +236,7 @@ export const EffectParamsForm: FC<EffectParamsFormProps> = ({
           </FormRow>
           <FormRow>
             <SliderField
-              name="effectparamsY"
+              name="effectParamsY"
               value={effectParams.y}
               label={l10n("FIELD_RIGHT_SPEAKER")}
               min={0}
@@ -257,9 +257,9 @@ export const EffectParamsForm: FC<EffectParamsFormProps> = ({
 
       return (
         <FormRow>
-          <FormField name="effectparam" label={l10n("FIELD_ROUTINE")}>
+          <FormField name="effectParam" label={l10n("FIELD_ROUTINE")}>
             <Select
-              name="effectparam"
+              name="effectParam"
               value={selectedRoutine}
               options={routineOptions}
               onChange={(selected: SingleValue<SelectOption>) => {
@@ -278,7 +278,7 @@ export const EffectParamsForm: FC<EffectParamsFormProps> = ({
         <FormRow>
           <SliderField
             label={l10n("FIELD_TICKS")}
-            name="effectparam"
+            name="effectParam"
             value={effectParam}
             min={0}
             max={20}
@@ -384,9 +384,9 @@ export const EffectParamsForm: FC<EffectParamsFormProps> = ({
       // Set Duty Cycle
       return (
         <FormRow>
-          <FormField name="effectparam" label={l10n("FIELD_DUTY_CYCLE")}>
+          <FormField name="effectParam" label={l10n("FIELD_DUTY_CYCLE")}>
             <DutyCycleSelect
-              name={"effectparam"}
+              name={"effectParam"}
               value={effectParam}
               onChange={onChangeFullValue}
               isEffectParam
@@ -402,7 +402,7 @@ export const EffectParamsForm: FC<EffectParamsFormProps> = ({
           <FormRow>
             <SliderField
               label={l10n("FIELD_VOLUME_UP")}
-              name="effectparamsX"
+              name="effectParamsX"
               value={effectParams.x}
               min={0}
               max={15}
@@ -414,7 +414,7 @@ export const EffectParamsForm: FC<EffectParamsFormProps> = ({
           <FormRow>
             <SliderField
               label={l10n("FIELD_VOLUME_DOWN")}
-              name="effectparamsY"
+              name="effectParamsY"
               value={effectParams.y}
               min={0}
               max={15}
@@ -465,7 +465,7 @@ export const EffectParamsForm: FC<EffectParamsFormProps> = ({
         <>
           <FormRow>
             <SliderField
-              name="effectparamsY"
+              name="effectParamsY"
               label={l10n("FIELD_VOLUME")}
               value={effectParams.y}
               min={0}
@@ -488,7 +488,7 @@ export const EffectParamsForm: FC<EffectParamsFormProps> = ({
           <FormRow>
             {effectParams.x !== 0 ? (
               <SliderField
-                name="effectparamsX"
+                name="effectParamsX"
                 value={effectParams.x - 8}
                 min={-7}
                 max={7}
@@ -534,7 +534,7 @@ export const EffectParamsForm: FC<EffectParamsFormProps> = ({
       return (
         <FormRow>
           <SliderField
-            name="effectparam"
+            name="effectParam"
             label={l10n("FIELD_TICKS")}
             value={effectParam}
             min={0}
@@ -550,7 +550,7 @@ export const EffectParamsForm: FC<EffectParamsFormProps> = ({
       return (
         <FormRow>
           <SliderField
-            name="effectparam"
+            name="effectParam"
             label={l10n("FIELD_TICKS_PER_ROW")}
             value={effectParam}
             min={1}

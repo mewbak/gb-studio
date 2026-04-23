@@ -25,8 +25,8 @@ export const createPatternCell = (): PatternCell => {
   return {
     note: null,
     instrument: null,
-    effectcode: null,
-    effectparam: null,
+    effectCode: null,
+    effectParam: null,
   };
 };
 
@@ -35,8 +35,8 @@ export const createSubPatternCell = (): SubPatternCell => {
   return {
     note: null,
     jump: null,
-    effectcode: null,
-    effectparam: null,
+    effectCode: null,
+    effectParam: null,
   };
 };
 
