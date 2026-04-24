@@ -65,6 +65,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix issue in song navigator where keyboard navigation could stop working
 - Fix BPM label calculation in Music Editor
 - Fix issue where Select All could stop working in Tracker view
+- Fix issue where multiple context menus could be opened at once
 
 ## [4.2.2] - 2026-02-24
 

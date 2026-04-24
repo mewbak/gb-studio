@@ -1,5 +1,18 @@
-import React, { JSX, ReactNode, useCallback, useMemo, useState } from "react";
+import React, {
+  JSX,
+  ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { ContextMenu } from "ui/menu/ContextMenu";
+
+const CLOSE_CONTEXT_MENUS_EVENT = "close-context-menus";
+
+const closeAllContextMenus = () => {
+  window.dispatchEvent(new Event(CLOSE_CONTEXT_MENUS_EVENT));
+};
 
 interface ContextMenuState {
   x: number;
@@ -31,24 +44,28 @@ export const useContextMenu = ({
     setContextMenu(null);
   }, []);
 
+  useEffect(() => {
+    window.addEventListener(CLOSE_CONTEXT_MENUS_EVENT, closeMenu);
+    return () => {
+      window.removeEventListener(CLOSE_CONTEXT_MENUS_EVENT, closeMenu);
+    };
+  }, [closeMenu]);
+
   const onContextMenu = useCallback(
     (e: React.MouseEvent) => {
-      if (!enabled) {
+      if (!enabled || (getIsEnabled !== undefined && !getIsEnabled(e))) {
         return;
-      }
-      if (getIsEnabled !== undefined) {
-        if (!getIsEnabled(e)) {
-          return;
-        }
       }
 
       const menu = getMenu({ closeMenu });
 
-      if (!menu || menu.length === 0) {
+      if (menu.length === 0) {
         return;
       }
 
       e.preventDefault();
+
+      closeAllContextMenus();
 
       setContextMenu({
         x: e.pageX,
