@@ -47,10 +47,16 @@ export const SortableList = <T,>({
 }: SortableListProps<T>) => {
   const [hasFocus, setHasFocus] = useState(false);
   const [dragging, setDragging] = useState(false);
+  const listRef = useRef<HTMLDivElement>(null);
 
   const handleKeys = useCallback(
     (e: KeyboardEvent) => {
-      if (!hasFocus) {
+      const activeElement = document.activeElement;
+      const ownsFocus =
+        activeElement instanceof HTMLElement &&
+        !!listRef.current?.contains(activeElement);
+
+      if (!hasFocus || !ownsFocus) {
         return;
       }
       if (onKeyDown?.(e)) {
@@ -111,6 +117,7 @@ export const SortableList = <T,>({
 
   return (
     <StyledSortableList
+      ref={listRef}
       tabIndex={0}
       onFocus={() => setHasFocus(true)}
       onBlur={() => setHasFocus(false)}
