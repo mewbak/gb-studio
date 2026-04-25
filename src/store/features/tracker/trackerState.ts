@@ -459,6 +459,17 @@ const trackerSlice = createSlice({
           applyTrackerGridToSequenceStart(state, state.selectedSequence);
         }
       })
+      .addCase(
+        trackerDocumentActions.duplicateSequencePattern,
+        (state, action) => {
+          const offset = action.payload.position === "after" ? 1 : 0;
+          state.selectedSequence = action.payload.sequenceIndex + offset;
+          state.loopSequenceId = undefined;
+          if (!state.playing) {
+            applyTrackerGridToSequenceStart(state, state.selectedSequence);
+          }
+        },
+      )
       .addCase(trackerDocumentActions.removeSequence, (state) => {
         state.loopSequenceId = undefined;
       })

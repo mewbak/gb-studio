@@ -11,6 +11,7 @@ import {
   DutyInstrument,
   NoiseInstrument,
   WaveInstrument,
+  SequenceItem,
 } from "shared/lib/uge/types";
 import { RootState } from "store/storeTypes";
 import API from "renderer/lib/api";
@@ -1075,8 +1076,8 @@ const trackerSlice = createSlice({
 
       const { sequenceIndex, position, patternId } = action.payload;
 
-        let newSequenceItem =
-          patternId !== undefined ? createSequenceItem(patternId) : undefined;
+      let newSequenceItem =
+        patternId !== undefined ? createSequenceItem(patternId) : undefined;
 
       if (patternId === undefined) {
         const newPatterns = [...state.song.patterns];
@@ -1104,6 +1105,38 @@ const trackerSlice = createSlice({
       const insertAt = Math.max(0, Math.min(rawInsertAt, newSequence.length));
 
       newSequence.splice(insertAt, 0, newSequenceItem);
+
+      state.song.sequence = newSequence;
+    },
+    duplicateSequencePattern: (
+      state,
+      action: PayloadAction<{
+        sequenceIndex: number;
+        position: "before" | "after";
+      }>,
+    ) => {
+      if (!state.song) {
+        return;
+      }
+      const { sequenceIndex, position } = action.payload;
+      const existingSequenceItem = state.song.sequence[sequenceIndex];
+
+      if (!existingSequenceItem) {
+        return;
+      }
+      const duplicatedSequenceItem: SequenceItem = {
+        ...existingSequenceItem,
+        channels: [...existingSequenceItem.channels],
+      };
+
+      const newSequence = [...state.song.sequence];
+
+      const rawInsertAt =
+        position === "before" ? sequenceIndex : sequenceIndex + 1;
+
+      const insertAt = Math.max(0, Math.min(rawInsertAt, newSequence.length));
+
+      newSequence.splice(insertAt, 0, duplicatedSequenceItem);
 
       state.song.sequence = newSequence;
     },

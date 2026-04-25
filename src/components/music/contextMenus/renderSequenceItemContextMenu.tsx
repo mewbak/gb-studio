@@ -276,6 +276,21 @@ const renderSequenceItemMenu = ({
     >
       {l10n("FIELD_INSERT_PATTERN_AFTER")}
     </MenuItem>,
+    <MenuDivider key="div-duplicate" />,
+    <MenuItem
+      key="duplicate"
+      icon={<BlankIcon />}
+      onClick={() => {
+        dispatch(
+          trackerDocumentActions.duplicateSequencePattern({
+            sequenceIndex: orderIndex,
+            position: "after",
+          }),
+        );
+      }}
+    >
+      {l10n("FIELD_DUPLICATE_PATTERN")}
+    </MenuItem>,
     <MenuItem
       key="clone"
       icon={<BlankIcon />}

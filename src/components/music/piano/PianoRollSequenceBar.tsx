@@ -24,7 +24,7 @@ import {
 import API from "renderer/lib/api";
 import l10n from "shared/lib/lang/l10n";
 import { useContextMenu } from "ui/hooks/use-context-menu";
-import renderPatternContextMenu from "components/music/contextMenus/renderPatternContextMenu";
+import renderSequenceItemContextMenu from "components/music/contextMenus/renderSequenceItemContextMenu";
 import { DropdownButton } from "ui/buttons/DropdownButton";
 import {
   fromAbsRow,
@@ -35,18 +35,19 @@ import {
   patternGradient,
   patternIndexLabel,
 } from "shared/lib/uge/display";
+import { SequenceItem } from "shared/lib/uge/types";
 
 interface PianoRollSequenceBarProps {
   children?: React.ReactNode;
 }
 
 interface PianoRollSequenceBarPatternProps {
+  sequenceItem: SequenceItem;
   patternIndex: number;
   orderIndex: number;
   orderLength: number;
   numPatterns: number;
-  splitPattern: boolean;
-  channelId: 0 | 1 | 2 | 3;
+  globalSplitPattern: boolean;
   loopSequenceId: number | undefined;
 }
 
@@ -59,34 +60,32 @@ const PianoRollSequenceBarPattern = memo(
     orderLength,
     numPatterns,
     loopSequenceId,
-    splitPattern,
-    channelId,
+    sequenceItem,
+    globalSplitPattern,
   }: PianoRollSequenceBarPatternProps) => {
     const dispatch = useAppDispatch();
 
     const getContextMenu = useCallback(
       (onClose?: () => void) => {
-        return renderPatternContextMenu({
+        return renderSequenceItemContextMenu({
           dispatch,
-          patternIndex,
+          sequenceItem,
           orderIndex,
           orderLength,
           numPatterns,
+          globalSplitPattern,
           loopSequenceId,
-          splitPattern,
-          channelId,
           onClose,
         });
       },
       [
         dispatch,
-        patternIndex,
+        sequenceItem,
         orderIndex,
         orderLength,
         numPatterns,
+        globalSplitPattern,
         loopSequenceId,
-        splitPattern,
-        channelId,
       ],
     );
 
@@ -100,6 +99,7 @@ const PianoRollSequenceBarPattern = memo(
       loopSequenceId !== undefined && loopSequenceId !== orderIndex;
 
     const patternId = patternBlockIndex(patternIndex);
+    const splitPattern = globalSplitPattern || sequenceItem.splitPattern;
 
     return (
       <StyledPianoRollSequenceHeaderPattern
@@ -242,12 +242,12 @@ export const PianoRollSequenceBar = memo(
               ))}
             </StyledPianoRollSequenceHeaderOrder>
             <PianoRollSequenceBarPattern
+              sequenceItem={sequenceItem}
               orderIndex={i}
               patternIndex={sequenceItem.channels[selectedChannel]}
               orderLength={sequenceLength}
               numPatterns={numPatterns}
-              splitPattern={globalSplitPattern || sequenceItem.splitPattern}
-              channelId={selectedChannel}
+              globalSplitPattern={globalSplitPattern}
               loopSequenceId={loopSequenceId}
             />
           </StyledPianoRollSequenceHeader>

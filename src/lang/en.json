@@ -1410,6 +1410,7 @@
   "FIELD_CLONE_PATTERN": "Clone Pattern",
   "FIELD_LOOP_PATTERN": "Loop Pattern",
   "FIELD_SPLIT_PATTERN": "Split Pattern",
+  "FIELD_DUPLICATE_PATTERN": "Duplicate Pattern",
 
   "// 7": "Asset Viewer ---------------------------------------------",
   "ASSET_SEARCH": "Search...",
