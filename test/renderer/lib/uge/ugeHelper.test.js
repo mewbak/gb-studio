@@ -11,7 +11,7 @@ test("should convert noise macro from uge 5 files into uge 6 subpattern", async 
   const song = loadUGESong(data);
 
   expect(song.version).toBe(6);
-  expect(song.noiseInstruments[11].subpattern_enabled).toBe(true);
+  expect(song.noiseInstruments[11].subpatternEnabled).toBe(true);
   expect(song.noiseInstruments[11].subpattern).toEqual(
     SUBPATTERN_FROM_NOISE_MACRO_EXAMPLE,
   );

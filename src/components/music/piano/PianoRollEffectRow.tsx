@@ -68,25 +68,25 @@ export const PianoRollEffectRow = React.memo(
       );
     }, [channelId, selectedPatternCells, sequenceId]);
 
-    const renderPattern = useAppSelector(
+    const pattern = useAppSelector(
       (state) => state.trackerDocument.present.song?.patterns[patternId],
     );
 
     const handleMouseDown = useCallback(
       (e: React.MouseEvent<HTMLDivElement>) => {
-        if (!renderPattern) return;
+        if (!pattern) return;
 
         const state = store.getState();
         const songDocument = state.trackerDocument.present.song;
 
         const col = Math.floor(e.nativeEvent.offsetX / PIANO_ROLL_CELL_SIZE);
-        const cell = renderPattern[col]?.[channelId] as PatternCell | undefined;
+        const cell = pattern[col];
 
         const lastCell =
           selectedEffectCell !== null
-            ? (songDocument?.patterns[selectedEffectCell.patternId]?.[
+            ? songDocument?.patterns[selectedEffectCell.patternId]?.[
                 selectedEffectCell.rowId
-              ]?.[selectedEffectCell.channelId] as PatternCell | undefined)
+              ]
             : undefined;
 
         if (e.button === 0 && tool !== "eraser") {
@@ -97,7 +97,7 @@ export const PianoRollEffectRow = React.memo(
               dispatch(
                 trackerDocumentActions.editPatternCell({
                   patternId,
-                  cell: [col, channelId],
+                  rowId: col,
                   changes,
                 }),
               );
@@ -125,7 +125,7 @@ export const PianoRollEffectRow = React.memo(
             dispatch(
               trackerDocumentActions.editPatternCell({
                 patternId,
-                cell: [col, channelId],
+                rowId: col,
                 changes: clearEffect(),
               }),
             );
@@ -133,7 +133,7 @@ export const PianoRollEffectRow = React.memo(
         }
       },
       [
-        renderPattern,
+        pattern,
         store,
         channelId,
         selectedEffectCell,
@@ -148,9 +148,7 @@ export const PianoRollEffectRow = React.memo(
       <StyledPianoRollEffectRow
         onMouseDown={!playing ? handleMouseDown : undefined}
       >
-        {renderPattern?.map((column: PatternCell[], columnIdx: number) => {
-          const cell = column[channelId];
-
+        {pattern?.map((cell, columnIdx: number) => {
           const isSelected = selectedRowIds.has(columnIdx);
 
           if (!cell || cell.effectCode === null) {

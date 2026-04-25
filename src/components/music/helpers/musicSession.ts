@@ -4,7 +4,11 @@ import type {
 } from "shared/lib/music/types";
 import player, { PlaybackPosition } from "./player";
 import { Song } from "shared/lib/uge/types";
-import { createPattern, createSong } from "shared/lib/uge/song";
+import {
+  createSequenceItem,
+  createPattern,
+  createSong,
+} from "shared/lib/uge/song";
 
 type MusicSessionListener = (data: MusicDataReceivePacket) => void;
 
@@ -112,20 +116,28 @@ const createMusicSession = (): MusicSession => {
           break;
         }
         const previewSong: Song = createSong();
-        const previewPattern = createPattern();
-        previewSong.patterns = [previewPattern];
-        previewSong.sequence = [0];
+        previewSong.patterns = [
+          createPattern(),
+          createPattern(),
+          createPattern(),
+          createPattern(),
+        ];
+        previewSong.sequence = [createSequenceItem(0)];
         if (data.type === "duty") {
-          previewPattern[0][data.channel].note = data.note;
-          previewPattern[0][data.channel].instrument = 0;
-          previewPattern[0][data.channel].effectCode = data.effectCode;
-          previewPattern[0][data.channel].effectParam = data.effectParam;
+          const pattern = previewSong.patterns[data.channel];
+          const row = pattern[0];
+          row.note = data.note;
+          row.instrument = 0;
+          row.effectCode = data.effectCode;
+          row.effectParam = data.effectParam;
           previewSong.dutyInstruments = [data.instrument];
         } else if (data.type === "wave") {
-          previewPattern[0][2].note = data.note;
-          previewPattern[0][2].instrument = 0;
-          previewPattern[0][2].effectCode = data.effectCode;
-          previewPattern[0][2].effectParam = data.effectParam;
+          const pattern = previewSong.patterns[2];
+          const row = pattern[0];
+          row.note = data.note;
+          row.instrument = 0;
+          row.effectCode = data.effectCode;
+          row.effectParam = data.effectParam;
           previewSong.waveInstruments = [
             {
               ...data.instrument,
@@ -134,10 +146,12 @@ const createMusicSession = (): MusicSession => {
           ];
           previewSong.waves = [data.waveForm];
         } else if (data.type === "noise") {
-          previewPattern[0][3].note = data.note;
-          previewPattern[0][3].instrument = 0;
-          previewPattern[0][3].effectCode = data.effectCode;
-          previewPattern[0][3].effectParam = data.effectParam;
+          const pattern = previewSong.patterns[3];
+          const row = pattern[0];
+          row.note = data.note;
+          row.instrument = 0;
+          row.effectCode = data.effectCode;
+          row.effectParam = data.effectParam;
           previewSong.noiseInstruments = [data.instrument];
         }
         player.playPreview(previewSong, 500);

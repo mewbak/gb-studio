@@ -85,15 +85,16 @@ export const DragPreviewNotes = React.memo(
 
       return selectedPatternCells
         .map((sourceCellAddress) => {
-          const sourcePatternId = sequence[sourceCellAddress.sequenceId];
+          const sourcePatternId =
+            sequence[sourceCellAddress.sequenceId]?.channels[
+              sourceCellAddress.channelId
+            ];
           if (sourcePatternId === undefined) {
             return null;
           }
 
           const sourceCell =
-            patterns[sourcePatternId]?.[sourceCellAddress.rowId]?.[
-              sourceCellAddress.channelId
-            ];
+            patterns[sourcePatternId]?.[sourceCellAddress.rowId];
 
           if (!sourceCell || sourceCell.note === null) {
             return null;

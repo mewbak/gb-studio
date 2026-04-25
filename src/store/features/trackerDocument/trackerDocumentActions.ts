@@ -21,7 +21,8 @@ import type { PatternCellAddress } from "shared/lib/uge/editor/types";
 import type { PatternCell } from "shared/lib/uge/types";
 import { RootState, AppThunk } from "store/storeTypes";
 import {
-  fromAbsRow,
+  buildSequencePattern,
+  getSequenceChannelCell,
   toAbsRow,
   resolveAbsRow,
 } from "store/features/trackerDocument/trackerDocumentHelpers";
@@ -76,8 +77,8 @@ const copyAbsoluteCells =
       return;
     }
 
-    const flatPattern = song.sequence.flatMap(
-      (patternId) => song.patterns[patternId],
+    const flatPattern = song.sequence.flatMap((_, sequenceId) =>
+      buildSequencePattern(song, sequenceId),
     );
     const originAbsRow = Math.min(...absRows);
 
@@ -120,8 +121,8 @@ const cutAbsoluteCells =
       return;
     }
 
-    const flatPattern = song.sequence.flatMap(
-      (patternId) => song.patterns[patternId],
+    const flatPattern = song.sequence.flatMap((_, sequenceId) =>
+      buildSequencePattern(song, sequenceId),
     );
     const originAbsRow = Math.min(...absRows);
 
@@ -182,21 +183,20 @@ const pasteInPlace =
         break;
       }
 
-      const { sequenceId, rowId } = fromAbsRow(absRow);
-      const patternId = song.sequence[sequenceId];
+      const resolved = resolveAbsRow(song.sequence, absRow, args.channelId);
 
-      if (patternId === undefined) {
+      if (!resolved) {
         continue;
       }
 
-      const existing = song.patterns?.[patternId]?.[rowId]?.[args.channelId];
+      const existing = song.patterns?.[resolved.patternId]?.[resolved.rowId];
       if (!existing) {
         continue;
       }
 
       changes.push({
-        patternId,
-        rowId,
+        patternId: resolved.patternId,
+        rowId: resolved.rowId,
         channelId: args.channelId,
         changes: {
           note: cell.note,
@@ -222,7 +222,7 @@ const pasteInPlace =
   };
 
 const copyTrackerFields =
-  (args: { patternId: number; selectedTrackerFields: number[] }): AppThunk =>
+  (args: { sequenceId: number; selectedTrackerFields: number[] }): AppThunk =>
   (_dispatch, getState) => {
     const state = getState();
     const song = selectTrackerDocumentSong(state);
@@ -231,9 +231,9 @@ const copyTrackerFields =
       return;
     }
 
-    const { patternId, selectedTrackerFields } = args;
+    const { sequenceId, selectedTrackerFields } = args;
 
-    const pattern = song.patterns[patternId];
+    const pattern = buildSequencePattern(song, sequenceId);
     if (!pattern || selectedTrackerFields.length === 0) {
       return;
     }
@@ -247,7 +247,7 @@ const copyTrackerFields =
   };
 
 const cutTrackerFields =
-  (args: { patternId: number; selectedTrackerFields: number[] }): AppThunk =>
+  (args: { sequenceId: number; selectedTrackerFields: number[] }): AppThunk =>
   (dispatch, getState) => {
     const state = getState();
     const song = selectTrackerDocumentSong(state);
@@ -256,9 +256,9 @@ const cutTrackerFields =
       return;
     }
 
-    const { patternId, selectedTrackerFields } = args;
+    const { sequenceId, selectedTrackerFields } = args;
 
-    const pattern = song.patterns[patternId];
+    const pattern = buildSequencePattern(song, sequenceId);
     if (!pattern || selectedTrackerFields.length === 0) {
       return;
     }
@@ -272,14 +272,14 @@ const cutTrackerFields =
 
     dispatch(
       actions.clearTrackerFields({
-        patternId,
+        sequenceId,
         selectedTrackerFields,
       }),
     );
   };
 
 const pasteTrackerFields =
-  (args: { patternId: number; startField: number }): AppThunk<Promise<void>> =>
+  (args: { sequenceId: number; startField: number }): AppThunk<Promise<void>> =>
   async (dispatch, getState) => {
     const state = getState();
     const song = selectTrackerDocumentSong(state);
@@ -288,8 +288,8 @@ const pasteTrackerFields =
       return;
     }
 
-    const { patternId, startField } = args;
-    const pattern = song.patterns[patternId];
+    const { sequenceId, startField } = args;
+    const pattern = buildSequencePattern(song, sequenceId);
 
     if (!pattern) {
       return;
@@ -360,8 +360,13 @@ const pasteTrackerFields =
           continue;
         }
 
+        const targetPatternId = song.sequence[sequenceId]?.channels[channelId];
+        if (targetPatternId === undefined) {
+          continue;
+        }
+
         changes.push({
-          patternId,
+          patternId: targetPatternId,
           rowId,
           channelId,
           changes: cellChanges,
@@ -415,15 +420,17 @@ const moveAbsoluteCells =
     >();
 
     for (const sourceAddress of patternCells) {
-      const patternId = song.sequence[sourceAddress.sequenceId];
-      if (patternId === undefined) {
+      const resolved = getSequenceChannelCell(
+        song,
+        sourceAddress.sequenceId,
+        sourceAddress.channelId,
+        sourceAddress.rowId,
+      );
+      if (!resolved) {
         continue;
       }
 
-      const cell =
-        song.patterns?.[patternId]?.[sourceAddress.rowId]?.[
-          sourceAddress.channelId
-        ];
+      const { patternId, cell } = resolved;
 
       if (!cell || cell.note === null) {
         continue;
@@ -488,7 +495,11 @@ const moveAbsoluteCells =
         continue;
       }
 
-      const targetResolved = resolveAbsRow(song.sequence, targetAbsRow);
+      const targetResolved = resolveAbsRow(
+        song.sequence,
+        targetAbsRow,
+        source.channelId,
+      );
       if (!targetResolved) {
         continue;
       }
@@ -516,7 +527,11 @@ const moveAbsoluteCells =
           return null;
         }
 
-        const resolved = resolveAbsRow(song.sequence, targetAbsRow);
+        const resolved = resolveAbsRow(
+          song.sequence,
+          targetAbsRow,
+          source.channelId,
+        );
         if (!resolved) {
           return null;
         }
@@ -595,13 +610,12 @@ const commitPastedAbsoluteCells =
         continue;
       }
 
-      const resolved = resolveAbsRow(song.sequence, targetAbsRow);
+      const resolved = resolveAbsRow(song.sequence, targetAbsRow, channelId);
       if (!resolved) {
         continue;
       }
 
-      const existing =
-        song.patterns?.[resolved.patternId]?.[resolved.rowId]?.[channelId];
+      const existing = song.patterns?.[resolved.patternId]?.[resolved.rowId];
       if (!existing) {
         continue;
       }
@@ -646,7 +660,11 @@ const paintAbsoluteCells =
     const seen = new Set<string>();
 
     for (const paintCell of cells) {
-      const resolved = resolveAbsRow(song.sequence, paintCell.absRow);
+      const resolved = resolveAbsRow(
+        song.sequence,
+        paintCell.absRow,
+        channelId,
+      );
       if (!resolved) {
         continue;
       }
@@ -657,8 +675,7 @@ const paintAbsoluteCells =
       }
       seen.add(key);
 
-      const existing =
-        song.patterns?.[resolved.patternId]?.[resolved.rowId]?.[channelId];
+      const existing = song.patterns?.[resolved.patternId]?.[resolved.rowId];
 
       if (!existing) {
         continue;
@@ -710,7 +727,11 @@ const eraseAbsoluteCells =
     const seen = new Set<string>();
 
     for (const eraseCell of cells) {
-      const resolved = resolveAbsRow(song.sequence, eraseCell.absRow);
+      const resolved = resolveAbsRow(
+        song.sequence,
+        eraseCell.absRow,
+        channelId,
+      );
       if (!resolved) {
         continue;
       }
@@ -721,8 +742,7 @@ const eraseAbsoluteCells =
       }
       seen.add(key);
 
-      const existing =
-        song.patterns?.[resolved.patternId]?.[resolved.rowId]?.[channelId];
+      const existing = song.patterns?.[resolved.patternId]?.[resolved.rowId];
 
       if (!existing) {
         continue;

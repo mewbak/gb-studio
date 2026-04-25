@@ -1,6 +1,12 @@
-import { TRACKER_PATTERN_LENGTH, TRACKER_SUBPATTERN_LENGTH } from "consts";
+import {
+  TRACKER_NUM_CHANNELS,
+  TRACKER_PATTERN_LENGTH,
+  TRACKER_SUBPATTERN_LENGTH,
+} from "consts";
 import {
   Song,
+  Pattern,
+  SequenceItem,
   PatternCell,
   SubPatternCell,
   DutyInstrument,
@@ -10,16 +16,6 @@ import {
 
 const LAST_VERSION = 6;
 
-/** Creates a new empty pattern with `TRACKER_PATTERN_LENGTH` rows, each with 4 empty cells. */
-export const createPattern = (): PatternCell[][] => {
-  return Array.from({ length: TRACKER_PATTERN_LENGTH }).map(() => [
-    createPatternCell(),
-    createPatternCell(),
-    createPatternCell(),
-    createPatternCell(),
-  ]);
-};
-
 /** Creates a new empty PatternCell with all fields set to null. */
 export const createPatternCell = (): PatternCell => {
   return {
@@ -27,6 +23,28 @@ export const createPatternCell = (): PatternCell => {
     instrument: null,
     effectCode: null,
     effectParam: null,
+  };
+};
+
+/** Creates a new empty Pattern with `TRACKER_PATTERN_LENGTH` rows. */
+export const createPattern = (): Pattern => {
+  return Array.from(
+    { length: TRACKER_PATTERN_LENGTH },
+    createPatternCell,
+  ) as Pattern;
+};
+
+/** Maps a linked UI pattern index to four per-channel pattern indices. */
+export const createSequenceItem = (patternId: number): SequenceItem => {
+  const basePatternId = patternId * TRACKER_NUM_CHANNELS;
+  return {
+    splitPattern: false,
+    channels: [
+      basePatternId,
+      basePatternId + 1,
+      basePatternId + 2,
+      basePatternId + 3,
+    ],
   };
 };
 

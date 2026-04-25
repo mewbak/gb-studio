@@ -7,6 +7,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+import styled from "styled-components";
 import { renderEffect, renderEffectParam } from "shared/lib/uge/display";
 import {
   NO_CHANGE_ON_PASTE,
@@ -23,14 +24,17 @@ import { useAppDispatch, useAppSelector } from "store/hooks";
 import { createSubPatternCell } from "shared/lib/uge/song";
 import { TRACKER_SUBPATTERN_VISIBLE_LENGTH } from "components/music/form/subpattern/helpers";
 import {
-  StyledTrackerCell,
-  StyledTrackerContentTable,
   StyledTrackerEffectCodeField,
   StyledTrackerEffectParamField,
   StyledTrackerJumpField,
   StyledTrackerNoteField,
-  StyledTrackerRow,
-  StyledTrackerTableBody,
+  StyledTrackerPattern,
+  StyledTrackerPatternBody,
+  StyledTrackerPatternChannel,
+  StyledTrackerPatternChannelRow,
+  StyledTrackerPatternRowIndexCell,
+  StyledTrackerPatternRowIndexColumn,
+  StyledTrackerRowIndexField,
 } from "components/music/tracker/style";
 import {
   TrackerKeyboard,
@@ -47,6 +51,25 @@ const EMPTY_JUMP_DISPLAY = "...";
 const EMPTY_COUNTER_DISPLAY = "__";
 const OFFSET_MIN = 0;
 const OFFSET_MAX = 71;
+const SUBPATTERN_TRACKER_WIDTH = 220;
+const SUBPATTERN_CHANNEL_WIDTH = SUBPATTERN_TRACKER_WIDTH - 56;
+
+const StyledSubpatternTrackerPattern = styled(StyledTrackerPattern)`
+  min-width: ${SUBPATTERN_TRACKER_WIDTH}px;
+  width: 100%;
+`;
+
+const StyledSubpatternTrackerChannel = styled(StyledTrackerPatternChannel)`
+  flex: 1 0 ${SUBPATTERN_CHANNEL_WIDTH}px;
+  min-width: ${SUBPATTERN_CHANNEL_WIDTH}px;
+`;
+
+const StyledSubpatternTrackerRow = styled(StyledTrackerPatternChannelRow)`
+  justify-content: flex-start;
+  padding: 0 5px;
+  scroll-margin-top: 110px;
+  scroll-margin-bottom: 320px;
+`;
 
 const getRowIndexFromField = (field: number) => Math.floor(field / ROW_SIZE);
 const getColumnIndexFromField = (field: number) => field % ROW_SIZE;
@@ -178,7 +201,7 @@ export const InstrumentSubpatternTracker = ({
   const [activeField, setActiveField] = useState<number | undefined>();
   const [isMouseDown, setIsMouseDown] = useState(false);
 
-  const tableRef = useRef<HTMLTableElement | null>(null);
+  const tableRef = useRef<HTMLDivElement | null>(null);
   const activeFieldRef = useRef<HTMLSpanElement | null>(null);
   const offsetSignRef = useRef<1 | -1>(1);
   const offsetZeroSignOverrideRef = useRef<1 | -1 | null>(null);
@@ -660,7 +683,7 @@ export const InstrumentSubpatternTracker = ({
   });
 
   const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLTableElement>) => {
+    (e: React.KeyboardEvent<HTMLDivElement>) => {
       if (e.key === "Escape") {
         e.preventDefault();
         clearSelection();
@@ -770,7 +793,7 @@ export const InstrumentSubpatternTracker = ({
   );
 
   const handleMouseDown = useCallback(
-    (e: React.MouseEvent<HTMLTableElement>) => {
+    (e: React.MouseEvent<HTMLDivElement>) => {
       const fieldId = getEventFieldId(e.target);
 
       if (fieldId === undefined) {
@@ -795,8 +818,15 @@ export const InstrumentSubpatternTracker = ({
       }
 
       setActiveField(fieldId);
+      focusTable();
     },
-    [activeField, clearSelection, selectionOrigin, setSingleFieldSelection],
+    [
+      activeField,
+      clearSelection,
+      focusTable,
+      selectionOrigin,
+      setSingleFieldSelection,
+    ],
   );
 
   const handleWindowMouseMove = useCallback(
@@ -835,7 +865,7 @@ export const InstrumentSubpatternTracker = ({
     };
   }, [handleWindowMouseMove, handleWindowMouseUp, isMouseDown]);
 
-  const handleWheel = useCallback((e: React.WheelEvent<HTMLTableElement>) => {
+  const handleWheel = useCallback((e: React.WheelEvent<HTMLDivElement>) => {
     if (!e.ctrlKey) {
       return;
     }
@@ -1099,30 +1129,44 @@ export const InstrumentSubpatternTracker = ({
 
   return (
     <>
-      <StyledTrackerContentTable
-        ref={tableRef}
-        $type="subpattern"
-        tabIndex={0}
-        onFocus={onFocus}
-        onBlur={onBlur}
-        onKeyDown={handleKeyDown}
-        onMouseDown={handleMouseDown}
-        onWheel={handleWheel}
-      >
-        <StyledTrackerTableBody>
-          {subpattern.slice(0, visibleRowCount).map((row, rowIndex) => {
-            const isStepMarker = rowIndex % 8 === 0;
-            const fieldCount = rowIndex * ROW_SIZE;
+      <StyledSubpatternTrackerPattern>
+        <StyledTrackerPatternBody
+          ref={tableRef}
+          tabIndex={0}
+          onFocus={onFocus}
+          onBlur={onBlur}
+          onKeyDown={handleKeyDown}
+          onMouseDown={handleMouseDown}
+          onWheel={handleWheel}
+        >
+          <StyledTrackerPatternRowIndexColumn>
+            {subpattern.slice(0, visibleRowCount).map((_, rowIndex) => (
+              <StyledTrackerPatternRowIndexCell
+                key={rowIndex}
+                $isDefaultPlayhead={false}
+              >
+                <StyledTrackerRowIndexField>
+                  {renderCounter(rowIndex)}
+                </StyledTrackerRowIndexField>
+              </StyledTrackerPatternRowIndexCell>
+            ))}
+          </StyledTrackerPatternRowIndexColumn>
 
-            const isOffsetActive = activeField === fieldCount;
-            const isJumpActive = activeField === fieldCount + 1;
-            const isEffectCodeActive = activeField === fieldCount + 2;
-            const isEffectParamActive = activeField === fieldCount + 3;
+          <StyledSubpatternTrackerChannel>
+            {subpattern.slice(0, visibleRowCount).map((row, rowIndex) => {
+              const isStepMarker = rowIndex % 8 === 0;
+              const fieldCount = rowIndex * ROW_SIZE;
 
-            return (
-              <StyledTrackerRow key={rowIndex} $isStepMarker={isStepMarker}>
-                <StyledTrackerCell>{renderCounter(rowIndex)}</StyledTrackerCell>
-                <StyledTrackerCell>
+              const isOffsetActive = activeField === fieldCount;
+              const isJumpActive = activeField === fieldCount + 1;
+              const isEffectCodeActive = activeField === fieldCount + 2;
+              const isEffectParamActive = activeField === fieldCount + 3;
+
+              return (
+                <StyledSubpatternTrackerRow
+                  key={rowIndex}
+                  $isStepMarker={isStepMarker}
+                >
                   <StyledTrackerNoteField
                     ref={isOffsetActive ? activeFieldRef : null}
                     $active={isOffsetActive}
@@ -1161,12 +1205,12 @@ export const InstrumentSubpatternTracker = ({
                   >
                     {renderEffectParam(row.effectParam)}
                   </StyledTrackerEffectParamField>
-                </StyledTrackerCell>
-              </StyledTrackerRow>
-            );
-          })}
-        </StyledTrackerTableBody>
-      </StyledTrackerContentTable>
+                </StyledSubpatternTrackerRow>
+              );
+            })}
+          </StyledSubpatternTrackerChannel>
+        </StyledTrackerPatternBody>
+      </StyledSubpatternTrackerPattern>
 
       <Portal root={portalRoot}>
         <TrackerKeyboard

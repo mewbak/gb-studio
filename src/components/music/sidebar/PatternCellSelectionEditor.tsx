@@ -11,7 +11,7 @@ import { InstrumentSelect } from "components/music/form/InstrumentSelect";
 import { PitchSelect } from "components/music/form/PitchSelect";
 import { EffectCodeSelect } from "components/music/form/EffectCodeSelect";
 import { PatternCellAddress } from "shared/lib/uge/editor/types";
-import { PatternCell } from "shared/lib/uge/types";
+import { Pattern, PatternCell, SequenceItem } from "shared/lib/uge/types";
 import { EffectParamsForm } from "components/music/form/EffectParamsForm";
 import {
   InstrumentIcon,
@@ -28,8 +28,8 @@ import { OCTAVE_SIZE } from "consts";
 import { useDebouncedValue } from "ui/hooks/use-debounced-value";
 
 const getSharedValue = <T extends keyof PatternCell>(
-  sequence: number[] | undefined,
-  patterns: PatternCell[][][] | undefined,
+  sequence: SequenceItem[] | undefined,
+  patterns: Pattern[] | undefined,
   selectedPatternCells: PatternCellAddress[],
   field: T,
 ) => {
@@ -63,7 +63,7 @@ export const PatternCellSelectionEditor = () => {
 
   const selectedPatternCells = useDebouncedValue(
     currentSelectedPatternCells,
-    50,
+    100,
   );
 
   const firstChannelId = useMemo(

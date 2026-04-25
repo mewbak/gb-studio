@@ -16,16 +16,19 @@ import { RootState } from "store/storeTypes";
 import API from "renderer/lib/api";
 import { MusicResourceAsset } from "shared/lib/resources/types";
 import {
-  createPattern,
   createPatternCell,
+  createPattern,
+  createSequenceItem,
   createSong,
 } from "shared/lib/uge/song";
 import { InstrumentType } from "shared/lib/music/types";
 import {
   fromAbsRow,
+  getSequenceChannelCell,
+  getSequenceChannelPatternId,
   getTransposeNoteDelta,
-  resolveTrackerCellFields,
-  resolveUniqueTrackerCells,
+  resolveTrackerFieldPositions,
+  resolveUniqueTrackerPositions,
   transposePatternCellNote,
 } from "./trackerDocumentHelpers";
 import { TRACKER_PATTERN_LENGTH } from "consts";
@@ -211,9 +214,9 @@ const trackerSlice = createSlice({
     },
     editPatternCell: (
       state,
-      _action: PayloadAction<{
+      action: PayloadAction<{
         patternId: number;
-        cell: [number, number];
+        rowId: number;
         changes: Partial<PatternCell>;
       }>,
     ) => {
@@ -221,16 +224,15 @@ const trackerSlice = createSlice({
         return;
       }
 
-      const patternId = _action.payload.patternId;
-      const rowId = _action.payload.cell[0];
-      const colId = _action.payload.cell[1];
-      const patternCell = state.song.patterns?.[patternId]?.[rowId]?.[colId];
+      const patternId = action.payload.patternId;
+      const rowId = action.payload.rowId;
+      const patternCell = state.song.patterns?.[patternId]?.[rowId];
 
       if (!patternCell) {
         return;
       }
 
-      let patch = { ..._action.payload.changes };
+      let patch = { ...action.payload.changes };
       if (
         patch.effectCode &&
         patch.effectCode !== null &&
@@ -244,15 +246,16 @@ const trackerSlice = createSlice({
         };
       }
 
-      const patterns = state.song.patterns;
-      patterns[patternId][rowId][colId] = {
+      const patterns = [...state.song.patterns];
+      patterns[patternId] = [...patterns[patternId]];
+      patterns[patternId][rowId] = {
         ...patternCell,
         ...patch,
       };
 
       state.song = {
         ...state.song,
-        patterns: patterns,
+        patterns,
       };
     },
 
@@ -272,43 +275,28 @@ const trackerSlice = createSlice({
       const seen = new Set<string>();
 
       for (const { sequenceId, rowId, channelId } of patternCells) {
-        const patternId = state.song.sequence[sequenceId];
+        const resolved = getSequenceChannelCell(
+          state.song,
+          sequenceId,
+          channelId,
+          rowId,
+        );
 
-        if (patternId === undefined) {
+        if (!resolved) {
           continue;
         }
 
+        const { patternId, cell } = resolved;
         const key = `${patternId}:${rowId}:${channelId}`;
         if (seen.has(key)) {
           continue;
         }
         seen.add(key);
 
-        const cell = state.song.patterns?.[patternId]?.[rowId]?.[channelId];
-        if (cell) {
-          Object.assign(cell, changes);
-        }
+        Object.assign(cell, changes);
       }
     },
 
-    editPattern: (
-      state,
-      _action: PayloadAction<{
-        patternId: number;
-        pattern: PatternCell[][];
-      }>,
-    ) => {
-      if (!state.song) {
-        return;
-      }
-      const patternId = _action.payload.patternId;
-      const patterns = state.song.patterns;
-      patterns[patternId] = _action.payload.pattern;
-      state.song = {
-        ...state.song,
-        patterns,
-      };
-    },
     applyPatternCellChanges: (
       state,
       action: PayloadAction<{
@@ -325,10 +313,7 @@ const trackerSlice = createSlice({
       }
 
       for (const change of action.payload.changes) {
-        const cell =
-          state.song.patterns?.[change.patternId]?.[change.rowId]?.[
-            change.channelId
-          ];
+        const cell = state.song.patterns?.[change.patternId]?.[change.rowId];
 
         if (!cell) {
           continue;
@@ -348,18 +333,17 @@ const trackerSlice = createSlice({
           };
         }
 
-        state.song.patterns[change.patternId][change.rowId][change.channelId] =
-          {
-            ...cell,
-            ...patch,
-          };
+        state.song.patterns[change.patternId][change.rowId] = {
+          ...cell,
+          ...patch,
+        };
       }
     },
 
     transposeTrackerFields: (
       state,
       action: PayloadAction<{
-        patternId: number;
+        sequenceId: number;
         selectedTrackerFields: number[];
         direction: "up" | "down";
       }>,
@@ -368,26 +352,24 @@ const trackerSlice = createSlice({
         return;
       }
 
-      const { patternId, selectedTrackerFields, direction } = action.payload;
+      const { sequenceId, selectedTrackerFields, direction } = action.payload;
       const delta = direction === "up" ? 1 : -1;
 
-      const resolvedFields = resolveTrackerCellFields(
-        patternId,
+      const resolvedFields = resolveTrackerFieldPositions(
         selectedTrackerFields,
       );
 
-      for (const {
-        patternId,
-        rowIndex,
-        channelIndex,
-        fieldIndex,
-      } of resolvedFields) {
-        const pattern = state.song.patterns?.[patternId];
-        if (!pattern) {
+      for (const { rowIndex, channelIndex, fieldIndex } of resolvedFields) {
+        const patternId = getSequenceChannelPatternId(
+          state.song,
+          sequenceId,
+          channelIndex,
+        );
+        if (patternId === undefined) {
           continue;
         }
 
-        const cell = pattern[rowIndex]?.[channelIndex];
+        const cell = state.song.patterns?.[patternId]?.[rowIndex];
         if (!cell) {
           continue;
         }
@@ -439,19 +421,24 @@ const trackerSlice = createSlice({
       const seen = new Set<string>();
 
       for (const { sequenceId, rowId, channelId } of patternCells) {
-        const patternId = state.song.sequence[sequenceId];
+        const resolved = getSequenceChannelCell(
+          state.song,
+          sequenceId,
+          channelId,
+          rowId,
+        );
 
-        if (patternId === undefined) {
+        if (!resolved) {
           continue;
         }
 
+        const { patternId, cell } = resolved;
         const key = `${patternId}:${rowId}:${channelId}`;
         if (seen.has(key)) {
           continue;
         }
         seen.add(key);
 
-        const cell = state.song.patterns?.[patternId]?.[rowId]?.[channelId];
         transposePatternCellNote(cell, noteDelta);
       }
     },
@@ -494,7 +481,11 @@ const trackerSlice = createSlice({
         >();
 
         for (const { sequenceId, rowId, channelId } of channelPatternCells) {
-          const patternId = state.song.sequence[sequenceId];
+          const patternId = getSequenceChannelPatternId(
+            state.song,
+            sequenceId,
+            channelId,
+          );
 
           if (patternId === undefined) {
             continue;
@@ -537,9 +528,7 @@ const trackerSlice = createSlice({
 
         for (const resolved of sortedResolvedCells) {
           const cell =
-            state.song.patterns?.[resolved.patternId]?.[resolved.rowId]?.[
-              resolved.channelId
-            ];
+            state.song.patterns?.[resolved.patternId]?.[resolved.rowId];
 
           if (!cell || cell.note === null) {
             continue;
@@ -554,9 +543,7 @@ const trackerSlice = createSlice({
         for (let i = sortedResolvedCells.length - 1; i >= 0; i--) {
           const resolved = sortedResolvedCells[i];
           const cell =
-            state.song.patterns?.[resolved.patternId]?.[resolved.rowId]?.[
-              resolved.channelId
-            ];
+            state.song.patterns?.[resolved.patternId]?.[resolved.rowId];
 
           if (!cell || cell.note === null) {
             continue;
@@ -589,7 +576,11 @@ const trackerSlice = createSlice({
           absRow++
         ) {
           const { sequenceId, rowId } = fromAbsRow(absRow);
-          const patternId = state.song.sequence[sequenceId];
+          const patternId = getSequenceChannelPatternId(
+            state.song,
+            sequenceId,
+            channelId,
+          );
 
           if (patternId === undefined) {
             continue;
@@ -601,7 +592,7 @@ const trackerSlice = createSlice({
           }
           modifiedKeys.add(key);
 
-          const cell = state.song.patterns?.[patternId]?.[rowId]?.[channelId];
+          const cell = state.song.patterns?.[patternId]?.[rowId];
           if (!cell) {
             continue;
           }
@@ -628,22 +619,25 @@ const trackerSlice = createSlice({
       const seen = new Set<string>();
 
       for (const { sequenceId, rowId, channelId } of patternCells) {
-        const patternId = state.song.sequence[sequenceId];
+        const resolved = getSequenceChannelCell(
+          state.song,
+          sequenceId,
+          channelId,
+          rowId,
+        );
 
-        if (patternId === undefined) {
+        if (!resolved) {
           continue;
         }
 
+        const { patternId, cell } = resolved;
         const key = `${patternId}:${rowId}:${channelId}`;
         if (seen.has(key)) {
           continue;
         }
         seen.add(key);
 
-        const cell = state.song.patterns?.[patternId]?.[rowId]?.[channelId];
-        if (cell) {
-          cell.instrument = instrumentId;
-        }
+        cell.instrument = instrumentId;
       }
     },
 
@@ -663,29 +657,32 @@ const trackerSlice = createSlice({
       const seen = new Set<string>();
 
       for (const { sequenceId, rowId, channelId } of patternCells) {
-        const patternId = state.song.sequence[sequenceId];
+        const resolved = getSequenceChannelCell(
+          state.song,
+          sequenceId,
+          channelId,
+          rowId,
+        );
 
-        if (patternId === undefined) {
+        if (!resolved) {
           continue;
         }
 
+        const { patternId, cell } = resolved;
         const key = `${patternId}:${rowId}:${channelId}`;
         if (seen.has(key)) {
           continue;
         }
         seen.add(key);
 
-        const cell = state.song.patterns?.[patternId]?.[rowId]?.[channelId];
-        if (cell) {
-          cell.note = note;
-        }
+        cell.note = note;
       }
     },
 
     shiftTrackerFields: (
       state,
       action: PayloadAction<{
-        patternId: number;
+        sequenceId: number;
         selectedTrackerFields: number[];
         direction: "insert" | "delete";
       }>,
@@ -694,15 +691,12 @@ const trackerSlice = createSlice({
         return;
       }
 
-      const { patternId, selectedTrackerFields, direction } = action.payload;
-
-      const pattern = state.song.patterns?.[patternId];
-      if (!pattern || selectedTrackerFields.length === 0) {
+      const { sequenceId, selectedTrackerFields, direction } = action.payload;
+      if (selectedTrackerFields.length === 0) {
         return;
       }
 
-      const resolvedCells = resolveUniqueTrackerCells(
-        patternId,
+      const resolvedCells = resolveUniqueTrackerPositions(
         selectedTrackerFields,
       );
 
@@ -720,27 +714,40 @@ const trackerSlice = createSlice({
         }
       }
 
-      if (startRow < 0 || startRow >= pattern.length) {
+      if (startRow < 0 || startRow >= TRACKER_PATTERN_LENGTH) {
         return;
       }
 
       for (const channelIndex of selectedChannels) {
+        const patternId = getSequenceChannelPatternId(
+          state.song,
+          sequenceId,
+          channelIndex,
+        );
+        const pattern =
+          patternId !== undefined
+            ? state.song.patterns?.[patternId]
+            : undefined;
+        if (!pattern) {
+          continue;
+        }
+
         if (direction === "delete") {
           for (let row = startRow; row < pattern.length - 1; row++) {
-            pattern[row][channelIndex] = {
-              ...pattern[row + 1][channelIndex],
+            pattern[row] = {
+              ...pattern[row + 1],
             };
           }
 
-          pattern[pattern.length - 1][channelIndex] = createPatternCell();
+          pattern[pattern.length - 1] = createPatternCell();
         } else {
           for (let row = pattern.length - 1; row > startRow; row--) {
-            pattern[row][channelIndex] = {
-              ...pattern[row - 1][channelIndex],
+            pattern[row] = {
+              ...pattern[row - 1],
             };
           }
 
-          pattern[startRow][channelIndex] = createPatternCell();
+          pattern[startRow] = createPatternCell();
         }
       }
     },
@@ -748,7 +755,7 @@ const trackerSlice = createSlice({
     clearTrackerFields: (
       state,
       action: PayloadAction<{
-        patternId: number;
+        sequenceId: number;
         selectedTrackerFields: number[];
       }>,
     ) => {
@@ -756,24 +763,20 @@ const trackerSlice = createSlice({
         return;
       }
 
-      const { patternId, selectedTrackerFields } = action.payload;
+      const { sequenceId, selectedTrackerFields } = action.payload;
 
-      const resolvedCells = resolveTrackerCellFields(
-        patternId,
-        selectedTrackerFields,
-      );
+      const resolvedCells = resolveTrackerFieldPositions(selectedTrackerFields);
 
-      for (const {
-        patternId,
-        rowIndex,
-        channelIndex,
-        fieldIndex,
-      } of resolvedCells) {
-        const pattern = state.song.patterns?.[patternId];
-        if (!pattern) {
+      for (const { rowIndex, channelIndex, fieldIndex } of resolvedCells) {
+        const patternId = getSequenceChannelPatternId(
+          state.song,
+          sequenceId,
+          channelIndex,
+        );
+        if (patternId === undefined) {
           continue;
         }
-        const cell = pattern[rowIndex]?.[channelIndex];
+        const cell = state.song.patterns?.[patternId]?.[rowIndex];
         if (cell) {
           if (fieldIndex === 0) {
             cell.note = null;
@@ -803,7 +806,11 @@ const trackerSlice = createSlice({
       const seen = new Set<string>();
 
       for (const { sequenceId, rowId, channelId } of patternCells) {
-        const patternId = state.song.sequence[sequenceId];
+        const patternId = getSequenceChannelPatternId(
+          state.song,
+          sequenceId,
+          channelId,
+        );
 
         if (patternId === undefined) {
           continue;
@@ -815,9 +822,8 @@ const trackerSlice = createSlice({
         }
         seen.add(key);
 
-        if (state.song.patterns?.[patternId]?.[rowId]?.[channelId]) {
-          state.song.patterns[patternId][rowId][channelId] =
-            createPatternCell();
+        if (state.song.patterns?.[patternId]?.[rowId]) {
+          state.song.patterns[patternId][rowId] = createPatternCell();
         }
       }
     },
@@ -957,7 +963,7 @@ const trackerSlice = createSlice({
     },
     editSequence: (
       state,
-      _action: PayloadAction<{ sequenceIndex: number; sequenceId: number }>,
+      action: PayloadAction<{ sequenceIndex: number; patternId: number }>,
     ) => {
       if (!state.song) {
         return;
@@ -966,12 +972,19 @@ const trackerSlice = createSlice({
       const newSequence = [...state.song.sequence];
 
       // Assign a new empty pattern
-      if (_action.payload.sequenceId === -1) {
+      if (action.payload.patternId === -1) {
         const newPatterns = [...state.song.patterns];
-        const pattern = createPattern();
+        const newSequenceItem = createSequenceItem(
+          Math.floor(newPatterns.length / 4),
+        );
 
-        newPatterns.push(pattern);
-        newSequence[_action.payload.sequenceIndex] = newPatterns.length - 1;
+        newPatterns.push(
+          createPattern(),
+          createPattern(),
+          createPattern(),
+          createPattern(),
+        );
+        newSequence[action.payload.sequenceIndex] = newSequenceItem;
 
         state.song = {
           ...state.song,
@@ -979,12 +992,73 @@ const trackerSlice = createSlice({
           sequence: newSequence,
         };
       } else {
-        newSequence[_action.payload.sequenceIndex] = _action.payload.sequenceId;
+        newSequence[action.payload.sequenceIndex] = createSequenceItem(
+          action.payload.patternId,
+        );
 
         state.song = {
           ...state.song,
           sequence: newSequence,
         };
+      }
+    },
+    editSequenceChannel: (
+      state,
+      action: PayloadAction<{
+        sequenceIndex: number;
+        sequenceChannelId: number;
+        patternId: number;
+        patternChannelId: number;
+      }>,
+    ) => {
+      const { sequenceIndex, sequenceChannelId, patternId, patternChannelId } =
+        action.payload;
+
+      const sequence = state.song?.sequence[sequenceIndex];
+      const patterns = state.song?.patterns;
+
+      if (!sequence || !patterns) {
+        return;
+      }
+
+      sequence.splitPattern = true;
+      if (patternId === -1) {
+        const newPatternId = Math.floor(patterns.length / 4);
+        patterns.push(
+          createPattern(),
+          createPattern(),
+          createPattern(),
+          createPattern(),
+        );
+        sequence.channels[sequenceChannelId] =
+          newPatternId * 4 + patternChannelId;
+      } else {
+        sequence.channels[sequenceChannelId] = patternId * 4 + patternChannelId;
+      }
+    },
+    setSequenceSplitPattern: (
+      state,
+      action: PayloadAction<{
+        sequenceIndex: number;
+        splitPattern: boolean;
+      }>,
+    ) => {
+      const { sequenceIndex, splitPattern } = action.payload;
+      if (!state.song?.sequence[sequenceIndex]) {
+        return;
+      }
+      const sequence = state.song?.sequence[sequenceIndex];
+      sequence.splitPattern = splitPattern;
+      if (!splitPattern) {
+        for (let i = 1; i < 4; i++) {
+          // If splitPattern disabled make sure all pattern
+          // indexes are consecutive
+          sequence.channels[i] = sequence.channels[0] + i;
+          // If pattern doesn't exist, create it
+          if (!state.song.patterns[sequence.channels[i]]) {
+            state.song.patterns[sequence.channels[i]] = createPattern();
+          }
+        }
       }
     },
     insertSequence: (
@@ -1001,18 +1075,24 @@ const trackerSlice = createSlice({
 
       const { sequenceIndex, position, patternId } = action.payload;
 
-      let newPatternIndex = patternId;
+        let newSequenceItem =
+          patternId !== undefined ? createSequenceItem(patternId) : undefined;
 
       if (patternId === undefined) {
         const newPatterns = [...state.song.patterns];
-        const pattern = createPattern();
-
-        newPatterns.push(pattern);
-        newPatternIndex = newPatterns.length - 1;
+        newSequenceItem = createSequenceItem(
+          Math.floor(newPatterns.length / 4),
+        );
+        newPatterns.push(
+          createPattern(),
+          createPattern(),
+          createPattern(),
+          createPattern(),
+        );
         state.song.patterns = newPatterns;
       }
 
-      if (newPatternIndex === undefined) {
+      if (newSequenceItem === undefined) {
         return;
       }
 
@@ -1023,7 +1103,7 @@ const trackerSlice = createSlice({
 
       const insertAt = Math.max(0, Math.min(rawInsertAt, newSequence.length));
 
-      newSequence.splice(insertAt, 0, newPatternIndex);
+      newSequence.splice(insertAt, 0, newSequenceItem);
 
       state.song.sequence = newSequence;
     },
@@ -1040,18 +1120,30 @@ const trackerSlice = createSlice({
 
       const { sequenceIndex, position } = action.payload;
 
-      const existingPatternId = state.song.sequence[sequenceIndex];
-      const existingPattern = state.song.patterns[existingPatternId];
+      const existingSequenceItem = state.song.sequence[sequenceIndex];
 
-      if (!existingPattern) {
+      if (!existingSequenceItem) {
         return;
       }
 
       const newPatterns = [...state.song.patterns];
-      const pattern = cloneDeep(existingPattern);
+      const clonedSequenceItemChannels = existingSequenceItem.channels.map(
+        (patternId) => {
+          const pattern = state.song?.patterns[patternId];
+          if (!pattern) {
+            return patternId;
+          }
+          const newPatternIndex = newPatterns.length;
+          newPatterns.push(cloneDeep(pattern));
+          return newPatternIndex;
+        },
+      ) as [number, number, number, number];
 
-      newPatterns.push(pattern);
-      const newPatternIndex = newPatterns.length - 1;
+      const clonedSequenceItem = {
+        ...existingSequenceItem,
+        channels: clonedSequenceItemChannels,
+      };
+
       state.song.patterns = newPatterns;
 
       const newSequence = [...state.song.sequence];
@@ -1061,7 +1153,7 @@ const trackerSlice = createSlice({
 
       const insertAt = Math.max(0, Math.min(rawInsertAt, newSequence.length));
 
-      newSequence.splice(insertAt, 0, newPatternIndex);
+      newSequence.splice(insertAt, 0, clonedSequenceItem);
 
       state.song.sequence = newSequence;
     },

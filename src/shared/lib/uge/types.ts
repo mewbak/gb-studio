@@ -10,6 +10,87 @@ export const PatternCell = Type.Object({
 
 export type PatternCell = Static<typeof PatternCell>;
 
+export const Pattern = Type.Tuple([
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+  PatternCell,
+]);
+
+export type Pattern = Static<typeof Pattern>;
+
+export const SequenceItem = Type.Object({
+  splitPattern: Type.Boolean(),
+  channels: Type.Tuple([
+    Type.Number(),
+    Type.Number(),
+    Type.Number(),
+    Type.Number(),
+  ]),
+});
+
+export type SequenceItem = Static<typeof SequenceItem>;
+
 export const SubPatternCell = Type.Object({
   note: Type.Union([Type.Number(), Type.Null()]),
   jump: Type.Union([Type.Number(), Type.Null()]),
@@ -72,8 +153,8 @@ export const Song = Type.Object({
   ticksPerRow: Type.Number(),
   timerEnabled: Type.Boolean(),
   timerDivider: Type.Number(),
-  patterns: Type.Array(Type.Array(Type.Array(PatternCell))),
-  sequence: Type.Array(Type.Number()),
+  patterns: Type.Array(Pattern),
+  sequence: Type.Array(SequenceItem),
 });
 
 export type Song = Static<typeof Song>;

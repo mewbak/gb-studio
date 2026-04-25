@@ -8,7 +8,7 @@ import { MenuAccelerator, MenuDivider, MenuItem } from "ui/menu/Menu";
 
 interface TrackerContextMenuProps {
   dispatch: Dispatch<UnknownAction | AppThunk>;
-  patternId: number;
+  sequenceId: number;
   selectedPatternCells: PatternCellAddress[];
   selectedTrackerFields: number[];
   selectedInstrumentId: number;
@@ -16,7 +16,7 @@ interface TrackerContextMenuProps {
 
 const renderTrackerContextMenu = ({
   dispatch,
-  patternId,
+  sequenceId,
   selectedPatternCells,
   selectedTrackerFields,
   selectedInstrumentId,
@@ -91,7 +91,7 @@ const renderTrackerContextMenu = ({
       onClick={() => {
         dispatch(
           trackerDocumentActions.cutTrackerFields({
-            patternId,
+            sequenceId,
             selectedTrackerFields,
           }),
         );
@@ -105,7 +105,7 @@ const renderTrackerContextMenu = ({
       onClick={() => {
         dispatch(
           trackerDocumentActions.copyTrackerFields({
-            patternId,
+            sequenceId,
             selectedTrackerFields,
           }),
         );
@@ -118,10 +118,10 @@ const renderTrackerContextMenu = ({
       key="paste"
       onClick={() => {
         const firstField = selectedTrackerFields[0];
-        if (firstField) {
+        if (firstField !== undefined) {
           dispatch(
             trackerDocumentActions.pasteTrackerFields({
-              patternId,
+              sequenceId,
               startField: firstField,
             }),
           );
@@ -137,7 +137,7 @@ const renderTrackerContextMenu = ({
       onClick={() => {
         dispatch(
           trackerDocumentActions.shiftTrackerFields({
-            patternId,
+            sequenceId,
             selectedTrackerFields,
             direction: "insert",
           }),
@@ -152,7 +152,7 @@ const renderTrackerContextMenu = ({
       onClick={() => {
         dispatch(
           trackerDocumentActions.shiftTrackerFields({
-            patternId,
+            sequenceId,
             selectedTrackerFields,
             direction: "delete",
           }),
@@ -201,7 +201,7 @@ const renderTrackerContextMenu = ({
       onClick={() => {
         dispatch(
           trackerDocumentActions.clearTrackerFields({
-            patternId,
+            sequenceId,
             selectedTrackerFields,
           }),
         );

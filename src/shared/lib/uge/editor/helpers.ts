@@ -1,4 +1,4 @@
-import { PatternCell } from "shared/lib/uge/types";
+import { Pattern, PatternCell, SequenceItem } from "shared/lib/uge/types";
 import { PatternCellAddress } from "./types";
 import clamp from "shared/lib/helpers/clamp";
 
@@ -13,8 +13,8 @@ type SharedSelectionValue<T> =
  * differ, or `{type:"none"}` if no cells have a value.
  */
 export const getPatternCellSelectionValue = <T>(
-  sequence: number[],
-  patterns: PatternCell[][][],
+  sequence: SequenceItem[],
+  patterns: Pattern[],
   patternCells: PatternCellAddress[],
   getValue: (cell: PatternCell) => T | null | undefined,
 ): SharedSelectionValue<T> => {
@@ -22,13 +22,14 @@ export const getPatternCellSelectionValue = <T>(
   let sharedValue: T | null | undefined = undefined;
 
   for (const { sequenceId, rowId, channelId } of patternCells) {
-    const patternId = sequence[sequenceId];
+    const patternId = sequence[sequenceId]?.channels[channelId];
 
     if (patternId === undefined) {
       continue;
     }
 
-    const cell = patterns?.[patternId]?.[rowId]?.[channelId];
+    const pattern = patterns?.[patternId];
+    const cell = pattern?.[rowId];
     const value = cell ? getValue(cell) : null;
 
     if (!hasValue) {
@@ -52,4 +53,16 @@ export const getPatternCellSelectionValue = <T>(
 /** Clamps `index` to the valid channel range 0–3. */
 export const toValidChannelId = (index: number): 0 | 1 | 2 | 3 => {
   return clamp(index, 0, 3) as 0 | 1 | 2 | 3;
+};
+
+/** Check if sequence items are consecutive starting from a multiple of 4 to
+ *  to determine if sequence is simple or if different patterns are set per channel
+ */
+export const isSplitPatternSequence = ([a, b, c, d]: [
+  number,
+  number,
+  number,
+  number,
+]): boolean => {
+  return a % 4 !== 0 || b !== a + 1 || c !== a + 2 || d !== a + 3;
 };

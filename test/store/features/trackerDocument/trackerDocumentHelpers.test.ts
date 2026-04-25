@@ -8,6 +8,7 @@ import {
   resolveTrackerCellFields,
 } from "../../../../src/store/features/trackerDocument/trackerDocumentHelpers";
 import { createPatternCell } from "../../../../src/shared/lib/uge/song";
+import { SequenceItem } from "shared/lib/uge/types";
 
 const TRACKER_PATTERN_LENGTH = 64;
 
@@ -28,15 +29,19 @@ describe("toAbsRow / fromAbsRow", () => {
 });
 
 describe("resolveAbsRow", () => {
-  const sequence = [5, 3, 7];
+  const sequence = [
+    { splitPattern: false, channels: [0, 1, 2, 3] },
+    { splitPattern: false, channels: [4, 5, 6, 7] },
+    { splitPattern: false, channels: [8, 9, 10, 11] },
+  ] as SequenceItem[];
 
   it("resolves a valid absRow to correct sequenceId, rowId, patternId", () => {
-    const result = resolveAbsRow(sequence, toAbsRow(1, 10));
-    expect(result).toEqual({ sequenceId: 1, rowId: 10, patternId: 3 });
+    const result = resolveAbsRow(sequence, toAbsRow(1, 10), 2);
+    expect(result).toEqual({ sequenceId: 1, rowId: 10, patternId: 6 });
   });
 
   it("returns null when the sequence slot is out of bounds", () => {
-    const result = resolveAbsRow(sequence, toAbsRow(5, 0));
+    const result = resolveAbsRow(sequence, toAbsRow(5, 0), 0);
     expect(result).toBeNull();
   });
 });

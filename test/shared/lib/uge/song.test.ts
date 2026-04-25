@@ -77,16 +77,9 @@ describe("createPattern", () => {
     expect(pattern).toHaveLength(64); // TRACKER_PATTERN_LENGTH = 64
   });
 
-  it("each row has 4 channels", () => {
-    const pattern = createPattern();
-    for (const row of pattern) {
-      expect(row).toHaveLength(4);
-    }
-  });
-
   it("all cells start as empty PatternCells", () => {
     const pattern = createPattern();
-    const cell = pattern[0][0];
+    const cell = pattern[0];
     expect(cell.note).toBeNull();
     expect(cell.instrument).toBeNull();
   });

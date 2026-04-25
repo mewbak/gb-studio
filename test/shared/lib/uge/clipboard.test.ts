@@ -1,13 +1,10 @@
+import { createPatternMatrix } from "store/features/trackerDocument/trackerDocumentHelpers";
 import {
   NO_CHANGE_ON_PASTE,
   parseClipboardOrigin,
   parsePatternToClipboard,
   parseClipboardToPattern,
 } from "../../../../src/shared/lib/uge/clipboard";
-import {
-  createPattern,
-  createPatternCell,
-} from "../../../../src/shared/lib/uge/song";
 
 describe("NO_CHANGE_ON_PASTE", () => {
   it("is a fixed sentinel value (-9)", () => {
@@ -35,7 +32,7 @@ describe("parseClipboardOrigin", () => {
 
 describe("parsePatternToClipboard / parseClipboardToPattern round-trip", () => {
   it("round-trips an empty pattern without losing structure", () => {
-    const pattern = createPattern();
+    const pattern = createPatternMatrix();
     const clipboard = parsePatternToClipboard(pattern);
     const parsed = parseClipboardToPattern(clipboard);
     // Every parsed row should have 4 channels
@@ -45,7 +42,7 @@ describe("parsePatternToClipboard / parseClipboardToPattern round-trip", () => {
   });
 
   it("round-trips a pattern with notes set in channel 0", () => {
-    const pattern = createPattern();
+    const pattern = createPatternMatrix();
     pattern[0][0].note = 0; // C-3
     pattern[0][0].instrument = 0;
 
@@ -58,21 +55,21 @@ describe("parsePatternToClipboard / parseClipboardToPattern round-trip", () => {
 
   it("round-trips a null note back as null (not NO_CHANGE_ON_PASTE)", () => {
     // null note serialises as '...' which parses back as null, not NO_CHANGE_ON_PASTE
-    const pattern = createPattern();
+    const pattern = createPatternMatrix();
     const clipboard = parsePatternToClipboard(pattern, 0);
     const parsed = parseClipboardToPattern(clipboard);
     expect(parsed[0][0].note).toBeNull();
   });
 
   it("round-trips a null instrument back as null", () => {
-    const pattern = createPattern();
+    const pattern = createPatternMatrix();
     const clipboard = parsePatternToClipboard(pattern, 0);
     const parsed = parseClipboardToPattern(clipboard);
     expect(parsed[0][0].instrument).toBeNull();
   });
 
   it("embeds the origin row when originAbsRow and selectedCells are provided", () => {
-    const pattern = createPattern();
+    const pattern = createPatternMatrix();
     pattern[0][0].note = 0;
     const clipboard = parsePatternToClipboard(pattern, 0, [0], 10);
     expect(clipboard).toContain("GBStudio origin: 10");
@@ -80,7 +77,7 @@ describe("parsePatternToClipboard / parseClipboardToPattern round-trip", () => {
   });
 
   it("includes only selected cells when selectedCells is provided", () => {
-    const pattern = createPattern();
+    const pattern = createPatternMatrix();
     pattern[2][0].note = 24;
     const clipboard = parsePatternToClipboard(pattern, 0, [2]);
     const parsed = parseClipboardToPattern(clipboard);
@@ -90,7 +87,7 @@ describe("parsePatternToClipboard / parseClipboardToPattern round-trip", () => {
   });
 
   it("fills gaps in selected cells with null note cells", () => {
-    const pattern = createPattern();
+    const pattern = createPatternMatrix();
     pattern[0][0].note = 0;
     pattern[2][0].note = 12;
     // select rows 0 and 2, but row 1 is not selected

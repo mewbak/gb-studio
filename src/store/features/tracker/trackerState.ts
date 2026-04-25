@@ -14,6 +14,12 @@ import API from "renderer/lib/api";
 import { parseClipboardToPattern } from "shared/lib/uge/clipboard";
 import { PatternCellAddress } from "shared/lib/uge/editor/types";
 import { defaultMusicMidiState, MusicMidiState } from "shared/lib/music/midi";
+import {
+  applyTrackerGridState,
+  applyTrackerGridToSequenceStart,
+  TrackerSelectionOrigin,
+  TrackerSelectionRect,
+} from "./trackerHelpers";
 
 export type PianoRollToolType = "pencil" | "eraser" | "selection" | null;
 
@@ -88,6 +94,10 @@ export interface TrackerState {
   selectedSongId: string;
   selectedInstrument: SelectedInstrument;
   selectedSequence: number;
+  trackerActiveField?: number;
+  trackerSelectionOrigin?: TrackerSelectionOrigin;
+  trackerSelectionRect?: TrackerSelectionRect;
+  selectedTrackerFields: number[];
   selectedPatternCells: PatternCellAddress[];
   selection: [number, number, number, number];
   selectedEffectCell: CellAddress | null;
@@ -104,6 +114,7 @@ export interface TrackerState {
   metronomeEnabled: boolean;
   quantizeSnap: QuantizeSnapSetting;
   loopSequenceId?: number;
+  globalSplitPattern: boolean;
 }
 
 export const initialState: TrackerState = {
@@ -136,6 +147,10 @@ export const initialState: TrackerState = {
     type: "duty",
   },
   selectedSequence: 0,
+  trackerActiveField: undefined,
+  trackerSelectionOrigin: undefined,
+  trackerSelectionRect: undefined,
+  selectedTrackerFields: [],
   selectedPatternCells: [],
   selection: [-1, -1, -1, -1],
   selectedEffectCell: null,
@@ -152,6 +167,7 @@ export const initialState: TrackerState = {
   metronomeEnabled: false,
   quantizeSnap: "none",
   loopSequenceId: undefined,
+  globalSplitPattern: false,
 };
 
 const trackerSlice = createSlice({
@@ -252,6 +268,24 @@ const trackerSlice = createSlice({
     },
     setSelectedSequence: (state, action: PayloadAction<number>) => {
       state.selectedSequence = action.payload;
+      if (!state.playing) {
+        applyTrackerGridToSequenceStart(state, action.payload);
+      }
+    },
+    setTrackerGridState: (
+      state,
+      action: PayloadAction<{
+        activeField?: number;
+        selectionOrigin?: TrackerSelectionOrigin;
+        selectionRect?: TrackerSelectionRect;
+      }>,
+    ) => {
+      applyTrackerGridState(
+        state,
+        action.payload.activeField,
+        action.payload.selectionOrigin,
+        action.payload.selectionRect,
+      );
     },
     setSelectedPatternCells: (
       state,
@@ -348,6 +382,9 @@ const trackerSlice = createSlice({
         state.defaultStartPlaybackPosition = [action.payload, 0];
       }
     },
+    setglobalSplitPattern: (state, action: PayloadAction<boolean>) => {
+      state.globalSplitPattern = action.payload;
+    },
   },
   extraReducers: (builder) =>
     builder
@@ -384,6 +421,9 @@ const trackerSlice = createSlice({
       .addCase(trackerDocumentActions.moveSequence, (state, action) => {
         state.selectedSequence = action.payload.toIndex;
         state.loopSequenceId = undefined;
+        if (!state.playing) {
+          applyTrackerGridToSequenceStart(state, action.payload.toIndex);
+        }
       })
       // When adding a new song file jump to it in navigator
       .addCase(addNewSongFile.fulfilled, (state, action) => {
@@ -407,11 +447,17 @@ const trackerSlice = createSlice({
         const offset = action.payload.position === "after" ? 1 : 0;
         state.selectedSequence = action.payload.sequenceIndex + offset;
         state.loopSequenceId = undefined;
+        if (!state.playing) {
+          applyTrackerGridToSequenceStart(state, state.selectedSequence);
+        }
       })
       .addCase(trackerDocumentActions.cloneSequencePattern, (state, action) => {
         const offset = action.payload.position === "after" ? 1 : 0;
         state.selectedSequence = action.payload.sequenceIndex + offset;
         state.loopSequenceId = undefined;
+        if (!state.playing) {
+          applyTrackerGridToSequenceStart(state, state.selectedSequence);
+        }
       })
       .addCase(trackerDocumentActions.removeSequence, (state) => {
         state.loopSequenceId = undefined;

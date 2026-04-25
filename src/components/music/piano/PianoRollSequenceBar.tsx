@@ -26,8 +26,15 @@ import l10n from "shared/lib/lang/l10n";
 import { useContextMenu } from "ui/hooks/use-context-menu";
 import renderPatternContextMenu from "components/music/contextMenus/renderPatternContextMenu";
 import { DropdownButton } from "ui/buttons/DropdownButton";
-import { fromAbsRow } from "store/features/trackerDocument/trackerDocumentHelpers";
-import { patternGradient } from "shared/lib/uge/display";
+import {
+  fromAbsRow,
+  getPatternBlockCount,
+} from "store/features/trackerDocument/trackerDocumentHelpers";
+import {
+  patternBlockIndex,
+  patternGradient,
+  patternIndexLabel,
+} from "shared/lib/uge/display";
 
 interface PianoRollSequenceBarProps {
   children?: React.ReactNode;
@@ -38,6 +45,8 @@ interface PianoRollSequenceBarPatternProps {
   orderIndex: number;
   orderLength: number;
   numPatterns: number;
+  splitPattern: boolean;
+  channelId: 0 | 1 | 2 | 3;
   loopSequenceId: number | undefined;
 }
 
@@ -50,6 +59,8 @@ const PianoRollSequenceBarPattern = memo(
     orderLength,
     numPatterns,
     loopSequenceId,
+    splitPattern,
+    channelId,
   }: PianoRollSequenceBarPatternProps) => {
     const dispatch = useAppDispatch();
 
@@ -62,6 +73,8 @@ const PianoRollSequenceBarPattern = memo(
           orderLength,
           numPatterns,
           loopSequenceId,
+          splitPattern,
+          channelId,
           onClose,
         });
       },
@@ -72,6 +85,8 @@ const PianoRollSequenceBarPattern = memo(
         orderLength,
         numPatterns,
         loopSequenceId,
+        splitPattern,
+        channelId,
       ],
     );
 
@@ -84,16 +99,18 @@ const PianoRollSequenceBarPattern = memo(
     const isFiltered =
       loopSequenceId !== undefined && loopSequenceId !== orderIndex;
 
+    const patternId = patternBlockIndex(patternIndex);
+
     return (
       <StyledPianoRollSequenceHeaderPattern
         onContextMenu={onContextMenu}
         onMouseDown={(e) => e.stopPropagation()}
-        style={{ background: patternGradient(patternIndex, isFiltered) }}
+        style={{ background: patternGradient(patternId, isFiltered) }}
       >
         <StyledPianoRollSequenceHeaderText>
           <DropdownButton
             variant="transparent"
-            label={`${orderIndex + 1}: ${l10n("FIELD_PATTERN")} ${String(patternIndex).padStart(2, "0")}`}
+            label={`${orderIndex + 1}: ${l10n("FIELD_PATTERN")} ${patternIndexLabel(patternIndex, splitPattern)}`}
           >
             {contextMenu}
           </DropdownButton>
@@ -114,11 +131,17 @@ export const PianoRollSequenceBar = memo(
     const sequenceLength = useAppSelector(
       (state) => state.trackerDocument.present.song?.sequence.length ?? 0,
     );
-    const numPatterns = useAppSelector(
-      (state) => state.trackerDocument.present.song?.patterns.length ?? 0,
+    const numPatterns = useAppSelector((state) =>
+      getPatternBlockCount(state.trackerDocument.present.song?.patterns),
     );
     const loopSequenceId = useAppSelector(
       (state) => state.tracker.loopSequenceId,
+    );
+    const selectedChannel = useAppSelector(
+      (state) => state.tracker.selectedChannel,
+    );
+    const globalSplitPattern = useAppSelector(
+      (state) => state.tracker.globalSplitPattern,
     );
 
     const documentWidth = calculateDocumentWidth(sequenceLength);
@@ -207,8 +230,10 @@ export const PianoRollSequenceBar = memo(
         onMouseDown={onMouseDown}
       >
         <StyledPianoRollScrollHeaderFooterSpacer />
-        {songSequence?.map((pattern, i) => (
-          <StyledPianoRollSequenceHeader key={`${i}:${pattern}`}>
+        {songSequence?.map((sequenceItem, i) => (
+          <StyledPianoRollSequenceHeader
+            key={`${i}:${sequenceItem.channels.join(",")}`}
+          >
             <StyledPianoRollSequenceHeaderOrder>
               {tickMarkers.map((n) => (
                 <StyledPianoRollSequenceHeaderTimeMarker key={n}>
@@ -218,9 +243,11 @@ export const PianoRollSequenceBar = memo(
             </StyledPianoRollSequenceHeaderOrder>
             <PianoRollSequenceBarPattern
               orderIndex={i}
-              patternIndex={pattern}
+              patternIndex={sequenceItem.channels[selectedChannel]}
               orderLength={sequenceLength}
               numPatterns={numPatterns}
+              splitPattern={globalSplitPattern || sequenceItem.splitPattern}
+              channelId={selectedChannel}
               loopSequenceId={loopSequenceId}
             />
           </StyledPianoRollSequenceHeader>

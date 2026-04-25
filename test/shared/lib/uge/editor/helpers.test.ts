@@ -4,6 +4,7 @@ import {
 } from "../../../../../src/shared/lib/uge/editor/helpers";
 import {
   createSong,
+  createSequenceItem,
   createPattern,
 } from "../../../../../src/shared/lib/uge/song";
 import type { Song } from "../../../../../src/shared/lib/uge/types";
@@ -11,9 +12,14 @@ import type { Song } from "../../../../../src/shared/lib/uge/types";
 const makeSongWithNote = (note: number | null): Song => {
   const song = createSong();
   const pattern = createPattern();
-  pattern[0][0].note = note;
-  song.patterns.push(pattern);
-  song.sequence.push(0);
+  pattern[0].note = note;
+  song.patterns.push(
+    pattern,
+    createPattern(),
+    createPattern(),
+    createPattern(),
+  );
+  song.sequence.push(createSequenceItem(0));
   return song;
 };
 
@@ -76,11 +82,12 @@ describe("getPatternCellSelectionValue", () => {
 
   it("returns type:'multiple' when cells disagree", () => {
     const song = createSong();
-    const pattern = createPattern();
-    pattern[0][0].note = 0;
-    pattern[0][1].note = 12;
-    song.patterns.push(pattern);
-    song.sequence.push(0);
+    const pattern0 = createPattern();
+    const pattern1 = createPattern();
+    pattern0[0].note = 0;
+    pattern1[0].note = 12;
+    song.patterns.push(pattern0, pattern1, createPattern(), createPattern());
+    song.sequence.push(createSequenceItem(0));
 
     const addresses = [
       { sequenceId: 0, rowId: 0, channelId: 0 as const },

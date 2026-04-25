@@ -9,7 +9,6 @@ import { useAppDispatch, useAppSelector } from "store/hooks";
 import trackerActions from "store/features/tracker/trackerActions";
 
 interface PianoRollPatternBlockProps {
-  patternId: number;
   sequenceId: number;
   displayChannels: number[];
   isDragging: boolean;
@@ -34,7 +33,6 @@ const areNumberSetsEqual = (a: Set<number>, b: Set<number>): boolean => {
 
 export const PianoRollPatternBlock = memo(
   ({
-    patternId,
     sequenceId,
     displayChannels,
     isDragging,
@@ -42,6 +40,10 @@ export const PianoRollPatternBlock = memo(
     selectedChannel,
   }: PianoRollPatternBlockProps) => {
     const dispatch = useAppDispatch();
+
+    const sequence = useAppSelector(
+      (state) => state.trackerDocument.present.song?.sequence[sequenceId],
+    );
 
     const isSequenceHovered = useAppSelector(
       (state) =>
@@ -75,6 +77,10 @@ export const PianoRollPatternBlock = memo(
       }
     }, [dispatch, isFiltered]);
 
+    if (!sequence) {
+      return null;
+    }
+
     return (
       <StyledPianoRollPatternBlock
         $hovered={isSequenceHovered}
@@ -92,7 +98,7 @@ export const PianoRollPatternBlock = memo(
         {displayChannels.map((channelId) => (
           <PatternChannelNotes
             key={channelId}
-            patternId={patternId}
+            patternId={sequence.channels[channelId]}
             channelId={channelId}
             isActive={selectedChannel === channelId}
             selectedRowIds={

@@ -5,7 +5,8 @@ import {
   TRACKER_PATTERN_LENGTH,
   TRACKER_ROW_SIZE,
 } from "consts";
-import { PatternCell } from "shared/lib/uge/types";
+import { createPatternCell } from "shared/lib/uge/song";
+import { Pattern, PatternCell, SequenceItem, Song } from "shared/lib/uge/types";
 import { toValidChannelId } from "shared/lib/uge/editor/helpers";
 import { transposeNoteValue } from "shared/lib/uge/display";
 
@@ -34,15 +35,140 @@ interface ResolvedAbsRow extends AbsRowPosition {
  * out of bounds.
  */
 export const resolveAbsRow = (
-  sequence: number[],
+  sequence: SequenceItem[],
   absRow: number,
+  channelId: number,
 ): ResolvedAbsRow | null => {
   const { sequenceId, rowId } = fromAbsRow(absRow);
-  const patternId = sequence[sequenceId];
+  const patternId = sequence[sequenceId]?.channels[channelId];
   if (patternId === undefined) {
     return null;
   }
   return { sequenceId, rowId, patternId };
+};
+
+export const getPatternBlockCount = (patterns: Pattern[] | undefined): number =>
+  Math.ceil((patterns?.length ?? 0) / TRACKER_NUM_CHANNELS);
+
+export const getSequenceChannelPatternId = (
+  song: Song,
+  sequenceId: number,
+  channelId: number,
+): number | undefined => song.sequence[sequenceId]?.channels[channelId];
+
+export const getSequenceChannelCell = (
+  song: Song,
+  sequenceId: number,
+  channelId: number,
+  rowId: number,
+): { patternId: number; cell: PatternCell } | null => {
+  const patternId = getSequenceChannelPatternId(song, sequenceId, channelId);
+  if (patternId === undefined) {
+    return null;
+  }
+
+  const cell = song.patterns[patternId]?.[rowId];
+  if (!cell) {
+    return null;
+  }
+
+  return { patternId, cell };
+};
+
+export const createPatternMatrix = (): PatternCell[][] =>
+  Array.from({ length: TRACKER_PATTERN_LENGTH }, () => [
+    createPatternCell(),
+    createPatternCell(),
+    createPatternCell(),
+    createPatternCell(),
+  ]);
+
+export const buildSequencePattern = (
+  song: Song,
+  sequenceId: number,
+): PatternCell[][] => {
+  const pattern = createPatternMatrix();
+
+  for (let rowId = 0; rowId < TRACKER_PATTERN_LENGTH; rowId++) {
+    for (let channelId = 0; channelId < TRACKER_NUM_CHANNELS; channelId++) {
+      const resolved = getSequenceChannelCell(
+        song,
+        sequenceId,
+        channelId,
+        rowId,
+      );
+      pattern[rowId][channelId] = resolved
+        ? { ...resolved.cell }
+        : createPatternCell();
+    }
+  }
+
+  return pattern;
+};
+
+interface ResolvedTrackerPosition {
+  rowIndex: number;
+  channelIndex: 0 | 1 | 2 | 3;
+}
+
+interface ResolvedTrackerPositionField extends ResolvedTrackerPosition {
+  fieldIndex: number;
+}
+
+export const resolveUniqueTrackerPositions = (
+  selectedTrackerFields: number[],
+): ResolvedTrackerPosition[] => {
+  const seen = new Set<string>();
+  const resolvedCells: ResolvedTrackerPosition[] = [];
+
+  for (const field of selectedTrackerFields) {
+    const rowIndex = Math.floor(field / TRACKER_ROW_SIZE);
+    const channelIndex = toValidChannelId(
+      Math.floor(field / TRACKER_CHANNEL_FIELDS) % TRACKER_NUM_CHANNELS,
+    );
+    const key = `${rowIndex}:${channelIndex}`;
+
+    if (seen.has(key)) {
+      continue;
+    }
+    seen.add(key);
+
+    resolvedCells.push({
+      rowIndex,
+      channelIndex,
+    });
+  }
+
+  return resolvedCells;
+};
+
+export const resolveTrackerFieldPositions = (
+  selectedTrackerFields: number[],
+): ResolvedTrackerPositionField[] => {
+  const seen = new Set<string>();
+  const resolvedCells: ResolvedTrackerPositionField[] = [];
+
+  for (const field of selectedTrackerFields) {
+    const rowIndex = Math.floor(field / TRACKER_ROW_SIZE);
+    const channelIndex = toValidChannelId(
+      Math.floor(field / TRACKER_CHANNEL_FIELDS) % TRACKER_NUM_CHANNELS,
+    );
+    const fieldIndex = field % TRACKER_CHANNEL_FIELDS;
+    const key = `${rowIndex}:${channelIndex}:${fieldIndex}`;
+
+    if (seen.has(key)) {
+      continue;
+    }
+    seen.add(key);
+
+    resolvedCells.push({
+      rowIndex,
+      channelIndex,
+      fieldIndex,
+    });
+  }
+
+  return resolvedCells;
 };
 
 /**

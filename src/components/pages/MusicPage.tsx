@@ -37,10 +37,22 @@ import { SplitPaneHeader } from "ui/splitpane/SplitPaneHeader";
 import { InstrumentEditor } from "components/music/sidebar/InstrumentEditor";
 import SongEditorToolsPanel from "components/music/toolbar/SongEditorToolsPanel";
 import { FixedSpacer } from "ui/spacing/Spacing";
+import { Grid2x2Icon } from "ui/icons/Icons";
+import { Button } from "ui/buttons/Button";
 
 const Wrapper = styled.div`
   display: flex;
   width: 100%;
+`;
+
+const SplitPatternIcon = styled(Grid2x2Icon)`
+  && {
+    height: 12px;
+    width: 12px;
+    max-width: 12px;
+    max-height: 12px;
+    margin: 0px 2px;
+  }
 `;
 
 const defaultPaneLayout: SplitPaneLayout[] = [
@@ -107,6 +119,9 @@ const MusicPage = () => {
 
   const modified = useAppSelector((state) => state.tracker.modified);
   const status = useAppSelector((state) => state.tracker.status);
+  const globalSplitPattern = useAppSelector(
+    (state) => state.tracker.globalSplitPattern,
+  );
 
   useEffect(() => {
     if (viewSong && (status === "init" || viewSong.id !== selectedSongId)) {
@@ -330,6 +345,22 @@ const MusicPage = () => {
                 <SplitPaneHeader
                   onToggle={togglePatternsPanel}
                   collapsed={!patternsPanelOpen}
+                  buttons={
+                    <Button
+                      size="small"
+                      variant={globalSplitPattern ? "primary" : "transparent"}
+                      onClick={() => {
+                        dispatch(
+                          trackerActions.setglobalSplitPattern(
+                            !globalSplitPattern,
+                          ),
+                        );
+                      }}
+                      title={l10n("FIELD_SPLIT_PATTERN")}
+                    >
+                      <SplitPatternIcon />
+                    </Button>
+                  }
                 >
                   {l10n("FIELD_ORDER")}
                 </SplitPaneHeader>

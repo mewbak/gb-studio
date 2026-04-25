@@ -852,26 +852,26 @@ function patchRom(targetRomFile: Uint8Array, song: Song, startAddr: number) {
   writeCurrentAddress();
   addr += 16 * 16;
 
-  for (let track = 0; track < 4; track++) {
-    const patternAddr = [];
-    for (let n = 0; n < song.patterns.length; n++) {
-      const pattern = song.patterns[n];
-      patternAddr.push(addr);
+  const patternAddr = [];
+  for (let n = 0; n < song.patterns.length; n++) {
+    const pattern = song.patterns[n];
+    patternAddr.push(addr);
 
-      for (let idx = 0; idx < pattern.length; idx++) {
-        const cell = pattern[idx][track];
-        buf[addr++] = cell.note !== null ? cell.note : 90;
-        buf[addr++] =
-          ((cell.instrument !== null ? cell.instrument + 1 : 0) << 4) |
-          (cell.effectCode !== null ? cell.effectCode : 0);
-        buf[addr++] = cell.effectParam !== null ? cell.effectParam : 0;
-      }
+    for (let idx = 0; idx < pattern.length; idx++) {
+      const cell = pattern[idx];
+      buf[addr++] = cell.note !== null ? cell.note : 90;
+      buf[addr++] =
+        ((cell.instrument !== null ? cell.instrument + 1 : 0) << 4) |
+        (cell.effectCode !== null ? cell.effectCode : 0);
+      buf[addr++] = cell.effectParam !== null ? cell.effectParam : 0;
     }
+  }
 
+  for (let track = 0; track < 4; track++) {
     let orderAddr = ordersAddr[track];
     for (let n = 0; n < song.sequence.length; n++) {
-      buf[orderAddr++] = patternAddr[song.sequence[n]] & 0xff;
-      buf[orderAddr++] = patternAddr[song.sequence[n]] >> 8;
+      buf[orderAddr++] = patternAddr[song.sequence[n].channels[track]] & 0xff;
+      buf[orderAddr++] = patternAddr[song.sequence[n].channels[track]] >> 8;
     }
   }
 }

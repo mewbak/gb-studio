@@ -31,6 +31,7 @@ import {
   SubPatternCell,
   WaveInstrument,
 } from "shared/lib/uge/types";
+import { Tuple } from "shared/types";
 
 /**
  * Convert a MOD file buffer to a UGE song
@@ -50,38 +51,64 @@ const convertMODToUGESong = (mod: MODFile, speedConversion: boolean): Song => {
   initializeInstruments(song);
   initializeWaves(song);
 
-  for (let i = 0; i < mod.patterns.length; i++) {
-    const pattern = transcribePattern(mod.patterns[i]);
-    song.patterns.push(pattern);
+  const patternChannelsByModPattern: [number, number, number, number][] = [];
+
+  for (const modPattern of mod.patterns) {
+    const channelPatterns = transcribePattern(modPattern);
+    const basePatternId = song.patterns.length;
+
+    song.patterns.push(
+      channelPatterns[0],
+      channelPatterns[1],
+      channelPatterns[2],
+      channelPatterns[3],
+    );
+
+    patternChannelsByModPattern.push([
+      basePatternId,
+      basePatternId + 1,
+      basePatternId + 2,
+      basePatternId + 3,
+    ]);
   }
 
-  song.sequence = mod.positions.slice(0, mod.songLen);
+  song.sequence = mod.positions.slice(0, mod.songLen).map((patternIndex) => ({
+    splitPattern: true,
+    channels: patternChannelsByModPattern[patternIndex],
+  }));
 
   applyPlaybackCorrections(song, speedConversion);
 
   return song;
 };
 
-const transcribePattern = (modPattern: MODCell[][]): PatternCell[][] => {
-  const pattern: PatternCell[][] = [];
+const transcribePattern = (
+  modPattern: MODCell[][],
+): [
+  Tuple<PatternCell, 64>,
+  Tuple<PatternCell, 64>,
+  Tuple<PatternCell, 64>,
+  Tuple<PatternCell, 64>,
+] => {
+  const channels: [PatternCell[], PatternCell[], PatternCell[], PatternCell[]] =
+    [[], [], [], []];
 
   for (let row = 0; row < PATTERN_LENGTH; row++) {
-    const rowCells: PatternCell[] = [];
-
     for (let ch = 0; ch < 4; ch++) {
       const modCell = modPattern[row][ch];
 
-      if (ch === CHANNEL_NOISE) {
-        rowCells.push(convertNoiseCell(modCell));
-      } else {
-        rowCells.push(convertCell(modCell));
-      }
+      channels[ch].push(
+        ch === CHANNEL_NOISE ? convertNoiseCell(modCell) : convertCell(modCell),
+      );
     }
-
-    pattern.push(rowCells);
   }
 
-  return pattern;
+  return channels as [
+    Tuple<PatternCell, 64>,
+    Tuple<PatternCell, 64>,
+    Tuple<PatternCell, 64>,
+    Tuple<PatternCell, 64>,
+  ];
 };
 
 /**
@@ -290,10 +317,10 @@ export const applyPlaybackCorrections = (
 
   song.ticksPerRow = speed;
 
-  traverseSong(song, (row, firstVisit) => {
-    // Apply speed + bpm scaling and fill in missing note/instruments for volume slides
+  traverseSong(song, (row, firstVisits) => {
     for (let ch = 0; ch < row.length; ch++) {
       const cell = row[ch];
+      const firstVisit = firstVisits[ch];
 
       // SET SPEED / TEMPO
       if (cell.effectCode === UGE_EFFECTS.SET_SPEED) {
@@ -335,6 +362,7 @@ export const applyPlaybackCorrections = (
     // Fix portamento effects that would overflow/underflow the GB frequency register
     for (let ch = 0; ch < row.length; ch++) {
       const cell = row[ch];
+      const firstVisit = firstVisits[ch];
 
       let startFreq = freq[ch];
       let endFreq = startFreq;
@@ -408,7 +436,7 @@ export const applyPlaybackCorrections = (
 
 export const traverseSong = (
   song: Song,
-  cb: (row: PatternCell[], firstVisit: boolean) => void,
+  cb: (row: PatternCell[], firstVisits: boolean[]) => void,
 ): void => {
   let order = 0;
   let rowIndex = 0;
@@ -425,16 +453,22 @@ export const traverseSong = (
     }
     visitedOrderRow.add(orderRowKey);
 
-    const patternIndex = song.sequence[order];
-    const patternRowKey = `${patternIndex}:${rowIndex}`;
+    const sequenceItem = song.sequence[order];
 
-    const firstVisit = !visitedPatternRow.has(patternRowKey);
-    visitedPatternRow.add(patternRowKey);
+    const currentRowIndex = rowIndex;
 
-    const pattern = song.patterns[patternIndex];
-    const row = pattern[rowIndex];
+    const row = sequenceItem.channels.map(
+      (patternIndex) => song.patterns[patternIndex][currentRowIndex],
+    );
 
-    cb(row, firstVisit);
+    const firstVisits = sequenceItem.channels.map((patternIndex) => {
+      const patternRowKey = `${patternIndex}:${currentRowIndex}`;
+      const firstVisit = !visitedPatternRow.has(patternRowKey);
+      visitedPatternRow.add(patternRowKey);
+      return firstVisit;
+    });
+
+    cb(row, firstVisits);
 
     let nextOrder = order;
     let nextRow = rowIndex + 1;

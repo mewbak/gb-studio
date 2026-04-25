@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import API from "renderer/lib/api";
 import l10n from "shared/lib/lang/l10n";
+import { patternIndexLabel, rowIndexLabel } from "shared/lib/uge/display";
 import trackerActions from "store/features/tracker/trackerActions";
 import { useAppDispatch, useAppSelector, useAppStore } from "store/hooks";
 import styled, { css, ThemeContext } from "styled-components";
@@ -116,13 +117,16 @@ const PatternPosition = () => {
   const sequence = useAppSelector(
     (state) => state.trackerDocument.present.song?.sequence,
   );
-  const patternIndex = sequence?.[orderIndex] ?? 0;
-  return String(patternIndex).padStart(2, "0");
+  const selectedChannel = useAppSelector(
+    (state) => state.tracker.selectedChannel,
+  );
+  const patternIndex = sequence?.[orderIndex]?.channels[selectedChannel] ?? 0;
+  return patternIndexLabel(patternIndex, false);
 };
 
 const RowPosition = () => {
   const rowIndex = useAppSelector((state) => state.tracker.playbackPosition[1]);
-  return String(rowIndex).padStart(2, "0");
+  return rowIndexLabel(rowIndex);
 };
 
 export const SongContextBar = ({

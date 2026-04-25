@@ -1,7 +1,7 @@
 import { InstrumentType } from "shared/lib/music/types";
 import { PatternCell } from "shared/lib/uge/types";
 import clamp from "shared/lib/helpers/clamp";
-import { OCTAVE_SIZE } from "consts";
+import { OCTAVE_SIZE, TRACKER_NUM_CHANNELS } from "consts";
 import l10n from "shared/lib/lang/l10n";
 
 /** Note name labels indexed by semitone within an octave (C through B). */
@@ -167,3 +167,40 @@ export const renderPatternCell = (
   effect: renderEffect(cell.effectCode),
   param: renderEffectParam(cell.effectParam),
 });
+
+/**
+ * Convert raw pattern index to pattern block index where patterns are in blocks of 4 by channel
+ */
+export const patternBlockIndex = (patternIndex: number): number =>
+  Math.floor(patternIndex / TRACKER_NUM_CHANNELS);
+
+/**
+ * Convert raw pattern index to pattern block channel offset
+ */
+export const patternBlockOffset = (patternIndex: number): number =>
+  patternIndex % TRACKER_NUM_CHANNELS;
+
+/**
+ * Convert raw pattern index to pattern labels
+ * when not split just returns block index e.g. patternIndex=9 label=02
+ * when split includes channel index e.g. patternIndex=9 label=02.1
+ */
+export const patternIndexLabel = (
+  patternIndex: number,
+  splitPattern: boolean,
+): string => {
+  const blockIndex = patternBlockIndex(patternIndex);
+  const blockLabel = String(blockIndex).padStart(2, "0");
+  if (!splitPattern) {
+    return blockLabel;
+  }
+  const blockOffset = patternBlockOffset(patternIndex);
+  const offsetLabel = splitPattern ? `.${blockOffset}` : "";
+  return `${blockLabel}${offsetLabel}`;
+};
+
+/**
+ * Convert row index to two digit display value e.g. rowIndex=5 label=05
+ */
+export const rowIndexLabel = (rowIndex: number) =>
+  String(rowIndex).padStart(2, "0");

@@ -1,5 +1,4 @@
 import React from "react";
-import { PatternCell } from "shared/lib/uge/types";
 import { PIANO_ROLL_CELL_SIZE, TOTAL_NOTES } from "consts";
 import {
   StyledPianoRollNote,
@@ -21,27 +20,6 @@ const ARPEGGIO_CODE = 0;
 const noteBottom = (note: number) =>
   (note % TOTAL_NOTES) * PIANO_ROLL_CELL_SIZE;
 
-const arePatternCellsEqual = (
-  a: PatternCell[] | undefined,
-  b: PatternCell[] | undefined,
-): boolean => {
-  if (a === b) {
-    return true;
-  }
-
-  if (!a || !b || a.length !== b.length) {
-    return false;
-  }
-
-  for (let i = 0; i < a.length; i += 1) {
-    if (a[i] !== b[i]) {
-      return false;
-    }
-  }
-
-  return true;
-};
-
 export const PatternChannelNotes = React.memo(
   ({
     patternId,
@@ -50,14 +28,9 @@ export const PatternChannelNotes = React.memo(
     selectedRowIds,
     isDragging,
   }: PatternChannelNotesProps) => {
-    const channelCells = useAppSelector<PatternCell[] | undefined>((state) => {
-      const pattern = state.trackerDocument.present.song?.patterns[patternId];
-      if (!pattern) {
-        return undefined;
-      }
-
-      return pattern.map((row) => row[channelId]);
-    }, arePatternCellsEqual);
+    const channelCells = useAppSelector(
+      (state) => state.trackerDocument.present.song?.patterns[patternId],
+    );
 
     if (!channelCells) {
       return null;

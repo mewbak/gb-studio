@@ -5,7 +5,9 @@ import type {
   DutyInstrument,
   NoiseInstrument,
   WaveInstrument,
+  Pattern,
 } from "shared/lib/uge/types";
+import { TRACKER_NUM_CHANNELS } from "consts";
 import { noteGBDKDefines } from "shared/lib/music/constants";
 import {
   addDutyInstrument,
@@ -15,6 +17,8 @@ import {
   createSong,
   createSubPatternCell,
 } from "./song";
+import { Tuple } from "shared/types";
+import { isSplitPatternSequence } from "shared/lib/uge/editor/helpers";
 
 interface InstrumentMap {
   [index: number]: number;
@@ -239,11 +243,13 @@ export const loadUGESong = (buffer: Buffer): Song => {
     }
   }
 
-  const orders = [];
+  const orders: number[][] = [];
   for (let n = 0; n < 4; n++) {
     const orderCount = readUint32(); // The amount of pattern orders stored in the file has an off-by-one.
     orders.push(
-      new Uint32Array(data.slice(offset, offset + 4 * (orderCount - 1))),
+      Array.from(
+        new Uint32Array(data.slice(offset, offset + 4 * (orderCount - 1))),
+      ),
     );
     offset += 4 * orderCount;
   }
@@ -366,76 +372,47 @@ export const loadUGESong = (buffer: Buffer): Song => {
     }
   });
 
-  // Create proper flat patterns
-  for (let n = 0; n < orders[0].length; n++) {
-    const pattern: PatternCell[][] = [];
-    for (let m = 0; m < 64; m++) {
-      const row: PatternCell[] = [];
-      for (let track = 0; track < 4; track++) {
-        const cellData: number[] = patterns[orders[track][n]][m];
-        const [note, instrument, effectCode, effectParam] = cellData;
+  song.patterns = patterns.map(
+    (pattern) =>
+      pattern.map((row) => {
         const cell = createPatternCell();
-        if (note !== 90) cell.note = note;
+        const [note, instrument, effectCode, effectParam] = row;
+        if (note !== 90) {
+          cell.note = note;
+        }
         if (instrument !== 0) {
-          let mapping: InstrumentMap = {};
-          if (track < 2) mapping = dutyInstrumentMapping;
-          if (track === 2) mapping = waveInstrumentMapping;
-          if (track === 3) mapping = noiseInstrumentMapping;
-          if (instrument in mapping) cell.instrument = mapping[instrument];
+          cell.instrument = instrument - 1;
         }
         if (effectCode !== 0 || effectParam !== 0) {
           cell.effectCode = effectCode;
           cell.effectParam = effectParam;
         }
-        row.push(cell);
-      }
-      pattern.push(row);
-    }
-    song.patterns.push(pattern);
-    let added = false;
-    for (let idx = 0; idx < song.patterns.length - 1; idx++) {
-      if (
-        comparePatterns(
-          song.patterns[idx],
-          song.patterns[song.patterns.length - 1],
-        )
-      ) {
-        song.sequence.push(idx);
-        song.patterns.pop();
-        added = true;
-      }
-    }
-    if (!added) song.sequence.push(song.patterns.length - 1);
-  }
+        return cell;
+      }) as Tuple<PatternCell, 64>,
+  );
 
-  // TODO: Remove unused instruments, unused waves, and deduplicate patterns.
-  // for (let idx = 0; idx < song.dutyInstruments.length;) {
-  //   if (!song.usesInstrument("duty", idx))
-  //     song.removeInstrument("duty", idx);
-  //   else
-  //     idx += 1;
-  // }
-  // for (let idx = 0; idx < song.waveInstruments.length;) {
-  //   if (!song.usesInstrument("wave", idx))
-  //     song.removeInstrument("wave", idx);
-  //   else
-  //     idx += 1;
-  // }
-  // for (let idx = 0; idx < song.noiseInstruments.length;) {
-  //   if (!song.usesInstrument("noise", idx))
-  //     song.removeInstrument("noise", idx);
-  //   else
-  //     idx += 1;
-  // }
+  song.sequence = Array.from(orders[0]).map((value, index) => {
+    const channels: [number, number, number, number] = [
+      orders[0][index],
+      orders[1][index],
+      orders[2][index],
+      orders[3][index],
+    ];
+    return {
+      splitPattern: isSplitPatternSequence(channels),
+      channels,
+    };
+  });
 
-  return song;
+  return compactUGESong(song);
 };
 
 /**
  * Serialises a Song object into a `.uge` binary buffer that is compatible
  * with hUGETracker version 6.
  */
-export const saveUGESong = (song: Song): Buffer => {
+export const saveUGESong = (rawSong: Song): Buffer => {
+  const song = compactUGESong(rawSong);
   const buffer = new ArrayBuffer(1024 * 1024);
   const view = new DataView(buffer);
   let idx = 0;
@@ -568,25 +545,23 @@ export const saveUGESong = (song: Song): Buffer => {
 
   addUint32(song.timerDivider);
 
-  addUint32(song.patterns.length * 4);
+  addUint32(song.patterns.length);
   let patternKey = 0;
   for (const pattern of song.patterns) {
-    for (let track = 0; track < 4; track++) {
-      addUint32(patternKey++);
-      for (let m = 0; m < 64; m++) {
-        const t = pattern[m][track];
-        addUint32(t.note === null ? 90 : t.note);
-        addUint32(t.instrument === null ? 0 : t.instrument + 1);
-        addUint32(0);
-        addUint32(t.effectCode === null ? 0 : t.effectCode);
-        addUint8(t.effectParam === null ? 0 : t.effectParam);
-      }
+    addUint32(patternKey++);
+    for (let m = 0; m < 64; m++) {
+      const t = pattern[m];
+      addUint32(t.note === null ? 90 : t.note);
+      addUint32(t.instrument === null ? 0 : t.instrument + 1);
+      addUint32(0);
+      addUint32(t.effectCode === null ? 0 : t.effectCode);
+      addUint8(t.effectParam === null ? 0 : t.effectParam);
     }
   }
   for (let track = 0; track < 4; track++) {
     addUint32(song.sequence.length + 1); //amount of "orders" in a uge file has an off-by-one
     for (const i of song.sequence) {
-      addUint32(i * 4 + track);
+      addUint32(i.channels[track]);
     }
     addUint32(0); // add the off-by-one error
   }
@@ -597,14 +572,73 @@ export const saveUGESong = (song: Song): Buffer => {
   return Buffer.from(buffer.slice(0, idx));
 };
 
-const comparePatterns = function (a: PatternCell[][], b: PatternCell[][]) {
-  if (a.length !== b.length) return false;
-  for (let idx = 0; idx < a.length; idx++) {
-    if (!patternEqual(a[idx], b[idx])) return false;
+/**
+ * Compact a Song removing all unreferenced patterns
+ */
+export const compactUGESong = (song: Song): Song => {
+  const usedBlockIds = new Set<number>();
+
+  for (const sequenceItem of song.sequence) {
+    for (const patternId of sequenceItem.channels) {
+      usedBlockIds.add(Math.floor(patternId / TRACKER_NUM_CHANNELS));
+    }
   }
-  return true;
+
+  const nextPatterns: Pattern[] = [];
+  const patternIdMap = new Map<number, number>();
+
+  const blockCount = Math.ceil(song.patterns.length / TRACKER_NUM_CHANNELS);
+
+  for (let blockId = 0; blockId < blockCount; blockId++) {
+    if (!usedBlockIds.has(blockId)) {
+      continue;
+    }
+
+    const oldBasePatternId = blockId * TRACKER_NUM_CHANNELS;
+    const newBasePatternId = nextPatterns.length;
+
+    for (
+      let channelOffset = 0;
+      channelOffset < TRACKER_NUM_CHANNELS;
+      channelOffset++
+    ) {
+      const oldPatternId = oldBasePatternId + channelOffset;
+      const sourcePattern = song.patterns[oldPatternId];
+
+      if (!sourcePattern) {
+        break;
+      }
+
+      patternIdMap.set(oldPatternId, newBasePatternId + channelOffset);
+      nextPatterns.push(
+        sourcePattern.map((cell) => ({
+          ...cell,
+        })) as (typeof song.patterns)[number],
+      );
+    }
+  }
+
+  return {
+    ...song,
+    patterns: nextPatterns,
+    sequence: song.sequence.map((sequenceItem) => ({
+      ...sequenceItem,
+      channels: sequenceItem.channels.map((patternId) => {
+        const mappedPatternId = patternIdMap.get(patternId);
+
+        if (mappedPatternId === undefined) {
+          throw new Error(`Unable to remap UGE pattern ${patternId}`);
+        }
+
+        return mappedPatternId;
+      }) as typeof sequenceItem.channels,
+    })),
+  };
 };
 
+/**
+ * Determine if two patterns contain identical note data
+ */
 const patternEqual = function (a: PatternCell[], b: PatternCell[]) {
   if (a.length !== b.length) return false;
   for (let idx = 0; idx < a.length; idx++) {
@@ -638,7 +672,7 @@ export const exportToC = (song: Song, trackName: string): string => {
 
   const getSequenceMappingFor = function (track: number) {
     return song.sequence
-      .map((n) => `song_pattern_${patternMap[`${n}, ${track}`]}`)
+      .map((sequence) => `song_pattern_${patternMap[sequence.channels[track]]}`)
       .join(", ");
   };
 
@@ -758,19 +792,16 @@ export const exportToC = (song: Song, trackName: string): string => {
 
   for (let n = 0; n < song.patterns.length; n++) {
     const sourcePattern = song.patterns[n];
-    for (let track = 0; track < 4; track++) {
-      const targetPattern = [];
-      for (let m = 0; m < sourcePattern.length; m++) {
-        targetPattern.push(sourcePattern[m][track]);
-      }
-
-      const idx = findPattern(targetPattern);
-      if (idx !== null) {
-        patternMap[`${n}, ${track}`] = idx;
-      } else {
-        patternMap[`${n}, ${track}`] = patterns.length;
-        patterns.push(targetPattern);
-      }
+    const targetPattern = [];
+    for (let m = 0; m < sourcePattern.length; m++) {
+      targetPattern.push(sourcePattern[m]);
+    }
+    const idx = findPattern(targetPattern);
+    if (idx !== null) {
+      patternMap[n] = idx;
+    } else {
+      patternMap[n] = patterns.length;
+      patterns.push(targetPattern);
     }
   }
 

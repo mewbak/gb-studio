@@ -1,123 +1,66 @@
 import React, { memo, useCallback, useEffect, useMemo, useRef } from "react";
-import { Select } from "ui/form/Select";
 import { PlusIcon } from "ui/icons/Icons";
 import trackerDocumentActions from "store/features/trackerDocument/trackerDocumentActions";
 import trackerActions from "store/features/tracker/trackerActions";
 import { useAppDispatch, useAppSelector } from "store/hooks";
-import { SingleValue } from "react-select";
 import { SortableList } from "ui/lists/SortableList";
 import { patternGradient } from "shared/lib/uge/display";
 import l10n from "shared/lib/lang/l10n";
-import renderPatternContextMenu from "components/music/contextMenus/renderPatternContextMenu";
+import renderSequenceItemContextMenu from "components/music/contextMenus/renderSequenceItemContextMenu";
 import { useContextMenu } from "ui/hooks/use-context-menu";
 import {
   StyledAddSequenceButton,
   StyledSequenceEditorWrapper,
   StyledSequenceItem,
-  StyledSequenceItemHeader,
+  StyledSequenceItemBlock,
+  StyledSequenceItemBlockHeader,
+  StyledSequenceItemDropdown,
+  StyledSequenceItemPatterns,
 } from "./style";
 import { DropdownButton } from "ui/buttons/DropdownButton";
+import { getPatternBlockCount } from "store/features/trackerDocument/trackerDocumentHelpers";
+import { SequenceItem } from "shared/lib/uge/types";
 
-interface SequenceOption {
-  value: number;
-  label: string;
-  shortLabel: string;
-}
 interface SequenceEditorProps {
   height?: number;
   direction: "vertical" | "horizontal";
 }
 
-interface SequenceListItem {
+interface SequenceListItemData {
   sequenceIndex: number;
-  patternId: number;
+  sequenceItem: SequenceItem;
 }
 
-interface SequenceItemProps {
-  item: SequenceListItem;
+interface SequenceListItemProps {
+  item: SequenceListItemData;
   isSelected: boolean;
-  sequenceOptions: SequenceOption[];
   sequenceLength: number;
   numPatterns: number;
   loopSequenceId: number | undefined;
+  globalSplitPattern: boolean;
   direction: "vertical" | "horizontal";
 }
 
-interface SequencePatternSelectProps {
-  patternId: number;
-  sequenceOptions: SequenceOption[];
-  onEditSequence: (newValue: SequenceOption) => void;
-}
-
-export const SequencePatternSelect = memo(
-  ({
-    patternId,
-    sequenceOptions,
-    onEditSequence,
-  }: SequencePatternSelectProps) => {
-    const value = useMemo(
-      () => sequenceOptions.find((option) => option.value === patternId),
-      [sequenceOptions, patternId],
-    );
-
-    const formatOptionLabel = useCallback(
-      (option: SequenceOption, { context }: { context: "menu" | "value" }) =>
-        context === "value" ? option.shortLabel : option.label,
-      [],
-    );
-
-    const onChange = useCallback(
-      (newValue: SingleValue<SequenceOption>) => {
-        if (newValue) {
-          onEditSequence(newValue);
-        }
-      },
-      [onEditSequence],
-    );
-
-    return (
-      <Select
-        classNamePrefix="CustomSelect--Left CustomSelect--WidthAuto"
-        value={value}
-        formatOptionLabel={formatOptionLabel}
-        options={sequenceOptions}
-        onChange={onChange}
-      />
-    );
-  },
-);
-
-const SequenceItem = memo(
+const SequenceListItem = memo(
   ({
     item,
     isSelected,
-    sequenceOptions,
     sequenceLength,
     numPatterns,
     loopSequenceId,
+    globalSplitPattern,
     direction,
-  }: SequenceItemProps) => {
+  }: SequenceListItemProps) => {
     const dispatch = useAppDispatch();
-
-    const editSequence = useCallback(
-      (newValue: SequenceOption) => {
-        dispatch(
-          trackerDocumentActions.editSequence({
-            sequenceIndex: item.sequenceIndex,
-            sequenceId: newValue.value,
-          }),
-        );
-      },
-      [dispatch, item.sequenceIndex],
-    );
 
     const getContextMenu = useCallback(
       (onClose?: () => void) => {
-        return renderPatternContextMenu({
+        return renderSequenceItemContextMenu({
           dispatch,
-          patternIndex: item.patternId,
+          sequenceItem: item.sequenceItem,
           orderIndex: item.sequenceIndex,
           orderLength: sequenceLength,
+          globalSplitPattern,
           numPatterns,
           loopSequenceId,
           onClose,
@@ -125,11 +68,12 @@ const SequenceItem = memo(
       },
       [
         dispatch,
-        item.patternId,
+        item.sequenceItem,
         item.sequenceIndex,
+        sequenceLength,
+        globalSplitPattern,
         numPatterns,
         loopSequenceId,
-        sequenceLength,
       ],
     );
 
@@ -142,48 +86,66 @@ const SequenceItem = memo(
     const isFiltered =
       loopSequenceId !== undefined && loopSequenceId !== item.sequenceIndex;
 
-    const background = useMemo(
-      () => patternGradient(item.patternId, isFiltered),
-      [isFiltered, item.patternId],
-    );
-
     return (
-      <StyledSequenceItem
+      <StyledSequenceItemBlock
         $selected={isSelected}
         $filtered={isFiltered}
-        style={{ background }}
+        $direction={direction}
         onContextMenu={onContextMenu}
       >
-        <StyledSequenceItemHeader $direction={direction}>
-          <span>
-            {item.sequenceIndex + 1}:
-            {direction === "vertical"
-              ? ` ${l10n("FIELD_PATTERN")} ${String(item.patternId).padStart(2, "0")}`
-              : ""}
-          </span>
-          {direction === "vertical" && (
-            <DropdownButton
-              variant="transparent"
-              onMouseDown={(e) => e.stopPropagation()}
-            >
-              {contextMenu}
-            </DropdownButton>
-          )}
-        </StyledSequenceItemHeader>
-        {direction === "horizontal" && (
-          <SequencePatternSelect
-            patternId={item.patternId}
-            sequenceOptions={sequenceOptions}
-            onEditSequence={editSequence}
-          />
+        <StyledSequenceItemBlockHeader>
+          {item.sequenceIndex + 1}:
+        </StyledSequenceItemBlockHeader>
+        {globalSplitPattern || item.sequenceItem.splitPattern ? (
+          <StyledSequenceItemPatterns>
+            {item.sequenceItem.channels.map((patternId, channelId) => (
+              <StyledSequenceItem
+                key={channelId}
+                $filtered={isFiltered}
+                style={{
+                  background: patternGradient(
+                    Math.floor(patternId / 4),
+                    isFiltered,
+                    true,
+                  ),
+                }}
+              >
+                {String(Math.floor(patternId / 4)).padStart(2, "0")}.
+                {patternId % 4}
+              </StyledSequenceItem>
+            ))}
+          </StyledSequenceItemPatterns>
+        ) : (
+          <StyledSequenceItem
+            $filtered={isFiltered}
+            style={{
+              background: patternGradient(
+                Math.floor(item.sequenceItem.channels[0] / 4),
+                isFiltered,
+                true,
+              ),
+            }}
+          >
+            {`${l10n("FIELD_PATTERN")} ${String(
+              Math.floor(item.sequenceItem.channels[0] / 4),
+            ).padStart(2, "0")}`}
+          </StyledSequenceItem>
         )}
+        <StyledSequenceItemDropdown>
+          <DropdownButton
+            variant="transparent"
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            {contextMenu}
+          </DropdownButton>
+        </StyledSequenceItemDropdown>
         {contextMenuElement}
-      </StyledSequenceItem>
+      </StyledSequenceItemBlock>
     );
   },
 );
 
-const emptySequence: number[] = [];
+const emptySequence: SequenceItem[] = [];
 
 export const SequenceEditor = ({ height, direction }: SequenceEditorProps) => {
   const dispatch = useAppDispatch();
@@ -192,8 +154,8 @@ export const SequenceEditor = ({ height, direction }: SequenceEditorProps) => {
     (state) => state.trackerDocument.present.song?.sequence ?? emptySequence,
   );
 
-  const patterns = useAppSelector(
-    (state) => state.trackerDocument.present.song?.patterns.length ?? 0,
+  const numPatterns = useAppSelector((state) =>
+    getPatternBlockCount(state.trackerDocument.present.song?.patterns),
   );
 
   const sequenceId = useAppSelector((state) => state.tracker.selectedSequence);
@@ -203,6 +165,10 @@ export const SequenceEditor = ({ height, direction }: SequenceEditorProps) => {
 
   const loopSequenceId = useAppSelector(
     (state) => state.tracker.loopSequenceId,
+  );
+
+  const globalSplitPattern = useAppSelector(
+    (state) => state.tracker.globalSplitPattern,
   );
 
   const sequenceLengthRef = useRef(sequence?.length ?? 0);
@@ -245,24 +211,6 @@ export const SequenceEditor = ({ height, direction }: SequenceEditorProps) => {
     }
   }, [play, playingSequence, loopSequenceId, sequenceId, setSequenceId]);
 
-  const sequenceOptions: SequenceOption[] = useMemo(
-    () =>
-      Array.from(Array(patterns || 0).keys())
-        .map((i) => ({
-          value: i,
-          shortLabel: String(i).padStart(2, "0"),
-          label: `${l10n("FIELD_PATTERN")} ${String(i).padStart(2, "0")}`,
-        }))
-        .concat([
-          {
-            value: -1,
-            shortLabel: "",
-            label: `${l10n("FIELD_PATTERN")} ${(patterns || 1).toString().padStart(2, "0")} (${l10n("FIELD_NEW")})`,
-          },
-        ]),
-    [patterns],
-  );
-
   const onAddSequence = useCallback(() => {
     dispatch(
       trackerDocumentActions.insertSequence({
@@ -289,45 +237,46 @@ export const SequenceEditor = ({ height, direction }: SequenceEditorProps) => {
     [dispatch],
   );
 
-  const sequenceItems = useMemo<SequenceListItem[]>(
+  const sequenceItems = useMemo<SequenceListItemData[]>(
     () =>
-      (sequence || []).map((patternId, sequenceIndex) => ({
+      (sequence || []).map((sequenceItem, sequenceIndex) => ({
         sequenceIndex,
-        patternId,
+        sequenceItem,
       })),
     [sequence],
   );
 
   const renderSequenceItem = useCallback(
-    (item: SequenceListItem, { isSelected }: { isSelected: boolean }) => (
-      <SequenceItem
+    (item: SequenceListItemData, { isSelected }: { isSelected: boolean }) => (
+      <SequenceListItem
         item={item}
         isSelected={isSelected}
-        sequenceOptions={sequenceOptions}
         sequenceLength={sequenceItems.length}
-        numPatterns={patterns}
+        numPatterns={numPatterns}
         loopSequenceId={loopSequenceId}
+        globalSplitPattern={globalSplitPattern}
         direction={direction}
       />
     ),
     [
-      sequenceOptions,
       sequenceItems.length,
-      patterns,
+      numPatterns,
       loopSequenceId,
+      globalSplitPattern,
       direction,
     ],
   );
 
   const onSelect = useCallback(
-    (item: SequenceListItem) => {
+    (item: SequenceListItemData) => {
       setSequenceId(item.sequenceIndex);
     },
     [setSequenceId],
   );
 
   const extractKey = useCallback(
-    (item: SequenceListItem) => `${item.sequenceIndex}:${item.patternId}`,
+    (item: SequenceListItemData) =>
+      `${item.sequenceIndex}:${item.sequenceItem.channels.join(":")}`,
     [],
   );
 

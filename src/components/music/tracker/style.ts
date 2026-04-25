@@ -22,71 +22,6 @@ export const StyledTrackerScrollCanvas = styled.div`
   max-width: 0;
 `;
 
-interface StyledTrackerContentTableProps {
-  $type: "pattern" | "subpattern";
-  $isFiltered?: boolean;
-}
-
-export const StyledTrackerContentTable = styled.table<StyledTrackerContentTableProps>`
-  min-width: 640px;
-  display: table;
-  border-collapse: separate;
-  border-spacing: 0;
-
-  ${(props) =>
-    props.$type === "pattern" &&
-    css`
-      & tr td:first-child {
-        position: sticky;
-        left: 0;
-        z-index: 1;
-      }
-    `}
-
-  ${(props) =>
-    props.$type === "subpattern" &&
-    css`
-      width: 100%;
-      min-width: 0;
-      max-width: 270px;
-      & tr td:first-child {
-        width: 56px;
-      }
-      & tr td:last-child {
-        text-align: left;
-        padding: 0 5px;
-      }
-
-      td {
-        scroll-margin-top: 110px;
-        scroll-margin-bottom: 320px;
-      }
-    `}
-
-  ${(props) =>
-    props.$isFiltered &&
-    css`
-      filter: grayscale(1);
-    `}
-`;
-
-export const StyledTrackerTableHeader = styled.thead`
-  width: 100%;
-  height: 40px;
-  white-space: nowrap;
-  box-shadow: 0 3px 5px rgb(0 0 0 / 20%);
-  flex-shrink: 0;
-  position: sticky;
-  top: 0;
-  z-index: 2;
-`;
-
-export const StyledTrackerTableBody = styled.tbody`
-  box-shadow: none !important;
-`;
-
-export const StyledTrackerTableHeaderRow = styled.tr``;
-
 interface StyledTrackerHeaderCellProps {
   $type: "channel" | "patternIndex";
   $muted?: boolean;
@@ -106,13 +41,14 @@ export const StyledTrackerHeaderCellContents = styled.div`
   height: 40px;
 `;
 
-export const StyledTrackerHeaderCell = styled.th<StyledTrackerHeaderCellProps>`
+export const StyledTrackerHeaderCell = styled.div<StyledTrackerHeaderCellProps>`
   position: relative;
+  display: block;
   align-items: center;
   text-transform: uppercase;
   font-size: 11px;
   font-weight: bold;
-  height: 30px;
+  height: 40px;
   flex-shrink: 0;
   color: black;
   box-sizing: border-box;
@@ -129,8 +65,8 @@ export const StyledTrackerHeaderCell = styled.th<StyledTrackerHeaderCellProps>`
     props.$type === "patternIndex" &&
     css`
       padding: 0px;
-      width: 52px;
-      min-width: 52px;
+      width: 56px;
+      min-width: 56px;
       text-align: center;
       padding: 0;
       position: sticky;
@@ -141,7 +77,7 @@ export const StyledTrackerHeaderCell = styled.th<StyledTrackerHeaderCellProps>`
   ${(props) =>
     props.$type === "channel" &&
     css`
-      width: 133px;
+      width: 146px;
       &:hover {
         background: rgba(255, 255, 255, 0.2);
       }
@@ -212,113 +148,17 @@ export const StyledTrackerHeaderCell = styled.th<StyledTrackerHeaderCellProps>`
     `}
 `;
 
-interface StyledTrackerRowProps {
-  $isStepMarker?: boolean;
-  $isActive?: boolean;
-}
-
-export const StyledTrackerRow = styled.tr<StyledTrackerRowProps>`
-  background-color: ${(props) => props.theme.colors.tracker.background};
-
-  ${(props) =>
-    props.$isStepMarker
-      ? css`
-          td {
-            background-color: ${props.theme.colors.tracker.activeBackground};
-          }
-        `
-      : ""}
-
-  ${(props) =>
-    props.$isActive
-      ? css`
-          background-color: ${props.theme.colors.tracker.activeBackground};
-        `
-      : ""}
-`;
-
-interface StyledTrackerCellProps {
-  $isDefaultPlayhead?: boolean;
-  $isMuted?: boolean;
-}
-
-export const StyledTrackerCell = styled.td<StyledTrackerCellProps>`
-  font-family: "Public Pixel", monospace;
-  font-size: 12px;
-  font-weight: bold;
-  color: ${(props) => props.theme.colors.tracker.text};
-  border-width: 0 1px 0 0;
-  border-color: ${(props) => props.theme.colors.tracker.border};
-  border-style: solid;
-  margin: 0;
-  height: 28px;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  padding: 0 11px;
-
-  &:first-child {
-    padding: 0px;
-    background-color: ${(props) => props.theme.colors.tracker.background};
-  }
-
-  ${(props) =>
-    props.$isDefaultPlayhead
-      ? css`
-          && {
-            position: relative;
-            background-color: ${props.theme.colors.tracker.border};
-            color: ${props.theme.colors.tracker.text};
-
-            &:after {
-              content: "";
-              position: absolute;
-              top: 0px;
-              right: -14px;
-              border-top: 14px solid transparent;
-              border-bottom: 14px solid transparent;
-              border-left: 14px solid ${props.theme.colors.tracker.border};
-            }
-          }
-          ${StyledTrackerField} {
-            color: ${props.theme.colors.tracker.text};
-          }
-        `
-      : ""}
-
-  &[data-playing="true"] {
-    position: relative;
-    background-color: ${(props) => props.theme.colors.highlight};
-    color: ${(props) => props.theme.colors.highlightText};
-
-    &:after {
-      content: "";
-      position: absolute;
-      top: 0px;
-      right: -14px;
-      border-top: 14px solid transparent;
-      border-bottom: 14px solid transparent;
-      border-left: 14px solid ${(props) => props.theme.colors.highlight};
-    }
-  }
-
-  ${(props) =>
-    props.$isMuted
-      ? css`
-          opacity: 0.3;
-        `
-      : ""}
-`;
-
 const StyledTrackerField = styled.span<{
   $active?: boolean;
   $selected?: boolean;
 }>`
   &:hover {
-    box-shadow: 0px 0px 0px 2px rgba(255, 0, 0, 0.2) inset;
+    outline: 2px solid rgba(255, 0, 0, 0.2);
   }
   margin: 0;
   padding: 5px 4px;
+  white-space: nowrap;
+
   ${(props) =>
     props.$selected
       ? css`
@@ -337,7 +177,10 @@ const StyledTrackerField = styled.span<{
   ${(props) =>
     props.$active && props.$selected
       ? css`
-          box-shadow: 0px 0px 0px 2px rgba(255, 0, 0, 0.2) inset;
+          outline: 2px solid rgba(255, 0, 0, 0.5);
+          &:hover {
+            outline: 2px solid rgba(255, 0, 0, 0.5);
+          }
         `
       : ""}
 `;
@@ -368,6 +211,150 @@ export const StyledTrackerEffectCodeField = styled(StyledTrackerField)`
 export const StyledTrackerEffectParamField = styled(StyledTrackerField)`
   color: ${(props) => props.theme.colors.tracker.effectParam};
   padding-left: 1px;
+`;
+
+export const StyledTrackerPattern = styled.div<{ $isFiltered?: boolean }>`
+  min-width: 640px;
+  display: flex;
+  flex-direction: column;
+
+  ${(props) =>
+    props.$isFiltered &&
+    css`
+      filter: grayscale(1);
+    `}
+`;
+
+export const StyledTrackerPatternHeader = styled.div`
+  display: flex;
+  width: 100%;
+  min-height: 40px;
+  white-space: nowrap;
+  box-shadow: 0 3px 5px rgb(0 0 0 / 20%);
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 10001;
+`;
+
+export const StyledTrackerPatternBody = styled.div`
+  display: flex;
+  box-shadow: none !important;
+  outline: 0;
+  align-items: stretch;
+`;
+
+export const StyledTrackerPatternRowIndexColumn = styled.div<{
+  $sticky?: boolean;
+}>`
+  flex: 0 0 56px;
+  min-width: 56px;
+  box-sizing: border-box;
+  background-color: ${(props) => props.theme.colors.tracker.background};
+
+  ${(props) =>
+    props.$sticky &&
+    css`
+      position: sticky;
+      left: 0;
+      z-index: 1;
+    `}
+`;
+
+interface StyledTrackerPatternRowIndexCellProps {
+  $isDefaultPlayhead?: boolean;
+}
+
+export const StyledTrackerPatternRowIndexCell = styled.div<StyledTrackerPatternRowIndexCellProps>`
+  font-family: "Public Pixel", monospace;
+  font-size: 12px;
+  font-weight: bold;
+  color: ${(props) => props.theme.colors.tracker.text};
+  border-width: 0 1px 0 0;
+  border-color: ${(props) => props.theme.colors.tracker.border};
+  border-style: solid;
+  margin: 0;
+  height: 28px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 0;
+  background-color: ${(props) => props.theme.colors.tracker.background};
+
+  ${(props) =>
+    props.$isDefaultPlayhead
+      ? css`
+          position: relative;
+          background-color: ${props.theme.colors.tracker.border};
+          color: ${props.theme.colors.tracker.text};
+
+          &:after {
+            content: "";
+            position: absolute;
+            top: 0px;
+            right: -14px;
+            border-top: 14px solid transparent;
+            border-bottom: 14px solid transparent;
+            border-left: 14px solid ${props.theme.colors.tracker.border};
+          }
+        `
+      : ""}
+
+  &[data-playing="true"] {
+    position: relative;
+    background-color: ${(props) => props.theme.colors.highlight};
+    color: ${(props) => props.theme.colors.highlightText};
+
+    &:after {
+      content: "";
+      position: absolute;
+      top: 0px;
+      right: -14px;
+      border-top: 14px solid transparent;
+      border-bottom: 14px solid transparent;
+      border-left: 14px solid ${(props) => props.theme.colors.highlight};
+    }
+  }
+`;
+
+export const StyledTrackerPatternChannel = styled.div<{ $isMuted?: boolean }>`
+  flex: 0 0 146px;
+  min-width: 146px;
+  box-sizing: border-box;
+
+  ${(props) =>
+    props.$isMuted &&
+    css`
+      opacity: 0.3;
+    `}
+`;
+
+interface StyledTrackerPatternChannelRowProps {
+  $isStepMarker?: boolean;
+  $isActive?: boolean;
+}
+
+export const StyledTrackerPatternChannelRow = styled.div<StyledTrackerPatternChannelRowProps>`
+  font-family: "Public Pixel", monospace;
+  font-size: 12px;
+  font-weight: bold;
+  color: ${(props) => props.theme.colors.tracker.text};
+  border-width: 0 1px 0 0;
+  border-color: ${(props) => props.theme.colors.tracker.border};
+  border-style: solid;
+  margin: 0;
+  height: 28px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 0 11px;
+  box-sizing: border-box;
+  background-color: ${(props) =>
+    props.$isActive || props.$isStepMarker
+      ? props.theme.colors.tracker.activeBackground
+      : props.theme.colors.tracker.background};
 `;
 
 export const StyledAddPatternButton = styled.button`

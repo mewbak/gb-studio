@@ -1,9 +1,11 @@
 import {
+  decodePatternChannelRowState,
   normalizeFieldIndex,
   fieldToPosition,
   buildSelectionRect,
   getSelectedTrackerFields,
   getFieldColumnFocus,
+  getPatternChannelRowState,
   trackerFieldsToPatternCells,
 } from "../../../../src/components/music/tracker/helpers";
 
@@ -117,5 +119,105 @@ describe("trackerFieldsToPatternCells", () => {
     expect(cells).toHaveLength(2);
     expect(cells[0].rowId).toBe(0);
     expect(cells[1].rowId).toBe(1);
+  });
+});
+
+describe("getPatternChannelRowState", () => {
+  it("encodes the active field within the row cell", () => {
+    const rowState = getPatternChannelRowState({
+      trackerActiveField: 1 * TRACKER_ROW_SIZE + 6,
+      selectionSequenceId: undefined,
+      selectedTrackerFields: [],
+      renderSequenceId: 0,
+      channelId: 1,
+      rowIndex: 1,
+    });
+
+    expect((rowState & 0b111) - 1).toBe(2);
+    expect(rowState >> 3).toBe(0);
+  });
+
+  it("ignores active fields from a different sequence", () => {
+    const rowState = getPatternChannelRowState({
+      trackerActiveField: TRACKER_NUM_FIELDS + 5,
+      selectionSequenceId: undefined,
+      selectedTrackerFields: [],
+      renderSequenceId: 0,
+      channelId: 1,
+      rowIndex: 0,
+    });
+
+    expect((rowState & 0b111) - 1).toBe(-1);
+  });
+
+  it("encodes only selected fields for the matching row and channel", () => {
+    const rowState = getPatternChannelRowState({
+      trackerActiveField: undefined,
+      selectionSequenceId: 0,
+      selectedTrackerFields: [
+        TRACKER_ROW_SIZE + 4,
+        TRACKER_ROW_SIZE + 6,
+        2 * TRACKER_ROW_SIZE + 5,
+        TRACKER_ROW_SIZE + 8,
+      ],
+      renderSequenceId: 0,
+      channelId: 1,
+      rowIndex: 1,
+    });
+
+    expect((rowState & 0b111) - 1).toBe(-1);
+    expect(rowState >> 3).toBe(0b0101);
+  });
+
+  it("ignores selected fields when the selection belongs to a different sequence", () => {
+    const rowState = getPatternChannelRowState({
+      trackerActiveField: undefined,
+      selectionSequenceId: 1,
+      selectedTrackerFields: [0, 1, 2, 3],
+      renderSequenceId: 0,
+      channelId: 0,
+      rowIndex: 0,
+    });
+
+    expect(rowState >> 3).toBe(0);
+  });
+});
+
+describe("decodePatternChannelRowState", () => {
+  it("decodes active and selected flags from the packed row state", () => {
+    const rowState = getPatternChannelRowState({
+      trackerActiveField: 1 * TRACKER_ROW_SIZE + 7,
+      selectionSequenceId: 0,
+      selectedTrackerFields: [TRACKER_ROW_SIZE + 4, TRACKER_ROW_SIZE + 7],
+      renderSequenceId: 0,
+      channelId: 1,
+      rowIndex: 1,
+    });
+
+    expect(decodePatternChannelRowState(rowState)).toEqual({
+      rowActive: true,
+      noteActive: false,
+      noteSelected: true,
+      instrumentActive: false,
+      instrumentSelected: false,
+      effectCodeActive: false,
+      effectCodeSelected: false,
+      effectParamActive: true,
+      effectParamSelected: true,
+    });
+  });
+
+  it("decodes an inactive unselected row correctly", () => {
+    expect(decodePatternChannelRowState(0)).toEqual({
+      rowActive: false,
+      noteActive: false,
+      noteSelected: false,
+      instrumentActive: false,
+      instrumentSelected: false,
+      effectCodeActive: false,
+      effectCodeSelected: false,
+      effectParamActive: false,
+      effectParamSelected: false,
+    });
   });
 });

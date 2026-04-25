@@ -41,14 +41,25 @@ import { MusicWebSettingPane } from "gbs-music-web/components/MusicWebSettingsPa
 import { MobileOverlayView } from "store/features/tracker/trackerState";
 import { MobileOverlay } from "gbs-music-web/components/ui/MobileOverlay";
 import { MusicWebInstrumentsPane } from "gbs-music-web/components/MusicWebInstrumentsPane";
-import { CaretUpIcon } from "ui/icons/Icons";
+import { CaretUpIcon, Grid2x2Icon } from "ui/icons/Icons";
 import { StyledMobileBackButton } from "gbs-music-web/components/ui/style";
+import { Button } from "ui/buttons/Button";
 
 const Wrapper = styled.div`
   display: flex;
   min-height: 0;
   flex-grow: 1;
   overflow: hidden;
+`;
+
+const SplitPatternIcon = styled(Grid2x2Icon)`
+  && {
+    height: 12px;
+    width: 12px;
+    max-width: 12px;
+    max-height: 12px;
+    margin: 0px 2px;
+  }
 `;
 
 const defaultPaneLayout: SplitPaneLayout[] = [
@@ -132,6 +143,9 @@ const StandaloneMusicPage = ({
   const modified = useAppSelector((state) => state.tracker.modified);
   const status = useAppSelector((state) => state.tracker.status);
   const view = useAppSelector((state) => state.tracker.view);
+  const globalSplitPattern = useAppSelector(
+    (state) => state.tracker.globalSplitPattern,
+  );
 
   const [selectedSongPath, setSelectedSongPath] = useState("");
   const loadedSongIdRef = useRef("");
@@ -382,6 +396,22 @@ const StandaloneMusicPage = ({
                 <SplitPaneHeader
                   onToggle={togglePatternsPanel}
                   collapsed={!patternsPanelOpen}
+                  buttons={
+                    <Button
+                      size="small"
+                      variant={globalSplitPattern ? "primary" : "transparent"}
+                      onClick={() => {
+                        dispatch(
+                          trackerActions.setglobalSplitPattern(
+                            !globalSplitPattern,
+                          ),
+                        );
+                      }}
+                      title={l10n("FIELD_SPLIT_PATTERN")}
+                    >
+                      <SplitPatternIcon />
+                    </Button>
+                  }
                 >
                   {l10n("FIELD_ORDER")}
                 </SplitPaneHeader>
