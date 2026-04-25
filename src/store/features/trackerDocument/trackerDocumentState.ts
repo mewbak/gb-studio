@@ -32,7 +32,7 @@ import {
   resolveUniqueTrackerPositions,
   transposePatternCellNote,
 } from "./trackerDocumentHelpers";
-import { TRACKER_PATTERN_LENGTH } from "consts";
+import { TRACKER_NUM_CHANNELS, TRACKER_PATTERN_LENGTH } from "consts";
 import { PatternCellAddress } from "shared/lib/uge/editor/types";
 import cloneDeep from "lodash/cloneDeep";
 
@@ -1051,10 +1051,16 @@ const trackerSlice = createSlice({
       const sequence = state.song?.sequence[sequenceIndex];
       sequence.splitPattern = splitPattern;
       if (!splitPattern) {
-        for (let i = 1; i < 4; i++) {
+        const alignedBasePatternId =
+          Math.floor(sequence.channels[0] / TRACKER_NUM_CHANNELS) *
+          TRACKER_NUM_CHANNELS;
+
+        sequence.channels[0] = alignedBasePatternId;
+
+        for (let i = 1; i < TRACKER_NUM_CHANNELS; i++) {
           // If splitPattern disabled make sure all pattern
           // indexes are consecutive
-          sequence.channels[i] = sequence.channels[0] + i;
+          sequence.channels[i] = alignedBasePatternId + i;
           // If pattern doesn't exist, create it
           if (!state.song.patterns[sequence.channels[i]]) {
             state.song.patterns[sequence.channels[i]] = createPattern();
