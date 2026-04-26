@@ -771,15 +771,15 @@ export const SongPianoRoll = () => {
         return false;
       }
 
-      const playbackPosition = state.tracker.playbackPosition;
-
       const quantizeSnap = state.tracker.quantizeSnap;
-      let quantizedRow = playbackPosition[1];
-      let quantizedSequenceId = playbackPosition[0];
+      const playbackSequence = state.tracker.playbackSequence;
+      const playbackRow = state.tracker.playbackRow;
+      let quantizedRow = playbackRow;
+      let quantizedSequenceId = playbackSequence;
       if (quantizeSnap === "beat") {
-        quantizedRow = 4 * Math.round(playbackPosition[1] / 4);
+        quantizedRow = 4 * Math.round(playbackRow / 4);
       } else if (quantizeSnap === "halfbeat") {
-        quantizedRow = 2 * Math.round(playbackPosition[1] / 2);
+        quantizedRow = 2 * Math.round(playbackRow / 2);
       }
 
       if (quantizedRow >= PATTERN_LENGTH) {
@@ -915,10 +915,15 @@ export const SongPianoRoll = () => {
   );
 
   const onJumpToSongStart = useCallback(() => {
-    dispatch(trackerActions.setDefaultStartPlaybackPosition([0, 0]));
+    dispatch(
+      trackerActions.setDefaultStartPlaybackPosition({
+        sequence: 0,
+        row: 0,
+      }),
+    );
     API.music.sendToMusicWindow({
       action: "position",
-      position: [0, 0],
+      position: { sequence: 0, row: 0 },
     });
   }, [dispatch]);
 

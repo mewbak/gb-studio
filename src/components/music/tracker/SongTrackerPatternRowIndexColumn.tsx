@@ -17,13 +17,15 @@ const ROW_INDICES = Array.from(
 
 interface SongTrackerPatternRowIndexColumnProps {
   renderSequenceId: number;
-  defaultStartPlaybackPosition: [number, number];
+  defaultStartPlaybackSequence: number;
+  defaultStartPlaybackRow: number;
 }
 
 export const SongTrackerPatternRowIndexColumn = memo(
   ({
     renderSequenceId,
-    defaultStartPlaybackPosition,
+    defaultStartPlaybackSequence,
+    defaultStartPlaybackRow,
   }: SongTrackerPatternRowIndexColumnProps) => {
     return (
       <StyledTrackerPatternRowIndexColumn $sticky>
@@ -32,8 +34,8 @@ export const SongTrackerPatternRowIndexColumn = memo(
             key={rowIndex}
             id={`tracker_playhead_${renderSequenceId}_${rowIndex}`}
             $isDefaultPlayhead={
-              defaultStartPlaybackPosition[0] === renderSequenceId &&
-              defaultStartPlaybackPosition[1] === rowIndex
+              defaultStartPlaybackSequence === renderSequenceId &&
+              defaultStartPlaybackRow === rowIndex
             }
             data-row={rowIndex}
             data-sequenceid={renderSequenceId}

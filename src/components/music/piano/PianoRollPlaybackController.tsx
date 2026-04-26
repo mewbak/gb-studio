@@ -17,32 +17,26 @@ export const PianoRollPlaybackController = ({
   sequenceLength,
 }: PianoRollPlaybackControllerProps) => {
   const playing = useAppSelector((state) => state.tracker.playing);
-  const playbackPosition = useAppSelector(
-    (state) => state.tracker.playbackPosition,
+  const playbackSequence = useAppSelector(
+    (state) => state.tracker.playbackSequence,
   );
-
-  const playbackOrder = playbackPosition[0];
-  const playbackRow = playbackPosition[1];
-
+  const playbackRow = useAppSelector((state) => state.tracker.playbackRow);
   const scrollRafRef = useRef<number | undefined>(undefined);
   const targetScrollLeftRef = useRef<number | null>(null);
 
-  useEffect(() => {
-    return () => {
-      if (scrollRafRef.current !== undefined) {
-        cancelAnimationFrame(scrollRafRef.current);
-      }
-    };
-  }, []);
+  const playheadLeft = calculatePlaybackTrackerPosition(
+    playbackSequence,
+    playbackRow,
+  );
 
   useEffect(() => {
-    if (playbackOrder >= sequenceLength) {
+    if (playbackSequence >= sequenceLength) {
       API.music.sendToMusicWindow({
         action: "position",
-        position: [0, 0],
+        position: { sequence: 0, row: 0 },
       });
     }
-  }, [playbackOrder, sequenceLength]);
+  }, [playbackSequence, sequenceLength]);
 
   useLayoutEffect(() => {
     if (!playing) {
@@ -54,10 +48,6 @@ export const PianoRollPlaybackController = ({
       return;
     }
 
-    const playheadLeft = calculatePlaybackTrackerPosition(
-      playbackOrder,
-      playbackRow,
-    );
     const viewportWidth = scrollEl.clientWidth;
     const maxScrollLeft = Math.max(0, calculateDocumentWidth(sequenceLength));
     const nextScrollLeft = Math.max(
@@ -85,12 +75,17 @@ export const PianoRollPlaybackController = ({
       targetScrollLeftRef.current = null;
       scrollRafRef.current = undefined;
     });
-  }, [playing, playbackOrder, playbackRow, scrollElement, sequenceLength]);
+  }, [
+    playheadLeft,
+    playing,
+    scrollElement,
+    sequenceLength,
+  ]);
 
   return (
     <StyledPianoRollPlayhead
       style={{
-        transform: `translateX(${calculatePlaybackTrackerPosition(playbackOrder, playbackRow)}px)`,
+        transform: `translateX(${playheadLeft}px)`,
       }}
     />
   );

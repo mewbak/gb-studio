@@ -160,7 +160,7 @@ export const SequenceEditor = ({ height, direction }: SequenceEditorProps) => {
 
   const sequenceId = useAppSelector((state) => state.tracker.selectedSequence);
   const playingSequence = useAppSelector(
-    (state) => state.tracker.playbackPosition[0],
+    (state) => state.tracker.playbackSequence,
   );
 
   const loopSequenceId = useAppSelector(

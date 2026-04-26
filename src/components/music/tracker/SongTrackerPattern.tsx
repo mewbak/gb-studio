@@ -21,7 +21,8 @@ interface SongTrackerPatternProps {
   sequenceItem: SequenceItem;
   sequencePatternId: number;
   renderSequenceId: number;
-  defaultStartPlaybackPosition: [number, number];
+  defaultStartPlaybackSequence: number;
+  defaultStartPlaybackRow: number;
   channelStatus: boolean[];
   soloChannel: number;
   orderLength: number;
@@ -38,7 +39,8 @@ export const SongTrackerPattern = memo(
     sequenceItem,
     sequencePatternId,
     renderSequenceId,
-    defaultStartPlaybackPosition,
+    defaultStartPlaybackSequence,
+    defaultStartPlaybackRow,
     channelStatus,
     soloChannel,
     orderLength,
@@ -151,7 +153,8 @@ export const SongTrackerPattern = memo(
         >
           <SongTrackerPatternRowIndexColumn
             renderSequenceId={renderSequenceId}
-            defaultStartPlaybackPosition={defaultStartPlaybackPosition}
+            defaultStartPlaybackSequence={defaultStartPlaybackSequence}
+            defaultStartPlaybackRow={defaultStartPlaybackRow}
           />
           <SongTrackerPatternChannel
             patternId={sequenceItem.channels[0]}

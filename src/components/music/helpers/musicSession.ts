@@ -1,8 +1,9 @@
 import type {
   MusicDataPacket,
   MusicDataReceivePacket,
+  MusicPosition,
 } from "shared/lib/music/types";
-import player, { PlaybackPosition } from "./player";
+import player from "./player";
 import { Song } from "shared/lib/uge/types";
 import {
   createSequenceItem,
@@ -22,7 +23,7 @@ const createMusicSession = (): MusicSession => {
   let isInitialized = false;
   let isOpening = false;
   let openedSfx: string | undefined;
-  let position: PlaybackPosition = [0, 0];
+  let position: MusicPosition = { sequence: 0, row: 0 };
   let loopSequenceId: number | undefined;
   let queuedActions: MusicDataPacket[] = [];
 
@@ -48,7 +49,6 @@ const createMusicSession = (): MusicSession => {
       case "load-song":
         player.reset();
         player.loadSong(data.song);
-        position = [0, 0];
         loopSequenceId = undefined;
         emit({
           action: "log",
@@ -188,10 +188,10 @@ const createMusicSession = (): MusicSession => {
 
   player.setOnIntervalCallback((playbackUpdate) => {
     const shouldLoop =
-      loopSequenceId !== undefined && playbackUpdate[0] !== loopSequenceId;
+      loopSequenceId !== undefined && playbackUpdate.sequence !== loopSequenceId;
 
     if (shouldLoop && loopSequenceId !== undefined) {
-      position = [loopSequenceId, 0];
+      position = { sequence: loopSequenceId, row: 0 };
       player.setStartPosition(position);
     } else {
       position = playbackUpdate;

@@ -17,12 +17,10 @@ export const SongTrackerPlaybackController = ({
   sequenceLength,
 }: SongTrackerPlaybackControllerProps) => {
   const playing = useAppSelector((state) => state.tracker.playing);
-  const playbackPosition = useAppSelector(
-    (state) => state.tracker.playbackPosition,
+  const playbackSequence = useAppSelector(
+    (state) => state.tracker.playbackSequence,
   );
-
-  const playbackSequence = playbackPosition[0];
-  const playbackRow = playbackPosition[1];
+  const playbackRow = useAppSelector((state) => state.tracker.playbackRow);
 
   const previousPlaybackCellRef = useRef<HTMLElement | null>(null);
   const scrollRafRef = useRef<number | undefined>(undefined);
@@ -40,7 +38,7 @@ export const SongTrackerPlaybackController = ({
     if (playbackSequence >= sequenceLength) {
       API.music.sendToMusicWindow({
         action: "position",
-        position: [0, 0],
+        position: { sequence: 0, row: 0 },
       });
     }
   }, [playbackSequence, sequenceLength]);

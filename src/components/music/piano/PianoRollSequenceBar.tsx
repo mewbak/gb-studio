@@ -22,6 +22,7 @@ import {
   calculatePlaybackTrackerPosition,
 } from "./helpers";
 import API from "renderer/lib/api";
+import type { MusicPosition } from "shared/lib/music/types";
 import l10n from "shared/lib/lang/l10n";
 import { useContextMenu } from "ui/hooks/use-context-menu";
 import renderSequenceItemContextMenu from "components/music/contextMenus/renderSequenceItemContextMenu";
@@ -146,19 +147,26 @@ export const PianoRollSequenceBar = memo(
 
     const documentWidth = calculateDocumentWidth(sequenceLength);
 
-    const defaultStartPlaybackPosition = useAppSelector(
-      (state) => state.tracker.defaultStartPlaybackPosition,
+    const defaultStartPlaybackSequence = useAppSelector(
+      (state) => state.tracker.defaultStartPlaybackSequence,
+    );
+    const defaultStartPlaybackRow = useAppSelector(
+      (state) => state.tracker.defaultStartPlaybackRow,
     );
 
     const headerRef = useRef<HTMLDivElement>(null);
-    const lastPositionRef = useRef<[number, number] | null>(null);
+    const lastPositionRef = useRef<MusicPosition | null>(null);
 
-    const setPlaybackPosition = useCallback(
+    const setDefaultPlaybackStartPosition = useCallback(
       (sequenceId: number, rowId: number) => {
-        const next: [number, number] = [sequenceId, rowId];
+        const next = { sequence: sequenceId, row: rowId };
         const prev = lastPositionRef.current;
 
-        if (prev && prev[0] === next[0] && prev[1] === next[1]) {
+        if (
+          prev &&
+          prev.sequence === next.sequence &&
+          prev.row === next.row
+        ) {
           return;
         }
 
@@ -194,9 +202,9 @@ export const PianoRollSequenceBar = memo(
 
         const { sequenceId, rowId } = fromAbsRow(absRow);
 
-        setPlaybackPosition(sequenceId, rowId);
+        setDefaultPlaybackStartPosition(sequenceId, rowId);
       },
-      [sequenceLength, setPlaybackPosition],
+      [sequenceLength, setDefaultPlaybackStartPosition],
     );
 
     const onMouseDown = useCallback(
@@ -219,8 +227,8 @@ export const PianoRollSequenceBar = memo(
     );
 
     const defaultPlayheadX = calculatePlaybackTrackerPosition(
-      defaultStartPlaybackPosition[0],
-      defaultStartPlaybackPosition[1],
+      defaultStartPlaybackSequence,
+      defaultStartPlaybackRow,
     );
 
     return (

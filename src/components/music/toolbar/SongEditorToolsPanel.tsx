@@ -109,8 +109,11 @@ const SongEditorToolsPanel = ({ musicAsset }: SongEditorToolsPanelProps) => {
   const [previousTool, setPreviousTool] = useState<PianoRollToolType>();
   const [tmpSelectionMode, setTmpSelectionMode] = useState(false);
 
-  const defaultStartPlaybackPosition = useAppSelector(
-    (state) => state.tracker.defaultStartPlaybackPosition,
+  const defaultStartPlaybackSequence = useAppSelector(
+    (state) => state.tracker.defaultStartPlaybackSequence,
+  );
+  const defaultStartPlaybackRow = useAppSelector(
+    (state) => state.tracker.defaultStartPlaybackRow,
   );
 
   const [playbackFromStart, setPlaybackFromStart] = useState(false);
@@ -123,7 +126,10 @@ const SongEditorToolsPanel = ({ musicAsset }: SongEditorToolsPanelProps) => {
       if (playbackFromStart) {
         API.music.sendToMusicWindow({
           action: "position",
-          position: defaultStartPlaybackPosition,
+          position: {
+            sequence: defaultStartPlaybackSequence,
+            row: defaultStartPlaybackRow,
+          },
         });
       }
       dispatch(trackerActions.playTracker());
@@ -131,7 +137,8 @@ const SongEditorToolsPanel = ({ musicAsset }: SongEditorToolsPanelProps) => {
       dispatch(trackerActions.pauseTracker());
     }
   }, [
-    defaultStartPlaybackPosition,
+    defaultStartPlaybackRow,
+    defaultStartPlaybackSequence,
     dispatch,
     play,
     playbackFromStart,

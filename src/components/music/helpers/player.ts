@@ -1,4 +1,7 @@
-import type { MusicExportFormat } from "shared/lib/music/types";
+import type {
+  MusicPosition,
+  MusicExportFormat,
+} from "shared/lib/music/types";
 import compiler from "./compiler";
 import storage from "./storage";
 import emulator, { createEmulator, type EmulatorController } from "./emulator";
@@ -8,8 +11,6 @@ import {
   ERROR_AUDIO_ENCODE_FAILED,
   ERROR_TIMED_OUT,
 } from "shared/lib/music/constants";
-
-export type PlaybackPosition = [number, number];
 
 let currentSong: Song | null = null;
 
@@ -25,7 +26,7 @@ let lastPositionKey: string | null = null;
 const channels = [false, false, false, false];
 const previewEmulator = createEmulator();
 
-let onIntervalCallback = (_updateData: PlaybackPosition) => {};
+let onIntervalCallback = (_updateData: MusicPosition) => {};
 let onPreviewPlaybackTimeout: ReturnType<typeof setTimeout> | undefined;
 
 const exportMaxRenderSeconds = 60 * 10;
@@ -46,10 +47,10 @@ const resetPositionCallback = () => {
 };
 
 const onPlaybackPositionUpdate = (
-  position: PlaybackPosition,
+  position: MusicPosition,
   currentTick: number,
 ) => {
-  const positionKey = `${position[0]}:${position[1]}`;
+  const positionKey = `${position.sequence}:${position.row}`;
   if (positionKey === lastPositionKey) {
     return;
   }
@@ -57,7 +58,7 @@ const onPlaybackPositionUpdate = (
 
   onIntervalCallback(position);
 
-  if (!metronomeEnabled || position[1] % 4 !== 0) {
+  if (!metronomeEnabled || position.row % 4 !== 0) {
     return;
   }
 
@@ -274,7 +275,7 @@ const loadSound = (sfx?: string) => {
   compiler.compile(["-t", "-w"], onCompileDone, console.log);
 };
 
-const play = (song: Song, position?: PlaybackPosition) => {
+const play = (song: Song, position?: MusicPosition) => {
   stopPreview();
   updateRom(song);
   emulator.step("frame");
@@ -310,9 +311,15 @@ const play = (song: Song, position?: PlaybackPosition) => {
     doResume();
 
     const updateUI = () => {
+      const position = {
+        sequence: emulator.readMem(currentOrderAddr) / 2,
+        row: emulator.readMem(rowAddr),
+      };
+      const currentTick = emulator.readMem(tickAddr);
+
       onPlaybackPositionUpdate(
-        [emulator.readMem(currentOrderAddr) / 2, emulator.readMem(rowAddr)],
-        emulator.readMem(tickAddr),
+        position,
+        currentTick,
       );
     };
     updateUI();
@@ -406,7 +413,7 @@ const playSound = () => {
   }, 1000 / 64);
 };
 
-const stop = (position?: PlaybackPosition) => {
+const stop = (position?: MusicPosition) => {
   isPlayingSong = false;
   resetPositionCallback();
 
@@ -424,7 +431,7 @@ const stop = (position?: PlaybackPosition) => {
   onSongProgressIntervalId = undefined;
 };
 
-const setStartPosition = (position: PlaybackPosition) => {
+const setStartPosition = (position: MusicPosition) => {
   let wasPlaying = false;
   resetPositionCallback();
 
@@ -437,8 +444,8 @@ const setStartPosition = (position: PlaybackPosition) => {
   const newRowAddr = getRamAddress("new_row");
   const tickAddr = getRamAddress("tick");
 
-  emulator.writeMem(newOrderAddr, position[0] * 2);
-  emulator.writeMem(newRowAddr, position[1]);
+  emulator.writeMem(newOrderAddr, position.sequence * 2);
+  emulator.writeMem(newRowAddr, position.row);
   emulator.writeMem(tickAddr, 0);
 
   if (wasPlaying) {
@@ -485,8 +492,8 @@ const renderSongAudio = async (
 
   try {
     updateRom(song);
-    stop([0, 0]);
-    setStartPosition([0, 0]);
+    stop({ sequence: 0, row: 0 });
+    setStartPosition({ sequence: 0, row: 0 });
 
     emulator.writeMem(ticksPerRowAddr, song.ticksPerRow);
     emulator.writeMem(orderCntAddr, song.sequence.length * 2);
@@ -524,7 +531,7 @@ const renderSongAudio = async (
       }
     }
   } finally {
-    stop([0, 0]);
+    stop({ sequence: 0, row: 0 });
     emulator.setChannel(0, previousChannels[0]);
     emulator.setChannel(1, previousChannels[1]);
     emulator.setChannel(2, previousChannels[2]);
@@ -913,7 +920,7 @@ const player = {
     }
   },
   getCurrentSong,
-  setOnIntervalCallback: (cb: (position: PlaybackPosition) => void) => {
+  setOnIntervalCallback: (cb: (update: MusicPosition) => void) => {
     onIntervalCallback = cb;
   },
   reset,

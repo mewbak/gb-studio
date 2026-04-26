@@ -87,8 +87,11 @@ export const SongTracker = () => {
   const showVirtualKeyboard = useAppSelector(
     (state) => state.tracker.showVirtualKeyboard,
   );
-  const defaultStartPlaybackPosition = useAppSelector(
-    (state) => state.tracker.defaultStartPlaybackPosition,
+  const defaultStartPlaybackSequence = useAppSelector(
+    (state) => state.tracker.defaultStartPlaybackSequence,
+  );
+  const defaultStartPlaybackRow = useAppSelector(
+    (state) => state.tracker.defaultStartPlaybackRow,
   );
   const songSequence = useAppSelector(
     (state) => state.trackerDocument.present.song?.sequence,
@@ -725,15 +728,18 @@ export const SongTracker = () => {
         const parsedSequenceId = parseInt(rowSequenceId, 10);
 
         dispatch(
-          trackerActions.setDefaultStartPlaybackPosition([
-            parsedSequenceId,
+          trackerActions.setDefaultStartPlaybackPosition({
+            sequence: parsedSequenceId,
             row,
-          ]),
+          }),
         );
 
         API.music.sendToMusicWindow({
           action: "position",
-          position: [parsedSequenceId, row],
+          position: {
+            sequence: parsedSequenceId,
+            row,
+          },
         });
       }
     },
@@ -1497,7 +1503,8 @@ export const SongTracker = () => {
               sequenceItem={sequencePatternId}
               sequencePatternId={Math.floor(sequencePatternId.channels[0] / 4)}
               renderSequenceId={renderSequenceId}
-              defaultStartPlaybackPosition={defaultStartPlaybackPosition}
+              defaultStartPlaybackSequence={defaultStartPlaybackSequence}
+              defaultStartPlaybackRow={defaultStartPlaybackRow}
               channelStatus={channelStatus}
               soloChannel={soloChannel}
               orderLength={sequenceLength}

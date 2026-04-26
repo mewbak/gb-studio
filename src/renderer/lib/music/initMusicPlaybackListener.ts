@@ -11,7 +11,7 @@ export const initMusicPlaybackListener = (dispatch: PlaybackDispatch) => {
 
   const listener = (_event: unknown, data: MusicDataReceivePacket) => {
     if (data.action === "update" && data.update) {
-      dispatch(trackerActions.setPlaybackPosition(data.update));
+      dispatch(trackerActions.setPlaybackState(data.update));
     } else if (data.action === "initialized") {
       dispatch(trackerActions.resetPlaybackPosition());
     }

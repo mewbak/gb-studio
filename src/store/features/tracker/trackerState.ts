@@ -1,5 +1,9 @@
 import { createSlice, PayloadAction, UnknownAction } from "@reduxjs/toolkit";
-import type { InstrumentType, MusicExportFormat } from "shared/lib/music/types";
+import type {
+  InstrumentType,
+  MusicExportFormat,
+  MusicPosition,
+} from "shared/lib/music/types";
 import clamp from "shared/lib/helpers/clamp";
 import { MAX_EXPORT_LOOPS, MIN_EXPORT_LOOPS } from "shared/lib/music/constants";
 import {
@@ -88,9 +92,10 @@ export interface TrackerState {
   hoverNote: number | null;
   hoverColumn: number | null;
   hoverSequence: number | null;
-  playbackPosition: [number, number];
-  startPlaybackPosition: [number, number];
-  defaultStartPlaybackPosition: [number, number];
+  playbackSequence: number;
+  playbackRow: number;
+  defaultStartPlaybackSequence: number;
+  defaultStartPlaybackRow: number;
   selectedSongId: string;
   selectedInstrument: SelectedInstrument;
   selectedSequence: number;
@@ -138,9 +143,10 @@ export const initialState: TrackerState = {
   hoverNote: null,
   hoverColumn: null,
   hoverSequence: null,
-  playbackPosition: [0, 0],
-  startPlaybackPosition: [0, 0],
-  defaultStartPlaybackPosition: [0, 0],
+  playbackSequence: 0,
+  playbackRow: 0,
+  defaultStartPlaybackSequence: 0,
+  defaultStartPlaybackRow: 0,
   selectedSongId: "",
   selectedInstrument: {
     id: "0",
@@ -189,8 +195,8 @@ const trackerSlice = createSlice({
     },
     stopTracker: (state, _action: PayloadAction<void>) => {
       state.playing = false;
-      state.startPlaybackPosition = [...state.defaultStartPlaybackPosition];
-      state.playbackPosition = [...state.defaultStartPlaybackPosition];
+      state.playbackSequence = state.defaultStartPlaybackSequence;
+      state.playbackRow = state.defaultStartPlaybackRow;
     },
     setExporting: (state, action: PayloadAction<boolean>) => {
       state.exporting = action.payload;
@@ -242,20 +248,23 @@ const trackerSlice = createSlice({
     },
     setDefaultStartPlaybackPosition: (
       state,
-      action: PayloadAction<[number, number]>,
+      action: PayloadAction<MusicPosition>,
     ) => {
-      state.startPlaybackPosition = action.payload;
-      state.playbackPosition = action.payload;
-      state.defaultStartPlaybackPosition = action.payload;
-      if (state.loopSequenceId !== action.payload[0]) {
+      state.playbackSequence = action.payload.sequence;
+      state.playbackRow = action.payload.row;
+      state.defaultStartPlaybackSequence = action.payload.sequence;
+      state.defaultStartPlaybackRow = action.payload.row;
+      if (state.loopSequenceId !== action.payload.sequence) {
         state.loopSequenceId = undefined;
       }
     },
-    setPlaybackPosition: (state, action: PayloadAction<[number, number]>) => {
-      state.playbackPosition = action.payload;
+    setPlaybackState: (state, action: PayloadAction<MusicPosition>) => {
+      state.playbackSequence = action.payload.sequence;
+      state.playbackRow = action.payload.row;
     },
     resetPlaybackPosition: (state) => {
-      state.playbackPosition = [0, 0];
+      state.playbackSequence = 0;
+      state.playbackRow = 0;
     },
     setSelectedSongId: (state, action: PayloadAction<string>) => {
       state.selectedSongId = action.payload;
@@ -379,7 +388,8 @@ const trackerSlice = createSlice({
     setLoopSequenceId: (state, action: PayloadAction<number | undefined>) => {
       state.loopSequenceId = action.payload;
       if (action.payload !== undefined) {
-        state.defaultStartPlaybackPosition = [action.payload, 0];
+        state.defaultStartPlaybackSequence = action.payload;
+        state.defaultStartPlaybackRow = 0;
       }
     },
     setglobalSplitPattern: (state, action: PayloadAction<boolean>) => {
@@ -416,7 +426,8 @@ const trackerSlice = createSlice({
         state.modified = false;
         state.status = "init";
         state.playerReady = false;
-        state.playbackPosition = [0, 0];
+        state.playbackSequence = 0;
+        state.playbackRow = 0;
       })
       .addCase(trackerDocumentActions.moveSequence, (state, action) => {
         state.selectedSequence = action.payload.toIndex;

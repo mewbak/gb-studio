@@ -2015,7 +2015,7 @@ ipcMain.handle("music:play-uge", async (_event, assetPath: string) => {
   createMusic(undefined, {
     action: "play",
     song: data,
-    position: [0, 0],
+    position: { sequence: 0, row: 0 },
   });
 });
 
@@ -2038,7 +2038,7 @@ ipcMain.handle(
     createMusic(undefined, {
       action: "play",
       song: data,
-      position: [0, 0],
+      position: { sequence: 0, row: 0 },
     });
   },
 );

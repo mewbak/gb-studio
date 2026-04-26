@@ -15,6 +15,10 @@ test("Should default metronome to disabled", () => {
   expect(initialState.metronomeEnabled).toBe(false);
 });
 
+test("Should not keep a separate start playback position field", () => {
+  expect("startPlaybackPosition" in initialState).toBe(false);
+});
+
 test("Should set subpattern editor mode", () => {
   const state: TrackerState = {
     ...initialState,
@@ -75,6 +79,89 @@ test("Should preserve metronome enabled state when song loads", () => {
 
   expect(newState.metronomeEnabled).toBe(true);
   expect(newState.selectedSongId).toBe("song-1");
+});
+
+test("Should set the default playback start with separate sequence and row fields", () => {
+  const newState = reducer(
+    initialState,
+    actions.setDefaultStartPlaybackPosition({ sequence: 3, row: 12 }),
+  );
+
+  expect(newState.defaultStartPlaybackSequence).toBe(3);
+  expect(newState.defaultStartPlaybackRow).toBe(12);
+  expect(newState.playbackSequence).toBe(3);
+  expect(newState.playbackRow).toBe(12);
+});
+
+test("Should clear loop sequence when default playback start moves elsewhere", () => {
+  const state: TrackerState = {
+    ...initialState,
+    loopSequenceId: 2,
+  };
+
+  const newState = reducer(
+    state,
+    actions.setDefaultStartPlaybackPosition({ sequence: 3, row: 4 }),
+  );
+
+  expect(newState.loopSequenceId).toBeUndefined();
+});
+
+test("Should preserve loop sequence when default playback start stays on that sequence", () => {
+  const state: TrackerState = {
+    ...initialState,
+    loopSequenceId: 2,
+  };
+
+  const newState = reducer(
+    state,
+    actions.setDefaultStartPlaybackPosition({ sequence: 2, row: 4 }),
+  );
+
+  expect(newState.loopSequenceId).toBe(2);
+});
+
+test("Should reset playback to the default start when stopping", () => {
+  const state: TrackerState = {
+    ...initialState,
+    playing: true,
+    playbackSequence: 7,
+    playbackRow: 31,
+    defaultStartPlaybackSequence: 2,
+    defaultStartPlaybackRow: 16,
+  };
+
+  const newState = reducer(state, actions.stopTracker());
+
+  expect(newState.playing).toBe(false);
+  expect(newState.playbackSequence).toBe(2);
+  expect(newState.playbackRow).toBe(16);
+});
+
+test("Should update playback state from sequence and row", () => {
+  const newState = reducer(
+    initialState,
+    actions.setPlaybackState({
+      sequence: 1,
+      row: 2,
+    }),
+  );
+
+  expect(newState.playbackSequence).toBe(1);
+  expect(newState.playbackRow).toBe(2);
+});
+
+test("Should reset playback position state", () => {
+  const state: TrackerState = {
+    ...initialState,
+    playbackSequence: 4,
+    playbackRow: 8,
+  };
+
+  const newState = reducer(state, actions.resetPlaybackPosition());
+
+  expect(newState.playbackSequence).toBe(0);
+  expect(newState.playbackRow).toBe(0);
 });
 
 test("Should derive tracker selection state from tracker grid updates", () => {
@@ -152,4 +239,12 @@ test("Should not reset tracker grid selection while playing", () => {
     sequenceId: 0,
   });
   expect(newState.selectedTrackerFields).toEqual([2]);
+});
+
+test("Should set loop sequence and move the default playback start to its first row", () => {
+  const newState = reducer(initialState, actions.setLoopSequenceId(5));
+
+  expect(newState.loopSequenceId).toBe(5);
+  expect(newState.defaultStartPlaybackSequence).toBe(5);
+  expect(newState.defaultStartPlaybackRow).toBe(0);
 });

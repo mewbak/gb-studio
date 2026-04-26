@@ -42,7 +42,7 @@ const renderSequenceItemMenu = ({
         if (!isLooped) {
           API.music.sendToMusicWindow({
             action: "position",
-            position: [orderIndex, 0],
+            position: { sequence: orderIndex, row: 0 },
           });
         }
       }}
