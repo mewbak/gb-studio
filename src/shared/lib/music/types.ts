@@ -14,7 +14,16 @@ export interface MusicPosition {
   row: number;
 }
 
-export type MusicPlaybackUpdate = MusicPosition;
+export interface MusicPlaybackState {
+  sequence: number;
+  row: number;
+  tick: number;
+  ticksPerRow: number;
+}
+
+export interface MusicPlaybackUpdate extends MusicPlaybackState {
+  source: "playback" | "position";
+}
 
 export type MusicDataPacket =
   | {

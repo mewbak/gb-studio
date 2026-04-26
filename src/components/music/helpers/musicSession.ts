@@ -1,7 +1,7 @@
 import type {
   MusicDataPacket,
   MusicDataReceivePacket,
-  MusicPosition,
+  MusicPlaybackState,
 } from "shared/lib/music/types";
 import player from "./player";
 import { Song } from "shared/lib/uge/types";
@@ -23,7 +23,12 @@ const createMusicSession = (): MusicSession => {
   let isInitialized = false;
   let isOpening = false;
   let openedSfx: string | undefined;
-  let position: MusicPosition = { sequence: 0, row: 0 };
+  let playbackState: MusicPlaybackState = {
+    sequence: 0,
+    row: 0,
+    tick: 0,
+    ticksPerRow: 0,
+  };
   let loopSequenceId: number | undefined;
   let queuedActions: MusicDataPacket[] = [];
 
@@ -49,6 +54,11 @@ const createMusicSession = (): MusicSession => {
       case "load-song":
         player.reset();
         player.loadSong(data.song);
+        playbackState = {
+          ...playbackState,
+          tick: 0,
+          ticksPerRow: data.song.ticksPerRow,
+        };
         loopSequenceId = undefined;
         emit({
           action: "log",
@@ -63,12 +73,24 @@ const createMusicSession = (): MusicSession => {
         break;
       case "play":
         if (data.position) {
-          position = data.position;
+          playbackState = {
+            ...playbackState,
+            sequence: data.position.sequence,
+            row: data.position.row,
+          };
         }
+        playbackState = {
+          ...playbackState,
+          tick: 0,
+          ticksPerRow: data.song.ticksPerRow,
+        };
         loopSequenceId = data.loopSequenceId;
         player.reset();
         player.setMetronomeEnabled(data.metronomeEnabled ?? false);
-        player.play(data.song, position);
+        player.play(data.song, {
+          sequence: playbackState.sequence,
+          row: playbackState.row,
+        });
         emit({
           action: "log",
           message: "playing",
@@ -79,7 +101,11 @@ const createMusicSession = (): MusicSession => {
         break;
       case "stop":
         if (data.position) {
-          position = data.position;
+          playbackState = {
+            ...playbackState,
+            sequence: data.position.sequence,
+            row: data.position.row,
+          };
         }
         player.stop(data.position);
         emit({
@@ -88,7 +114,12 @@ const createMusicSession = (): MusicSession => {
         });
         break;
       case "position":
-        position = data.position;
+        playbackState = {
+          ...playbackState,
+          sequence: data.position.sequence,
+          row: data.position.row,
+          tick: 0,
+        };
         player.setStartPosition(data.position);
         emit({
           action: "log",
@@ -96,7 +127,10 @@ const createMusicSession = (): MusicSession => {
         });
         emit({
           action: "update",
-          update: position,
+          update: {
+            ...playbackState,
+            source: "position",
+          },
         });
         break;
       case "set-mute":
@@ -188,18 +222,35 @@ const createMusicSession = (): MusicSession => {
 
   player.setOnIntervalCallback((playbackUpdate) => {
     const shouldLoop =
-      loopSequenceId !== undefined && playbackUpdate.sequence !== loopSequenceId;
+      loopSequenceId !== undefined &&
+      playbackUpdate.sequence !== loopSequenceId;
 
     if (shouldLoop && loopSequenceId !== undefined) {
-      position = { sequence: loopSequenceId, row: 0 };
-      player.setStartPosition(position);
+      playbackState = {
+        sequence: loopSequenceId,
+        row: 0,
+        tick: 0,
+        ticksPerRow: playbackUpdate.ticksPerRow,
+      };
+      player.setStartPosition({
+        sequence: playbackState.sequence,
+        row: playbackState.row,
+      });
     } else {
-      position = playbackUpdate;
+      playbackState = {
+        sequence: playbackUpdate.sequence,
+        row: playbackUpdate.row,
+        tick: playbackUpdate.tick,
+        ticksPerRow: playbackUpdate.ticksPerRow,
+      };
     }
 
     emit({
       action: "update",
-      update: position,
+      update: {
+        ...playbackState,
+        source: "playback",
+      },
     });
   });
 

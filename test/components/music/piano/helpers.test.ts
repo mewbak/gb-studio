@@ -46,6 +46,12 @@ describe("calculatePlaybackTrackerPosition", () => {
     const b = calculatePlaybackTrackerPosition(1, 0);
     expect(b - a).toBe(TRACKER_PATTERN_LENGTH * PIANO_ROLL_CELL_SIZE);
   });
+
+  it("supports fractional playback progress within a row", () => {
+    expect(calculatePlaybackTrackerPosition(0, 4, 2, 8)).toBe(
+      (4 + 0.25) * PIANO_ROLL_CELL_SIZE,
+    );
+  });
 });
 
 describe("calculateDocumentWidth", () => {

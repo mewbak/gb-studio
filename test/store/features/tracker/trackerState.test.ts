@@ -91,6 +91,8 @@ test("Should set the default playback start with separate sequence and row field
   expect(newState.defaultStartPlaybackRow).toBe(12);
   expect(newState.playbackSequence).toBe(3);
   expect(newState.playbackRow).toBe(12);
+  expect(newState.playbackCurrentTick).toBe(0);
+  expect(newState.playbackTicksPerRow).toBe(0);
 });
 
 test("Should clear loop sequence when default playback start moves elsewhere", () => {
@@ -127,6 +129,9 @@ test("Should reset playback to the default start when stopping", () => {
     playing: true,
     playbackSequence: 7,
     playbackRow: 31,
+    playbackCurrentTick: 4,
+    playbackTicksPerRow: 6,
+    playbackFollowScrollRevision: 8,
     defaultStartPlaybackSequence: 2,
     defaultStartPlaybackRow: 16,
   };
@@ -136,19 +141,48 @@ test("Should reset playback to the default start when stopping", () => {
   expect(newState.playing).toBe(false);
   expect(newState.playbackSequence).toBe(2);
   expect(newState.playbackRow).toBe(16);
+  expect(newState.playbackCurrentTick).toBe(0);
+  expect(newState.playbackTicksPerRow).toBe(0);
+  expect(newState.playbackFollowScrollRevision).toBe(0);
 });
 
-test("Should update playback state from sequence and row", () => {
-  const newState = reducer(
-    initialState,
+test("Should only bump follow-scroll revision for playback updates", () => {
+  const state: TrackerState = {
+    ...initialState,
+    playbackFollowScrollRevision: 5,
+  };
+
+  const positionUpdate = reducer(
+    state,
     actions.setPlaybackState({
       sequence: 1,
       row: 2,
+      tick: 0,
+      ticksPerRow: 6,
+      source: "position",
     }),
   );
 
-  expect(newState.playbackSequence).toBe(1);
-  expect(newState.playbackRow).toBe(2);
+  expect(positionUpdate.playbackSequence).toBe(1);
+  expect(positionUpdate.playbackRow).toBe(2);
+  expect(positionUpdate.playbackCurrentTick).toBe(0);
+  expect(positionUpdate.playbackTicksPerRow).toBe(6);
+  expect(positionUpdate.playbackFollowScrollRevision).toBe(5);
+
+  const playbackUpdate = reducer(
+    positionUpdate,
+    actions.setPlaybackState({
+      sequence: 1,
+      row: 3,
+      tick: 1,
+      ticksPerRow: 6,
+      source: "playback",
+    }),
+  );
+
+  expect(playbackUpdate.playbackRow).toBe(3);
+  expect(playbackUpdate.playbackCurrentTick).toBe(1);
+  expect(playbackUpdate.playbackFollowScrollRevision).toBe(6);
 });
 
 test("Should reset playback position state", () => {
@@ -156,12 +190,18 @@ test("Should reset playback position state", () => {
     ...initialState,
     playbackSequence: 4,
     playbackRow: 8,
+    playbackCurrentTick: 2,
+    playbackTicksPerRow: 6,
+    playbackFollowScrollRevision: 3,
   };
 
   const newState = reducer(state, actions.resetPlaybackPosition());
 
   expect(newState.playbackSequence).toBe(0);
   expect(newState.playbackRow).toBe(0);
+  expect(newState.playbackCurrentTick).toBe(0);
+  expect(newState.playbackTicksPerRow).toBe(0);
+  expect(newState.playbackFollowScrollRevision).toBe(0);
 });
 
 test("Should derive tracker selection state from tracker grid updates", () => {

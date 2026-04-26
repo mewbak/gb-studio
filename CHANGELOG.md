@@ -51,6 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Editing or changing instruments in the Music Editor now plays a preview note
 - Music Editor now includes right click context menus allowing access to transpose, interpolate and copy/paste options
 - Piano roll view now highlights rows with sharp notes
+- Smoother playhead movement and auto-scrolling in the Piano Roll view
 
 ### Fixed
 

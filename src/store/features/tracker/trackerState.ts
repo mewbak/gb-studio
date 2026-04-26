@@ -94,6 +94,9 @@ export interface TrackerState {
   hoverSequence: number | null;
   playbackSequence: number;
   playbackRow: number;
+  playbackCurrentTick: number;
+  playbackTicksPerRow: number;
+  playbackFollowScrollRevision: number;
   defaultStartPlaybackSequence: number;
   defaultStartPlaybackRow: number;
   selectedSongId: string;
@@ -145,6 +148,9 @@ export const initialState: TrackerState = {
   hoverSequence: null,
   playbackSequence: 0,
   playbackRow: 0,
+  playbackCurrentTick: 0,
+  playbackTicksPerRow: 0,
+  playbackFollowScrollRevision: 0,
   defaultStartPlaybackSequence: 0,
   defaultStartPlaybackRow: 0,
   selectedSongId: "",
@@ -197,6 +203,9 @@ const trackerSlice = createSlice({
       state.playing = false;
       state.playbackSequence = state.defaultStartPlaybackSequence;
       state.playbackRow = state.defaultStartPlaybackRow;
+      state.playbackCurrentTick = 0;
+      state.playbackTicksPerRow = 0;
+      state.playbackFollowScrollRevision = 0;
     },
     setExporting: (state, action: PayloadAction<boolean>) => {
       state.exporting = action.payload;
@@ -252,19 +261,39 @@ const trackerSlice = createSlice({
     ) => {
       state.playbackSequence = action.payload.sequence;
       state.playbackRow = action.payload.row;
+      state.playbackCurrentTick = 0;
+      state.playbackTicksPerRow = 0;
       state.defaultStartPlaybackSequence = action.payload.sequence;
       state.defaultStartPlaybackRow = action.payload.row;
       if (state.loopSequenceId !== action.payload.sequence) {
         state.loopSequenceId = undefined;
       }
     },
-    setPlaybackState: (state, action: PayloadAction<MusicPosition>) => {
-      state.playbackSequence = action.payload.sequence;
-      state.playbackRow = action.payload.row;
+    setPlaybackState: (
+      state,
+      action: PayloadAction<{
+        sequence: number;
+        row: number;
+        tick: number;
+        ticksPerRow: number;
+        source: "playback" | "position";
+      }>,
+    ) => {
+      const { sequence, row, tick, ticksPerRow, source } = action.payload;
+      state.playbackSequence = sequence;
+      state.playbackRow = row;
+      state.playbackCurrentTick = tick;
+      state.playbackTicksPerRow = ticksPerRow;
+      if (source === "playback") {
+        state.playbackFollowScrollRevision += 1;
+      }
     },
     resetPlaybackPosition: (state) => {
       state.playbackSequence = 0;
       state.playbackRow = 0;
+      state.playbackCurrentTick = 0;
+      state.playbackTicksPerRow = 0;
+      state.playbackFollowScrollRevision = 0;
     },
     setSelectedSongId: (state, action: PayloadAction<string>) => {
       state.selectedSongId = action.payload;
@@ -428,6 +457,9 @@ const trackerSlice = createSlice({
         state.playerReady = false;
         state.playbackSequence = 0;
         state.playbackRow = 0;
+        state.playbackCurrentTick = 0;
+        state.playbackTicksPerRow = 0;
+        state.playbackFollowScrollRevision = 0;
       })
       .addCase(trackerDocumentActions.moveSequence, (state, action) => {
         state.selectedSequence = action.payload.toIndex;

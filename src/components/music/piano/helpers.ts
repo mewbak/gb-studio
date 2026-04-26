@@ -9,9 +9,13 @@ import clamp from "shared/lib/helpers/clamp";
 export const calculatePlaybackTrackerPosition = (
   playbackOrder: number,
   playbackRow: number,
+  currentTick = 0,
+  ticksPerRow = 0,
 ) =>
   playbackOrder * TRACKER_PATTERN_LENGTH * PIANO_ROLL_CELL_SIZE +
-  playbackRow * PIANO_ROLL_CELL_SIZE;
+  (playbackRow +
+    (ticksPerRow > 0 ? clamp(currentTick / ticksPerRow, 0, 1) : 0)) *
+    PIANO_ROLL_CELL_SIZE;
 
 /** Calculates the total pixel width of the piano-roll document for a given sequence length. */
 export const calculateDocumentWidth = (sequenceLength: number) =>

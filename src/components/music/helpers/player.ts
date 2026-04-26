@@ -1,6 +1,7 @@
 import type {
   MusicPosition,
   MusicExportFormat,
+  MusicPlaybackState,
 } from "shared/lib/music/types";
 import compiler from "./compiler";
 import storage from "./storage";
@@ -21,12 +22,13 @@ let isExporting = false;
 let isPlayingSong = false;
 let isPreviewPlaying = false;
 let metronomeEnabled = false;
-let lastPositionKey: string | null = null;
+let lastPlaybackUpdateKey: string | null = null;
+let lastPlaybackRowKey: string | null = null;
 
 const channels = [false, false, false, false];
 const previewEmulator = createEmulator();
 
-let onIntervalCallback = (_updateData: MusicPosition) => {};
+let onIntervalCallback = (_updateData: MusicPlaybackState) => {};
 let onPreviewPlaybackTimeout: ReturnType<typeof setTimeout> | undefined;
 
 const exportMaxRenderSeconds = 60 * 10;
@@ -43,26 +45,31 @@ const playMetronomeTick = (currentTick: number) => {
 };
 
 const resetPositionCallback = () => {
-  lastPositionKey = null;
+  lastPlaybackUpdateKey = null;
+  lastPlaybackRowKey = null;
 };
 
-const onPlaybackPositionUpdate = (
-  position: MusicPosition,
-  currentTick: number,
-) => {
-  const positionKey = `${position.sequence}:${position.row}`;
-  if (positionKey === lastPositionKey) {
+const onPlaybackPositionUpdate = (update: MusicPlaybackState) => {
+  const { sequence, row, tick, ticksPerRow } = update;
+  const updateKey = `${sequence}:${row}:${tick}:${ticksPerRow}`;
+  if (updateKey === lastPlaybackUpdateKey) {
     return;
   }
-  lastPositionKey = positionKey;
+  lastPlaybackUpdateKey = updateKey;
 
-  onIntervalCallback(position);
+  onIntervalCallback(update);
 
-  if (!metronomeEnabled || position.row % 4 !== 0) {
+  const rowKey = `${sequence}:${row}`;
+  if (rowKey === lastPlaybackRowKey) {
+    return;
+  }
+  lastPlaybackRowKey = rowKey;
+
+  if (!metronomeEnabled || row % 4 !== 0) {
     return;
   }
 
-  playMetronomeTick(currentTick);
+  playMetronomeTick(tick);
 };
 
 type RenderedSongAudio = {
@@ -304,6 +311,7 @@ const play = (song: Song, position?: MusicPosition) => {
     const currentOrderAddr = getRamAddress("current_order");
     const rowAddr = getRamAddress("row");
     const tickAddr = getRamAddress("tick");
+    const ticksPerRowAddr = getRamAddress("ticks_per_row");
 
     const orderCntAddr = getRamAddress("order_cnt");
     emulator.writeMem(orderCntAddr, song.sequence.length * 2);
@@ -311,16 +319,12 @@ const play = (song: Song, position?: MusicPosition) => {
     doResume();
 
     const updateUI = () => {
-      const position = {
+      onPlaybackPositionUpdate({
         sequence: emulator.readMem(currentOrderAddr) / 2,
         row: emulator.readMem(rowAddr),
-      };
-      const currentTick = emulator.readMem(tickAddr);
-
-      onPlaybackPositionUpdate(
-        position,
-        currentTick,
-      );
+        tick: emulator.readMem(tickAddr),
+        ticksPerRow: emulator.readMem(ticksPerRowAddr),
+      });
     };
     updateUI();
     onSongProgressIntervalId = setInterval(updateUI, 1000 / 64);
@@ -920,7 +924,7 @@ const player = {
     }
   },
   getCurrentSong,
-  setOnIntervalCallback: (cb: (update: MusicPosition) => void) => {
+  setOnIntervalCallback: (cb: (update: MusicPlaybackState) => void) => {
     onIntervalCallback = cb;
   },
   reset,
