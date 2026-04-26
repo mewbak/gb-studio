@@ -3,7 +3,257 @@ import {
   TOTAL_NOTES,
   TRACKER_PATTERN_LENGTH,
 } from "consts";
+import {
+  DutyInstrument,
+  NoiseInstrument,
+  PatternCell,
+  WaveInstrument,
+} from "shared/lib/uge/types";
 import clamp from "shared/lib/helpers/clamp";
+
+type ChannelInstrument = DutyInstrument | WaveInstrument | NoiseInstrument;
+
+const SET_VOLUME_EFFECT = 12;
+const NOTE_CUT_EFFECT = 14;
+const SET_SPEED_EFFECT = 15;
+const TIMER_HZ = 64;
+
+const isInstrumentAudible = (instrument: ChannelInstrument) =>
+  "volume" in instrument
+    ? instrument.volume > 0
+    : instrument.initialVolume > 0 || instrument.volumeSweepChange > 0;
+
+const getInstrumentLengthSeconds = (instrument: ChannelInstrument) =>
+  instrument.length !== null ? instrument.length / 256 : null;
+
+const getInstrumentFadeOutSeconds = (instrument: ChannelInstrument) => {
+  if (
+    "volume" in instrument ||
+    instrument.initialVolume <= 0 ||
+    instrument.volumeSweepChange >= 0
+  ) {
+    return null;
+  }
+
+  return (
+    (instrument.initialVolume * (8 - Math.abs(instrument.volumeSweepChange))) /
+    64
+  );
+};
+
+export const getPatternTicksPerRow = (
+  pattern: ReadonlyArray<PatternCell>,
+  initialTicksPerRow: number,
+) => {
+  let currentTicksPerRow = initialTicksPerRow;
+
+  return pattern.map((cell) => {
+    if (cell.effectCode === SET_SPEED_EFFECT && (cell.effectParam ?? 0) > 0) {
+      currentTicksPerRow = cell.effectParam ?? currentTicksPerRow;
+    }
+
+    return currentTicksPerRow;
+  });
+};
+
+export const getPatternListStartTicksPerRow = (
+  patterns: ReadonlyArray<ReadonlyArray<PatternCell> | undefined>,
+  initialTicksPerRow: number,
+) => {
+  let currentPatternTicksPerRow = initialTicksPerRow;
+
+  return patterns.map((pattern) => {
+    const startTicksPerRow = currentPatternTicksPerRow;
+
+    if (!pattern) {
+      return startTicksPerRow;
+    }
+
+    const patternTicksPerRow = getPatternTicksPerRow(
+      pattern,
+      currentPatternTicksPerRow,
+    );
+
+    if (patternTicksPerRow.length > 0) {
+      currentPatternTicksPerRow =
+        patternTicksPerRow[patternTicksPerRow.length - 1];
+    }
+
+    return startTicksPerRow;
+  });
+};
+
+export const getPatternListTicksPerRow = (
+  patterns: ReadonlyArray<ReadonlyArray<PatternCell> | undefined>,
+  initialTicksPerRow: number,
+) => {
+  const ticksPerRowByAbsRow: number[] = [];
+  let currentPatternTicksPerRow = initialTicksPerRow;
+
+  for (const pattern of patterns) {
+    if (!pattern) {
+      continue;
+    }
+
+    const patternTicksPerRow = getPatternTicksPerRow(
+      pattern,
+      currentPatternTicksPerRow,
+    );
+    ticksPerRowByAbsRow.push(...patternTicksPerRow);
+
+    if (patternTicksPerRow.length > 0) {
+      currentPatternTicksPerRow =
+        patternTicksPerRow[patternTicksPerRow.length - 1];
+    }
+  }
+
+  return ticksPerRowByAbsRow;
+};
+
+const getRowsForDurationSeconds = ({
+  durationSeconds,
+  startRowIndex,
+  ticksPerRowByRow,
+}: {
+  durationSeconds: number;
+  startRowIndex: number;
+  ticksPerRowByRow: ReadonlyArray<number>;
+}) => {
+  let elapsedSeconds = 0;
+
+  for (
+    let rowIndex = startRowIndex;
+    rowIndex < ticksPerRowByRow.length;
+    rowIndex += 1
+  ) {
+    const rowDurationSeconds = ticksPerRowByRow[rowIndex] / TIMER_HZ;
+    const nextElapsedSeconds = elapsedSeconds + rowDurationSeconds;
+
+    if (nextElapsedSeconds >= durationSeconds) {
+      const secondsIntoRow = durationSeconds - elapsedSeconds;
+      return rowIndex - startRowIndex + secondsIntoRow / rowDurationSeconds;
+    }
+
+    elapsedSeconds = nextElapsedSeconds;
+  }
+
+  return ticksPerRowByRow.length - startRowIndex;
+};
+
+const getRowsUntilNextNote = (
+  channelCells: ReadonlyArray<PatternCell>,
+  rowIndex: number,
+) => {
+  for (
+    let nextRow = rowIndex + 1;
+    nextRow < channelCells.length;
+    nextRow += 1
+  ) {
+    if (channelCells[nextRow].note !== null) {
+      return nextRow - rowIndex;
+    }
+  }
+
+  return null;
+};
+
+const getRowsUntilSilenceEffect = (
+  channelCells: ReadonlyArray<PatternCell>,
+  ticksPerRowByRow: ReadonlyArray<number>,
+  rowIndex: number,
+) => {
+  for (let nextRow = rowIndex; nextRow < channelCells.length; nextRow += 1) {
+    const cell = channelCells[nextRow];
+
+    if (
+      cell.effectCode === SET_VOLUME_EFFECT &&
+      (cell.effectParam ?? 0) === 0
+    ) {
+      return nextRow - rowIndex + 1;
+    }
+
+    if (cell.effectCode === NOTE_CUT_EFFECT) {
+      const ticksPerRow = ticksPerRowByRow[nextRow];
+      const cutTick = cell.effectParam ?? 0;
+
+      if (cutTick < ticksPerRow) {
+        return nextRow - rowIndex + cutTick / ticksPerRow;
+      }
+    }
+  }
+
+  return null;
+};
+
+export const getPatternNoteSustain = ({
+  instruments,
+  channelCells,
+  ticksPerRowByRow,
+  rowIndex,
+  instrumentId,
+}: {
+  instruments: ReadonlyArray<ChannelInstrument> | undefined;
+  channelCells: ReadonlyArray<PatternCell>;
+  ticksPerRowByRow: ReadonlyArray<number>;
+  rowIndex: number;
+  instrumentId: number | null;
+}): number => {
+  if (instrumentId === null || !instruments) {
+    return 0;
+  }
+
+  const instrument = instruments[instrumentId];
+  if (!instrument || !isInstrumentAudible(instrument)) {
+    return 0;
+  }
+
+  const remainingRows = Math.max(channelCells.length - rowIndex, 1);
+  let duration = remainingRows;
+
+  // Check when note would end because another note played on the same channel
+  const rowsUntilNextNote = getRowsUntilNextNote(channelCells, rowIndex);
+  if (rowsUntilNextNote !== null && rowsUntilNextNote < duration) {
+    duration = rowsUntilNextNote;
+  }
+
+  // Check when note would end because a Note Cut or Volume effect would stop it
+  const rowsUntilSilenceEffect = getRowsUntilSilenceEffect(
+    channelCells,
+    ticksPerRowByRow,
+    rowIndex,
+  );
+  if (rowsUntilSilenceEffect !== null && rowsUntilSilenceEffect < duration) {
+    duration = rowsUntilSilenceEffect;
+  }
+
+  // Check when note would end because the instrument length was reached
+  const instrumentLengthSeconds = getInstrumentLengthSeconds(instrument);
+  if (instrumentLengthSeconds !== null) {
+    const rowsUntilInstrumentLength = getRowsForDurationSeconds({
+      durationSeconds: instrumentLengthSeconds,
+      startRowIndex: rowIndex,
+      ticksPerRowByRow,
+    });
+    if (rowsUntilInstrumentLength < duration) {
+      duration = rowsUntilInstrumentLength;
+    }
+  }
+
+  // Check when note would end because the instrument envelope fade out ended
+  const fadeOutSeconds = getInstrumentFadeOutSeconds(instrument);
+  if (fadeOutSeconds !== null) {
+    const rowsUntilFadeOut = getRowsForDurationSeconds({
+      durationSeconds: fadeOutSeconds,
+      startRowIndex: rowIndex,
+      ticksPerRowByRow,
+    });
+    if (rowsUntilFadeOut < duration) {
+      duration = rowsUntilFadeOut;
+    }
+  }
+
+  return Math.max(1, duration);
+};
 
 /** Calculates the pixel offset of the playback cursor in the piano-roll timeline. */
 export const calculatePlaybackTrackerPosition = (

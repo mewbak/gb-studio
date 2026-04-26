@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add ability to clone current pattern and to insert any pattern before/after in Music Editor from Order bar context menu
 - Add ability to loop playback of a single pattern in the Music Editor
 - Add support for split patterns in the Music Editor, allowing different patterns to be set per channel
+- Add note sustain previews to Piano Roll view
 - Ukrainian localisation. [@AmakerGame](https://github.com/AmakerGame)
 
 ### Changed

@@ -1,6 +1,9 @@
 import {
   calculatePlaybackTrackerPosition,
   calculateDocumentWidth,
+  getPatternListStartTicksPerRow,
+  getPatternListTicksPerRow,
+  getPatternNoteSustain,
   noteToRow,
   rowToNote,
   interpolateGridLine,
@@ -8,11 +11,41 @@ import {
   pixelRangeToGridRange,
   pageToSnappedGridPoint,
 } from "../../../../src/components/music/piano/helpers";
+import type {
+  DutyInstrument,
+  PatternCell,
+} from "../../../../src/shared/lib/uge/types";
 
 // These must match the consts used by the helpers
 const PIANO_ROLL_CELL_SIZE = 18; // consts.PIANO_ROLL_CELL_SIZE
 const TOTAL_NOTES = 72; // consts.TOTAL_NOTES (6 octaves × 12)
 const TRACKER_PATTERN_LENGTH = 64; // consts.TRACKER_PATTERN_LENGTH
+
+const makePatternCell = (
+  overrides: Partial<PatternCell> = {},
+): PatternCell => ({
+  note: null,
+  instrument: null,
+  effectCode: null,
+  effectParam: null,
+  ...overrides,
+});
+
+const makeDutyInstrument = (
+  overrides: Partial<DutyInstrument> = {},
+): DutyInstrument => ({
+  index: 0,
+  name: "Duty",
+  length: null,
+  dutyCycle: 2,
+  initialVolume: 15,
+  volumeSweepChange: 0,
+  frequencySweepTime: 0,
+  frequencySweepShift: 0,
+  subpatternEnabled: false,
+  subpattern: [],
+  ...overrides,
+});
 
 describe("noteToRow / rowToNote", () => {
   it("are inverses of each other", () => {
@@ -161,5 +194,67 @@ describe("pageToSnappedGridPoint", () => {
   it("clamps y at 0 for negative page coordinates", () => {
     const result = pageToSnappedGridPoint(0, -100, bounds, sequenceLength);
     expect(result.y).toBe(0);
+  });
+});
+
+describe("pattern sustain helpers", () => {
+  it("tracks ticks-per-row changes across a pattern list", () => {
+    const patterns = [
+      [makePatternCell(), makePatternCell({ effectCode: 15, effectParam: 3 })],
+      [makePatternCell(), makePatternCell()],
+    ];
+
+    expect(getPatternListStartTicksPerRow(patterns, 6)).toEqual([6, 3]);
+    expect(getPatternListTicksPerRow(patterns, 6)).toEqual([6, 3, 3, 3]);
+  });
+
+  it("ends sustain on the next note", () => {
+    const sustain = getPatternNoteSustain({
+      instruments: [makeDutyInstrument()],
+      channelCells: [
+        makePatternCell({ note: 24, instrument: 0 }),
+        makePatternCell(),
+        makePatternCell({ note: 26 }),
+      ],
+      ticksPerRowByRow: [6, 6, 6],
+      rowIndex: 0,
+      instrumentId: 0,
+    });
+
+    expect(sustain).toEqual(2);
+  });
+
+  it("ends sustain on a note cut effect before the next note", () => {
+    const sustain = getPatternNoteSustain({
+      instruments: [makeDutyInstrument()],
+      channelCells: [
+        makePatternCell({ note: 24, instrument: 0 }),
+        makePatternCell({ effectCode: 14, effectParam: 0 }),
+        makePatternCell(),
+      ],
+      ticksPerRowByRow: [6, 6, 6],
+      rowIndex: 0,
+      instrumentId: 0,
+    });
+
+    expect(sustain).toEqual(1);
+  });
+
+  it("treats zero initial volume with positive sweep as sustaining", () => {
+    const sustain = getPatternNoteSustain({
+      instruments: [
+        makeDutyInstrument({ initialVolume: 0, volumeSweepChange: 1 }),
+      ],
+      channelCells: [
+        makePatternCell({ note: 24, instrument: 0 }),
+        makePatternCell(),
+        makePatternCell({ note: 26 }),
+      ],
+      ticksPerRowByRow: [6, 6, 6],
+      rowIndex: 0,
+      instrumentId: 0,
+    });
+
+    expect(sustain).toEqual(2);
   });
 });

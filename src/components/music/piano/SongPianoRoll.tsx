@@ -69,6 +69,7 @@ import {
 } from "components/music/piano/types";
 import { FixedSpacer } from "ui/spacing/Spacing";
 import { PianoRollPlaybackController } from "./PianoRollPlaybackController";
+import { PianoRollSustainOverlay } from "./PianoRollSustainOverlay";
 import {
   useMusicMidiNoteSubscription,
   useMusicMidiState,
@@ -2485,6 +2486,11 @@ export const SongPianoRoll = () => {
               onContextMenu={onSelectionContextMenu}
               onPointerDown={!playing ? onPointerDown : undefined}
             >
+              <PianoRollSustainOverlay
+                displayChannels={displayChannels}
+                selectedChannel={selectedChannel}
+                sequence={sequence}
+              />
               <StyledPianoRollPatternsWrapper>
                 {sequence.map((p, i) => (
                   <PianoRollPatternBlock

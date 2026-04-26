@@ -320,6 +320,25 @@ interface StyledPianoRollNoteProps {
   $isVirtual?: boolean;
 }
 
+interface StyledPianoRollNoteSustainProps {
+  $instrument?: number;
+}
+
+const pianoRollNoteFill = (instrument?: number) =>
+  instrument !== undefined ? `var(--instrument-${instrument}-color)` : "black";
+
+export const StyledPianoRollNoteSustain = styled.div<StyledPianoRollNoteSustainProps>`
+  position: absolute;
+  height: ${Math.max(PIANO_ROLL_CELL_SIZE - 10, 4)}px;
+  border-top-right-radius: 4px;
+  border-bottom-right-radius: 4px;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.5;
+  background: ${(props) => pianoRollNoteFill(props.$instrument)};
+`;
+
 export const StyledPianoRollNote = styled.div<StyledPianoRollNoteProps>`
   position: absolute;
   width: ${PIANO_ROLL_CELL_SIZE + 1}px;
@@ -328,10 +347,7 @@ export const StyledPianoRollNote = styled.div<StyledPianoRollNoteProps>`
   box-sizing: border-box;
   text-align: center;
   line-height: 1.1em;
-  background: ${(props) =>
-    props.$instrument !== undefined
-      ? `var(--instrument-${props.$instrument}-color)`
-      : "black"};
+  background: ${(props) => pianoRollNoteFill(props.$instrument)};
   ${(props) =>
     props.$usingPreviousInstrument &&
     css`
@@ -339,8 +355,8 @@ export const StyledPianoRollNote = styled.div<StyledPianoRollNoteProps>`
         45deg,
         transparent,
         transparent 2px,
-        var(--instrument-${props.$instrument}-color) 2px,
-        var(--instrument-${props.$instrument}-color) 4px
+        ${pianoRollNoteFill(props.$instrument)} 2px,
+        ${pianoRollNoteFill(props.$instrument)} 4px
       );
     `}
 
@@ -529,6 +545,30 @@ export const StyledPianoRollPlayhead = styled.div<{
 
 export const StyledPianoRollPatternsWrapper = styled.div`
   display: flex;
+  position: relative;
+  z-index: 1;
+`;
+
+export const StyledPianoRollSustainOverlay = styled.div<{ $width: number }>`
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: ${(props) => props.$width}px;
+  height: ${PIANO_ROLL_CELL_SIZE * TOTAL_NOTES}px;
+  pointer-events: none;
+  z-index: 0;
+`;
+
+export const StyledPianoRollSustainChannel = styled.div<{
+  $active?: boolean;
+  $width: number;
+}>`
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: ${(props) => props.$width}px;
+  height: ${PIANO_ROLL_CELL_SIZE * TOTAL_NOTES}px;
+  opacity: ${(props) => (props.$active ? 1 : 0.2)};
 `;
 
 interface StyledPianoRollPatternBlockProps {
