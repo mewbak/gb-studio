@@ -1,7 +1,11 @@
 import { RefObject, useEffect, useLayoutEffect, useRef } from "react";
 import { TRACKER_PATTERN_LENGTH, TRACKER_ROW_SIZE } from "consts";
 import { useAppSelector } from "store/hooks";
-import { TRACKER_CELL_HEIGHT, TRACKER_HEADER_HEIGHT, TRACKER_INDEX_WIDTH } from "./helpers";
+import {
+  TRACKER_CELL_HEIGHT,
+  TRACKER_HEADER_HEIGHT,
+  TRACKER_INDEX_WIDTH,
+} from "./helpers";
 
 const PATTERN_FIELD_COUNT = TRACKER_PATTERN_LENGTH * TRACKER_ROW_SIZE;
 const TRACKER_PATTERN_HEIGHT =
@@ -21,7 +25,9 @@ export const SongTrackerNavigationController = ({
   hasHadFocusRef,
 }: SongTrackerNavigationControllerProps) => {
   const playing = useAppSelector((state) => state.tracker.playing);
-  const activeField = useAppSelector((state) => state.tracker.trackerActiveField);
+  const activeField = useAppSelector(
+    (state) => state.tracker.trackerActiveField,
+  );
   const selectedSequenceId = useAppSelector((state) =>
     !state.tracker.playing ? state.tracker.selectedSequence : -1,
   );

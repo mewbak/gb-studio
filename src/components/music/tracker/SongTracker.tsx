@@ -475,8 +475,10 @@ export const SongTracker = () => {
         return false;
       }
 
-      const currentSequenceId = getSequenceIdFromGlobalField(trackerActiveField);
-      const currentLocalField = getLocalFieldFromGlobalField(trackerActiveField);
+      const currentSequenceId =
+        getSequenceIdFromGlobalField(trackerActiveField);
+      const currentLocalField =
+        getLocalFieldFromGlobalField(trackerActiveField);
       const currentPos = fieldToPosition(currentLocalField);
 
       let nextSequenceId = currentSequenceId;
@@ -594,7 +596,8 @@ export const SongTracker = () => {
       const state = store.getState();
       dispatch(
         trackerDocumentActions.insertSequence({
-          sequenceIndex: state.trackerDocument.present.song?.sequence.length ?? 0,
+          sequenceIndex:
+            state.trackerDocument.present.song?.sequence.length ?? 0,
           position: "after",
         }),
       );

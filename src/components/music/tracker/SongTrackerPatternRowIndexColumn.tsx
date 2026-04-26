@@ -10,7 +10,10 @@ const renderCounter = (n: number): string => {
   return n.toString().padStart(2, "0");
 };
 
-const ROW_INDICES = Array.from({ length: TRACKER_PATTERN_LENGTH }, (_, index) => index);
+const ROW_INDICES = Array.from(
+  { length: TRACKER_PATTERN_LENGTH },
+  (_, index) => index,
+);
 
 interface SongTrackerPatternRowIndexColumnProps {
   renderSequenceId: number;
@@ -35,7 +38,9 @@ export const SongTrackerPatternRowIndexColumn = memo(
             data-row={rowIndex}
             data-sequenceid={renderSequenceId}
           >
-            <StyledTrackerRowIndexField id={`cell_${renderSequenceId}_${rowIndex}`}>
+            <StyledTrackerRowIndexField
+              id={`cell_${renderSequenceId}_${rowIndex}`}
+            >
               {renderCounter(rowIndex)}
             </StyledTrackerRowIndexField>
           </StyledTrackerPatternRowIndexCell>
