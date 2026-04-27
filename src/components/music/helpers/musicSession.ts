@@ -55,10 +55,15 @@ const createMusicSession = (): MusicSession => {
         player.reset();
         player.loadSong(data.song);
         playbackState = {
-          ...playbackState,
+          sequence: 0,
+          row: 0,
           tick: 0,
           ticksPerRow: data.song.ticksPerRow,
         };
+        player.setStartPosition({
+          sequence: playbackState.sequence,
+          row: playbackState.row,
+        });
         loopSequenceId = undefined;
         emit({
           action: "log",
