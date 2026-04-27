@@ -33,6 +33,8 @@ let onPreviewPlaybackTimeout: ReturnType<typeof setTimeout> | undefined;
 
 const exportMaxRenderSeconds = 60 * 10;
 const gameBoyFrameDuration = 70224 / 4194304;
+const previewPrebufferSeconds = 0.2;
+const previewPrebufferMaxIterations = 24;
 
 const playMetronomeTick = (currentTick: number) => {
   const { currentTime, scheduledTime } = emulator.getAudioClock();
@@ -367,6 +369,18 @@ const playPreview = (song: Song, length: number) => {
 
     doResume(previewEmulator);
     isPreviewPlaying = true;
+    for (
+      let iteration = 1;
+      iteration <= previewPrebufferMaxIterations;
+      iteration++
+    ) {
+      previewEmulator.step("run");
+      const audioClock = previewEmulator.getAudioClock();
+      const bufferedSeconds = audioClock.scheduledTime - audioClock.currentTime;
+      if (bufferedSeconds >= previewPrebufferSeconds) {
+        break;
+      }
+    }
 
     onPreviewPlaybackTimeout = setTimeout(() => {
       stopPreview();
