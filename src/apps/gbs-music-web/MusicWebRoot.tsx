@@ -8,6 +8,7 @@ import ThemeProvider from "ui/theme/ThemeProvider";
 import GlobalStyle from "ui/globalStyle";
 import initRendererL10N from "renderer/lib/lang/initRendererL10N";
 import { initKeyBindings } from "renderer/lib/keybindings/keyBindings";
+import API from "renderer/lib/api";
 import { MusicWebApp } from "gbs-music-web/components/MusicWebApp";
 import { initTheme } from "renderer/lib/theme";
 import { initMusicPlaybackListener } from "renderer/lib/music/initMusicPlaybackListener";
@@ -18,6 +19,9 @@ const store = createMusicEditorStore();
 installWebRendererApi(store);
 initMusicMidiProjectBridge(store);
 initMusicPlaybackListener(store.dispatch);
+API.events.settings.trackerKeyBindingsChanged.subscribe(() => {
+  void initKeyBindings();
+});
 initKeyBindings();
 store.dispatch(trackerActions.initViewFromSaved());
 

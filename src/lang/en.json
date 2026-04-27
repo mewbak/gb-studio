@@ -600,7 +600,7 @@
   "FIELD_HOVER": "Hover",
   "FIELD_OVERRIDE_DEFAULT_BUTTON_ACTION": "Override default button action",
   "FIELD_OVERRIDE_DEFAULT_BUTTON_ACTION_DESC": "Set if the script should replace the default game action for the specified button.",
-  "FIELD_UI_TRACKER_KEYBINDINGS": "Music Tracker Keyboard Layout",
+  "FIELD_UI_TRACKER_KEYBINDINGS": "Tracker Keyboard Layout",
   "FIELD_UI_LINEAR": "Linear",
   "FIELD_UI_PIANO": "Piano",
   "FIELD_UI_LINEAR_INFO": "OpenMPT, hUGETracker",
@@ -1998,6 +1998,7 @@
   "MENU_MUTE_AUDIO": "Mute Audio",
   "MENU_DELETE_NOTE": "Delete Note",
   "MENU_DELETE_SELECTION": "Delete Selection",
+  "MENU_INPUT": "Input",
 
   "// 11": "Warnings -----------------------------------------------------",
 

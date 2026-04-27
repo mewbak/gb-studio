@@ -31,10 +31,12 @@ type MusicResponseListener = (
   data: MusicDataReceivePacket,
 ) => void;
 type MenuListener = (_event: unknown) => void;
+type TrackerKeyBindingsListener = (_event: unknown, value: number) => void;
 
 const clipboardBufferStore = new Map<string, Uint8Array>();
 const musicResponseListeners = new Set<MusicResponseListener>();
 const menuSelectAllListeners = new Set<MenuListener>();
+const trackerKeyBindingsListeners = new Set<TrackerKeyBindingsListener>();
 const themeListeners = new Set<
   (theme: ReturnType<typeof getThemeById>) => void
 >();
@@ -81,6 +83,10 @@ const emitMusicData = (data: MusicDataReceivePacket) => {
 
 const emitMenuSelectAll = () => {
   menuSelectAllListeners.forEach((listener) => listener(undefined));
+};
+
+const emitTrackerKeyBindingsChanged = (value: number) => {
+  trackerKeyBindingsListeners.forEach((listener) => listener(undefined, value));
 };
 
 const isEditableTarget = (target: EventTarget | null) => {
@@ -269,8 +275,19 @@ export const installWebRendererApi = (store: MusicEditorStore) => {
         openExternal: (url: string) => window.open(url, "_blank"),
         setUIScale: () => Promise.resolve(),
         getUIScale: () => Promise.resolve(0),
-        setTrackerKeyBindings: () => Promise.resolve(),
-        getTrackerKeyBindings: () => Promise.resolve(0),
+        setTrackerKeyBindings: (value: number) => {
+          const currentValue =
+            (getStoredSetting("trackerKeyBindings") as number) ?? 0;
+          setStoredSetting("trackerKeyBindings", value);
+          if (currentValue !== value) {
+            emitTrackerKeyBindingsChanged(value);
+          }
+          return Promise.resolve();
+        },
+        getTrackerKeyBindings: () =>
+          Promise.resolve(
+            (getStoredSetting("trackerKeyBindings") as number) ?? 0,
+          ),
       },
     },
     dialog: {
@@ -387,6 +404,20 @@ export const installWebRendererApi = (store: MusicEditorStore) => {
           subscribe: () => () => undefined,
         },
         midiInputSelect: {
+          subscribe: () => () => undefined,
+        },
+      },
+      settings: {
+        uiScaleChanged: {
+          subscribe: () => () => undefined,
+        },
+        trackerKeyBindingsChanged: {
+          subscribe: (listener: TrackerKeyBindingsListener) => {
+            trackerKeyBindingsListeners.add(listener);
+            return () => trackerKeyBindingsListeners.delete(listener);
+          },
+        },
+        settingChanged: {
           subscribe: () => () => undefined,
         },
       },

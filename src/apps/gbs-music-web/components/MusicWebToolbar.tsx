@@ -28,6 +28,7 @@ import {
   musicMidiController,
 } from "components/music/midi/musicMidiController";
 import { useMusicMidiState } from "components/music/midi/useMusicMidi";
+import { KeyboardHelpDialog } from "gbs-music-web/components/dialog/KeyboardHelpDialog";
 
 const COMPACT_LAYOUT_BREAKPOINT = 590;
 
@@ -85,6 +86,7 @@ const MusicWebToolbar = ({
   const dispatch = useAppDispatch();
 
   const [showAbout, setShowAbout] = useState(false);
+  const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
 
   const view = useAppSelector((state) => state.tracker.view);
 
@@ -214,7 +216,21 @@ const MusicWebToolbar = ({
     onLocaleChange,
   });
 
-  const midiMenu = useMemo(() => {
+  const inputMenu = useMemo(() => {
+    const inputModeItem = (
+      <MenuItem
+        key="input-help"
+        icon={<BlankIcon />}
+        onClick={() => setShowKeyboardHelp(true)}
+      >
+        {l10n("FIELD_UI_TRACKER_KEYBINDINGS")}
+      </MenuItem>
+    );
+
+    if (!supportsMidi) {
+      return [inputModeItem];
+    }
+
     const enabledItem = (
       <MenuItem
         key="midi-enabled"
@@ -228,7 +244,7 @@ const MusicWebToolbar = ({
     );
 
     if (!midiState.enabled) {
-      return [enabledItem];
+      return [inputModeItem, <MenuDivider key="input-divider" />, enabledItem];
     }
 
     const deviceItems =
@@ -256,8 +272,19 @@ const MusicWebToolbar = ({
             </MenuItemDisabled>,
           ];
 
-    return [enabledItem, <MenuDivider key="midi-divider" />, ...deviceItems];
-  }, [midiState.enabled, midiState.inputs, midiState.selectedInputId]);
+    return [
+      inputModeItem,
+      <MenuDivider key="input-divider" />,
+      enabledItem,
+      <MenuDivider key="midi-divider" />,
+      ...deviceItems,
+    ];
+  }, [
+    midiState.enabled,
+    midiState.inputs,
+    midiState.selectedInputId,
+    supportsMidi,
+  ]);
 
   return (
     <>
@@ -279,11 +306,7 @@ const MusicWebToolbar = ({
               <MenuItem subMenu={editMenu}>{l10n("MENU_EDIT")}</MenuItem>
               <MenuDivider />
               <MenuItem subMenu={viewMenu}>{l10n("MENU_VIEW")}</MenuItem>
-              {supportsMidi && (
-                <MenuItem subMenu={midiMenu}>
-                  {l10n("MENU_MIDI_INPUT")}
-                </MenuItem>
-              )}
+              <MenuItem subMenu={inputMenu}>{l10n("MENU_INPUT")}</MenuItem>
               <MenuItem subMenu={themeMenu}>{l10n("MENU_THEME")}</MenuItem>
               <MenuItem subMenu={localeMenu}>{l10n("MENU_LANGUAGE")}</MenuItem>
               <MenuDivider />
@@ -307,6 +330,9 @@ const MusicWebToolbar = ({
         </Toolbar>
       </Wrapper>
       {showAbout && <AboutDialog onClose={() => setShowAbout(false)} />}
+      {showKeyboardHelp && (
+        <KeyboardHelpDialog onClose={() => setShowKeyboardHelp(false)} />
+      )}
     </>
   );
 };
