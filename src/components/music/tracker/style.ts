@@ -234,7 +234,7 @@ export const StyledTrackerPatternHeader = styled.div`
   flex-shrink: 0;
   position: sticky;
   top: 0;
-  z-index: 10001;
+  z-index: 2;
 `;
 
 export const StyledTrackerPatternBody = styled.div`
@@ -242,6 +242,9 @@ export const StyledTrackerPatternBody = styled.div`
   box-shadow: none !important;
   outline: 0;
   align-items: stretch;
+  &:focus {
+    z-index: 0;
+  }
 `;
 
 export const StyledTrackerPatternRowIndexColumn = styled.div<{
