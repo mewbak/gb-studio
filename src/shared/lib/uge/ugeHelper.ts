@@ -665,6 +665,8 @@ const patternEqual = function (a: PatternCell[], b: PatternCell[]) {
  * @param trackName - C identifier used as the base name for exported symbols.
  */
 export const exportToC = (song: Song, trackName: string): string => {
+  type InstrumentType = "duty" | "wave" | "noise";
+
   const decHex = (n: number, maxLength = 2) => {
     return "0x" + n.toString(16).toUpperCase().padStart(maxLength, "0");
   };
@@ -698,19 +700,6 @@ export const exportToC = (song: Song, trackName: string): string => {
     )})`;
   };
 
-  const formatSubpattern = function (
-    instr: DutyInstrument | WaveInstrument | NoiseInstrument,
-    type: "duty" | "wave" | "noise",
-  ) {
-    if (instr.subpatternEnabled) {
-      data += `static const unsigned char ${type}_${instr.index}_subpattern[] = {\n`;
-      for (let idx = 0; idx < 32; idx++) {
-        const cell = instr.subpattern[idx];
-        data += `    ${formatSubPatternCell(cell, idx === 32 - 1)},\n`;
-      }
-      data += "};\n";
-    }
-  };
   const formatSubPatternCell = function (
     cell: SubPatternCell,
     isLast: boolean,
@@ -729,6 +718,41 @@ export const exportToC = (song: Song, trackName: string): string => {
     )})`;
   };
 
+  const getUsedInstrumentIndexes = function () {
+    const usedInstruments: Record<InstrumentType, Set<number>> = {
+      duty: new Set(),
+      wave: new Set(),
+      noise: new Set(),
+    };
+
+    const instrumentTypeByTrack: InstrumentType[] = [
+      "duty",
+      "duty",
+      "wave",
+      "noise",
+    ];
+
+    for (const sequenceItem of song.sequence) {
+      for (let track = 0; track < TRACKER_NUM_CHANNELS; track++) {
+        const pattern = song.patterns[sequenceItem.channels[track]];
+
+        if (!pattern) {
+          continue;
+        }
+
+        const instrumentType = instrumentTypeByTrack[track];
+
+        for (const cell of pattern) {
+          if (cell.note !== null && cell.instrument !== null) {
+            usedInstruments[instrumentType].add(cell.instrument);
+          }
+        }
+      }
+    }
+
+    return usedInstruments;
+  };
+
   const formatDutyInstrument = function (instr: DutyInstrument) {
     const sweep =
       (instr.frequencySweepTime << 4) |
@@ -742,10 +766,7 @@ export const exportToC = (song: Song, trackName: string): string => {
     if (instr.volumeSweepChange !== 0) {
       envelope |= 8 - Math.abs(instr.volumeSweepChange);
     }
-    let subpatternRef: 0 | string = 0;
-    if (instr.subpatternEnabled) {
-      subpatternRef = `duty_${instr.index}_subpattern`;
-    }
+    const subpatternRef = dutySubpatternRefs.get(instr.index) ?? 0;
     const highmask = 0x80 | (instr.length !== null ? 0x40 : 0);
 
     return `{ ${decHex(sweep)}, ${decHex(lenDuty)}, ${decHex(
@@ -757,10 +778,7 @@ export const exportToC = (song: Song, trackName: string): string => {
     const length = (instr.length !== null ? 256 - instr.length : 0) & 0xff;
     const volume = instr.volume << 5;
     const waveform = instr.waveIndex;
-    let subpatternRef: 0 | string = 0;
-    if (instr.subpatternEnabled) {
-      subpatternRef = `wave_${instr.index}_subpattern`;
-    }
+    const subpatternRef = waveSubpatternRefs.get(instr.index) ?? 0;
     const highmask = 0x80 | (instr.length !== null ? 0x40 : 0);
 
     return `{ ${decHex(length)}, ${decHex(volume)}, ${decHex(
@@ -773,10 +791,7 @@ export const exportToC = (song: Song, trackName: string): string => {
       (instr.initialVolume << 4) | (instr.volumeSweepChange > 0 ? 0x08 : 0x00);
     if (instr.volumeSweepChange !== 0)
       envelope |= 8 - Math.abs(instr.volumeSweepChange);
-    let subpatternRef: 0 | string = 0;
-    if (instr.subpatternEnabled) {
-      subpatternRef = `noise_${instr.index}_subpattern`;
-    }
+    const subpatternRef = noiseSubpatternRefs.get(instr.index) ?? 0;
     let highmask = (instr.length !== null ? 64 - instr.length : 0) & 0x3f;
     if (instr.length !== null) highmask |= 0x40;
     if (instr.bitCount === 7) highmask |= 0x80;
@@ -811,6 +826,62 @@ export const exportToC = (song: Song, trackName: string): string => {
     }
   }
 
+  const usedInstrumentIndexes = getUsedInstrumentIndexes();
+
+  const emittedSubpatterns = new Map<string, string>();
+  const dutySubpatternRefs = new Map<number, string>();
+  const waveSubpatternRefs = new Map<number, string>();
+  const noiseSubpatternRefs = new Map<number, string>();
+  const subpatternDefinitions: string[] = [];
+
+  const registerSubpattern = (
+    instr: DutyInstrument | WaveInstrument | NoiseInstrument,
+    type: InstrumentType,
+  ) => {
+    if (
+      !instr.subpatternEnabled ||
+      !usedInstrumentIndexes[type].has(instr.index)
+    ) {
+      return;
+    }
+
+    const subpatternKey = JSON.stringify(instr.subpattern);
+    let subpatternSymbol = emittedSubpatterns.get(subpatternKey);
+
+    if (!subpatternSymbol) {
+      subpatternSymbol = `subpattern_${emittedSubpatterns.size}`;
+      emittedSubpatterns.set(subpatternKey, subpatternSymbol);
+
+      let definition = `static const unsigned char ${subpatternSymbol}[] = {\n`;
+      for (let idx = 0; idx < 32; idx++) {
+        definition += `    ${formatSubPatternCell(
+          instr.subpattern[idx],
+          idx === 32 - 1,
+        )},\n`;
+      }
+      definition += "};\n";
+      subpatternDefinitions.push(definition);
+    }
+
+    if (type === "duty") {
+      dutySubpatternRefs.set(instr.index, subpatternSymbol);
+    } else if (type === "wave") {
+      waveSubpatternRefs.set(instr.index, subpatternSymbol);
+    } else {
+      noiseSubpatternRefs.set(instr.index, subpatternSymbol);
+    }
+  };
+
+  for (const instr of song.dutyInstruments) {
+    registerSubpattern(instr, "duty");
+  }
+  for (const instr of song.waveInstruments) {
+    registerSubpattern(instr, "wave");
+  }
+  for (const instr of song.noiseInstruments) {
+    registerSubpattern(instr, "noise");
+  }
+
   let data = `#pragma bank 255
 
 #include "hUGEDriver.h"
@@ -827,14 +898,8 @@ static const unsigned char order_cnt = ${song.sequence.length * 2};
     }
     data += "};\n";
   }
-  for (const instr of song.dutyInstruments) {
-    formatSubpattern(instr, "duty");
-  }
-  for (const instr of song.waveInstruments) {
-    formatSubpattern(instr, "wave");
-  }
-  for (const instr of song.noiseInstruments) {
-    formatSubpattern(instr, "noise");
+  for (const definition of subpatternDefinitions) {
+    data += definition;
   }
   for (let track = 0; track < 4; track++)
     data += `static const unsigned char* const order${

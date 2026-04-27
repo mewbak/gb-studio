@@ -6,6 +6,7 @@ import {
 } from "../../../../src/shared/lib/uge/song";
 import {
   compactUGESong,
+  exportToC,
   loadUGESong,
   saveUGESong,
 } from "../../../../src/shared/lib/uge/ugeHelper";
@@ -13,11 +14,11 @@ import { join } from "path";
 
 const EXAMPLES_DIR = join(__dirname, "../../../data/music/");
 
-const makePattern = (note: number) => {
+const makePattern = (note: number, instrument: number | null = null) => {
   const pattern = createPattern();
   pattern[0] = {
     note,
-    instrument: null,
+    instrument,
     effectCode: null,
     effectParam: null,
   };
@@ -57,6 +58,19 @@ const addSaveReadyInstruments = (song: ReturnType<typeof createSong>) => {
     subpattern: createSubPattern(),
   }));
 };
+
+const makeDutyInstrument = (index: number, subpatternEnabled = false) => ({
+  index,
+  name: "",
+  length: null,
+  dutyCycle: 2,
+  initialVolume: 15,
+  volumeSweepChange: 0,
+  frequencySweepTime: 0,
+  frequencySweepShift: 0,
+  subpatternEnabled,
+  subpattern: createSubPattern(),
+});
 
 describe("compactUGESong", () => {
   it("removes unused 4-pattern blocks and relinks sequence channels", () => {
@@ -156,5 +170,85 @@ describe("loadUGESong", () => {
         expect(song.patterns[i][rowIndex]).toBeDefined();
       }
     }
+  });
+});
+
+describe("exportToC", () => {
+  it("only emits subpatterns for instruments that are actually used by played notes", () => {
+    const song = createSong();
+    song.patterns = [
+      makePattern(24, 0),
+      createPattern(),
+      createPattern(),
+      createPattern(),
+    ];
+    song.sequence = [{ splitPattern: false, channels: [0, 1, 2, 3] }];
+
+    song.dutyInstruments = [
+      makeDutyInstrument(0, true),
+      makeDutyInstrument(1, true),
+    ];
+    song.dutyInstruments[0].subpattern[0].note = 24;
+    song.dutyInstruments[1].subpattern[0].note = 36;
+
+    const exported = exportToC(song, "test_track");
+
+    expect(
+      exported.match(/static const unsigned char subpattern_\d+\[] = \{/g) ??
+        [],
+    ).toHaveLength(1);
+    expect(exported).toContain("DN(24, 0, 0x000)");
+    expect(exported).toMatch(
+      /static const hUGEDutyInstr_t duty_instruments\[] = \{\n\s*\{[^}]*subpattern_0[^}]*\},\n\s*\{[^}]*, 0, [^}]*\},/s,
+    );
+  });
+
+  it("deduplicates identical exported subpatterns across used instruments", () => {
+    const song = createSong();
+    song.patterns = [
+      makePattern(24, 0),
+      makePattern(26, 1),
+      createPattern(),
+      createPattern(),
+    ];
+    song.sequence = [{ splitPattern: false, channels: [0, 1, 2, 3] }];
+
+    song.dutyInstruments = [
+      makeDutyInstrument(0, true),
+      makeDutyInstrument(1, true),
+    ];
+    song.dutyInstruments[0].subpattern[0].note = 24;
+    song.dutyInstruments[1].subpattern[0].note = 24;
+
+    const exported = exportToC(song, "test_track");
+
+    expect(
+      exported.match(/static const unsigned char subpattern_\d+\[] = \{/g) ??
+        [],
+    ).toHaveLength(1);
+    expect(exported).toContain("subpattern_0");
+    expect(exported).not.toContain("subpattern_1");
+    expect(
+      exported.match(/\{[^}]*subpattern_0[^}]*\}/g)?.length ?? 0,
+    ).toBeGreaterThanOrEqual(2);
+  });
+
+  it("does not treat instrument-only cells as used instruments", () => {
+    const song = createSong();
+    song.patterns = [
+      createPattern(),
+      createPattern(),
+      createPattern(),
+      createPattern(),
+    ];
+    song.patterns[0][0].instrument = 0;
+    song.sequence = [{ splitPattern: false, channels: [0, 1, 2, 3] }];
+
+    song.dutyInstruments = [makeDutyInstrument(0, true)];
+    song.dutyInstruments[0].subpattern[0].note = 24;
+
+    const exported = exportToC(song, "test_track");
+
+    expect(exported).not.toContain("static const unsigned char subpattern_0[]");
   });
 });
