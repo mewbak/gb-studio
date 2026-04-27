@@ -162,11 +162,7 @@ export const PianoRollSequenceBar = memo(
         const next = { sequence: sequenceId, row: rowId };
         const prev = lastPositionRef.current;
 
-        if (
-          prev &&
-          prev.sequence === next.sequence &&
-          prev.row === next.row
-        ) {
+        if (prev && prev.sequence === next.sequence && prev.row === next.row) {
           return;
         }
 

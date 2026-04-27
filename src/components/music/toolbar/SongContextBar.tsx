@@ -104,16 +104,12 @@ const getPlayButtonLabel = (play: boolean, playbackFromStart: boolean) => {
 };
 
 const OrderPosition = () => {
-  const orderIndex = useAppSelector(
-    (state) => state.tracker.playbackSequence,
-  );
+  const orderIndex = useAppSelector((state) => state.tracker.playbackSequence);
   return String(orderIndex + 1).padStart(2, "0");
 };
 
 const PatternPosition = () => {
-  const orderIndex = useAppSelector(
-    (state) => state.tracker.playbackSequence,
-  );
+  const orderIndex = useAppSelector((state) => state.tracker.playbackSequence);
   const sequence = useAppSelector(
     (state) => state.trackerDocument.present.song?.sequence,
   );
