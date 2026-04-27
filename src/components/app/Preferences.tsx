@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Path from "path";
 import ThemeProvider from "ui/theme/ThemeProvider";
 import GlobalStyle from "ui/globalStyle";
@@ -6,13 +6,18 @@ import { PreferencesWrapper } from "ui/preferences/Preferences";
 import { FormField, FormRow } from "ui/form/layout/FormLayout";
 import { TextField } from "ui/form/TextField";
 import { Button } from "ui/buttons/Button";
-import { DotsIcon } from "ui/icons/Icons";
+import { DotsIcon, HelpIcon } from "ui/icons/Icons";
 import { FixedSpacer, FlexGrow } from "ui/spacing/Spacing";
 import { AppSelect } from "ui/form/AppSelect";
 import { OptionLabelWithInfo, Select } from "ui/form/Select";
 import API from "renderer/lib/api";
 import l10n from "shared/lib/lang/l10n";
 import { SingleValue } from "react-select";
+import { InputGroup, InputGroupAppend } from "ui/form/InputGroup";
+import styled from "styled-components";
+import { TrackerKeysPreview } from "components/music/tracker/keyboard/TrackerKeysPreview";
+import { RelativePortal } from "ui/layout/RelativePortal";
+import { MenuOverlay } from "ui/menu/Menu";
 
 interface Options {
   value: number;
@@ -32,6 +37,13 @@ const zoomOptions: Options[] = [
   { value: 3.80178, label: `200%` },
 ];
 
+const StyledTrackerKeyHelpOverlay = styled.div`
+  background: ${(props) => props.theme.colors.background};
+  box-shadow: 0px 0px 30px 0px rgba(0, 0, 0, 0.4);
+  border-radius: 4px;
+  padding: 2px;
+`;
+
 const Preferences = () => {
   const pathError = "";
   const [tmpPath, setTmpPath] = useState<string>("");
@@ -39,6 +51,7 @@ const Preferences = () => {
   const [musicEditorPath, setMusicEditorPath] = useState<string>("");
   const [zoomLevel, setZoomLevel] = useState<number>(0);
   const [trackerKeyBindings, setTrackerKeyBindings] = useState<number>(0);
+  const [showTrackerKeyHelp, setShowTrackerKeyHelp] = useState(false);
 
   const currentZoomValue = zoomOptions.find((o) => o.value === zoomLevel);
 
@@ -110,6 +123,26 @@ const Preferences = () => {
     setTmpPath(await API.paths.getTmpPath());
   };
 
+  const onOpenTrackerKeyboardHelp = useCallback(() => {
+    setShowTrackerKeyHelp(true);
+  }, []);
+
+  const onCloseTrackerKeyboardHelp = useCallback(() => {
+    setShowTrackerKeyHelp(false);
+  }, []);
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.code === "Escape") {
+        onCloseTrackerKeyboardHelp();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [onCloseTrackerKeyboardHelp]);
+
   return (
     <ThemeProvider>
       <GlobalStyle />
@@ -179,34 +212,51 @@ const Preferences = () => {
             name="trackerKeyBindings"
             label={l10n("FIELD_UI_TRACKER_KEYBINDINGS")}
           >
-            <Select
-              value={currentTrackerKeyBindings}
-              options={trackerKeyBindingsOptions}
-              onChange={(newValue: SingleValue<Options>) => {
-                if (newValue) {
-                  onChangeTrackerKeyBindings(newValue.value);
-                }
-              }}
-              formatOptionLabel={(
-                option: Options,
-                { context }: { context: "menu" | "value" },
-              ) => {
-                return (
-                  <OptionLabelWithInfo
-                    info={
-                      context === "menu"
-                        ? trackerKeyBindingsOptionsInfo[option.value]
-                        : ""
-                    }
-                  >
-                    {option.label}
-                    {context === "value"
-                      ? ` (${trackerKeyBindingsOptionsInfo[option.value]})`
-                      : ""}
-                  </OptionLabelWithInfo>
-                );
-              }}
-            />
+            <InputGroup>
+              <Select
+                value={currentTrackerKeyBindings}
+                options={trackerKeyBindingsOptions}
+                onChange={(newValue: SingleValue<Options>) => {
+                  if (newValue) {
+                    onChangeTrackerKeyBindings(newValue.value);
+                  }
+                }}
+                formatOptionLabel={(
+                  option: Options,
+                  { context }: { context: "menu" | "value" },
+                ) => {
+                  return (
+                    <OptionLabelWithInfo
+                      info={
+                        context === "menu"
+                          ? trackerKeyBindingsOptionsInfo[option.value]
+                          : ""
+                      }
+                    >
+                      {option.label}
+                      {context === "value"
+                        ? ` (${trackerKeyBindingsOptionsInfo[option.value]})`
+                        : ""}
+                    </OptionLabelWithInfo>
+                  );
+                }}
+              />
+              <InputGroupAppend>
+                <Button onClick={onOpenTrackerKeyboardHelp}>
+                  <HelpIcon />
+                </Button>
+                {showTrackerKeyHelp && (
+                  <RelativePortal pin="bottom-right" offsetY={-55}>
+                    <StyledTrackerKeyHelpOverlay
+                      onClick={onCloseTrackerKeyboardHelp}
+                    >
+                      <MenuOverlay onClick={onCloseTrackerKeyboardHelp} />
+                      <TrackerKeysPreview octaveOffset={0} />
+                    </StyledTrackerKeyHelpOverlay>
+                  </RelativePortal>
+                )}
+              </InputGroupAppend>
+            </InputGroup>
           </FormField>
         </FormRow>
       </PreferencesWrapper>

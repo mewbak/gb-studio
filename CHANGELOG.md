@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add ability to loop playback of a single pattern in the Music Editor
 - Add support for split patterns in the Music Editor, allowing different patterns to be set per channel
 - Add note sustain previews to Piano Roll view
+- Add ability to view current tracker keyboard layout (accessible in Preferences window in main app, and in menu `Input / Tracker Keyboard Layout` on music web app)
 - Ukrainian localisation. [@AmakerGame](https://github.com/AmakerGame)
 
 ### Changed
