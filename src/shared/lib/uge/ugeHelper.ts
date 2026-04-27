@@ -13,11 +13,10 @@ import {
   addDutyInstrument,
   addNoiseInstrument,
   addWaveInstrument,
-  createPatternCell,
+  createPattern,
   createSong,
   createSubPatternCell,
 } from "./song";
-import { Tuple } from "shared/types";
 import { isSplitPatternSequence } from "shared/lib/uge/editor/helpers";
 
 interface InstrumentMap {
@@ -372,24 +371,31 @@ export const loadUGESong = (buffer: Buffer): Song => {
     }
   });
 
-  song.patterns = patterns.map(
-    (pattern) =>
-      pattern.map((row) => {
-        const cell = createPatternCell();
-        const [note, instrument, effectCode, effectParam] = row;
-        if (note !== 90) {
-          cell.note = note;
-        }
-        if (instrument !== 0) {
-          cell.instrument = instrument - 1;
-        }
-        if (effectCode !== 0 || effectParam !== 0) {
-          cell.effectCode = effectCode;
-          cell.effectParam = effectParam;
-        }
-        return cell;
-      }) as Tuple<PatternCell, 64>,
-  );
+  song.patterns = Array.from(patterns).map((patternData) => {
+    const pattern = createPattern();
+    if (!patternData) {
+      return pattern;
+    }
+
+    const rowCount = Math.min(patternData.length, pattern.length);
+
+    for (let i = 0; i < rowCount; i++) {
+      const cell = pattern[i];
+      const [note, instrument, effectCode, effectParam] = patternData[i];
+      if (note !== 90) {
+        cell.note = note;
+      }
+      if (instrument !== 0) {
+        cell.instrument = instrument - 1;
+      }
+      if (effectCode !== 0 || effectParam !== 0) {
+        cell.effectCode = effectCode;
+        cell.effectParam = effectParam;
+      }
+    }
+
+    return pattern;
+  });
 
   song.sequence = Array.from(orders[0]).map((value, index) => {
     const channels: [number, number, number, number] = [

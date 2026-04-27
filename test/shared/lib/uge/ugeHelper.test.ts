@@ -1,3 +1,4 @@
+import { readFileSync } from "fs";
 import {
   createPattern,
   createSong,
@@ -8,6 +9,9 @@ import {
   loadUGESong,
   saveUGESong,
 } from "../../../../src/shared/lib/uge/ugeHelper";
+import { join } from "path";
+
+const EXAMPLES_DIR = join(__dirname, "../../../data/music/");
 
 const makePattern = (note: number) => {
   const pattern = createPattern();
@@ -137,5 +141,20 @@ describe("compactUGESong", () => {
       { splitPattern: false, channels: [0, 1, 2, 3] },
     ]);
     expect(reloaded.patterns[0][0].note).toBe(5);
+  });
+});
+
+describe("loadUGESong", () => {
+  it("loads .UGE files with sparse pattern data as dense pattern arrays", () => {
+    const buf = readFileSync(join(EXAMPLES_DIR, "sparse.uge"));
+    const song = loadUGESong(buf);
+
+    for (let i = 0; i < song.patterns.length; i++) {
+      expect(song.patterns[i]).toBeDefined();
+      expect(song.patterns[i]).toHaveLength(64);
+      for (let rowIndex = 0; rowIndex < 64; rowIndex++) {
+        expect(song.patterns[i][rowIndex]).toBeDefined();
+      }
+    }
   });
 });
