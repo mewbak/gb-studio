@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   StyledConfirmModal,
   StyledConfirmCloseButton,
@@ -9,6 +9,7 @@ import styled from "styled-components";
 import { Button } from "ui/buttons/Button";
 import { CheckIcon, CloseIcon } from "ui/icons/Icons";
 import { MenuOverlay } from "ui/menu/Menu";
+import FocusLock from "react-focus-lock";
 import appIconUrl from "gbs-music-web/components/ui/icons/app_music_icon_180.png";
 
 interface AboutDialogProps {
@@ -77,8 +78,20 @@ export const AboutDialog = ({ onClose }: AboutDialogProps) => {
     setCacheCleared(true);
   }, []);
 
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.code === "Escape") {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [onClose]);
+
   return (
-    <>
+    <FocusLock>
       <MenuOverlay onClick={onClose} />
       <StyledConfirmModal
         role="dialog"
@@ -105,6 +118,6 @@ export const AboutDialog = ({ onClose }: AboutDialogProps) => {
           </Button>
         </StyledConfirmActions>
       </StyledConfirmModal>
-    </>
+    </FocusLock>
   );
 };

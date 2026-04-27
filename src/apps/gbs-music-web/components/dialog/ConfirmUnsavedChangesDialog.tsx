@@ -8,6 +8,7 @@ import React, { useEffect } from "react";
 import l10n from "shared/lib/lang/l10n";
 import { Button } from "ui/buttons/Button";
 import { MenuOverlay } from "ui/menu/Menu";
+import FocusLock from "react-focus-lock";
 
 interface ConfirmUnsavedChangesDialogProps {
   filename: string;
@@ -35,7 +36,7 @@ export const ConfirmUnsavedChangesDialog = ({
   }, [onCancel]);
 
   return (
-    <>
+    <FocusLock>
       <MenuOverlay onClick={onCancel} />
       <StyledConfirmModal role="dialog" aria-modal="true">
         <StyledConfirmTitle>
@@ -56,6 +57,6 @@ export const ConfirmUnsavedChangesDialog = ({
           <Button onClick={onCancel}>{l10n("DIALOG_CANCEL")}</Button>
         </StyledConfirmActions>
       </StyledConfirmModal>
-    </>
+    </FocusLock>
   );
 };
