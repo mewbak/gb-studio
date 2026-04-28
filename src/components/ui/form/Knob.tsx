@@ -221,7 +221,7 @@ export const Knob = ({
   const dragStartYRef = useRef(0);
   const dragStartValueRef = useRef(0);
   const dragAxisRef = useRef<DragAxis>(null);
-  const touchValue = useRef<number | null>(0);
+  const touchValue = useRef<number | null>(null);
 
   const [isDragging, setIsDragging] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -437,6 +437,7 @@ export const Knob = ({
       dragStartYRef.current = event.clientY;
       dragStartValueRef.current = safeValue;
       dragAxisRef.current = null;
+      touchValue.current = null;
       setDragAxisState(null);
       setOverlayValue(safeValue);
       setIsDragging(true);
