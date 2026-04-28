@@ -169,9 +169,14 @@ const ValueOverlay = styled.div`
   pointer-events: none;
   white-space: nowrap;
   padding: 2px 6px;
-  font-size: 11px;
-  z-index: 10001;
+  font-size: 10px;
+  opacity: 0.5;
   color: ${(props) => props.theme.colors.input.text};
+
+  ${KnobButton}:focus + & {
+    z-index: 10001;
+    opacity: 1;
+  }
 `;
 
 const EditInput = styled.input`
@@ -706,9 +711,7 @@ export const Knob = ({
           />
         )}
       </KnobButton>
-      {(isDragging || isKeyboardAdjusting) && (
-        <ValueOverlay>{displayText}</ValueOverlay>
-      )}
+      {!isEditing && <ValueOverlay>{displayText}</ValueOverlay>}
     </Root>
   );
 };
