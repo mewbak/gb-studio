@@ -72,6 +72,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix BPM label calculation in Music Editor
 - Fix issue where Select All could stop working in Tracker view
 - Fix issue where multiple context menus could be opened at once
+- Fix issue where colors could appear differently in palette editor to how they appear in game
 
 ## [4.2.2] - 2026-02-24
 

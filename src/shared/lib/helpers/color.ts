@@ -186,7 +186,7 @@ export const rawHexToCorrectedHex = (hex: RawHex): CorrectedHex => {
 /**
  * Convert an 8-bit channel to nearest 5-bit GBC channel.
  */
-const channel8To5 = (c8: number) => clamp31(Math.round((c8 * 31) / 255));
+const channel8To5 = (c8: number) => clamp31(Math.floor((c8 * 32) / 256));
 
 /**
  * Convert a 5-bit GBC channel to its canonical 8-bit representation.

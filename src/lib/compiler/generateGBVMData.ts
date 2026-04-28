@@ -1116,10 +1116,10 @@ export const compileTilemapAttrHeader = (tilemapAttr: PrecompiledTileData) =>
     `// Tilemap Attr ${tilemapAttr.symbol}`,
   );
 
-const compileColor = (hex: string): string => {
+export const compileColor = (hex: string): string => {
   const r = Math.floor(hexDec(hex.substring(0, 2)) * (32 / 256));
   const g = Math.floor(hexDec(hex.substring(2, 4)) * (32 / 256));
-  const b = Math.max(1, Math.floor(hexDec(hex.substring(4, 6)) * (32 / 256)));
+  const b = Math.floor(hexDec(hex.substring(4, 6)) * (32 / 256));
   return `RGB(${r}, ${g}, ${b})`;
 };
 
