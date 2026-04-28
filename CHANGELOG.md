@@ -74,6 +74,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix issue where multiple context menus could be opened at once
 - Fix issue where colors could appear differently in palette editor to how they appear in game
 - Fix issue where changing one color in a palette could also slightly change the other colors
+- Fix issue where palette editor sliders were not updating after undo and redo
 
 ## [4.2.2] - 2026-02-24
 

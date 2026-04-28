@@ -216,8 +216,11 @@ const RGBtoHSV = (r: number, g: number, b: number) => {
 
 const CustomPalettePicker = ({ paletteId }: CustomPalettePickerProps) => {
   const dispatch = useAppDispatch();
-
-  const prevPaletteIdRef = useRef<string | undefined>(undefined);
+  const pendingColorUpdateRef = useRef<CanonicalRawHex | null>(null);
+  const previousSelectionRef = useRef<{
+    paletteId: string;
+    selectedColor: ColorIndex;
+  } | null>(null);
 
   const palette = useAppSelector((state) =>
     paletteSelectors.selectById(state, paletteId),
@@ -239,6 +242,7 @@ const CustomPalettePicker = ({ paletteId }: CustomPalettePickerProps) => {
 
   const updateCurrentColor = useCallback(
     (newHex: CanonicalRawHex) => {
+      pendingColorUpdateRef.current = newHex;
       dispatch(
         entitiesActions.editPaletteColor({
           paletteId,
@@ -535,18 +539,29 @@ const CustomPalettePicker = ({ paletteId }: CustomPalettePickerProps) => {
     };
   });
 
+  const selectedPaletteColor = palette?.colors[selectedColor];
+
   useEffect(() => {
-    if (prevPaletteIdRef.current !== paletteId) {
-      initialiseColorValues(palette?.colors[selectedColor], selectedColor);
-      prevPaletteIdRef.current = paletteId;
+    const selectionChanged =
+      previousSelectionRef.current?.paletteId !== paletteId ||
+      previousSelectionRef.current?.selectedColor !== selectedColor;
+
+    const canonicalSelectedColor = rawHexToClosestRepresentableRawHex(
+      selectedPaletteColor || defaultColors[selectedColor],
+    );
+
+    previousSelectionRef.current = { paletteId, selectedColor };
+
+    const shouldInitialise =
+      selectionChanged ||
+      pendingColorUpdateRef.current !== canonicalSelectedColor;
+
+    if (shouldInitialise) {
+      initialiseColorValues(selectedPaletteColor, selectedColor);
     }
-  }, [
-    applyHexToState,
-    initialiseColorValues,
-    palette?.colors,
-    paletteId,
-    selectedColor,
-  ]);
+
+    pendingColorUpdateRef.current = null;
+  }, [initialiseColorValues, paletteId, selectedColor, selectedPaletteColor]);
 
   if (!palette) {
     return <div />;
