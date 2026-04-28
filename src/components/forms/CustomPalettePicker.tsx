@@ -237,76 +237,17 @@ const CustomPalettePicker = ({ paletteId }: CustomPalettePickerProps) => {
   const [colorHex, setColorHex] = useState("000000");
   const [colorCorrectedHex, setColorCorrectedHex] = useState("000000");
 
-  const getWhiteHex = useCallback(
-    () =>
-      rawHexToClosestRepresentableRawHex(palette?.colors[0] || DEFAULT_WHITE),
-    [palette?.colors],
-  );
-  const getLightHex = useCallback(
-    () =>
-      rawHexToClosestRepresentableRawHex(palette?.colors[1] || DEFAULT_LIGHT),
-    [palette?.colors],
-  );
-  const getDarkHex = useCallback(
-    () =>
-      rawHexToClosestRepresentableRawHex(palette?.colors[2] || DEFAULT_DARK),
-    [palette?.colors],
-  );
-  const getBlackHex = useCallback(
-    () =>
-      rawHexToClosestRepresentableRawHex(palette?.colors[3] || DEFAULT_BLACK),
-    [palette?.colors],
-  );
-
   const updateCurrentColor = useCallback(
     (newHex: CanonicalRawHex) => {
-      if (selectedColor === 0) {
-        dispatch(
-          entitiesActions.editPalette({
-            paletteId,
-            changes: {
-              colors: [newHex, getLightHex(), getDarkHex(), getBlackHex()],
-            },
-          }),
-        );
-      } else if (selectedColor === 1) {
-        dispatch(
-          entitiesActions.editPalette({
-            paletteId,
-            changes: {
-              colors: [getWhiteHex(), newHex, getDarkHex(), getBlackHex()],
-            },
-          }),
-        );
-      } else if (selectedColor === 2) {
-        dispatch(
-          entitiesActions.editPalette({
-            paletteId,
-            changes: {
-              colors: [getWhiteHex(), getLightHex(), newHex, getBlackHex()],
-            },
-          }),
-        );
-      } else if (selectedColor === 3) {
-        dispatch(
-          entitiesActions.editPalette({
-            paletteId,
-            changes: {
-              colors: [getWhiteHex(), getLightHex(), getDarkHex(), newHex],
-            },
-          }),
-        );
-      }
+      dispatch(
+        entitiesActions.editPaletteColor({
+          paletteId,
+          colorId: selectedColor,
+          color: newHex,
+        }),
+      );
     },
-    [
-      dispatch,
-      getBlackHex,
-      getDarkHex,
-      getLightHex,
-      getWhiteHex,
-      paletteId,
-      selectedColor,
-    ],
+    [dispatch, paletteId, selectedColor],
   );
 
   const updateHexInputs = useCallback((hex: CanonicalRawHex) => {
@@ -386,28 +327,14 @@ const CustomPalettePicker = ({ paletteId }: CustomPalettePickerProps) => {
 
   const onColorSelect = useCallback(
     (colorIndex: ColorIndex) => {
-      let editHex: CanonicalRawHex = "000000" as CanonicalRawHex;
-      if (colorIndex === 0) {
-        editHex = getWhiteHex();
-      } else if (colorIndex === 1) {
-        editHex = getLightHex();
-      } else if (colorIndex === 2) {
-        editHex = getDarkHex();
-      } else if (colorIndex === 3) {
-        editHex = getBlackHex();
-      }
+      const editHex = rawHexToClosestRepresentableRawHex(
+        palette?.colors[colorIndex] || defaultColors[colorIndex],
+      );
       setSelectedColor(colorIndex);
       updateHexInputs(editHex);
       applyHexToState(editHex);
     },
-    [
-      applyHexToState,
-      getBlackHex,
-      getDarkHex,
-      getLightHex,
-      getWhiteHex,
-      updateHexInputs,
-    ],
+    [applyHexToState, palette?.colors, updateHexInputs],
   );
 
   const onChangeHex = useCallback(

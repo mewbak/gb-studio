@@ -1470,6 +1470,36 @@ test("Should be able to edit a palette", () => {
   ]);
 });
 
+test("Should be able to edit a single palette color without changing others", () => {
+  const state: EntitiesState = {
+    ...initialState,
+    palettes: {
+      entities: {
+        palette1: {
+          ...dummyPalette,
+          id: "palette1",
+          colors: ["050505", "05050D", "050515", "202850"],
+        },
+      },
+      ids: ["palette1"],
+    },
+  };
+
+  const action = actions.editPaletteColor({
+    paletteId: "palette1",
+    colorId: 3,
+    color: "000000",
+  });
+
+  const newState = reducer(state, action);
+  expect(newState.palettes.entities[action.payload.paletteId]?.colors).toEqual([
+    "050505",
+    "05050D",
+    "050515",
+    "000000",
+  ]);
+});
+
 test("Should be able to remove a palette", () => {
   const state: EntitiesState = {
     ...initialState,

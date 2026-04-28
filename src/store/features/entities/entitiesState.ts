@@ -4031,6 +4031,32 @@ const editPalette: CaseReducer<
   });
 };
 
+const editPaletteColor: CaseReducer<
+  EntitiesState,
+  PayloadAction<{
+    paletteId: string;
+    colorId: 0 | 1 | 2 | 3;
+    color: string;
+  }>
+> = (state, action) => {
+  const existingPalette = state.palettes.entities[action.payload.paletteId];
+  if (!existingPalette) {
+    return;
+  }
+
+  const [white, light, dark, black] = existingPalette.colors;
+
+  if (action.payload.colorId === 0) {
+    existingPalette.colors = [action.payload.color, light, dark, black];
+  } else if (action.payload.colorId === 1) {
+    existingPalette.colors = [white, action.payload.color, dark, black];
+  } else if (action.payload.colorId === 2) {
+    existingPalette.colors = [white, light, action.payload.color, black];
+  } else {
+    existingPalette.colors = [white, light, dark, action.payload.color];
+  }
+};
+
 const duplicatePalette: CaseReducer<
   EntitiesState,
   PayloadAction<{ paletteId: string; newPaletteId: string }>
@@ -5260,6 +5286,7 @@ const entitiesSlice = createSlice({
       },
     },
     editPalette,
+    editPaletteColor,
     duplicatePalette: {
       reducer: duplicatePalette,
       prepare: (payload: { paletteId: string }) => {
