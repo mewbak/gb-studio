@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 import l10n from "shared/lib/lang/l10n";
 import styled from "styled-components";
 import { CheckboxField } from "ui/form/CheckboxField";
@@ -68,20 +68,22 @@ const mapDisplayValueToStoredVolume = (
   value: number,
   currentDisplayValue: number,
 ): number => {
-  const closestDisplayValue = waveVolumeDisplays.reduce((closest, candidate) => {
-    const closestDistance = Math.abs(value - closest);
-    const candidateDistance = Math.abs(value - candidate);
+  const closestDisplayValue = waveVolumeDisplays.reduce(
+    (closest, candidate) => {
+      const closestDistance = Math.abs(value - closest);
+      const candidateDistance = Math.abs(value - candidate);
 
-    if (candidateDistance !== closestDistance) {
-      return candidateDistance < closestDistance ? candidate : closest;
-    }
+      if (candidateDistance !== closestDistance) {
+        return candidateDistance < closestDistance ? candidate : closest;
+      }
 
-    if (value > currentDisplayValue) {
-      return candidate;
-    }
+      if (value > currentDisplayValue) {
+        return candidate;
+      }
 
-    return closest;
-  });
+      return closest;
+    },
+  );
 
   return waveVolumeDisplayToStored[closestDisplayValue];
 };
@@ -92,15 +94,31 @@ export const InstrumentWaveEnvelopeEditor = ({
   onChangeVolume,
   onChangeLength,
 }: InstrumentWaveEnvelopeEditorProps) => {
+  const lastRequestedDisplayValueRef = useRef(mapInput(volume));
+  const lastResolvedStoredVolumeRef = useRef(volume);
+
+  useEffect(() => {
+    lastResolvedStoredVolumeRef.current = volume;
+  }, [volume]);
+
   const fixedOnChangeVolume = useCallback(
     (value: number) => {
-      onChangeVolume(mapDisplayValueToStoredVolume(value, mapInput(volume)));
+      const previousRequestedDisplayValue =
+        lastRequestedDisplayValueRef.current;
+      const nextStoredVolume =
+        value === 75 && previousRequestedDisplayValue === 75
+          ? lastResolvedStoredVolumeRef.current
+          : mapDisplayValueToStoredVolume(value, previousRequestedDisplayValue);
+
+      lastRequestedDisplayValueRef.current = value;
+      lastResolvedStoredVolumeRef.current = nextStoredVolume;
+      onChangeVolume(nextStoredVolume);
     },
-    [onChangeVolume, volume],
+    [onChangeVolume],
   );
 
-  const formatValue = useCallback((value: number) => {
-    return `${value}%`;
+  const formatValue = useCallback(() => {
+    return `${mapInput(lastResolvedStoredVolumeRef.current)}%`;
   }, []);
 
   return (
