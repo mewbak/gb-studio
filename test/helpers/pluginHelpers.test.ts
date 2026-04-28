@@ -5,6 +5,8 @@ import {
 } from "lib/pluginManager/types";
 import {
   buildPluginItems,
+  createPreserveFilesFilter,
+  createRemoveFilesFilter,
   filterPluginItems,
   isGlobalPluginType,
   pluginDescriptionForType,
@@ -290,5 +292,97 @@ describe("filterPluginItems", () => {
     const output = filterPluginItems(pluginItems, "P2", "", "");
     expect(output.length).toEqual(1);
     expect(output[0].plugin.name).toInclude("P2");
+  });
+});
+
+describe("createPreserveFilesFilter", () => {
+  test("should create a filter that preserves specified files", () => {
+    const filter = createPreserveFilesFilter([".png"]);
+    expect(filter("assets/image.png")).toEqual(true);
+    expect(filter("assets/image.jpg")).toEqual(false);
+    expect(filter("file.txt")).toEqual(false);
+  });
+
+  test("should create a case insensitive filter when using simple string matches", () => {
+    const filter = createPreserveFilesFilter([".PnG"]);
+    expect(filter("assets/image.png")).toEqual(true);
+    expect(filter("assets/image.PNG")).toEqual(true);
+    expect(filter("assets/image.pNg")).toEqual(true);
+    expect(filter("assets/image.jpg")).toEqual(false);
+    expect(filter("file.txt")).toEqual(false);
+  });
+
+  test("should not preserve .gbsres and .gbsres.bak files by default", () => {
+    const filter = createPreserveFilesFilter([".png"]);
+    expect(filter("file.gbsres")).toEqual(false);
+    expect(filter("file.gbsres.bak")).toEqual(false);
+  });
+
+  test("should preserve .gbsres if specified by filter", () => {
+    const filter = createPreserveFilesFilter([".gbsres"]);
+    expect(filter("file.gbsres")).toEqual(true);
+    expect(filter("file.gbsres.bak")).toEqual(true);
+  });
+
+  test("should allow specifying regex matches", () => {
+    const filter = createPreserveFilesFilter(["/^[^/]*\\.gbsres/"]);
+    expect(filter("file.gbsres")).toEqual(true);
+    expect(filter("subfolder/file.gbsres")).toEqual(false);
+  });
+
+  test("should be case sensitive for regex matches by default", () => {
+    const filter = createPreserveFilesFilter(["/^[^/]*\\.gbsres/"]);
+    expect(filter("file.gbsres")).toEqual(true);
+    expect(filter("file.GBSRES")).toEqual(false);
+  });
+
+  test("should allow case insensitive regex matches", () => {
+    const filter = createPreserveFilesFilter(["/^[^/]*\\.gbsres/i"]);
+    expect(filter("file.gbsres")).toEqual(true);
+    expect(filter("file.GBSRES")).toEqual(true);
+  });
+
+  test("should normalise Windows backslash paths before matching", () => {
+    const filter = createPreserveFilesFilter([".png"]);
+    expect(filter("assets\\image.png")).toEqual(true);
+    expect(filter("assets\\image.jpg")).toEqual(false);
+  });
+
+  test("should normalise Windows backslash paths before regex matching", () => {
+    const filter = createPreserveFilesFilter(["/^assets\\/.*\\.png$/"]);
+    expect(filter("assets\\image.png")).toEqual(true);
+    expect(filter("other\\image.png")).toEqual(false);
+  });
+});
+
+describe("createRemoveFilesFilter", () => {
+  test("should filter out .gbsres and .gbsres.bak files to prevent removal", () => {
+    const filter = createRemoveFilesFilter([], "plugins/p1");
+    expect(filter("plugins/p1/file.gbsres")).toEqual(false);
+    expect(filter("plugins/p1/file.gbsres.bak")).toEqual(false);
+    expect(filter("plugins/p1/file.txt")).toEqual(true);
+  });
+  test("should remove unmatched files when no preserve files provided", () => {
+    const filter = createRemoveFilesFilter([], "plugins/p1");
+    expect(filter("plugins/p1/file.txt")).toEqual(true);
+  });
+  test("should preserve files matching preserve patterns", () => {
+    const filter = createRemoveFilesFilter([".png"], "plugins/p1");
+    expect(filter("plugins/p1/assets/image.png")).toEqual(false);
+    expect(filter("plugins/p1/assets/image.jpg")).toEqual(true);
+    expect(filter("plugins/p1/file.txt")).toEqual(true);
+  });
+  test("should allow multiple preserve patterns", () => {
+    const filter = createRemoveFilesFilter([".png", ".json"], "plugins/p1");
+    expect(filter("plugins/p1/assets/image.png")).toEqual(false);
+    expect(filter("plugins/p1/data/config.json")).toEqual(false);
+    expect(filter("plugins/p1/assets/image.jpg")).toEqual(true);
+    expect(filter("plugins/p1/file.txt")).toEqual(true);
+  });
+  test("should normalise Windows backslash paths before matching", () => {
+    const filter = createRemoveFilesFilter([".png"], "plugins\\p1");
+    expect(filter("plugins\\p1\\assets\\image.png")).toEqual(false);
+    expect(filter("plugins\\p1\\file.gbsres")).toEqual(false);
+    expect(filter("plugins\\p1\\assets\\image.jpg")).toEqual(true);
   });
 });

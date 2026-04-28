@@ -9,7 +9,7 @@ import { Value } from "@sinclair/typebox/value";
 import { checksumString } from "lib/helpers/checksum";
 import { join, dirname, relative } from "path";
 import l10n from "shared/lib/lang/l10n";
-import { createWriteStream, remove } from "fs-extra";
+import { createWriteStream, pathExists, remove } from "fs-extra";
 import getTmp from "lib/helpers/getTmp";
 import AdmZip from "adm-zip";
 import { rimraf as rmdir } from "rimraf";
@@ -21,7 +21,11 @@ import { dialog } from "electron";
 import confirmDeletePluginRepository from "lib/electron/dialog/confirmDeletePluginRepository";
 import { guardAssetWithinProject } from "lib/helpers/assets";
 import { OFFICIAL_REPO_URL } from "consts";
-import { isGlobalPluginType } from "shared/lib/plugins/pluginHelpers";
+import {
+  createPreserveFilesFilter,
+  createRemoveFilesFilter,
+  isGlobalPluginType,
+} from "shared/lib/plugins/pluginHelpers";
 import { ensureGlobalPluginsPath } from "./globalPlugins";
 
 declare const VERSION: string;
@@ -210,17 +214,27 @@ export const addPluginToProject = async (
     // Clean up any existing files from previous version of plugin
     // Keep any .gbsres files as removing them could unlink assets
     await rmdir(outputPath, {
-      filter: (file) => {
-        if (file.endsWith(".gbsres") || file.endsWith(".gbsres.bak")) {
-          return false;
-        }
-        return true;
-      },
+      filter: createRemoveFilesFilter(plugin.preserveFiles, outputPath),
     });
 
-    // Extract plugin
+    // Extract plugin, skipping preserved files that already exist on disk
     const zip = new AdmZip(tmpPluginZipPath);
-    zip.extractAllTo(outputPath, true);
+
+    const preserveFilesFilter = createPreserveFilesFilter(plugin.preserveFiles);
+
+    if (!plugin.preserveFiles || plugin.preserveFiles.length === 0) {
+      zip.extractAllTo(outputPath, true);
+    } else {
+      for (const entry of zip.getEntries()) {
+        if (entry.isDirectory) continue;
+        const shouldPreserve =
+          preserveFilesFilter(entry.entryName) &&
+          (await pathExists(join(outputPath, entry.entryName)));
+        if (!shouldPreserve) {
+          zip.extractEntryTo(entry, outputPath, true, true);
+        }
+      }
+    }
 
     // Remove tmp files
     await remove(tmpPluginZipPath);

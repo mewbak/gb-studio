@@ -55,6 +55,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Piano roll view now highlights rows with sharp notes
 - Smoother playhead movement and auto-scrolling in the Piano Roll view
 - Compiled music no longer includes unused instrument subpatterns
+- Plugins can now specify `preserveFiles` to prevent files from being overwritten when updated in the Plugin Manager
 
 ### Fixed
 

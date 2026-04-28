@@ -1,5 +1,5 @@
 import semverGt from "semver/functions/gt";
-import { join } from "path";
+import { join, relative } from "path";
 import type {
   InstalledPluginData,
   PluginMetadata,
@@ -134,4 +134,55 @@ export const filterPluginItems = (
 
       return a.id.localeCompare(b.id);
     });
+};
+
+const toUnixPath = (filePath: string) => filePath.replace(/\\/g, "/");
+
+export const createPreserveFilesFilter = (
+  preserveFiles: string[] | undefined,
+) => {
+  const caseInsensitiveMatch = (file: string, entry: string) => {
+    return file.toLowerCase().includes(entry.toLowerCase());
+  };
+  const compiled = preserveFiles
+    ? preserveFiles.map((entry) => {
+        // If entry was a regex use regex matching
+        if (entry.startsWith("/") && entry.lastIndexOf("/") > 0) {
+          const lastSlash = entry.lastIndexOf("/");
+          const pattern = entry.slice(1, lastSlash);
+          const flags = entry.slice(lastSlash + 1);
+          try {
+            const regex = new RegExp(pattern, flags);
+            return (file: string) => regex.test(file);
+          } catch {
+            // Invalid regex, fallback to substring match
+            return (file: string) => caseInsensitiveMatch(file, entry);
+          }
+        }
+        // Non-regex use substring match
+        return (file: string) => caseInsensitiveMatch(file, entry);
+      })
+    : [];
+
+  return (file: string) => {
+    const unixFile = toUnixPath(file);
+    return compiled.some((match) => match(unixFile));
+  };
+};
+
+export const createRemoveFilesFilter = (
+  preserveFiles: string[] | undefined,
+  pluginRoot: string,
+) => {
+  const preserveFilter = createPreserveFilesFilter(preserveFiles);
+  return (file: string) => {
+    const relativeFilePath = toUnixPath(relative(pluginRoot, file));
+    if (
+      relativeFilePath.endsWith(".gbsres") ||
+      relativeFilePath.endsWith(".gbsres.bak")
+    ) {
+      return false;
+    }
+    return !preserveFilter(relativeFilePath);
+  };
 };
