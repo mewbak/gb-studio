@@ -12,11 +12,11 @@ interface SliderProps {
   onChange?: (value: number) => void;
 }
 
-const TRACK_PADDING = 9;
+const TRACK_PADDING = 8;
 const TRACK_RADIUS = 40;
-const THUMB_SIZE = 14;
+const THUMB_SIZE = 12;
 const EDGE_FILL_SIZE = 12;
-const EDGE_FILL_OFFSET = -7;
+const EDGE_FILL_OFFSET = -6;
 
 const RangeInner = styled.div`
   display: flex;
@@ -116,12 +116,13 @@ const RangeThumb = styled.div`
   height: ${THUMB_SIZE}px;
   width: ${THUMB_SIZE}px;
   border-radius: 999px;
-  background: ${(props) => props.theme.colors.input.background};
-  border: 1px solid ${(props) => props.theme.colors.input.border};
+  background: ${(props) => props.theme.colors.highlight};
+  border: 2px solid ${(props) => props.theme.colors.highlight};
   box-sizing: border-box;
 
-  &:focus {
-    border: 2px solid ${(props) => props.theme.colors.highlight};
+  &:focus,
+  ${RangeInner}:hover & {
+    background: ${(props) => props.theme.colors.highlightText};
   }
 
   ${() =>
