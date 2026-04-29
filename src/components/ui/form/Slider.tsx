@@ -12,11 +12,11 @@ interface SliderProps {
   onChange?: (value: number) => void;
 }
 
-const TRACK_PADDING = 14;
-const TRACK_RADIUS = 20;
-const THUMB_SIZE = 20;
-const EDGE_FILL_SIZE = 20;
-const EDGE_FILL_OFFSET = -10;
+const TRACK_PADDING = 9;
+const TRACK_RADIUS = 40;
+const THUMB_SIZE = 14;
+const EDGE_FILL_SIZE = 12;
+const EDGE_FILL_OFFSET = -7;
 
 const RangeInner = styled.div`
   display: flex;
@@ -33,7 +33,7 @@ const RangeInner = styled.div`
 const RangeTrack = styled.div`
   position: relative;
   width: 100%;
-  height: 28px;
+  height: 18px;
   border-radius: ${TRACK_RADIUS}px;
   align-self: center;
   background: ${(props) => props.theme.colors.input.background};
@@ -55,10 +55,10 @@ interface RangeTrackFillProps {
 
 const RangeTrackFill = styled.div<RangeTrackFillProps>`
   position: absolute;
-  top: 3px;
+  top: 2px;
   left: ${TRACK_PADDING}px;
   right: ${TRACK_PADDING}px;
-  bottom: 3px;
+  bottom: 2px;
 
   ${(props) =>
     props.$showStartCap
@@ -84,8 +84,8 @@ const RangeTrackFill = styled.div<RangeTrackFillProps>`
     right: 18px;
 
     &:before {
-      width: 28px;
-      left: -14px;
+      width: 32px;
+      left: -16px;
       border-radius: 32px;
     }
   }`}
@@ -115,32 +115,20 @@ const ZeroMarker = styled.div<ZeroMarkerProps>`
 const RangeThumb = styled.div`
   height: ${THUMB_SIZE}px;
   width: ${THUMB_SIZE}px;
-  border-radius: 20px;
+  border-radius: 999px;
   background: ${(props) => props.theme.colors.input.background};
-  border: 2px solid ${(props) => props.theme.colors.highlight};
+  border: 1px solid ${(props) => props.theme.colors.input.border};
   box-sizing: border-box;
 
-  ${() =>
-    API.env === "web" &&
-    `@media (max-width: 840px) {
-    width: 30px;
-    height: 30px;
-  }`}
-`;
-
-const ShadowBorder = styled.div`
-  position: absolute;
-  height: ${THUMB_SIZE - 4}px;
-  width: ${THUMB_SIZE - 4}px;
-  border-radius: 80px;
-  box-shadow: 0px 0px 3px 1px ${(props) => props.theme.colors.text} inset;
-  opacity: 0.3;
+  &:focus {
+    border: 2px solid ${(props) => props.theme.colors.highlight};
+  }
 
   ${() =>
     API.env === "web" &&
     `@media (max-width: 840px) {
-    width: 26px;
-    height: 26px;
+    width: 32px;
+    height: 32px;
   }`}
 `;
 
@@ -259,11 +247,7 @@ export const Slider: FC<SliderProps> = ({
           </RangeTrack>
         </RangeInner>
       )}
-      renderThumb={({ props }) => (
-        <RangeThumb {...props} style={props.style}>
-          <ShadowBorder />
-        </RangeThumb>
-      )}
+      renderThumb={({ props }) => <RangeThumb {...props} style={props.style} />}
     />
   );
 };
